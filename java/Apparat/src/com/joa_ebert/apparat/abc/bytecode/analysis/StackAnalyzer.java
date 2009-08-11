@@ -119,7 +119,7 @@ public final class StackAnalyzer
 
 		//
 		// We will store the maximum stack and scope depth of each
-		// basic block in a hashmap.
+		// basic block in a hash map.
 		//
 
 		final HashMap<BasicBlock<BytecodeVertex>, Integer> stackDepths = new LinkedHashMap<BasicBlock<BytecodeVertex>, Integer>();
@@ -171,6 +171,10 @@ public final class StackAnalyzer
 			scopeDepths.put( basicBlock, maxScopeDepth );
 		}
 
+		//
+		// Now the graph of basic blocks gets reduced.
+		//
+
 		final List<BasicBlock<BytecodeVertex>> blocksToMerge = new LinkedList<BasicBlock<BytecodeVertex>>();
 		final List<BasicBlock<BytecodeVertex>> blocksToRemove = new LinkedList<BasicBlock<BytecodeVertex>>();
 
@@ -184,8 +188,20 @@ public final class StackAnalyzer
 
 				if( 0 == outDegree )
 				{
+					//
+					// The vertex is a sink. Most probably because this is
+					// either a fully reduced graph and this vertex left
+					// is either the entry or it can be the exit.
+					//
+					// For now the entry and exit will never be removed.
+					//
+
 					if( 0 == blockGraph.indegreeOf( basicBlock ) )
 					{
+						//
+						// The block is dead. We can remove it.
+						//
+
 						if( basicBlock.kind != VertexKind.Default )
 						{
 							continue search;
@@ -197,17 +213,37 @@ public final class StackAnalyzer
 				}
 				else if( 1 == outDegree )
 				{
+					//
+					// Exactly one block is following the current.
+					//
+
 					final Edge<BasicBlock<BytecodeVertex>> edge = blockGraph
 							.outgoingOf( basicBlock ).get( 0 );
 					final BasicBlock<BytecodeVertex> nextBlock = edge.endVertex;
 
 					if( nextBlock == basicBlock )
 					{
+						//
+						// We have found a loop. We are save to remove the
+						// edge.
+						//
+
 						blockGraph.remove( edge );
 						continue loop;
 					}
 					else if( 1 == blockGraph.indegreeOf( nextBlock ) )
 					{
+						//
+						// The next basic block has only the current block
+						// as its predecessor.
+						//
+						// We are safe to remove the following block while
+						// we have to add the operand and scope stack values.
+						//
+						// The next block will not be removed. It will be merged
+						// into the current. We will patch all edges later.
+						//
+
 						if( nextBlock.kind != VertexKind.Default )
 						{
 							continue search;
@@ -231,11 +267,31 @@ public final class StackAnalyzer
 				}
 				else
 				{
+					//
+					// More than one edge is outgoing. Still no surprise.
+
+					//
+
 					final List<Edge<BasicBlock<BytecodeVertex>>> outgoingOf = blockGraph
 							.outgoingOf( basicBlock );
 
 					if( outgoingOf.size() == 2 )
 					{
+						//
+						// We have only two vertices to compare.
+						// This is a special case.
+						//
+						// Imagine the following:
+						//
+						// A -> B
+						// A -> C
+						// B -> C
+						//
+						// This is a simple if statement. We can remove the
+						// edge A -> C once we figured out who is B and C.
+						//
+						//
+
 						final BasicBlock<BytecodeVertex> block0 = outgoingOf
 								.get( 0 ).endVertex;
 
@@ -259,6 +315,21 @@ public final class StackAnalyzer
 							}
 							else
 							{
+								//
+								// This is not a simple if but maybe an if-else
+								// construct like this:
+								// 
+								// A -> B
+								// A -> C
+								// B -> D
+								// C -> D
+								//
+								// We are safe to remove either B or C
+								// completely once we figured out who has the
+								// higher stack depth. We will keep only the
+								// vertex with the highest depth.
+								//
+
 								final List<Edge<BasicBlock<BytecodeVertex>>> outgoingOf0 = blockGraph
 										.outgoingOf( block0 );
 								final List<Edge<BasicBlock<BytecodeVertex>>> outgoingOf1 = blockGraph
@@ -299,6 +370,29 @@ public final class StackAnalyzer
 					}
 					else
 					{
+						//
+						// More than two edges. This is a switch construct or
+						// something else.
+						//
+						// We are safe to keep only the best path if all blocks
+						// have the same merge point.
+						// 
+						// E.g.:
+						//
+						// A -> B0
+						// A -> B1
+						// A -> ..
+						// A -> Bn
+						// B0 -> C
+						// B1 -> C
+						// .. -> C
+						// Bn -> C
+						//
+						// In that case we search for the block Bn which has
+						// the highest operand and scope stack.
+						// All the other vertices can be ignored.
+						//
+
 						boolean isReducible = true;
 						BasicBlock<BytecodeVertex> mergeBlock = null;
 
@@ -330,6 +424,11 @@ public final class StackAnalyzer
 							if( 1 != blockGraph.indegreeOf( nextBlock )
 									|| 1 != blockGraph.outdegreeOf( nextBlock ) )
 							{
+								//
+								// This is not a reducible case since one of
+								// the blocks is reached from somewhere else.
+								//
+
 								isReducible = false;
 								break;
 							}
@@ -346,6 +445,11 @@ public final class StackAnalyzer
 								{
 									if( mergeBlock != outgoingOf2.get( 0 ).endVertex )
 									{
+										//
+										// Not all blocks merge at the same
+										// position so we are not safe.
+										//
+
 										isReducible = false;
 										break;
 									}
@@ -383,6 +487,11 @@ public final class StackAnalyzer
 
 				for( final BasicBlock<BytecodeVertex> blockToMerge : blocksToMerge )
 				{
+					//
+					// Here we merge all paths like A -> B -> C and patch all
+					// edges that B had so that A owns them now.
+					//
+
 					final BasicBlock<BytecodeVertex> predecessor = blockGraph
 							.incommingOf( blockToMerge ).get( 0 ).startVertex;
 					final List<Edge<BasicBlock<BytecodeVertex>>> edgesToKeep = cloneList( blockGraph
@@ -410,6 +519,11 @@ public final class StackAnalyzer
 				break;
 			}
 		}
+
+		//
+		// Now that the graph is simplified we can evaluate all possible paths.
+		// This is still critical.
+		//
 
 		final LinkedList<Integer> stackResults = new LinkedList<Integer>();
 		final LinkedList<Integer> scopeResults = new LinkedList<Integer>();
