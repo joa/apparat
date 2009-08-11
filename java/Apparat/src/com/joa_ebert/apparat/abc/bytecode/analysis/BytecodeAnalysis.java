@@ -47,7 +47,7 @@ public class BytecodeAnalysis
 	@Deprecated
 	private static final boolean USE_BASIC_BLOCKS = true;
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static final Logger LOGGER = ( DEBUG ) ? Logger
 			.getLogger( BytecodeAnalysis.class.getName() ) : null;
 
