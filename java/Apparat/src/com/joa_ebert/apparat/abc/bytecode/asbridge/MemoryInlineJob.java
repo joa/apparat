@@ -32,6 +32,7 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.Op;
+import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodeAnalysis;
 import com.joa_ebert.apparat.abc.bytecode.analysis.DeadCodeElimination;
 import com.joa_ebert.apparat.abc.bytecode.operations.CallPropVoid;
 import com.joa_ebert.apparat.abc.bytecode.operations.CallProperty;
@@ -216,10 +217,10 @@ public class MemoryInlineJob implements IActionScriptBridge
 
 			new DeadCodeElimination().interpret( environment, bytecode );
 
-			// final BytecodeAnalysis analysis = new BytecodeAnalysis(
-			// environment, bytecode );
-			//
-			// analysis.updateAll();
+			final BytecodeAnalysis analysis = new BytecodeAnalysis(
+					environment, bytecode );
+
+			analysis.updateAll();
 		}
 	}
 }

@@ -34,6 +34,7 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.BytecodeDecoder;
 import com.joa_ebert.apparat.abc.bytecode.MarkerException;
 import com.joa_ebert.apparat.abc.bytecode.Op;
+import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodeAnalysis;
 import com.joa_ebert.apparat.abc.bytecode.analysis.DeadCodeElimination;
 import com.joa_ebert.apparat.abc.bytecode.operations.CallPropVoid;
 import com.joa_ebert.apparat.abc.bytecode.operations.FindPropStrict;
@@ -228,10 +229,10 @@ public class BytecodeInlineJob implements IActionScriptBridge
 		{
 			new DeadCodeElimination().interpret( environment, bytecode );
 
-			// final BytecodeAnalysis analysis = new BytecodeAnalysis(
-			// environment, bytecode );
-			//
-			// analysis.updateAll();
+			final BytecodeAnalysis analysis = new BytecodeAnalysis(
+					environment, bytecode );
+
+			analysis.updateAll();
 		}
 	}
 }
