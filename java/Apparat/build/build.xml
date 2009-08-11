@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	This file is part of Apparat.
+	
+	Apparat is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	Apparat is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+	
+	You should have received a copy of the GNU Lesser General Public License
+	along with Apparat. If not, see <http://www.gnu.org/licenses/>.
+	
+	Copyright (C) 2008, 2009 Joa Ebert
+	http://www.joa-ebert.com/
+-->
+<project name="Apparat" default="default" basedir="../">
+	
+	<property name="dir.build" value="${basedir}/build"/>
+	<property name="dir.assets" value="${dir.build}/assets"/>
+	<property name="dir.src" value="${basedir}/src"/>
+	<property name="dir.bin" value="${dir.build}/bin"/>
+	<property name="dir.jar" value="${dir.build}/jar"/>
+	<property name="dir.zip" value="${dir.build}/zip"/>
+	
+    <target name="default" depends="dump, reducer, tdsi"/>
+	
+	<target name="clean">
+		<delete failonerror="false" dir="${dir.bin}"/>
+		<delete failonerror="false" dir="${dir.jar}"/>
+		<delete failonerror="false" dir="${dir.zip}"/>
+		<mkdir dir="${dir.bin}"/>
+		<mkdir dir="${dir.jar}"/>
+		<mkdir dir="${dir.zip}"/>
+	</target>
+	
+    <target name="compile" depends="clean">
+		<javac
+			compiler="javac1.6"
+			destdir="${dir.bin}"
+			debug="false"
+			target="1.6"
+			source="1.6"
+			srcdir="${dir.src}"
+		/>
+	</target>
+	
+	<target name="dump" depends="compile">
+				<jar
+					destfile="${dir.jar}/dump.jar">
+					
+				    <fileset dir="${dir.bin}">
+				    	<include name="**/apparat/abc/**"/>
+				    	<include name="**/apparat/swf/**"/>
+				    	<include name="**/apparat/swc/**"/>
+				    	<include name="**/apparat/tools/**"/>
+				    	<exclude name="**/apparat/tools/reducer/**"/>
+				    	<exclude name="**/apparat/tools/tdsi/**"/>
+					</fileset>
+					
+					<manifest>
+						<attribute
+							name="Main-Class"
+							value="com.joa_ebert.apparat.tools.dump.Dump"
+						/>
+					</manifest>
+				</jar>
+		</target>
+	
+	<target name="tdsi" depends="compile">
+		<jar
+			destfile="${dir.jar}/tdsi.jar">
+			
+		    <fileset dir="${dir.bin}">
+		    	<include name="**/apparat/abc/**"/>
+		    	<include name="**/apparat/swf/**"/>
+		    	<include name="**/apparat/swc/**"/>
+		    	<include name="**/apparat/tools/**"/>
+		    	<exclude name="**/apparat/tools/dump/**"/>
+		    	<exclude name="**/apparat/tools/reducer/**"/>
+			</fileset>
+			
+			<manifest>
+				<attribute
+					name="Main-Class"
+					value="com.joa_ebert.apparat.tools.tdsi.TDSI"
+				/>
+			</manifest>
+		</jar>
+		
+		<zip
+			destfile="${dir.zip}/tdsi.zip"
+			level="9">
+			<fileset dir="${dir.jar}">
+				<include name="tdsi.jar"/>
+			</fileset>
+			<fileset dir="${dir.assets}/tdsi">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="${dir.assets}/generic">
+				<include name="**/*"/>
+			</fileset>
+		</zip>
+	</target>
+	
+	<target name="reducer" depends="compile">
+		<jar
+			destfile="${dir.jar}/reducer.jar">
+			
+		    <fileset dir="${dir.bin}">
+		    	<include name="**/apparat/swf/**"/>
+		    	<include name="**/apparat/swc/**"/>
+		    	<include name="**/apparat/tools/**"/>
+		    	<exclude name="**/apparat/tools/dump/**"/>
+		    	<exclude name="**/apparat/tools/tdsi/**"/>
+			</fileset>
+			
+			<manifest>
+				<attribute
+					name="Main-Class"
+					value="com.joa_ebert.apparat.tools.reducer.Reducer"
+				/>
+			</manifest>
+		</jar>
+		
+		<zip
+			destfile="${dir.zip}/reducer.zip"
+			level="9">
+			<fileset dir="${dir.jar}">
+				<include name="reducer.jar"/>
+			</fileset>
+			<fileset dir="${dir.assets}/reducer">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="${dir.assets}/generic">
+				<include name="**/*"/>
+			</fileset>
+		</zip>
+	</target>
+</project>
