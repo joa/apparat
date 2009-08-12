@@ -23,13 +23,34 @@ package com.joa_ebert.apparat.utils;
 
 import java.io.PrintStream;
 
-public class DebugUtil
+/**
+ * The DebugUtil class implements methods useful for debugging.
+ * 
+ * @author Joa Ebert
+ * 
+ */
+public final class DebugUtil
 {
+	/**
+	 * Pretty-prints the content of a byte array to the default System output
+	 * stream.
+	 * 
+	 * @param buffer
+	 *            The buffer of bytes to print.
+	 */
 	public static void hexDump( final byte[] buffer )
 	{
 		hexDump( buffer, System.out );
 	}
 
+	/**
+	 * Pretty-prints the content of a byte array to a given PrintStream.
+	 * 
+	 * @param buffer
+	 *            The buffer of bytes to print.
+	 * @param printStream
+	 *            The PrintStream to use.
+	 */
 	public static void hexDump( final byte[] buffer,
 			final PrintStream printStream )
 	{
@@ -39,64 +60,65 @@ public class DebugUtil
 			return;
 		}
 
-		int p1;
+		final int bufferLength = buffer.length;
+		int currentByte;
 
-		int i = 0;
-		int j;
-		int n;
+		final StringBuilder output = new StringBuilder( buffer.length << 2 );
 
-		final StringBuilder output = new StringBuilder( buffer.length * 4 );
-
-		int byte_;
-
-		n = buffer.length;
-
-		final PrintfFormat hexPosFormat = new PrintfFormat( "%08Xh " );
-		final PrintfFormat hexByteFormat = new PrintfFormat( "%02X " );
-
-		for( ; i < n; i += 0x10 )
+		for( int i = 0; i < bufferLength; i += 0x10 )
 		{
-			output.append( hexPosFormat.sprintf( i ) );
+			String hexString = Integer.toHexString( i );
+			int padding = 8 - hexString.length();
 
-			final StringBuilder bytes = new StringBuilder( " " );
+			while( --padding > -1 )
+			{
+				output.append( '0' );
+			}
+
+			output.append( hexString );
+			output.append( "h " );
+
 			final StringBuilder text = new StringBuilder( 0x10 );
 
-			for( j = 0; j < 0x10; ++j )
+			for( int j = 0; j < 0x10; ++j )
 			{
-				p1 = i + j;
+				final int bufferIndex = i + j;
 
-				if( p1 >= n )
+				if( bufferIndex >= bufferLength )
 				{
-					bytes.append( "   " );
+					output.append( "   " );
 					text.append( " " );
 				}
 				else
 				{
-					byte_ = buffer[ p1 ];
+					currentByte = buffer[ bufferIndex ] & 0xff;
+					hexString = Integer.toHexString( currentByte );
 
-					if( byte_ < 0 )
+					if( hexString.length() != 2 )
 					{
-						byte_ += 0x100;
+						output.append( '0' );
 					}
 
-					bytes.append( hexByteFormat.sprintf( byte_ ) );
-					text.append( ( byte_ > 0x20 && byte_ < 0x7f ) ? (char)byte_
-							: "." );
+					output.append( hexString );
+					output.append( ' ' );
+
+					text
+							.append( ( currentByte > 0x20 && currentByte < 0x7f ) ? (char)currentByte
+									: "." );
 				}
 
 				if( ( j & 0x03 ) == 0x03 && 0x0f != j )
 				{
-					bytes.append( "| " );
+					output.append( "| " );
 				}
 			}
 
-			output.append( bytes );
 			output.append( ' ' );
 			output.append( text );
 			output.append( '\n' );
 		}
 
-		output.append( "len: " + buffer.length );
+		output.append( "Length: " + buffer.length + " bytes" );
 
 		printStream.println( "Hex dump:" );
 		printStream.println( output.toString() );
