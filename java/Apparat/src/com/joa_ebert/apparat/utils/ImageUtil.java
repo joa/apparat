@@ -51,7 +51,7 @@ public class ImageUtil
 		}
 		else
 		{
-			return null;
+			throw new IOException( "Unsupported format." );
 		}
 
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
