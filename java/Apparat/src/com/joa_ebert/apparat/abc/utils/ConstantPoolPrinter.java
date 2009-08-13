@@ -19,12 +19,15 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc;
+package com.joa_ebert.apparat.abc.utils;
 
 import java.io.PrintWriter;
 import java.util.List;
 
-import com.joa_ebert.apparat.abc.utils.StringConverter;
+import com.joa_ebert.apparat.abc.AbstractMultiname;
+import com.joa_ebert.apparat.abc.ConstantPool;
+import com.joa_ebert.apparat.abc.Namespace;
+import com.joa_ebert.apparat.abc.NamespaceSet;
 import com.joa_ebert.apparat.utils.IndentingPrintWriter;
 
 /**

@@ -67,6 +67,7 @@ import com.joa_ebert.apparat.abc.traits.TraitGetter;
 import com.joa_ebert.apparat.abc.traits.TraitMethod;
 import com.joa_ebert.apparat.abc.traits.TraitSetter;
 import com.joa_ebert.apparat.abc.traits.TraitSlot;
+import com.joa_ebert.apparat.abc.utils.AbcPrinter;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 
 /**

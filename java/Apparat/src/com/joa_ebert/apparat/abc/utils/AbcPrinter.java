@@ -19,12 +19,24 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc;
+package com.joa_ebert.apparat.abc.utils;
 
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.joa_ebert.apparat.abc.Abc;
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.AbstractMultiname;
+import com.joa_ebert.apparat.abc.AbstractTrait;
+import com.joa_ebert.apparat.abc.Class;
+import com.joa_ebert.apparat.abc.ExceptionHandler;
+import com.joa_ebert.apparat.abc.Instance;
+import com.joa_ebert.apparat.abc.Metadata;
+import com.joa_ebert.apparat.abc.Method;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.Parameter;
+import com.joa_ebert.apparat.abc.Script;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodePrinter;
 import com.joa_ebert.apparat.abc.traits.TraitClass;
@@ -34,7 +46,6 @@ import com.joa_ebert.apparat.abc.traits.TraitGetter;
 import com.joa_ebert.apparat.abc.traits.TraitMethod;
 import com.joa_ebert.apparat.abc.traits.TraitSetter;
 import com.joa_ebert.apparat.abc.traits.TraitSlot;
-import com.joa_ebert.apparat.abc.utils.StringConverter;
 import com.joa_ebert.apparat.utils.IndentingPrintWriter;
 
 /**

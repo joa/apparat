@@ -32,6 +32,7 @@ import com.joa_ebert.apparat.abc.multinames.MultinameL;
 import com.joa_ebert.apparat.abc.multinames.QName;
 import com.joa_ebert.apparat.abc.multinames.RTQName;
 import com.joa_ebert.apparat.abc.multinames.Typename;
+import com.joa_ebert.apparat.abc.utils.ConstantPoolPrinter;
 
 /**
  * 
