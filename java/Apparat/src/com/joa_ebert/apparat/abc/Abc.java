@@ -280,6 +280,11 @@ public final class Abc
 		}
 	}
 
+	public void read( final DoABCTag doABC ) throws IOException, AbcException
+	{
+		read( doABC.abcData );
+	}
+
 	public void read( final File file ) throws FileNotFoundException,
 			IOException, DataFormatException, AbcException
 	{
