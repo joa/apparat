@@ -21,6 +21,8 @@
 
 package com.joa_ebert.apparat.taas;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -72,9 +74,9 @@ public final class TaasCode extends ControlFlowGraph<TaasVertex, TaasEdge>
 		return vertex;
 	}
 
-	public String dump()
+	public String debug()
 	{
-		final StringBuilder builder = new StringBuilder( "Code dump:\n" );
+		final StringBuilder builder = new StringBuilder( "Code:\n" );
 		final StringWriter writer = new StringWriter();
 		final StringWriter writer2 = new StringWriter();
 		final DOTExporter<TaasVertex, TaasEdge> exporter = new DOTExporter<TaasVertex, TaasEdge>(
@@ -98,6 +100,17 @@ public final class TaasCode extends ControlFlowGraph<TaasVertex, TaasEdge>
 		builder.append( writer2 );
 
 		return builder.toString();
+	}
+
+	public void debug( final OutputStream output )
+	{
+		debug( new PrintStream( output ) );
+	}
+
+	public void debug( final PrintStream output )
+	{
+		output.print( debug() );
+		output.flush();
 	}
 
 	TaasEdge getLastEdge()

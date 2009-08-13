@@ -47,6 +47,11 @@ public class AbcEnvironment
 	{
 	}
 
+	public AbcEnvironment( final Abc abc )
+	{
+		addAbc( abc );
+	}
+
 	public AbcEnvironment( final Abc[] abcs )
 	{
 		for( final Abc abc : abcs )

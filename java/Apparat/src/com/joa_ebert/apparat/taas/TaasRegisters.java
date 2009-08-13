@@ -21,6 +21,8 @@
 
 package com.joa_ebert.apparat.taas;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,9 +61,9 @@ public final class TaasRegisters
 		return result;
 	}
 
-	public String dump()
+	public String debug()
 	{
-		final StringBuilder builder = new StringBuilder( "Register dump:" );
+		final StringBuilder builder = new StringBuilder( "Registers:" );
 
 		for( int i = 0; i < numRegisters; ++i )
 		{
@@ -70,6 +72,17 @@ public final class TaasRegisters
 		}
 
 		return builder.toString();
+	}
+
+	public void debug( final OutputStream output )
+	{
+		debug( new PrintStream( output ) );
+	}
+
+	public void debug( final PrintStream output )
+	{
+		output.print( debug() );
+		output.flush();
 	}
 
 	public TaasLocal get( final int index )

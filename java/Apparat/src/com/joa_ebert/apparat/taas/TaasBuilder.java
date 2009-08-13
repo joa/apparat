@@ -1140,9 +1140,9 @@ public final class TaasBuilder implements IInterpreter
 		catch( final TaasException ex )
 		{
 			System.out.println( "####ERROR LOG##############################" );
-			System.out.println( localRegisters.dump() + "\n" );
-			System.out.println( operandStack.dump() + "\n" );
-			System.out.println( code.dump() );
+			System.out.println( localRegisters.debug() + "\n" );
+			System.out.println( operandStack.debug() + "\n" );
+			System.out.println( code.debug() );
 			System.out.println( "###########################################" );
 
 			throw ex;

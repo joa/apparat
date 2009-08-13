@@ -21,6 +21,8 @@
 
 package com.joa_ebert.apparat.taas;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Stack;
 
 /**
@@ -59,9 +61,9 @@ public final class TaasStack
 		return result;
 	}
 
-	public String dump()
+	public String debug()
 	{
-		final StringBuilder builder = new StringBuilder( "Stack dump:" );
+		final StringBuilder builder = new StringBuilder( "Stack:" );
 
 		for( final TaasValue value : stack )
 		{
@@ -69,6 +71,17 @@ public final class TaasStack
 		}
 
 		return builder.toString();
+	}
+
+	public void debug( final OutputStream output )
+	{
+		debug( new PrintStream( output ) );
+	}
+
+	public void debug( final PrintStream output )
+	{
+		output.print( debug() );
+		output.flush();
 	}
 
 	public TaasValue get( final int index )

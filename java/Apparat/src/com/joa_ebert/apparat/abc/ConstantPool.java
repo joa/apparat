@@ -32,7 +32,6 @@ import com.joa_ebert.apparat.abc.multinames.MultinameL;
 import com.joa_ebert.apparat.abc.multinames.QName;
 import com.joa_ebert.apparat.abc.multinames.RTQName;
 import com.joa_ebert.apparat.abc.multinames.Typename;
-import com.joa_ebert.apparat.abc.utils.StringConverter;
 
 /**
  * 
@@ -275,62 +274,9 @@ public final class ConstantPool
 		debug( new PrintWriter( output ) );
 	}
 
-	public void debug( final PrintWriter writer )
+	public void debug( final PrintWriter output )
 	{
-		writer.write( "Constant Pool:\n" );
-
-		writeList( writer, intTable, "Int" );
-
-		for( final Integer value : intTable )
-		{
-			writer.write( "\t\t0x" + Integer.toHexString( value ) + "\n" );
-		}
-
-		writeList( writer, uintTable, "UInt" );
-
-		for( final Long value : uintTable )
-		{
-			writer.write( "\t\t" + value.toString() + "\n" );
-		}
-
-		writeList( writer, doubleTable, "Double" );
-
-		for( final Double value : doubleTable )
-		{
-			writer.write( "\t\t" + value.toString() + "\n" );
-		}
-
-		writeList( writer, stringTable, "String" );
-
-		for( final String value : stringTable )
-		{
-			writer.write( "\t\t\"" + value + "\"\n" );
-		}
-
-		writeList( writer, namespaceTable, "Namespace" );
-
-		for( final Namespace value : namespaceTable )
-		{
-			writer.write( "\t\t" + StringConverter.toString( value ) + "\n" );
-		}
-
-		writeList( writer, namespaceSetTable, "NamespaceSet" );
-
-		for( final NamespaceSet value : namespaceSetTable )
-		{
-			writer.write( "\t\t" + StringConverter.toString( value ) + "\n" );
-		}
-
-		writeList( writer, multinameTable, "Multiname" );
-
-		for( final AbstractMultiname value : multinameTable )
-		{
-			writer.write( "\t\t" + StringConverter.toString( value ) + "\n" );
-		}
-
-		writer.write( "\n" );
-
-		writer.flush();
+		new ConstantPoolPrinter( output ).print( this );
 	}
 
 	public Object getConstantValue( final ConstantType type, final int index )
@@ -690,11 +636,5 @@ public final class ConstantPool
 	public String toString()
 	{
 		return "[ConstantPool]";
-	}
-
-	private void writeList( final PrintWriter writer, final List<?> list,
-			final String name )
-	{
-		writer.write( "\t" + name + " table (" + list.size() + " entries):\n" );
 	}
 }

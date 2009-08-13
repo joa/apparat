@@ -283,7 +283,7 @@ public class SsaBuilder implements ITaasTool
 		if( DEBUG )
 		{
 			System.out.println( "Code before:" );
-			System.out.println( method.code.dump() );
+			System.out.println( method.code.debug() );
 		}
 
 		createBasicBlocks();
@@ -299,7 +299,7 @@ public class SsaBuilder implements ITaasTool
 		if( DEBUG )
 		{
 			System.out.println( "Code after:" );
-			System.out.println( method.code.dump() );
+			System.out.println( method.code.debug() );
 		}
 
 		return false;

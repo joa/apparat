@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Queue;
 
+import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.abc.ExceptionHandler;
 import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.MethodBody;
@@ -43,6 +44,7 @@ import com.joa_ebert.apparat.abc.bytecode.operations.LookupSwitch;
 public final class Bytecode implements List<AbstractOperation>,
 		Queue<AbstractOperation>, Deque<AbstractOperation>
 {
+	public Abc abc;
 	public MethodBody methodBody;
 	public Method method;
 

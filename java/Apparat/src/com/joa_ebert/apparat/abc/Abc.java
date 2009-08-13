@@ -158,6 +158,30 @@ public final class Abc
 		}
 	}
 
+	public void debug( final OutputStream output )
+	{
+		PrintWriter writer = null;
+
+		try
+		{
+			writer = new PrintWriter( output );
+			debug( writer );
+		}
+		finally
+		{
+			if( null != writer )
+			{
+				writer.flush();
+				writer.close();
+			}
+		}
+	}
+
+	public void debug( final PrintWriter output )
+	{
+		new AbcPrinter( output ).print( this );
+	}
+
 	public Class getClass( final int index )
 	{
 		return classes.get( index );
@@ -368,11 +392,12 @@ public final class Abc
 		for( int i = 0; i < classCount; ++i )
 		{
 			final Class klass = new Class();
+			final Instance instance = instances.get( i );
 
-			instances.get( i ).klass = klass;
+			instance.klass = klass;
 
+			klass.instance = instance;
 			klass.classInitializerIndex = input.readU30();
-
 			klass.traits = readTraits( input );
 
 			classes.add( klass );
@@ -598,6 +623,7 @@ public final class Abc
 			methodBody.code = bytecodeDecoder.decode( buffer );
 			methodBody.code.method = method;
 			methodBody.code.methodBody = methodBody;
+			methodBody.code.abc = this;
 
 			methodBody.exceptions = readExceptions( methodBody, input );
 			methodBody.traits = readTraits( input );
@@ -1135,6 +1161,10 @@ public final class Abc
 	private void writeClasses( final AbcOutputStream output )
 			throws IOException
 	{
+		//
+		// TODO topsort dependency graph
+		//
+
 		final int classCount = classes.size();
 
 		for( int i = 0; i < classCount; ++i )
@@ -1322,6 +1352,10 @@ public final class Abc
 	private void writeInstances( final AbcOutputStream output )
 			throws IOException
 	{
+		//
+		// TODO topsort dependency graph
+		//
+
 		final int n = instances.size();
 
 		output.writeU30( n );

@@ -102,11 +102,21 @@ public class StringConverter
 
 	public static String toString( final Class klass )
 	{
+		if( null == klass )
+		{
+			return "(NULL_CLASS)";
+		}
+
 		return "Class()";
 	}
 
 	public static String toString( final ExceptionHandler exceptionHandler )
 	{
+		if( null == exceptionHandler )
+		{
+			return "(NULL_EXCEPTIONHANDLER)";
+		}
+
 		return "ExceptionHandler(" + toString( exceptionHandler.exceptionType )
 				+ ", " + toString( exceptionHandler.variableName ) + ", "
 				+ toString( exceptionHandler.from ) + ", "
@@ -116,22 +126,42 @@ public class StringConverter
 
 	public static String toString( final Instance instance )
 	{
+		if( null == instance )
+		{
+			return "(NULL_INSTANCE)";
+		}
+
 		return "Instance(" + toString( instance.name ) + ", "
 				+ toString( instance.klass ) + ")";
 	}
 
 	public static String toString( final Marker marker )
 	{
+		if( null == marker )
+		{
+			return "(NULL_MARKER)";
+		}
+
 		return "L" + Integer.toString( marker.key );
 	}
 
 	public static String toString( final Method method )
 	{
+		if( null == method )
+		{
+			return "(NULL_METHOD)";
+		}
+
 		return "Method(\"" + method.name + "\")";
 	}
 
 	public static String toString( final Namespace namespace )
 	{
+		if( null == namespace )
+		{
+			return "(NULL_NAMESPACE)";
+		}
+
 		switch( namespace.kind )
 		{
 			case ExplicitNamespace:
@@ -155,6 +185,11 @@ public class StringConverter
 
 	public static String toString( final NamespaceSet namespaceSet )
 	{
+		if( null == namespaceSet )
+		{
+			return "(NULL_NSSET)";
+		}
+
 		final StringBuilder builder = new StringBuilder( "NamespaceSet(" );
 
 		final int n = namespaceSet.size();
@@ -177,6 +212,11 @@ public class StringConverter
 
 	public static String toString( final Script script )
 	{
+		if( null == script )
+		{
+			return "(NULL_SCRIPT)";
+		}
+
 		return "Script()";
 	}
 

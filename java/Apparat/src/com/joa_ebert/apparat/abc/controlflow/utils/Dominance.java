@@ -21,6 +21,8 @@
 
 package com.joa_ebert.apparat.abc.controlflow.utils;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -59,6 +61,42 @@ public final class Dominance<V extends Vertex, E extends Edge<V>>
 		doms = new LinkedHashMap<V, V>( graph.vertexList().size() );
 		frontiers = new LinkedHashMap<V, List<V>>( graph.vertexList().size() );
 		postorder = getPostorder();
+	}
+
+	public String debug()
+	{
+		final StringBuilder buffer = new StringBuilder( "Dominance:" );
+
+		for( final Entry<V, V> entry : doms.entrySet() )
+		{
+			buffer.append( "\n" );
+			buffer.append( entry.getValue().toString() );
+			buffer.append( " dom " );
+			buffer.append( entry.getKey() );
+		}
+
+		buffer.append( "\n\nDominanceFrontiers:" );
+
+		for( final Entry<V, List<V>> entry : frontiers.entrySet() )
+		{
+			buffer.append( "\n" );
+			buffer.append( entry.getKey().toString() );
+			buffer.append( ": " );
+			buffer.append( entry.getValue().toString() );
+		}
+
+		return buffer.toString();
+	}
+
+	public void debug( final OutputStream output )
+	{
+		debug( new PrintStream( output ) );
+	}
+
+	public void debug( final PrintStream output )
+	{
+		output.print( debug() );
+		output.flush();
 	}
 
 	private void dominance() throws ControlFlowGraphException
@@ -120,31 +158,6 @@ public final class Dominance<V extends Vertex, E extends Edge<V>>
 			}
 		}
 		while( changed );
-	}
-
-	public String dump()
-	{
-		final StringBuilder buffer = new StringBuilder( "Dominance Dump:" );
-
-		for( final Entry<V, V> entry : doms.entrySet() )
-		{
-			buffer.append( "\n" );
-			buffer.append( entry.getValue().toString() );
-			buffer.append( " dom " );
-			buffer.append( entry.getKey() );
-		}
-
-		buffer.append( "\n\nDominanceFrontiers Dump:" );
-
-		for( final Entry<V, List<V>> entry : frontiers.entrySet() )
-		{
-			buffer.append( "\n" );
-			buffer.append( entry.getKey().toString() );
-			buffer.append( ": " );
-			buffer.append( entry.getValue().toString() );
-		}
-
-		return buffer.toString();
 	}
 
 	public List<V> frontierOf( final V vertex )

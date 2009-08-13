@@ -140,46 +140,52 @@ public final class BytecodePrinter implements IInterpreter
 		return "L" + Integer.toString( marker.key );
 	}
 
-	private final PrintWriter writer;
+	private final PrintWriter output;
+	private boolean printName = true;
 
 	public BytecodePrinter( final OutputStream output )
 	{
 		this( new PrintWriter( output ) );
 	}
 
-	public BytecodePrinter( final PrintWriter writer )
+	public BytecodePrinter( final PrintWriter output )
 	{
-		this.writer = writer;
+		this.output = output;
 	}
 
 	public void interpret( final AbcEnvironment environment,
 			final Bytecode bytecode )
 	{
-		final Instance instance = environment.instanceOf( bytecode.method );
-
-		if( null != instance )
+		if( printName )
 		{
-			writer.write( StringConverter.toString( instance ) + ":\n" );
-		}
-		else
-		{
-			final Class klass = environment.classOf( bytecode.method );
+			final Instance instance = environment.instanceOf( bytecode.method );
 
-			if( null != klass )
+			if( null != instance )
 			{
-				writer.write( StringConverter.toString( klass ) + ":\n" );
+				output.println( StringConverter.toString( instance ) + ":" );
 			}
 			else
 			{
-				final Script script = environment.scriptOf( bytecode.method );
+				final Class klass = environment.classOf( bytecode.method );
 
-				if( null != script )
+				if( null != klass )
 				{
-					writer.write( StringConverter.toString( script ) + ":\n" );
+					output.println( StringConverter.toString( klass ) + ":" );
 				}
 				else
 				{
-					writer.write( "Unknown Method:\n" );
+					final Script script = environment
+							.scriptOf( bytecode.method );
+
+					if( null != script )
+					{
+						output.println( StringConverter.toString( script )
+								+ ":" );
+					}
+					else
+					{
+						output.println( "Unknown Method:" );
+					}
 				}
 			}
 		}
@@ -188,6 +194,7 @@ public final class BytecodePrinter implements IInterpreter
 		{
 			final int code = operation.code;
 
+			final StringBuilder line = new StringBuilder();
 			final StringBuilder positionString = new StringBuilder( Integer
 					.toHexString( operation.getPosition() ) );
 
@@ -199,7 +206,7 @@ public final class BytecodePrinter implements IInterpreter
 			positionString.insert( 0, "0x" );
 			positionString.append( ' ' );
 
-			writer.write( positionString.toString() );
+			line.append( positionString.toString() );
 
 			if( bytecode.markers.hasMarkerFor( operation ) )
 			{
@@ -214,35 +221,35 @@ public final class BytecodePrinter implements IInterpreter
 					markerString.append( ' ' );
 				}
 
-				writer.write( markerString.toString() );
+				line.append( markerString.toString() );
 			}
 			else
 			{
-				writer.write( "      " );
+				line.append( "      " );
 			}
 
-			writer.write( printNames.get( operation.code ) );
+			line.append( printNames.get( operation.code ) );
 
 			switch( code )
 			{
 				case Op.AsType:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (AsType)operation ).type ) );
 					break;
 
 				case Op.ApplyType:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (ApplyType)operation ).typeSize ) );
 					break;
 
 				case Op.Call:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (Call)operation ).numArguments ) );
 					break;
 
 				case Op.CallMethod:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (CallMethod)operation ).method )
 									+ ", "
 									+ Integer
@@ -250,8 +257,8 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.CallProperty:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (CallProperty)operation ).property )
 									+ ", "
 									+ Integer
@@ -259,8 +266,8 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.CallPropLex:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (CallPropLex)operation ).property )
 									+ ", "
 									+ Integer
@@ -268,8 +275,8 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.CallPropVoid:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (CallPropVoid)operation ).property )
 									+ ", "
 									+ Integer
@@ -277,8 +284,8 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.CallStatic:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (CallStatic)operation ).method )
 									+ ", "
 									+ Integer
@@ -286,34 +293,34 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.CallSuper:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (CallSuper)operation ).name )
 									+ Integer
 											.toString( ( (CallSuper)operation ).numArguments ) );
 					break;
 
 				case Op.CallSuperVoid:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (CallSuperVoid)operation ).name )
 									+ Integer
 											.toString( ( (CallSuperVoid)operation ).numArguments ) );
 					break;
 
 				case Op.Coerce:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (Coerce)operation ).type ) );
 					break;
 
 				case Op.Construct:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (Construct)operation ).numArguments ) );
 					break;
 
 				case Op.ConstructProp:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (ConstructProp)operation ).property )
 									+ ", "
 									+ Integer
@@ -321,104 +328,104 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.ConstructSuper:
-					writer
-							.write( Integer
+					line
+							.append( Integer
 									.toString( ( (ConstructSuper)operation ).numArguments ) );
 					break;
 
 				case Op.Debug:
 					final Debug debugOperation = (Debug)operation;
-					writer.write( Integer.toString( debugOperation.type )
-							+ ", " + escape( debugOperation.name ) + ", "
+					line.append( Integer.toString( debugOperation.type ) + ", "
+							+ escape( debugOperation.name ) + ", "
 							+ Integer.toString( debugOperation.register ) );
 					break;
 
 				case Op.DebugFile:
-					writer.write( escape( ( (DebugFile)operation ).fileName ) );
+					line.append( escape( ( (DebugFile)operation ).fileName ) );
 					break;
 
 				case Op.DebugLine:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (DebugLine)operation ).lineNumber ) );
 					break;
 
 				case Op.DecLocal:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (DecLocal)operation ).register ) );
 					break;
 
 				case Op.DecLocalInt:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (DecLocalInt)operation ).register ) );
 					break;
 
 				case Op.DeleteProperty:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (DeleteProperty)operation ).property ) );
 					break;
 
 				case Op.DefaultXmlNamespace:
-					writer
-							.write( escape( ( (DefaultXmlNamespace)operation ).uri ) );
+					line
+							.append( escape( ( (DefaultXmlNamespace)operation ).uri ) );
 					break;
 
 				case Op.FindProperty:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (FindProperty)operation ).property ) );
 					break;
 
 				case Op.FindPropStrict:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (FindPropStrict)operation ).property ) );
 					break;
 
 				case Op.GetDescendants:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (GetDescendants)operation ).name ) );
 					break;
 
 				case Op.GetGlobalSlot:
-					writer
-							.write( Integer
+					line
+							.append( Integer
 									.toString( ( (GetGlobalSlot)operation ).slotIndex ) );
 					break;
 
 				case Op.GetLex:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (GetLex)operation ).property ) );
 					break;
 
 				case Op.GetLocal:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (GetLocal)operation ).register ) );
 					break;
 
 				case Op.GetProperty:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (GetProperty)operation ).property ) );
 					break;
 
 				case Op.GetScopeObject:
-					writer
-							.write( Integer
+					line
+							.append( Integer
 									.toString( ( (GetScopeObject)operation ).scopeIndex ) );
 					break;
 
 				case Op.GetSlot:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (GetSlot)operation ).slotIndex ) );
 					break;
 
 				case Op.GetSuper:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (GetSuper)operation ).property ) );
 					break;
 
 				case Op.HasNext2:
-					writer
-							.write( Long
+					line
+							.append( Long
 									.toString( ( (HasNext2)operation ).objectRegister )
 									+ "L, "
 									+ Long
@@ -441,148 +448,153 @@ public final class BytecodePrinter implements IInterpreter
 				case Op.IfStrictNotEqual:
 				case Op.IfTrue:
 				case Op.Jump:
-					writer.write( markerToString( ( (Jump)operation ).marker ) );
-					writer.write( "\n" );
+					line.append( markerToString( ( (Jump)operation ).marker ) );
+					line.append( "\n" );
 					break;
 
 				case Op.IncLocal:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (IncLocal)operation ).register ) );
 					break;
 
 				case Op.IncLocalInt:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (IncLocalInt)operation ).register ) );
 					break;
 
 				case Op.InitProperty:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (InitProperty)operation ).property ) );
 					break;
 
 				case Op.IsType:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (IsType)operation ).type ) );
 					break;
 
 				case Op.Kill:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (Kill)operation ).register ) );
 					break;
 
 				case Op.LookupSwitch:
 					final LookupSwitch lookupSwitch = (LookupSwitch)operation;
 
-					writer.write( markerToString( lookupSwitch.defaultMarker )
+					line.append( markerToString( lookupSwitch.defaultMarker )
 							+ "," );
 
 					for( final Marker m : lookupSwitch.caseMarkers )
 					{
-						writer.write( " " + markerToString( m ) );
+						line.append( " " + markerToString( m ) );
 					}
 
-					writer.write( "\n" );
+					line.append( "\n" );
 					break;
 
 				case Op.NewArray:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (NewArray)operation ).numArguments ) );
 					break;
 
 				case Op.NewCatch:
-					writer
-							.write( StringConverter
+					line
+							.append( StringConverter
 									.toString( ( (NewCatch)operation ).exceptionHandler ) );
 					break;
 
 				case Op.NewClass:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (NewClass)operation ).klass ) );
 					break;
 
 				case Op.NewFunction:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (NewFunction)operation ).function ) );
 					break;
 
 				case Op.NewObject:
-					writer
-							.write( Integer
+					line
+							.append( Integer
 									.toString( ( (NewObject)operation ).numProperties ) );
 					break;
 
 				case Op.PushByte:
-					writer
-							.write( "0x"
+					line
+							.append( "0x"
 									+ Integer
 											.toHexString( ( (PushByte)operation ).value ) );
 					break;
 
 				case Op.PushDouble:
-					writer.write( Double
+					line.append( Double
 							.toString( ( (PushDouble)operation ).value ) );
 					break;
 
 				case Op.PushInt:
-					writer
-							.write( "0x"
+					line
+							.append( "0x"
 									+ Integer
 											.toHexString( ( (PushInt)operation ).value ) );
 					break;
 
 				case Op.PushNamespace:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (PushNamespace)operation ).value ) );
 					break;
 
 				case Op.PushShort:
-					writer
-							.write( "0x"
+					line
+							.append( "0x"
 									+ Integer
 											.toHexString( ( (PushShort)operation ).value ) );
 					break;
 
 				case Op.PushString:
-					writer.write( "\""
+					line.append( "\""
 							+ escape( ( (PushString)operation ).value ) + "\"" );
 					break;
 
 				case Op.PushUInt:
-					writer.write( "0x"
+					line.append( "0x"
 							+ Long.toHexString( ( (PushUInt)operation ).value )
 							+ "L" );
 					break;
 
 				case Op.SetLocal:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (SetLocal)operation ).register ) );
 					break;
 
 				case Op.SetGlobalSlot:
-					writer
-							.write( Integer
+					line
+							.append( Integer
 									.toString( ( (SetGlobalSlot)operation ).slotIndex ) );
 					break;
 
 				case Op.SetProperty:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (SetProperty)operation ).property ) );
 					break;
 
 				case Op.SetSlot:
-					writer.write( Integer
+					line.append( Integer
 							.toString( ( (SetSlot)operation ).slotIndex ) );
 					break;
 
 				case Op.SetSuper:
-					writer.write( StringConverter
+					line.append( StringConverter
 							.toString( ( (SetSuper)operation ).property ) );
 					break;
 			}
 
-			writer.write( "\n" );
+			output.println( line.toString() );
 		}
 
-		writer.flush();
+		output.flush();
+	}
+
+	public void setPrintName( final boolean value )
+	{
+		printName = value;
 	}
 }

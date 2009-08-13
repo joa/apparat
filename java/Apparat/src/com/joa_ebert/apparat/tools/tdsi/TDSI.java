@@ -65,7 +65,7 @@ public final class TDSI implements ITool, ITagVisitor
 	private boolean inlineBytecode = true;
 	private boolean bytecodePermutations = true;
 	private boolean integerCalculus = false;
-	private boolean deadCodeElimination = true;
+	private boolean deadCodeElimination = false;
 
 	private IToolConfiguration config;
 
@@ -128,13 +128,6 @@ public final class TDSI implements ITool, ITagVisitor
 		ToolLog.info( "\tbytecodePermutations\t= " + bytecodePermutations );
 		ToolLog.info( "\tinlineMemory\t\t= " + inlineMemory );
 		ToolLog.info( "\tdeadCodeElimination\t= " + deadCodeElimination );
-
-		// final Swf swf = new Swf();
-		//
-		// swf.read( config.getInput() );
-		// swf.accept( this );
-		// new File( config.getOutput() ).delete();
-		// swf.write( config.getOutput() );
 
 		final TagIO tagIO = new TagIO( config.getInput() );
 

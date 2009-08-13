@@ -22,7 +22,6 @@
 package com.joa_ebert.apparat.abc.controlflow.export;
 
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,12 +67,6 @@ public class DOTExporter<V extends Vertex, E extends Edge<V>> implements
 	}
 
 	public void export( final OutputStream output,
-			final ControlFlowGraph<V, E> graph )
-	{
-		export( new PrintWriter( output ), graph );
-	}
-
-	public void export( final PrintStream output,
 			final ControlFlowGraph<V, E> graph )
 	{
 		export( new PrintWriter( output ), graph );

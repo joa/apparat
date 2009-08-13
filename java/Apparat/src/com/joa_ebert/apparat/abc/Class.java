@@ -35,6 +35,9 @@ public final class Class
 	@AbcBinding
 	public Method classInitializer;
 
+	@AbcBinding
+	public Instance instance;
+
 	public List<AbstractTrait> traits;
 
 	public void accept( final AbcContext context, final IAbcVisitor visitor )
