@@ -77,6 +77,7 @@
 			
 		    <fileset dir="${dir.bin}">
 		    	<include name="**/apparat/abc/**"/>
+		    	<include name="**/apparat/controlflow/**"/>
 		    	<include name="**/apparat/swf/**"/>
 		    	<include name="**/apparat/swc/**"/>
 		    	<include name="**/apparat/tools/**"/>

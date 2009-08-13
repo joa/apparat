@@ -38,7 +38,7 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodePrinter;
-import com.joa_ebert.apparat.abc.controlflow.BasicBlock;
+import com.joa_ebert.apparat.controlflow.BasicBlock;
 import com.joa_ebert.apparat.swc.Swc;
 import com.joa_ebert.apparat.swf.Swf;
 import com.joa_ebert.apparat.swf.tags.ITag;
@@ -138,7 +138,7 @@ public class TaasBuilderTest
 				catch( final TaasException e )
 				{
 					e.printStackTrace();
-					System.out.println( method.code.dump() );
+					System.out.println( method.code.debug() );
 					Assert.fail( e.getMessage() );
 				}
 
@@ -146,7 +146,7 @@ public class TaasBuilderTest
 						+ ".txt" );
 				final FileOutputStream fos = new FileOutputStream( f );
 				final Writer printWriter = new PrintWriter( fos );
-				printWriter.write( builder.getCode().dump() );
+				printWriter.write( builder.getCode().debug() );
 				printWriter.flush();
 				printWriter.write( "\n\n" );
 				printWriter.flush();

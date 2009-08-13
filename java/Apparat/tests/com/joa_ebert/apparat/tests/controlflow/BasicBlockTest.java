@@ -26,17 +26,17 @@ import java.util.TreeMap;
 
 import org.junit.Test;
 
-import com.joa_ebert.apparat.abc.controlflow.BasicBlock;
-import com.joa_ebert.apparat.abc.controlflow.BasicBlockGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraph;
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.EdgeKind;
-import com.joa_ebert.apparat.abc.controlflow.EntryVertex;
-import com.joa_ebert.apparat.abc.controlflow.ExitVertex;
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
-import com.joa_ebert.apparat.abc.controlflow.VertexKind;
-import com.joa_ebert.apparat.abc.controlflow.export.DOTExporter;
-import com.joa_ebert.apparat.abc.controlflow.utils.BasicBlockBuilder;
+import com.joa_ebert.apparat.controlflow.BasicBlock;
+import com.joa_ebert.apparat.controlflow.BasicBlockGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.EdgeKind;
+import com.joa_ebert.apparat.controlflow.EntryVertex;
+import com.joa_ebert.apparat.controlflow.ExitVertex;
+import com.joa_ebert.apparat.controlflow.Vertex;
+import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.controlflow.export.DOTExporter;
+import com.joa_ebert.apparat.controlflow.utils.BasicBlockBuilder;
 
 /**
  * 

@@ -23,11 +23,14 @@ package com.joa_ebert.apparat.tests.abc;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.PrintWriter;
 
 import org.junit.Test;
 
 import com.joa_ebert.apparat.abc.Abc;
+import com.joa_ebert.apparat.abc.utils.AbcPrinter;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
@@ -40,7 +43,7 @@ import com.joa_ebert.apparat.tools.io.TagIO;
  */
 public class AbcReadWriteTest
 {
-	private void test( final DoABCTag tag ) throws Exception
+	private void test( final DoABCTag tag, final int i ) throws Exception
 	{
 		final byte[] input = tag.abcData;
 		byte[] output = null;
@@ -51,6 +54,9 @@ public class AbcReadWriteTest
 		final Abc abc = new Abc();
 
 		abc.read( inputStream );
+
+		new AbcPrinter( new PrintWriter( new FileOutputStream( "debug/i_" + i
+				+ ".txt" ) ) ).print( abc );
 
 		abc.write( outputStream );
 
@@ -68,7 +74,10 @@ public class AbcReadWriteTest
 
 		// abc.constantPool.debug( System.out );
 
-		abc2.read( new ByteArrayInputStream( output ) );
+		abc2.read( output );
+
+		new AbcPrinter( new PrintWriter( new FileOutputStream( "debug/o_" + i
+				+ ".txt" ) ) ).print( abc2 );
 
 		// abc2.constantPool.debug( System.out );
 
@@ -78,18 +87,44 @@ public class AbcReadWriteTest
 	@Test
 	public void testReadWrite() throws Exception
 	{
-		final TagIO tagIO = new TagIO( "assets/invsqrt.swf" );
+		final TagIO tagIO = new TagIO( "assets/priv_rtn.swf" );
 
 		tagIO.read();
+
+		final PrintWriter writer = new PrintWriter( new FileOutputStream(
+				"debug/tags.txt" ) );
+
+		int i = 0;
 
 		for( final ITag tag : tagIO.getTags() )
 		{
 			if( tag.getType() == Tags.DoABC )
 			{
-				test( (DoABCTag)tag );
+				test( (DoABCTag)tag, i++ );
 			}
+
+			final String tagString = Tags.typeToString( tag.getType() );
+			String output = tagString;
+
+			if( tagString.length() < 5 )
+			{
+				output += "\t\t\t";
+			}
+			else if( tagString.length() < 12 )
+			{
+				output += "\t\t";
+			}
+			else
+			{
+				output += "\t";
+			}
+
+			writer.println( output + tag.toString() );
 		}
 
-		tagIO.write( "assets/invsqrt__.swf" );
+		writer.flush();
+		writer.close();
+
+		tagIO.write( "assets/priv_rtn_.swf" );
 	}
 }

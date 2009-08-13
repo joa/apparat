@@ -24,13 +24,13 @@ package com.joa_ebert.apparat.tests.controlflow;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraph;
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.EntryVertex;
-import com.joa_ebert.apparat.abc.controlflow.ExitVertex;
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
-import com.joa_ebert.apparat.abc.controlflow.VertexKind;
-import com.joa_ebert.apparat.abc.controlflow.utils.DepthFirstIterator;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.EntryVertex;
+import com.joa_ebert.apparat.controlflow.ExitVertex;
+import com.joa_ebert.apparat.controlflow.Vertex;
+import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.controlflow.utils.DepthFirstIterator;
 
 /**
  * 
