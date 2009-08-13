@@ -23,9 +23,13 @@ package com.joa_ebert.apparat.tools.dump;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.PrintWriter;
 
+import com.joa_ebert.apparat.abc.Abc;
+import com.joa_ebert.apparat.abc.AbcPrinter;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.Tags;
+import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 import com.joa_ebert.apparat.swf.tags.define.DefineBitsJPEG2Tag;
 import com.joa_ebert.apparat.tools.ITool;
 import com.joa_ebert.apparat.tools.IToolConfiguration;
@@ -51,8 +55,7 @@ public final class Dump implements ITool
 
 	public String getHelp()
 	{
-		return "-input [file]\tThe input file\n"
-				+ "-bytecode\tWill dump bytecode.\n"
+		return "-input [file]\tThe input file\n" + "-abc\tWill dump ABCs.\n"
 				+ "-tags\t\tWill dump known tags.\n"
 				+ "-images\tWill dump images.";
 	}
@@ -69,80 +72,129 @@ public final class Dump implements ITool
 
 	public void run() throws Exception
 	{
-		final TagIO tagIO = new TagIO( config.getInput() );
-
-		tagIO.read();
-
-		if( config.hasOption( "tags" ) )
+		if( config.getInput().endsWith( ".abc" ) )
 		{
-			for( final ITag tag : tagIO.getTags() )
-			{
-				final String tagString = Tags.typeToString( tag.getType() );
-				String output = tagString;
+			final File input = new File( config.getInput() );
 
-				if( tagString.length() < 5 )
-				{
-					output += "\t\t\t";
-				}
-				else if( tagString.length() < 12 )
-				{
-					output += "\t\t";
-				}
-				else
-				{
-					output += "\t";
-				}
+			final Abc abc = new Abc();
 
-				ToolLog.success( output + tag.toString() );
-			}
+			abc.read( input );
+
+			final File file = new File( input.getName() + ".txt" );
+
+			ToolLog.info( "Exporting ABC to \"" + file.getName() + ".txt\"." );
+
+			final FileOutputStream fileOutputStream = new FileOutputStream(
+					file );
+
+			new AbcPrinter( new PrintWriter( fileOutputStream ) ).print( abc );
+
+			fileOutputStream.flush();
+			fileOutputStream.close();
 		}
-
-		if( config.hasOption( "images" ) )
+		else
 		{
-			for( final ITag tag : tagIO.getTags() )
+			final TagIO tagIO = new TagIO( config.getInput() );
+
+			tagIO.read();
+
+			if( config.hasOption( "tags" ) )
 			{
-				if( tag.getType() == Tags.DefineBitsJPEG2 )
+				ToolLog.info( "Tags:" );
+
+				for( final ITag tag : tagIO.getTags() )
 				{
-					final DefineBitsJPEG2Tag defineBitsJPEG2 = (DefineBitsJPEG2Tag)tag;
+					final String tagString = Tags.typeToString( tag.getType() );
+					String output = tagString;
 
-					String extension = "";
-
-					if( defineBitsJPEG2.imageData[ 0 ] == (byte)0xff )
+					if( tagString.length() < 5 )
 					{
-						extension = ".jpg";
+						output += "\t\t\t";
 					}
-					else if( defineBitsJPEG2.imageData[ 0 ] == (byte)0x89 )
+					else if( tagString.length() < 12 )
 					{
-						extension = ".png";
+						output += "\t\t";
 					}
-					else if( defineBitsJPEG2.imageData[ 0 ] == (byte)0x47 )
+					else
 					{
-						extension = ".gif";
+						output += "\t";
 					}
 
-					new File( "images" ).mkdirs();
-
-					final File file = new File( "images" + File.separator
-							+ defineBitsJPEG2.characterId + extension );
-
-					final FileOutputStream fileOutputStream = new FileOutputStream(
-							file );
-
-					fileOutputStream.write( defineBitsJPEG2.imageData );
-
-					fileOutputStream.flush();
-
-					fileOutputStream.close();
+					ToolLog.success( output + tag.toString() );
 				}
 			}
-		}
 
-		if( config.hasOption( "bytecode" ) )
-		{
-			ToolLog.warn( "Not implemented..." );
-		}
+			if( config.hasOption( "images" ) )
+			{
+				for( final ITag tag : tagIO.getTags() )
+				{
+					if( tag.getType() == Tags.DefineBitsJPEG2 )
+					{
+						final DefineBitsJPEG2Tag defineBitsJPEG2 = (DefineBitsJPEG2Tag)tag;
 
-		tagIO.close();
+						String extension = "";
+
+						if( defineBitsJPEG2.imageData[ 0 ] == (byte)0xff )
+						{
+							extension = ".jpg";
+						}
+						else if( defineBitsJPEG2.imageData[ 0 ] == (byte)0x89 )
+						{
+							extension = ".png";
+						}
+						else if( defineBitsJPEG2.imageData[ 0 ] == (byte)0x47 )
+						{
+							extension = ".gif";
+						}
+
+						new File( "images" ).mkdirs();
+
+						final File file = new File( "images" + File.separator
+								+ defineBitsJPEG2.characterId + extension );
+
+						ToolLog.info( "Exporting JPEG image to \"images/"
+								+ file.getName() + "\"." );
+
+						final FileOutputStream fileOutputStream = new FileOutputStream(
+								file );
+
+						fileOutputStream.write( defineBitsJPEG2.imageData );
+						fileOutputStream.flush();
+						fileOutputStream.close();
+					}
+				}
+			}
+
+			if( config.hasOption( "abc" ) )
+			{
+				for( final ITag tag : tagIO.getTags() )
+				{
+					if( tag.getType() == Tags.DoABC )
+					{
+						final DoABCTag doABC = (DoABCTag)tag;
+						final Abc abc = new Abc();
+
+						abc.read( doABC );
+
+						final File file = new File( doABC.name + ".txt" );
+
+						ToolLog.info( "Exporting ABC to \"" + file.getName()
+								+ "\"." );
+
+						final FileOutputStream fileOutputStream = new FileOutputStream(
+								file );
+
+						new AbcPrinter( new PrintWriter( fileOutputStream ) )
+								.print( abc );
+
+						fileOutputStream.flush();
+						fileOutputStream.close();
+					}
+				}
+			}
+
+			tagIO.close();
+		}
 	}
 
 	public void setConfiguration( final IToolConfiguration configuration )
