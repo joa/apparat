@@ -222,14 +222,6 @@ public final class Abc
 
 	public Metadata getMetadata( final int index )
 	{
-		if( index >= metadata.size() )
-		{
-			// Logger.getLogger( Abc.class.getName() ).warning(
-			// "Accessing non existing metadata entry " + index + "." );
-
-			return new Metadata();
-		}
-
 		return metadata.get( index );
 	}
 
@@ -517,14 +509,22 @@ public final class Abc
 
 			final int itemCount = input.readU30();
 
+			//
+			// TODO Verify correctness. Adobe implementation in
+			// GlobalOptimizer is reading first itemCount keys and then
+			// itemCount values.
+			//
+
 			for( int j = 0; j < itemCount; ++j )
 			{
 				final int key = input.readU30();
 				final int value = input.readU30();
 
-				meta.items.put( constantPool.getString( key ), constantPool
+				meta.attributes.put( constantPool.getString( key ), constantPool
 						.getString( value ) );
 			}
+
+			metadata.add( meta );
 		}
 	}
 
@@ -1349,11 +1349,11 @@ public final class Abc
 
 			output.writeU30( constantPool.getIndex( meta.name ) );
 
-			final int itemCount = meta.items.size();
+			final int itemCount = meta.attributes.size();
 
 			output.writeU30( itemCount );
 
-			for( final Entry<String, String> entry : meta.items.entrySet() )
+			for( final Entry<String, String> entry : meta.attributes.entrySet() )
 			{
 				output.writeU30( constantPool.getIndex( entry.getKey() ) );
 				output.writeU30( constantPool.getIndex( entry.getValue() ) );
