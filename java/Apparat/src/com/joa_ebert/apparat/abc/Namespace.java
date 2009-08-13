@@ -54,6 +54,17 @@ public final class Namespace
 
 	public boolean equals( final Namespace other )
 	{
+		//
+		// Undocumented: Although the namespace is technically equal the
+		// the verifier would complain that two classes share the same
+		// private namespace.
+		//
+
+		if( kind == NamespaceKind.PrivateNamespace && this != other )
+		{
+			return false;
+		}
+
 		return kind.equals( other.kind ) && name.equals( other.name );
 	}
 

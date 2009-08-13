@@ -30,6 +30,8 @@ import java.util.List;
  */
 public final class Script
 {
+	public Abc abc;
+
 	@AbcBinding
 	public Method initializer;
 

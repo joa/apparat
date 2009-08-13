@@ -30,6 +30,8 @@ import java.util.List;
  */
 public final class Class
 {
+	public Abc abc;
+
 	public int classInitializerIndex;
 
 	@AbcBinding

@@ -26,12 +26,15 @@ import java.util.TreeMap;
 
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 import com.joa_ebert.apparat.swf.tags.control.EndTag;
+import com.joa_ebert.apparat.swf.tags.control.ExportAssetsTag;
 import com.joa_ebert.apparat.swf.tags.control.FileAttributesTag;
 import com.joa_ebert.apparat.swf.tags.control.FrameLabelTag;
 import com.joa_ebert.apparat.swf.tags.control.MetadataTag;
 import com.joa_ebert.apparat.swf.tags.control.ProductInfoTag;
 import com.joa_ebert.apparat.swf.tags.control.ScriptLimitsTag;
 import com.joa_ebert.apparat.swf.tags.control.SetBackgroundColorTag;
+import com.joa_ebert.apparat.swf.tags.control.ShowFrameTag;
+import com.joa_ebert.apparat.swf.tags.control.SymbolClassTag;
 import com.joa_ebert.apparat.swf.tags.define.DefineBitsJPEG2Tag;
 import com.joa_ebert.apparat.swf.tags.define.DefineBitsJPEG3Tag;
 import com.joa_ebert.apparat.swf.tags.define.DefineBitsJPEG4Tag;
@@ -184,12 +187,15 @@ public final class Tags
 
 		classMap.put( DoABC, DoABCTag.class );
 		classMap.put( End, EndTag.class );
+		classMap.put( ExportAssets, ExportAssetsTag.class );
 		classMap.put( FileAttributes, FileAttributesTag.class );
 		classMap.put( FrameLabel, FrameLabelTag.class );
 		classMap.put( Metadata, MetadataTag.class );
 		classMap.put( ProductInfo, ProductInfoTag.class );
 		classMap.put( ScriptLimits, ScriptLimitsTag.class );
 		classMap.put( SetBackgroundColor, SetBackgroundColorTag.class );
+		classMap.put( ShowFrame, ShowFrameTag.class );
+		classMap.put( SymbolClass, SymbolClassTag.class );
 
 		classMap.put( DefineBitsJPEG2, DefineBitsJPEG2Tag.class );
 		classMap.put( DefineBitsJPEG3, DefineBitsJPEG3Tag.class );

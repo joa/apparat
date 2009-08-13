@@ -78,7 +78,7 @@ public class StringConverter
 				final RTQName rtqName = (RTQName)name;
 				return "RTQName"
 						+ ( name.kind == MultinameKind.RTQNameA ? "A" : "" )
-						+ "(" + rtqName.name + ")";
+						+ "(\"" + rtqName.name + "\")";
 			case RTQNameL:
 			case RTQNameLA:
 				return "RTQNameL"
@@ -107,7 +107,15 @@ public class StringConverter
 			return "(NULL_CLASS)";
 		}
 
-		return "Class()";
+		if( null == klass.instance || null == klass.instance.name )
+		{
+			return "Class()";
+		}
+		else
+		{
+			return "Class(" + StringConverter.toString( klass.instance.name )
+					+ ")";
+		}
 	}
 
 	public static String toString( final ExceptionHandler exceptionHandler )
@@ -217,7 +225,14 @@ public class StringConverter
 			return "(NULL_SCRIPT)";
 		}
 
-		return "Script()";
+		if( null == script.abc )
+		{
+			return "Script()";
+		}
+		else
+		{
+			return "Script(" + script.abc.scripts.indexOf( script ) + ")";
+		}
 	}
 
 	private StringConverter()

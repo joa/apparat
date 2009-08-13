@@ -31,6 +31,8 @@ import java.util.List;
  */
 public final class Method
 {
+	public Abc abc;
+
 	public List<Parameter> parameters;
 
 	public AbstractMultiname returnType;

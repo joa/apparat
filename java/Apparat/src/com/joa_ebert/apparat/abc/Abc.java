@@ -402,6 +402,7 @@ public final class Abc
 
 			instance.klass = klass;
 
+			klass.abc = this;
 			klass.instance = instance;
 			klass.classInitializerIndex = input.readU30();
 			klass.traits = readTraits( input );
@@ -414,6 +415,8 @@ public final class Abc
 			throws IOException, AbcException
 	{
 		constantPool = new ConstantPool();
+
+		constantPool.abc = this;
 
 		readIntegers( input );
 		readUnsignedIntegers( input );
@@ -476,6 +479,8 @@ public final class Abc
 		for( int i = 0; i < instanceCount; ++i )
 		{
 			final Instance instance = new Instance();
+
+			instance.abc = this;
 
 			final int nameIndex = input.readU30();
 
@@ -646,6 +651,8 @@ public final class Abc
 		for( int i = 0; i < methodCount; ++i )
 		{
 			final Method method = new Method();
+
+			method.abc = this;
 
 			final int paramCount = input.readU30();
 
@@ -859,6 +866,8 @@ public final class Abc
 		{
 			final Script script = new Script();
 
+			script.abc = this;
+
 			script.initializerIndex = input.readU30();
 			script.traits = readTraits( input );
 
@@ -1015,6 +1024,7 @@ public final class Abc
 					throw new AbcException();
 			}
 
+			trait.abc = this;
 			trait.name = (QName)traitName;
 
 			if( 0 != ( attributes & 0x04 ) )

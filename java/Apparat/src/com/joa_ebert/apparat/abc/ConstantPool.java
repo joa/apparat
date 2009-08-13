@@ -51,6 +51,8 @@ public final class ConstantPool
 		return new LinkedList<E>();
 	}
 
+	public Abc abc;
+
 	public List<Integer> intTable = createList();
 	public List<Long> uintTable = createList();
 	public List<Double> doubleTable = createList();

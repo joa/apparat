@@ -33,6 +33,8 @@ import com.joa_ebert.apparat.abc.multinames.QName;
  */
 public abstract class AbstractTrait
 {
+	public Abc abc;
+
 	public final TraitKind kind;
 
 	public QName name;

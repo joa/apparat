@@ -32,6 +32,7 @@ import com.joa_ebert.apparat.abc.multinames.QName;
  */
 public final class Instance
 {
+	public Abc abc;
 	public Class klass;
 
 	public QName name;
