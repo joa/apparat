@@ -93,6 +93,7 @@ public class StringConverter
 					builder.append( ", " );
 					builder.append( toString( param ) );
 				}
+				builder.append( ")" );
 				return builder.toString();
 		}
 

@@ -486,13 +486,14 @@ public final class ConstantPoolBuilder implements IAbcVisitor
 	{
 		final ConstantPool pool = context.getConstantPool();
 
-		pool.add( typename );
 		pool.add( typename.name );
 
 		for( final AbstractMultiname multiname : typename.parameters )
 		{
 			pool.add( multiname );
 		}
+
+		pool.add( typename );
 	}
 
 }

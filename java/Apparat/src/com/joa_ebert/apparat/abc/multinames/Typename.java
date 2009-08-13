@@ -76,9 +76,20 @@ public class Typename extends QName
 
 	public boolean equals( final Typename other )
 	{
-		//
-		// We are screwed if the name is the same but the parameters not.
-		//
+		if( other.parameters.size() != parameters.size() )
+		{
+			return false;
+		}
+
+		int n = parameters.size();
+
+		while( --n > -1 )
+		{
+			if( !parameters.get( n ).equals( other.parameters.get( n ) ) )
+			{
+				return false;
+			}
+		}
 
 		return name.equals( other.name );
 	}

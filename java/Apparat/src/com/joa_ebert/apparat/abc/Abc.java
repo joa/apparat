@@ -294,6 +294,7 @@ public final class Abc
 			throws AbcException, IOException
 	{
 		final MultinameKind kind = MultinameKind.getKind( input.readU08() );
+
 		AbstractMultiname result;
 
 		switch( kind )
@@ -1000,18 +1001,18 @@ public final class Abc
 	}
 
 	private Typename readTypename( final AbcInputStream input )
-			throws IOException
+			throws IOException, AbcException
 	{
 		final Typename result = new Typename();
 
 		result.name = (QName)constantPool.getMultiname( input.readU30() );
 
 		final int paramCount = input.readU30();
+
 		result.parameters = new ArrayList<AbstractMultiname>( paramCount );
 
 		for( int i = 0; i < paramCount; ++i )
 		{
-			// typename or qname of course...
 			result.parameters
 					.add( constantPool.getMultiname( input.readU30() ) );
 		}
