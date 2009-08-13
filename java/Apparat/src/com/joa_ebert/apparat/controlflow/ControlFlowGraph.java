@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow;
+package com.joa_ebert.apparat.controlflow;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.joa_ebert.apparat.abc.controlflow.utils.BasicBlockBuilder;
+import com.joa_ebert.apparat.controlflow.utils.BasicBlockBuilder;
 
 /**
  * 

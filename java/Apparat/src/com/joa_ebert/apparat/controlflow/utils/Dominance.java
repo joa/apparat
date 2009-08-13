@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow.utils;
+package com.joa_ebert.apparat.controlflow.utils;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -31,10 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.Vertex;
 
 /**
  * The Dominance class is an implementation of the "Simple, Fast Dominance

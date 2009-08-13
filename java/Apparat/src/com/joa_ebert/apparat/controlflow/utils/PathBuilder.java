@@ -19,18 +19,18 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow.utils;
+package com.joa_ebert.apparat.controlflow.utils;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import com.joa_ebert.apparat.abc.controlflow.BasicBlock;
-import com.joa_ebert.apparat.abc.controlflow.BasicBlockGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.Path;
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
+import com.joa_ebert.apparat.controlflow.BasicBlock;
+import com.joa_ebert.apparat.controlflow.BasicBlockGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.Path;
+import com.joa_ebert.apparat.controlflow.Vertex;
 
 /**
  * The PathBuilder class finds all possible paths between two vertices.

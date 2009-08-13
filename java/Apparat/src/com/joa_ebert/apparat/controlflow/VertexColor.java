@@ -19,36 +19,14 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow;
+package com.joa_ebert.apparat.controlflow;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public class Edge<V>
+public enum VertexColor
 {
-	public V startVertex;
-	public V endVertex;
-
-	public final EdgeKind kind;
-
-	public Edge( final V startVertex, final V endVertex )
-	{
-		this( startVertex, endVertex, EdgeKind.Default );
-	}
-
-	public Edge( final V startVertex, final V endVertex, final EdgeKind kind )
-	{
-		this.startVertex = startVertex;
-		this.endVertex = endVertex;
-		this.kind = kind;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "[Edge " + startVertex.toString() + " -> "
-				+ endVertex.toString() + "]";
-	}
+	White, Gray, Black;
 }

@@ -19,19 +19,42 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow;
+package com.joa_ebert.apparat.controlflow.export;
+
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.Vertex;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public class ControlFlowGraphException extends Exception
+public class DefaultEdgeLabelProvider<V extends Vertex, E extends Edge<V>>
+		extends AbstractEdgeLabelProvider<V, E>
 {
-	private static final long serialVersionUID = -4137573538749243379L;
-
-	public ControlFlowGraphException( final String message )
+	@Override
+	public String toString( final E edge )
 	{
-		super( message );
+		switch( edge.kind )
+		{
+			case Jump:
+				return "jump";
+			case True:
+				return "true";
+			case False:
+				return "false";
+			case DefaultCase:
+				return "defaultCase";
+			case Case:
+				return "case";
+			case Throw:
+				return "throw";
+			case Return:
+				return "return";
+			case Default:
+				return null;
+			default:
+				throw new RuntimeException( "Unreachable by definition." );
+		}
 	}
 }

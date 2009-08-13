@@ -21,8 +21,8 @@
 
 package com.joa_ebert.apparat.taas.toolkit.copyPropagation;
 
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.abc.controlflow.utils.DepthFirstIterator;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
+import com.joa_ebert.apparat.controlflow.utils.DepthFirstIterator;
 import com.joa_ebert.apparat.taas.TaasConstant;
 import com.joa_ebert.apparat.taas.TaasEdge;
 import com.joa_ebert.apparat.taas.TaasException;

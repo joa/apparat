@@ -19,20 +19,23 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow;
+package com.joa_ebert.apparat.controlflow;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public abstract class Vertex
+public class ExitVertex extends Vertex
 {
-	public final VertexKind kind;
-	public VertexColor color;
-
-	protected Vertex( final VertexKind kind )
+	public ExitVertex()
 	{
-		this.kind = kind;
+		super( VertexKind.Exit );
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[[Exit]]";
 	}
 }

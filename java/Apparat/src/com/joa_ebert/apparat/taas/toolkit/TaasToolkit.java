@@ -25,9 +25,9 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.abc.controlflow.VertexKind;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
+import com.joa_ebert.apparat.controlflow.VertexKind;
 import com.joa_ebert.apparat.taas.TaasCode;
 import com.joa_ebert.apparat.taas.TaasEdge;
 import com.joa_ebert.apparat.taas.TaasException;

@@ -23,10 +23,10 @@ package com.joa_ebert.apparat.taas.toolkit.constantFolding;
 
 import java.util.List;
 
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.abc.controlflow.EdgeKind;
-import com.joa_ebert.apparat.abc.controlflow.VertexKind;
-import com.joa_ebert.apparat.abc.controlflow.utils.DepthFirstIterator;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
+import com.joa_ebert.apparat.controlflow.EdgeKind;
+import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.controlflow.utils.DepthFirstIterator;
 import com.joa_ebert.apparat.taas.TaasEdge;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasMethod;

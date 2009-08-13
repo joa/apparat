@@ -19,13 +19,13 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow;
+package com.joa_ebert.apparat.controlflow;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import com.joa_ebert.apparat.abc.controlflow.export.AbstractVertexLabelProvider;
+import com.joa_ebert.apparat.controlflow.export.AbstractVertexLabelProvider;
 
 /**
  * 

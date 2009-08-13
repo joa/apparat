@@ -21,9 +21,9 @@
 
 package com.joa_ebert.apparat.taas;
 
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.EdgeKind;
-import com.joa_ebert.apparat.abc.controlflow.export.AbstractEdgeLabelProvider;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.EdgeKind;
+import com.joa_ebert.apparat.controlflow.export.AbstractEdgeLabelProvider;
 
 /**
  * 

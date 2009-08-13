@@ -19,23 +19,20 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow;
+package com.joa_ebert.apparat.controlflow;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public class EntryVertex extends Vertex
+public abstract class Vertex
 {
-	public EntryVertex()
-	{
-		super( VertexKind.Entry );
-	}
+	public final VertexKind kind;
+	public VertexColor color;
 
-	@Override
-	public String toString()
+	protected Vertex( final VertexKind kind )
 	{
-		return "[[Entry]]";
+		this.kind = kind;
 	}
 }

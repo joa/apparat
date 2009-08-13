@@ -27,14 +27,14 @@ import java.util.logging.Logger;
 
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
-import com.joa_ebert.apparat.abc.controlflow.BasicBlock;
-import com.joa_ebert.apparat.abc.controlflow.BasicBlockGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.Path;
-import com.joa_ebert.apparat.abc.controlflow.utils.BasicBlockBuilder;
-import com.joa_ebert.apparat.abc.controlflow.utils.PathBuilder;
+import com.joa_ebert.apparat.controlflow.BasicBlock;
+import com.joa_ebert.apparat.controlflow.BasicBlockGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.Path;
+import com.joa_ebert.apparat.controlflow.utils.BasicBlockBuilder;
+import com.joa_ebert.apparat.controlflow.utils.PathBuilder;
 
 /**
  * 

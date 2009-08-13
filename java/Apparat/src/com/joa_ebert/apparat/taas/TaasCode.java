@@ -26,12 +26,12 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.joa_ebert.apparat.abc.controlflow.BasicBlock;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.EdgeKind;
-import com.joa_ebert.apparat.abc.controlflow.export.DOTExporter;
+import com.joa_ebert.apparat.controlflow.BasicBlock;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.EdgeKind;
+import com.joa_ebert.apparat.controlflow.export.DOTExporter;
 
 /**
  * 

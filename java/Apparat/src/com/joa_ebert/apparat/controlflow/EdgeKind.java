@@ -19,14 +19,14 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow;
+package com.joa_ebert.apparat.controlflow;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public enum VertexColor
+public enum EdgeKind
 {
-	White, Gray, Black;
+	Default, True, False, Case, DefaultCase, Throw, Jump, Return;
 }

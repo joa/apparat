@@ -19,17 +19,19 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow.export;
-
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
+package com.joa_ebert.apparat.controlflow;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public abstract class AbstractEdgeLabelProvider<V extends Vertex, E extends Edge<V>>
+public class ControlFlowGraphException extends Exception
 {
-	public abstract String toString( E edge );
+	private static final long serialVersionUID = -4137573538749243379L;
+
+	public ControlFlowGraphException( final String message )
+	{
+		super( message );
+	}
 }

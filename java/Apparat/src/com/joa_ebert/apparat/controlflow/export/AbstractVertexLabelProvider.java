@@ -19,30 +19,16 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow;
+package com.joa_ebert.apparat.controlflow.export;
+
+import com.joa_ebert.apparat.controlflow.Vertex;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public enum VertexKind
+public abstract class AbstractVertexLabelProvider<V extends Vertex>
 {
-	Entry, Exit, Default;
-
-	@Override
-	public String toString()
-	{
-		switch( this )
-		{
-			case Default:
-				return "Default";
-			case Entry:
-				return "Entry";
-			case Exit:
-				return "Exit";
-		}
-
-		return "";
-	}
+	public abstract String toString( V vertex );
 }

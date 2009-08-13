@@ -19,36 +19,23 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow.export;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
+package com.joa_ebert.apparat.controlflow;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public class IntegerLabelProvider<V extends Vertex> extends
-		AbstractVertexLabelProvider<V>
+public class EntryVertex extends Vertex
 {
-	private final Map<V, Integer> map = new HashMap<V, Integer>();
-	private int numVertices = 0;
+	public EntryVertex()
+	{
+		super( VertexKind.Entry );
+	}
 
 	@Override
-	public String toString( final V vertex )
+	public String toString()
 	{
-		final int result;
-
-		if( map.containsKey( vertex ) )
-		{
-			return map.get( vertex ).toString();
-		}
-
-		map.put( vertex, result = numVertices++ );
-
-		return Integer.toString( result );
+		return "[[Entry]]";
 	}
 }

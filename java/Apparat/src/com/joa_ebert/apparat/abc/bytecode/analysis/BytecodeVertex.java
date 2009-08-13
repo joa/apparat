@@ -23,9 +23,9 @@ package com.joa_ebert.apparat.abc.bytecode.analysis;
 
 import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
 import com.joa_ebert.apparat.abc.bytecode.Op;
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
-import com.joa_ebert.apparat.abc.controlflow.VertexKind;
-import com.joa_ebert.apparat.abc.controlflow.export.AbstractVertexLabelProvider;
+import com.joa_ebert.apparat.controlflow.Vertex;
+import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.controlflow.export.AbstractVertexLabelProvider;
 
 /**
  * 

@@ -19,16 +19,16 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow.export;
+package com.joa_ebert.apparat.controlflow.export;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraph;
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.Vertex;
 
 /**
  * 

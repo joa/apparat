@@ -19,42 +19,30 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow.export;
-
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
+package com.joa_ebert.apparat.controlflow;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public class DefaultEdgeLabelProvider<V extends Vertex, E extends Edge<V>>
-		extends AbstractEdgeLabelProvider<V, E>
+public enum VertexKind
 {
+	Entry, Exit, Default;
+
 	@Override
-	public String toString( final E edge )
+	public String toString()
 	{
-		switch( edge.kind )
+		switch( this )
 		{
-			case Jump:
-				return "jump";
-			case True:
-				return "true";
-			case False:
-				return "false";
-			case DefaultCase:
-				return "defaultCase";
-			case Case:
-				return "case";
-			case Throw:
-				return "throw";
-			case Return:
-				return "return";
 			case Default:
-				return null;
-			default:
-				throw new RuntimeException( "Unreachable by definition." );
+				return "Default";
+			case Entry:
+				return "Entry";
+			case Exit:
+				return "Exit";
 		}
+
+		return "";
 	}
 }

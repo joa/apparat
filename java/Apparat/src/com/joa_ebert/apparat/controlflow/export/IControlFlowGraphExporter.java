@@ -19,16 +19,23 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow.export;
+package com.joa_ebert.apparat.controlflow.export;
 
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.Vertex;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public abstract class AbstractVertexLabelProvider<V extends Vertex>
+public interface IControlFlowGraphExporter<V extends Vertex, E extends Edge<V>>
 {
-	public abstract String toString( V vertex );
+	void export( final OutputStream output, final ControlFlowGraph<V, E> graph );
+
+	void export( final PrintWriter writer, final ControlFlowGraph<V, E> graph );
 }

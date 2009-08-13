@@ -19,18 +19,18 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.controlflow.utils;
+package com.joa_ebert.apparat.controlflow.utils;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.Vertex;
-import com.joa_ebert.apparat.abc.controlflow.VertexColor;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.Vertex;
+import com.joa_ebert.apparat.controlflow.VertexColor;
 
 /**
  * 

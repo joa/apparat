@@ -83,7 +83,6 @@ public final class GenericTag implements ITag
 		{
 			offset += input.read( data, offset, length - offset );
 		}
-
 	}
 
 	@Override

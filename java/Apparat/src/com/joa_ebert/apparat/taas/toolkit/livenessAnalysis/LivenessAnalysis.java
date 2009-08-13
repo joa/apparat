@@ -27,12 +27,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.joa_ebert.apparat.abc.controlflow.BasicBlock;
-import com.joa_ebert.apparat.abc.controlflow.BasicBlockGraph;
-import com.joa_ebert.apparat.abc.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.abc.controlflow.Edge;
-import com.joa_ebert.apparat.abc.controlflow.VertexKind;
-import com.joa_ebert.apparat.abc.controlflow.utils.DepthFirstIterator;
+import com.joa_ebert.apparat.controlflow.BasicBlock;
+import com.joa_ebert.apparat.controlflow.BasicBlockGraph;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.controlflow.utils.DepthFirstIterator;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
