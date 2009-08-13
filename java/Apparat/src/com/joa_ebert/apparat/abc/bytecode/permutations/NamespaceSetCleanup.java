@@ -57,9 +57,11 @@ public class NamespaceSetCleanup extends AbstractPatternMatcher implements
 	// 
 
 	public static final int[][] PATTERN = new int[][] {
-		new int[] {
-				Op.GetProperty, Op.SetProperty
-		}
+			new int[] {
+					Op.PushByte, Op.PushShort, Op.PushInt
+			}, new int[] {
+					Op.GetProperty, Op.SetProperty
+			}
 	};
 
 	private boolean modificationMade = false;
@@ -89,9 +91,12 @@ public class NamespaceSetCleanup extends AbstractPatternMatcher implements
 	{
 		for( final AbstractOperation occurrence : occurrences )
 		{
-			if( occurrence.code == Op.GetProperty )
+			final AbstractOperation next = bytecode.get( bytecode
+					.indexOf( occurrence ) + 1 );
+
+			if( next.code == Op.GetProperty )
 			{
-				final GetProperty getProperty = (GetProperty)occurrence;
+				final GetProperty getProperty = (GetProperty)next;
 
 				if( getProperty.property.kind == MultinameKind.MultinameL )
 				{
@@ -104,9 +109,9 @@ public class NamespaceSetCleanup extends AbstractPatternMatcher implements
 					}
 				}
 			}
-			else if( occurrence.code == Op.SetProperty )
+			else if( next.code == Op.SetProperty )
 			{
-				final SetProperty setProperty = (SetProperty)occurrence;
+				final SetProperty setProperty = (SetProperty)next;
 
 				if( setProperty.property.kind == MultinameKind.MultinameL )
 				{
