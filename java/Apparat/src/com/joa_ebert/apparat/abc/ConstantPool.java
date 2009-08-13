@@ -650,10 +650,6 @@ public final class ConstantPool
 		return uintTable.get( index );
 	}
 
-	public void optimize()
-	{
-	}
-
 	public void removeAll( final ConstantPool pool )
 	{
 		subtract( intTable, pool.intTable );

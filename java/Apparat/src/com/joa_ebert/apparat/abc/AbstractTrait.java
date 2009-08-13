@@ -51,5 +51,13 @@ public abstract class AbstractTrait
 	public void accept( final AbcContext context, final IAbcVisitor visitor )
 	{
 		visitor.visit( context, this );
+
+		if( null != metadata )
+		{
+			for( final Metadata meta : metadata )
+			{
+				meta.accept( context, visitor );
+			}
+		}
 	}
 }

@@ -155,14 +155,18 @@ public final class ConstantPoolBuilder implements IAbcVisitor
 
 		pool.add( metadata.name );
 
-		for( final Entry<String, String> item : metadata.items.entrySet() )
+		for( final Entry<String, String> attribute : metadata.attributes
+				.entrySet() )
 		{
-			if( null != item.getKey() )
+			if( null != attribute.getKey() )
 			{
-				pool.add( item.getKey() );
+				pool.add( attribute.getKey() );
 			}
 
-			pool.add( item.getValue() );
+			if( null != attribute.getValue() )
+			{
+				pool.add( attribute.getValue() );
+			}
 		}
 	}
 

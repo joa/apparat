@@ -21,6 +21,7 @@
 
 package com.joa_ebert.apparat.abc;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,12 +34,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.zip.DataFormatException;
 
 import com.joa_ebert.apparat.abc.analysis.AbcBindingBuilder;
 import com.joa_ebert.apparat.abc.analysis.AbcBindingSolver;
 import com.joa_ebert.apparat.abc.analysis.ConstantPoolBuilder;
+import com.joa_ebert.apparat.abc.analysis.MetadataBuilder;
 import com.joa_ebert.apparat.abc.bytecode.BytecodeDecoder;
 import com.joa_ebert.apparat.abc.bytecode.BytecodeEncoder;
 import com.joa_ebert.apparat.abc.bytecode.MarkerException;
@@ -228,6 +231,29 @@ public final class Abc
 	public Method getMethod( final int index )
 	{
 		return methods.get( index );
+	}
+
+	public void read( final byte[] data ) throws IOException, AbcException
+	{
+		ByteArrayInputStream input = null;
+		try
+		{
+			input = new ByteArrayInputStream( data );
+			read( input );
+		}
+		finally
+		{
+			if( null != input )
+			{
+				try
+				{
+					input.close();
+				}
+				catch( final IOException exception )
+				{
+				}
+			}
+		}
 	}
 
 	public void read( final File file ) throws FileNotFoundException,
@@ -510,18 +536,30 @@ public final class Abc
 			final int itemCount = input.readU30();
 
 			//
-			// TODO Verify correctness. Adobe implementation in
-			// GlobalOptimizer is reading first itemCount keys and then
-			// itemCount values.
+			// Undocumented: The documentation states that metadata is stored
+			// stored using key-value pairs (page 27).
 			//
+			// Actually all keys are stored and then afterwards the values.
+			//
+			// key0
+			// key1
+			// key2
+			// value0
+			// value1
+			// value2
+			//
+
+			final ArrayList<String> keys = new ArrayList<String>( itemCount );
 
 			for( int j = 0; j < itemCount; ++j )
 			{
-				final int key = input.readU30();
-				final int value = input.readU30();
+				keys.add( constantPool.getString( input.readU30() ) );
+			}
 
-				meta.attributes.put( constantPool.getString( key ), constantPool
-						.getString( value ) );
+			for( int j = 0; j < itemCount; ++j )
+			{
+				meta.attributes.put( keys.get( j ), constantPool
+						.getString( input.readU30() ) );
 			}
 
 			metadata.add( meta );
@@ -1034,6 +1072,15 @@ public final class Abc
 		}
 	}
 
+	public byte[] toByteArray() throws IOException, AbcException
+	{
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		write( output );
+
+		return output.toByteArray();
+	}
+
 	public void write( final DoABCTag tag ) throws IOException, AbcException
 	{
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -1062,21 +1109,10 @@ public final class Abc
 	{
 		final AbcOutputStream abcOutput = new AbcOutputStream( output );
 
-		// TODO solve metadata
-
-		//
-		// Build ConstantPool based.
-		//
+		// TODO replace with chained visitor
 
 		accept( new ConstantPoolBuilder() );
-
-		//
-		// Optimize ConstantPool based on priorities resulting in smaller
-		// ABC file size.
-		//
-
-		constantPool.optimize();
-
+		accept( new MetadataBuilder() );
 		accept( new AbcBindingBuilder() );
 
 		abcOutput.writeU16( minorVersion );
@@ -1353,9 +1389,16 @@ public final class Abc
 
 			output.writeU30( itemCount );
 
-			for( final Entry<String, String> entry : meta.attributes.entrySet() )
+			final Set<Entry<String, String>> entrySet = meta.attributes
+					.entrySet();
+
+			for( final Entry<String, String> entry : entrySet )
 			{
 				output.writeU30( constantPool.getIndex( entry.getKey() ) );
+			}
+
+			for( final Entry<String, String> entry : entrySet )
+			{
 				output.writeU30( constantPool.getIndex( entry.getValue() ) );
 			}
 		}

@@ -23,6 +23,7 @@ package com.joa_ebert.apparat.abc;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * 
@@ -32,7 +33,7 @@ import java.util.Map;
 public final class Metadata
 {
 	public String name;
-	public final Map<String, String> items = new HashMap<String, String>();
+	public final Map<String, String> attributes = new HashMap<String, String>();
 
 	public Metadata()
 	{
@@ -45,7 +46,31 @@ public final class Metadata
 
 	public boolean equals( final Metadata other )
 	{
-		return name.equals( other.name );
+		if( !name.equals( other.name ) )
+		{
+			return false;
+		}
+
+		if( attributes.size() != other.attributes.size() )
+		{
+			return false;
+		}
+
+		for( final Entry<String, String> entry : attributes.entrySet() )
+		{
+			if( !other.attributes.containsKey( entry.getKey() ) )
+			{
+				return false;
+			}
+
+			if( !entry.getValue()
+					.equals( other.attributes.get( entry.getKey() ) ) )
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	@Override
@@ -57,5 +82,34 @@ public final class Metadata
 		}
 
 		return false;
+	}
+
+	@Override
+	public String toString()
+	{
+		final StringBuilder builder = new StringBuilder( "[Metadata [" );
+
+		builder.append( name );
+		builder.append( '(' );
+
+		final int n = attributes.size() - 1;
+		int i = 0;
+
+		for( final Entry<String, String> entry : attributes.entrySet() )
+		{
+			builder.append( entry.getKey() );
+			builder.append( "=\"" );
+			builder.append( entry.getValue() );
+			builder.append( '"' );
+
+			if( i++ != n )
+			{
+				builder.append( ", " );
+			}
+		}
+
+		builder.append( ")]" );
+
+		return builder.toString();
 	}
 }

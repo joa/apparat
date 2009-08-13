@@ -27,6 +27,7 @@ import com.joa_ebert.apparat.abc.AbstractTrait;
 import com.joa_ebert.apparat.abc.ConstantPool;
 import com.joa_ebert.apparat.abc.ConstantType;
 import com.joa_ebert.apparat.abc.IAbcVisitor;
+import com.joa_ebert.apparat.abc.Metadata;
 import com.joa_ebert.apparat.abc.TraitKind;
 
 /**
@@ -60,6 +61,14 @@ public final class TraitSlot extends AbstractTrait
 		if( null != type )
 		{
 			type.accept( context, visitor );
+		}
+
+		if( null != metadata )
+		{
+			for( final Metadata meta : metadata )
+			{
+				meta.accept( context, visitor );
+			}
 		}
 	}
 }

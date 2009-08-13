@@ -25,6 +25,7 @@ import com.joa_ebert.apparat.abc.AbcBinding;
 import com.joa_ebert.apparat.abc.AbcContext;
 import com.joa_ebert.apparat.abc.AbstractTrait;
 import com.joa_ebert.apparat.abc.IAbcVisitor;
+import com.joa_ebert.apparat.abc.Metadata;
 import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.TraitKind;
 
@@ -53,5 +54,13 @@ public final class TraitFunction extends AbstractTrait
 		visitor.visit( context, this );
 
 		name.accept( context, visitor );
+
+		if( null != metadata )
+		{
+			for( final Metadata meta : metadata )
+			{
+				meta.accept( context, visitor );
+			}
+		}
 	}
 }

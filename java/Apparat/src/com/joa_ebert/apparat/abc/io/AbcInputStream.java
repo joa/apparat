@@ -183,67 +183,50 @@ public final class AbcInputStream extends InputStream
 	{
 		long b = read();
 		b &= 0xFF;
+
 		long u32 = b;
+
 		if( !( ( u32 & 0x00000080 ) == 0x00000080 ) )
 		{
 			return u32;
 		}
+
 		b = read();
 		b &= 0xFF;
+
 		u32 = u32 & 0x0000007f | b << 7;
+
 		if( !( ( u32 & 0x00004000 ) == 0x00004000 ) )
 		{
 			return u32;
 		}
+
 		b = read();
 		b &= 0xFF;
+
 		u32 = u32 & 0x00003fff | b << 14;
+
 		if( !( ( u32 & 0x00200000 ) == 0x00200000 ) )
 		{
 			return u32;
 		}
+
 		b = read();
 		b &= 0xFF;
+
 		u32 = u32 & 0x001fffff | b << 21;
+
 		if( !( ( u32 & 0x10000000 ) == 0x10000000 ) )
 		{
 			return u32;
 		}
+
 		b = read();
 		b &= 0xFF;
-		u32 = u32 & 0x0fffffff | b << 28;
-		return u32;
 
-		// return readVariableLength( 5 );
-		// }
-		//
-		// private int readVariableLength( final int maxBytes ) throws
-		// IOException
-		// {
-		// final int n = maxBytes - 1;
-		//
-		// int result = 0;
-		//
-		// for( int i = 0; i < maxBytes; ++i )
-		// {
-		// final int b = read();
-		//
-		// if( i != n )
-		// {
-		// result |= ( b & 0x7f ) << ( i * 7 );
-		//
-		// if( 0 == ( b & 0x80 ) )
-		// {
-		// break;
-		// }
-		// }
-		// else
-		// {
-		// result |= b;
-		// }
-		// }
-		//
-		// return result;
+		u32 = u32 & 0x0fffffff | b << 28;
+
+		return u32;
 	}
 
 	@Override
