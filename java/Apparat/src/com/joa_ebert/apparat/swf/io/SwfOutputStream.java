@@ -414,4 +414,14 @@ public final class SwfOutputStream extends OutputStream
 		writeUI32( 0 );
 	}
 
+	public void writeUUID( final UUID value ) throws IOException
+	{
+		final int n = value.hash.length;
+
+		for( int i = 0; i < n; ++i )
+		{
+			writeUI08( value.hash[ i ] & 0xff );
+		}
+	}
+
 }

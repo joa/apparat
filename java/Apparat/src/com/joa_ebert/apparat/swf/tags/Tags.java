@@ -24,6 +24,7 @@ package com.joa_ebert.apparat.swf.tags;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.joa_ebert.apparat.swf.tags.control.DebugID;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 import com.joa_ebert.apparat.swf.tags.control.EndTag;
 import com.joa_ebert.apparat.swf.tags.control.ExportAssetsTag;
@@ -91,6 +92,7 @@ public final class Tags
 	public static final int DefineVideoStream = 60;
 	public static final int VideoFrame = 61;
 	public static final int DefineFontInfo2 = 62;
+	public static final int DebugID = 63;
 	public static final int EnableDebugger2 = 64;
 	public static final int ScriptLimits = 65;
 	public static final int SetTabIndex = 66;
@@ -162,6 +164,7 @@ public final class Tags
 		stringMap.put( DefineVideoStream, "DefineVideoStream" );
 		stringMap.put( VideoFrame, "VideoFrame" );
 		stringMap.put( DefineFontInfo2, "DefineFontInfo2" );
+		stringMap.put( DebugID, "DebugID" );
 		stringMap.put( EnableDebugger2, "EnableDebugger2" );
 		stringMap.put( ScriptLimits, "ScriptLimits" );
 		stringMap.put( SetTabIndex, "SetTabIndex" );
@@ -185,6 +188,7 @@ public final class Tags
 		stringMap.put( DefineBitsJPEG4, "DefineBitsJPEG4" );
 		stringMap.put( DefineFont4, "DefineFont4" );
 
+		classMap.put( DebugID, DebugID.class );
 		classMap.put( DoABC, DoABCTag.class );
 		classMap.put( End, EndTag.class );
 		classMap.put( ExportAssets, ExportAssetsTag.class );

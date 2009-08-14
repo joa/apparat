@@ -486,6 +486,18 @@ public final class SwfInputStream extends InputStream
 		return result;
 	}
 
+	public UUID readUUID( final int length ) throws IOException
+	{
+		final byte[] buffer = new byte[ length ];
+
+		for( int i = 0; i < length; ++i )
+		{
+			buffer[ i ] = (byte)readUI08();
+		}
+
+		return new UUID( buffer );
+	}
+
 	@Override
 	public synchronized void reset() throws IOException
 	{
