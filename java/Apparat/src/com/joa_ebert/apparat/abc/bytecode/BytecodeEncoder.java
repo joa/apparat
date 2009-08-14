@@ -117,7 +117,9 @@ public final class BytecodeEncoder
 
 			if( markers.hasMarkerFor( operation ) )
 			{
-				markers.getMarkerFor( operation ).position = operation.position;
+				final Marker marker = markers.getMarkerFor( operation );
+
+				marker.position = operation.position;
 			}
 
 			output.writeU08( code );

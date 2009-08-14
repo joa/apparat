@@ -73,13 +73,15 @@ public final class MarkerManager
 				// after the Jump statement which consumes 4 bytes.
 				//
 
+				final Marker marker = ( (Jump)operation ).marker;
+
 				if( IS_STRICT )
 				{
-					verifyMarker( ( (Jump)operation ).marker );
+					verifyMarker( marker );
 				}
 
-				AbcOutputStream.writeS24( buffer, position + 1,
-						( (Jump)operation ).marker.position - ( position + 4 ) );
+				AbcOutputStream.writeS24( buffer, position + 1, marker.position
+						- ( position + 4 ) );
 			}
 			else if( operation instanceof LookupSwitch )
 			{
@@ -114,7 +116,10 @@ public final class MarkerManager
 
 				for( int i = 0; i < caseCount; ++i )
 				{
-					verifyMarker( lookupSwitch.caseMarkers.get( i ) );
+					if( IS_STRICT )
+					{
+						verifyMarker( lookupSwitch.caseMarkers.get( i ) );
+					}
 
 					AbcOutputStream.writeS24( buffer, offset + i * 3,
 							lookupSwitch.caseMarkers.get( i ).position
@@ -137,6 +142,14 @@ public final class MarkerManager
 
 	public Marker getMarkerAt( final int position )
 	{
+		for( final Marker marker : markers.values() )
+		{
+			if( marker.position == position )
+			{
+				return marker;
+			}
+		}
+
 		return unresolved.get( position );
 	}
 
@@ -152,6 +165,14 @@ public final class MarkerManager
 
 	public boolean hasMarkerAt( final int position )
 	{
+		for( final Marker marker : markers.values() )
+		{
+			if( marker.position == position )
+			{
+				return true;
+			}
+		}
+
 		return unresolved.containsKey( position );
 	}
 
@@ -200,6 +221,8 @@ public final class MarkerManager
 		}
 
 		final Marker result = new Marker( numMarkers++ );
+
+		result.position = position;
 
 		unresolved.put( position, result );
 
@@ -276,7 +299,9 @@ public final class MarkerManager
 				{
 					// Logger.getLogger( MarkerManager.class.getName()
 					// ).warning(
-					// "Illegal control transfer detected." );
+					// "Illegal control transfer detected in "
+					// + StringConverter.toString( code.method )
+					// + "." );
 				}
 			}
 		}
