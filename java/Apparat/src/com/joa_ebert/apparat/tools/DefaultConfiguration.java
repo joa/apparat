@@ -86,6 +86,7 @@ final class DefaultConfiguration implements IToolConfiguration
 			throws ToolConfigurationException
 	{
 		final int n = arguments.length;
+		final int m = n - 1;
 
 		final List<String> libraries = new LinkedList<String>();
 
@@ -110,7 +111,21 @@ final class DefaultConfiguration implements IToolConfiguration
 			}
 			else if( argument.charAt( 0 ) == '-' )
 			{
-				options.put( argument.substring( 1 ), arguments[ ++i ] );
+				if( m != i )
+				{
+					if( arguments[ i + 1 ].charAt( 0 ) == '-' )
+					{
+						options.put( argument.substring( 1 ), "true" );
+					}
+					else
+					{
+						options.put( argument.substring( 1 ), arguments[ ++i ] );
+					}
+				}
+				else
+				{
+					options.put( argument.substring( 1 ), "true" );
+				}
 			}
 			else
 			{

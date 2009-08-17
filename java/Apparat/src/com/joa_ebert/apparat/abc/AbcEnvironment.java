@@ -37,7 +37,7 @@ import com.joa_ebert.apparat.abc.utils.StringConverter;
  * @author Joa Ebert
  * 
  */
-public class AbcEnvironment
+public final class AbcEnvironment
 {
 	private static final TypeSolver TYPER_INSTANCE = new TypeSolver();
 

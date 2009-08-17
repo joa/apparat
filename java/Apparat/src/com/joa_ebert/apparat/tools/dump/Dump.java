@@ -55,9 +55,10 @@ public final class Dump implements ITool
 
 	public String getHelp()
 	{
-		return "-input [file]\tThe input file\n" + "-abc\tWill dump ABCs.\n"
-				+ "-tags\t\tWill dump known tags.\n"
-				+ "-images\tWill dump images.";
+		return "-input [file]\tThe input file\n"
+				+ "-abc\tWill output detailed ABC information.\n"
+				+ "-tags\t\tWill show known tags.\n"
+				+ "-images\tWill extract DefineBitsJPEG2 images.";
 	}
 
 	public String getName()
