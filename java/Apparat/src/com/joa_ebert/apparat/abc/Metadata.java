@@ -32,7 +32,7 @@ import java.util.Map.Entry;
  */
 public final class Metadata
 {
-	public String name;
+	public String name = "";
 	public final Map<String, String> attributes = new HashMap<String, String>();
 
 	public Metadata()
