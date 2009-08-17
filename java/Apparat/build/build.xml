@@ -50,26 +50,41 @@
 	</target>
 	
 	<target name="dump" depends="compile">
-				<jar
-					destfile="${dir.jar}/dump.jar">
-					
-				    <fileset dir="${dir.bin}">
-				    	<include name="**/apparat/abc/**"/>
-				    	<include name="**/apparat/swf/**"/>
-				    	<include name="**/apparat/swc/**"/>
-				    	<include name="**/apparat/tools/**"/>
-				    	<exclude name="**/apparat/tools/reducer/**"/>
-				    	<exclude name="**/apparat/tools/tdsi/**"/>
-					</fileset>
-					
-					<manifest>
-						<attribute
-							name="Main-Class"
-							value="com.joa_ebert.apparat.tools.dump.Dump"
-						/>
-					</manifest>
-				</jar>
-		</target>
+		<jar
+			destfile="${dir.jar}/dump.jar">
+			
+		    <fileset dir="${dir.bin}">
+		    	<include name="**/apparat/abc/**"/>
+		    	<include name="**/apparat/swf/**"/>
+		    	<include name="**/apparat/swc/**"/>
+		    	<include name="**/apparat/tools/**"/>
+		    	<include name="**/apparat/utils/**"/>
+		    	<exclude name="**/apparat/tools/reducer/**"/>
+		    	<exclude name="**/apparat/tools/tdsi/**"/>
+			</fileset>
+			
+			<manifest>
+				<attribute
+					name="Main-Class"
+					value="com.joa_ebert.apparat.tools.dump.Dump"
+				/>
+			</manifest>
+		</jar>
+		
+		<zip
+			destfile="${dir.zip}/dump.zip"
+			level="9">
+			<fileset dir="${dir.jar}">
+				<include name="dump.jar"/>
+			</fileset>
+			<fileset dir="${dir.assets}/dump">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="${dir.assets}/generic">
+				<include name="**/*"/>
+			</fileset>
+		</zip>
+	</target>
 	
 	<target name="tdsi" depends="compile">
 		<jar
@@ -81,6 +96,7 @@
 		    	<include name="**/apparat/swf/**"/>
 		    	<include name="**/apparat/swc/**"/>
 		    	<include name="**/apparat/tools/**"/>
+		    	<include name="**/apparat/utils/**"/>
 		    	<exclude name="**/apparat/tools/dump/**"/>
 		    	<exclude name="**/apparat/tools/reducer/**"/>
 			</fileset>
@@ -116,6 +132,7 @@
 		    	<include name="**/apparat/swf/**"/>
 		    	<include name="**/apparat/swc/**"/>
 		    	<include name="**/apparat/tools/**"/>
+		    	<include name="**/apparat/utils/**"/>
 		    	<exclude name="**/apparat/tools/dump/**"/>
 		    	<exclude name="**/apparat/tools/tdsi/**"/>
 			</fileset>
