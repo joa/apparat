@@ -78,4 +78,15 @@ public final class Namespace
 
 		return false;
 	}
+
+	@Override
+	public int hashCode()
+	{
+		int hash = 123;
+
+		hash = hash * 31 + ( null == kind ? 0 : kind.hashCode() );
+		hash = hash * 31 + ( null == name ? 0 : name.hashCode() );
+
+		return hash;
+	}
 }

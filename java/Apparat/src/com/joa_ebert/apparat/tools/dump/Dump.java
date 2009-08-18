@@ -27,6 +27,7 @@ import java.io.PrintWriter;
 
 import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.abc.utils.AbcPrinter;
+import com.joa_ebert.apparat.abc.utils.InheritanceGraphPrinter;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
@@ -57,6 +58,7 @@ public final class Dump implements ITool
 	{
 		return "-input [file]\tThe input file\n"
 				+ "-abc\tWill output detailed ABC information.\n"
+				+ "-ig\tWill output the inheritance graph in DOT format.\n"
 				+ "-tags\t\tWill show known tags.\n"
 				+ "-images\tWill extract DefineBitsJPEG2 images.";
 	}
@@ -73,7 +75,10 @@ public final class Dump implements ITool
 
 	public void run() throws Exception
 	{
-		if( config.getInput().endsWith( ".abc" ) )
+		final boolean exportABC = config.hasOption( "abc" );
+		final boolean exportDOT = config.hasOption( "ig" );
+
+		if( config.getInput().endsWith( ".abc" ) && ( exportABC || exportDOT ) )
 		{
 			final File input = new File( config.getInput() );
 
@@ -81,17 +86,38 @@ public final class Dump implements ITool
 
 			abc.read( input );
 
-			final File file = new File( input.getName() + ".txt" );
+			if( exportABC )
+			{
+				final File file = new File( input.getName() + ".txt" );
 
-			ToolLog.info( "Exporting ABC to \"" + file.getName() + ".txt\"." );
+				ToolLog.info( "Exporting ABC to \"" + file.getName() + "\"." );
 
-			final FileOutputStream fileOutputStream = new FileOutputStream(
-					file );
+				final FileOutputStream fileOutputStream = new FileOutputStream(
+						file );
 
-			new AbcPrinter( new PrintWriter( fileOutputStream ) ).print( abc );
+				new AbcPrinter( new PrintWriter( fileOutputStream ) )
+						.print( abc );
 
-			fileOutputStream.flush();
-			fileOutputStream.close();
+				fileOutputStream.flush();
+				fileOutputStream.close();
+			}
+
+			if( exportDOT )
+			{
+				final File file = new File( input.getName() + ".dot" );
+
+				ToolLog.info( "Exporting inheritance graph to \""
+						+ file.getName() + "\"." );
+
+				final FileOutputStream fileOutputStream = new FileOutputStream(
+						file );
+
+				new InheritanceGraphPrinter( new PrintWriter( fileOutputStream ) )
+						.print( abc );
+
+				fileOutputStream.flush();
+				fileOutputStream.close();
+			}
 		}
 		else
 		{
@@ -166,7 +192,7 @@ public final class Dump implements ITool
 				}
 			}
 
-			if( config.hasOption( "abc" ) )
+			if( exportABC || exportDOT )
 			{
 				for( final ITag tag : tagIO.getTags() )
 				{
@@ -177,19 +203,39 @@ public final class Dump implements ITool
 
 						abc.read( doABC );
 
-						final File file = new File( doABC.name + ".txt" );
+						if( exportABC )
+						{
+							final File file = new File( doABC.name + ".txt" );
 
-						ToolLog.info( "Exporting ABC to \"" + file.getName()
-								+ "\"." );
+							ToolLog.info( "Exporting ABC to \""
+									+ file.getName() + "\"." );
 
-						final FileOutputStream fileOutputStream = new FileOutputStream(
-								file );
+							final FileOutputStream fileOutputStream = new FileOutputStream(
+									file );
 
-						new AbcPrinter( new PrintWriter( fileOutputStream ) )
-								.print( abc );
+							new AbcPrinter( new PrintWriter( fileOutputStream ) )
+									.print( abc );
 
-						fileOutputStream.flush();
-						fileOutputStream.close();
+							fileOutputStream.flush();
+							fileOutputStream.close();
+						}
+
+						if( exportDOT )
+						{
+							final File file = new File( doABC.name + ".dot" );
+
+							ToolLog.info( "Exporting inheritance graph to \""
+									+ file.getName() + "\"." );
+
+							final FileOutputStream fileOutputStream = new FileOutputStream(
+									file );
+
+							new InheritanceGraphPrinter( new PrintWriter(
+									fileOutputStream ) ).print( abc );
+
+							fileOutputStream.flush();
+							fileOutputStream.close();
+						}
 					}
 				}
 			}

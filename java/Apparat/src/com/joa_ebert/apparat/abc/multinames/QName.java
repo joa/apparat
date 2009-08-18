@@ -85,4 +85,15 @@ public class QName extends AbstractMultiname
 	{
 		return name.equals( other.name ) && namespace.equals( other.namespace );
 	}
+
+	@Override
+	public int hashCode()
+	{
+		int hash = 23;
+
+		hash = hash * 31 + ( null == namespace ? 0 : namespace.hashCode() );
+		hash = hash * 31 + ( null == name ? 0 : name.hashCode() );
+
+		return hash;
+	}
 }
