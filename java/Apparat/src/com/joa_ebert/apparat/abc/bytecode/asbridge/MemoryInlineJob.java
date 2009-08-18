@@ -152,11 +152,11 @@ public class MemoryInlineJob implements IActionScriptBridge
 
 					AbstractOperation replacement = null;
 
-					if( property.equals( "readByte" ) )
+					if( property.equals( "readUnsignedByte" ) )
 					{
 						replacement = new GetByte();
 					}
-					else if( property.equals( "readShort" ) )
+					else if( property.equals( "readUnsignedShort" ) )
 					{
 						replacement = new GetShort();
 					}
