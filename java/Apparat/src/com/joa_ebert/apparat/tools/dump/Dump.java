@@ -28,6 +28,7 @@ import java.io.PrintWriter;
 import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.abc.utils.AbcPrinter;
 import com.joa_ebert.apparat.abc.utils.InheritanceGraphPrinter;
+import com.joa_ebert.apparat.abc.utils.UMLGraphPrinter;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
@@ -59,6 +60,7 @@ public final class Dump implements ITool
 		return "-input [file]\tThe input file\n"
 				+ "-abc\tWill output detailed ABC information.\n"
 				+ "-ig\tWill output the inheritance graph in DOT format.\n"
+				+ "-uml\tWill output a UML diagram in DOT format.\n"
 				+ "-tags\t\tWill show known tags.\n"
 				+ "-images\tWill extract DefineBitsJPEG2 images.";
 	}
@@ -77,8 +79,10 @@ public final class Dump implements ITool
 	{
 		final boolean exportABC = config.hasOption( "abc" );
 		final boolean exportDOT = config.hasOption( "ig" );
+		final boolean exportUML = config.hasOption( "uml" );
 
-		if( config.getInput().endsWith( ".abc" ) && ( exportABC || exportDOT ) )
+		if( config.getInput().endsWith( ".abc" )
+				&& ( exportABC || exportDOT || exportUML ) )
 		{
 			final File input = new File( config.getInput() );
 
@@ -104,7 +108,7 @@ public final class Dump implements ITool
 
 			if( exportDOT )
 			{
-				final File file = new File( input.getName() + ".dot" );
+				final File file = new File( input.getName() + ".ig.dot" );
 
 				ToolLog.info( "Exporting inheritance graph to \""
 						+ file.getName() + "\"." );
@@ -113,6 +117,23 @@ public final class Dump implements ITool
 						file );
 
 				new InheritanceGraphPrinter( new PrintWriter( fileOutputStream ) )
+						.print( abc );
+
+				fileOutputStream.flush();
+				fileOutputStream.close();
+			}
+
+			if( exportUML )
+			{
+				final File file = new File( input.getName() + ".uml.dot" );
+
+				ToolLog.info( "Exporting UML diagram to \"" + file.getName()
+						+ "\"." );
+
+				final FileOutputStream fileOutputStream = new FileOutputStream(
+						file );
+
+				new UMLGraphPrinter( new PrintWriter( fileOutputStream ) )
 						.print( abc );
 
 				fileOutputStream.flush();
@@ -192,7 +213,7 @@ public final class Dump implements ITool
 				}
 			}
 
-			if( exportABC || exportDOT )
+			if( exportABC || exportDOT || exportUML )
 			{
 				for( final ITag tag : tagIO.getTags() )
 				{
@@ -222,7 +243,7 @@ public final class Dump implements ITool
 
 						if( exportDOT )
 						{
-							final File file = new File( doABC.name + ".dot" );
+							final File file = new File( doABC.name + ".ig.dot" );
 
 							ToolLog.info( "Exporting inheritance graph to \""
 									+ file.getName() + "\"." );
@@ -231,6 +252,23 @@ public final class Dump implements ITool
 									file );
 
 							new InheritanceGraphPrinter( new PrintWriter(
+									fileOutputStream ) ).print( abc );
+
+							fileOutputStream.flush();
+							fileOutputStream.close();
+						}
+
+						if( exportUML )
+						{
+							final File file = new File( doABC.name + ".uml.dot" );
+
+							ToolLog.info( "Exporting UML diagram to \""
+									+ file.getName() + "\"." );
+
+							final FileOutputStream fileOutputStream = new FileOutputStream(
+									file );
+
+							new UMLGraphPrinter( new PrintWriter(
 									fileOutputStream ) ).print( abc );
 
 							fileOutputStream.flush();
