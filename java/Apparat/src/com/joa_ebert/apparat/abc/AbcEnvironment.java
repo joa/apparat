@@ -22,6 +22,7 @@
 package com.joa_ebert.apparat.abc;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -106,6 +107,11 @@ public final class AbcEnvironment
 		return null;
 	}
 
+	public Iterator<AbcContext> contextIterator()
+	{
+		return contexts.listIterator();
+	}
+
 	public AbcContext contextOf( final Method method )
 	{
 		for( final AbcContext context : contexts )
@@ -117,6 +123,11 @@ public final class AbcEnvironment
 		}
 
 		return null;
+	}
+
+	public List<AbcContext> getContexts()
+	{
+		return contexts;
 	}
 
 	public Instance instanceOf( final AbstractMultiname multiname )

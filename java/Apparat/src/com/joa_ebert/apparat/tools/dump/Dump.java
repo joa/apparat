@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
 import com.joa_ebert.apparat.abc.Abc;
+import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.utils.AbcPrinter;
 import com.joa_ebert.apparat.abc.utils.InheritanceGraphPrinter;
 import com.joa_ebert.apparat.abc.utils.UMLGraphPrinter;
@@ -215,6 +216,13 @@ public final class Dump implements ITool
 
 			if( exportABC || exportDOT || exportUML )
 			{
+				AbcEnvironment environment = null;
+
+				if( exportUML )
+				{
+					environment = new AbcEnvironment();
+				}
+
 				for( final ITag tag : tagIO.getTags() )
 				{
 					if( tag.getType() == Tags.DoABC )
@@ -260,21 +268,30 @@ public final class Dump implements ITool
 
 						if( exportUML )
 						{
-							final File file = new File( doABC.name + ".uml.dot" );
+							environment.addAbc( abc );
 
-							ToolLog.info( "Exporting UML diagram to \""
-									+ file.getName() + "\"." );
-
-							final FileOutputStream fileOutputStream = new FileOutputStream(
-									file );
-
-							new UMLGraphPrinter( new PrintWriter(
-									fileOutputStream ) ).print( abc );
-
-							fileOutputStream.flush();
-							fileOutputStream.close();
+							ToolLog.success( "Added " + doABC.name
+									+ ".abc to environment." );
 						}
 					}
+				}
+
+				if( exportUML )
+				{
+					final File input = new File( config.getInput() );
+					final File file = new File( input.getName() + ".uml.dot" );
+
+					ToolLog.info( "Exporting UML diagram to \""
+							+ file.getName() + "\"." );
+
+					final FileOutputStream fileOutputStream = new FileOutputStream(
+							file );
+
+					new UMLGraphPrinter( new PrintWriter( fileOutputStream ) )
+							.print( environment );
+
+					fileOutputStream.flush();
+					fileOutputStream.close();
 				}
 			}
 

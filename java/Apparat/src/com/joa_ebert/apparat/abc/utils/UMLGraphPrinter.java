@@ -33,6 +33,8 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import com.joa_ebert.apparat.abc.Abc;
+import com.joa_ebert.apparat.abc.AbcContext;
+import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.AbstractMultiname;
 import com.joa_ebert.apparat.abc.AbstractTrait;
 import com.joa_ebert.apparat.abc.Class;
@@ -65,7 +67,7 @@ public class UMLGraphPrinter
 		this.output = new IndentingPrintWriter( output );
 	}
 
-	private void buildIndices( final HashMap<QName, Integer> instanceMap,
+	private int buildIndices( final HashMap<QName, Integer> instanceMap,
 			final Abc abc, final int startIndex )
 	{
 		int currentIndex = startIndex;
@@ -79,6 +81,8 @@ public class UMLGraphPrinter
 
 			instanceMap.put( instance.name, currentIndex++ );
 		}
+
+		return currentIndex;
 	}
 
 	private void buildPackages( final HashMap<String, List<Instance>> packages,
@@ -111,6 +115,17 @@ public class UMLGraphPrinter
 		output.popIndent();
 		output.println( "}" );
 		output.flush();
+	}
+
+	private String escapeString( final String value )
+	{
+		//
+		// This looks pretty awkward... Since the strings are parsed as
+		// regular expressions we have to add some more escape characters.
+		//
+
+		return value.replaceAll( "\\\\", "\\\\\\\\" ).replaceAll( "\n",
+				"\\\\\\\\n" ).replaceAll( "\"", "\\\\\"" );
 	}
 
 	private String getParameters( final Method method )
@@ -220,7 +235,8 @@ public class UMLGraphPrinter
 				return "undefined";
 
 			case Utf8:
-				return ( (String)value ).toString();
+				return "\\\"" + escapeString( ( (String)value ).toString() )
+						+ "\\\"";
 				// TODO add namespaces
 
 			default:
@@ -245,7 +261,7 @@ public class UMLGraphPrinter
 				return "# ";
 
 			default:
-				return "  ";
+				return "";
 		}
 	}
 
@@ -259,8 +275,39 @@ public class UMLGraphPrinter
 		buildPackages( packages, abc );
 
 		prolog();
+
 		printPackages( packages, indexMap, abc );
 		printInheritance( indexMap, abc );
+
+		epilog();
+	}
+
+	public void print( final AbcEnvironment environment )
+	{
+		final HashMap<QName, Integer> indexMap = new LinkedHashMap<QName, Integer>();
+		final HashMap<String, List<Instance>> packages = new LinkedHashMap<String, List<Instance>>();
+		final List<AbcContext> contexts = environment.getContexts();
+
+		int startIndex = 0;
+
+		for( final AbcContext context : contexts )
+		{
+			final Abc abc = context.getAbc();
+
+			startIndex = buildIndices( indexMap, abc, startIndex );
+			buildPackages( packages, abc );
+		}
+
+		prolog();
+
+		for( final AbcContext context : contexts )
+		{
+			final Abc abc = context.getAbc();
+
+			printPackages( packages, indexMap, abc );
+			printInheritance( indexMap, abc );
+		}
+
 		epilog();
 	}
 

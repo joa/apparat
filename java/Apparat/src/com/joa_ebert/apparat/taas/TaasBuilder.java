@@ -1026,9 +1026,10 @@ public final class TaasBuilder implements IInterpreter
 		}
 		else
 		{
-			throw new TaasException( "Invalid code at "
-					+ currentVertex.toString() + " with previous edge "
-					+ previousEdge.toString() + "." );
+			return;
+			// throw new TaasException( "Invalid code at "
+			// + currentVertex.toString() + " with previous edge "
+			// + previousEdge.toString() + "." );
 		}
 	}
 
@@ -2264,7 +2265,8 @@ public final class TaasBuilder implements IInterpreter
 				}
 				else
 				{
-					throw new TaasException( "Invalid code." );
+					// throw new TaasException( "Invalid code." );
+					return;
 				}
 			}
 		}
