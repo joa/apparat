@@ -32,12 +32,14 @@ import com.joa_ebert.apparat.abc.multinames.QName;
  */
 final class Settings
 {
-	static final Namespace ASBRIDGE_NAMESPACE = new Namespace(
-			NamespaceKind.PackageNamespace,
-			"com.joa_ebert.abc.bytecode.asbridge" );
+	static final Namespace INLINE_NAMESPACE = new Namespace(
+			NamespaceKind.PackageNamespace, "com.joa_ebert.apparat.inline" );
 
-	static final QName BYTECODE_QNAME = new QName( ASBRIDGE_NAMESPACE,
+	static final Namespace MEMORY_NAMESPACE = new Namespace(
+			NamespaceKind.PackageNamespace, "com.joa_ebert.apparat.memory" );
+
+	static final QName BYTECODE_QNAME = new QName( INLINE_NAMESPACE,
 			"__bytecode" );
 
-	static final QName MEMORY_QNAME = new QName( ASBRIDGE_NAMESPACE, "Memory" );
+	static final QName MEMORY_QNAME = new QName( MEMORY_NAMESPACE, "Memory" );
 }
