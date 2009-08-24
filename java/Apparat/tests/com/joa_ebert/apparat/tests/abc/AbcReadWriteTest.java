@@ -27,7 +27,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.joa_ebert.apparat.abc.Abc;
@@ -42,7 +41,6 @@ import com.joa_ebert.apparat.tools.io.TagIO;
  * @author Joa Ebert
  * 
  */
-@Ignore
 public class AbcReadWriteTest
 {
 	private void test( final DoABCTag tag, final int i ) throws Exception
@@ -89,7 +87,7 @@ public class AbcReadWriteTest
 	@Test
 	public void testReadWrite() throws Exception
 	{
-		final TagIO tagIO = new TagIO( "assets/SandboxTimeline.swf" );
+		final TagIO tagIO = new TagIO( "assets/priv_rtn.swf" );
 
 		tagIO.read();
 
@@ -127,6 +125,6 @@ public class AbcReadWriteTest
 		writer.flush();
 		writer.close();
 
-		tagIO.write( "assets/SandboxTimeline_.swf" );
+		tagIO.write( "assets/priv_rtn_.swf" );
 	}
 }

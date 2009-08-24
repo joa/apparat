@@ -19,47 +19,62 @@
  * 
  */
 
-package com.joa_ebert.apparat.tests.abc;
+package com.joa_ebert.apparat.swf.io;
 
-import java.io.PrintWriter;
-
-import org.junit.Test;
-
-import com.joa_ebert.apparat.abc.Abc;
-import com.joa_ebert.apparat.abc.utils.UMLGraphPrinter;
-import com.joa_ebert.apparat.swf.tags.ITag;
-import com.joa_ebert.apparat.swf.tags.Tags;
-import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
-import com.joa_ebert.apparat.tools.io.TagIO;
+import com.joa_ebert.apparat.utils.HexUtil;
 
 /**
  * @author Joa Ebert
  * 
  */
-public class UMLGraphPrinterTest
+public final class UUID
 {
-	private void test( final DoABCTag tag ) throws Exception
+	public final byte[] hash;
+
+	public UUID()
 	{
-		final Abc abc = new Abc();
-
-		abc.read( tag );
-
-		new UMLGraphPrinter( new PrintWriter( System.out ) ).print( abc );
+		this( new byte[ 0x10 ] );
 	}
 
-	@Test
-	public void testReadWrite() throws Exception
+	public UUID( final byte[] bytes )
 	{
-		final TagIO tagIO = new TagIO( "assets/InheritanceTest.swf" );
+		this.hash = bytes;
+	}
 
-		tagIO.read();
-
-		for( final ITag tag : tagIO.getTags() )
+	@Override
+	public boolean equals( final Object other )
+	{
+		if( other instanceof UUID )
 		{
-			if( tag.getType() == Tags.DoABC )
+			return equals( (UUID)other );
+		}
+
+		return false;
+	}
+
+	public boolean equals( final UUID other )
+	{
+		if( hash.length != other.hash.length )
+		{
+			return false;
+		}
+
+		int n = hash.length;
+
+		while( --n > -1 )
+		{
+			if( hash[ n ] != other.hash[ n ] )
 			{
-				test( (DoABCTag)tag );
+				return false;
 			}
 		}
+
+		return true;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[UUID hash: " + HexUtil.toString( hash ) + "]";
 	}
 }
