@@ -316,7 +316,7 @@ package com.joa_ebert.apparat.memory.strategies
 						if( currentChunk.position < firstChunk.position )
 						{
 							if( null == currentChunk.next
-								|| currentChunk.next > firstChunk.position )
+								|| currentChunk.next.position > firstChunk.position )
 							{
 								break;
 							}
