@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Stack;
 import java.util.Map.Entry;
 
 import com.joa_ebert.apparat.abc.AbcEnvironment;
@@ -63,11 +62,11 @@ public class MemoryInlineJob implements IActionScriptBridge
 			final Bytecode bytecode )
 	{
 		final Iterator<AbstractOperation> iter = bytecode.listIterator();
-		final Stack<Boolean> replaceStack = new Stack<Boolean>();
 		final LinkedList<AbstractOperation> removes = new LinkedList<AbstractOperation>();
 		final Map<AbstractOperation, AbstractOperation> replacements = new LinkedHashMap<AbstractOperation, AbstractOperation>();
 
 		boolean modified = false;
+		int balance = 0;
 
 		while( iter.hasNext() )
 		{
@@ -80,124 +79,96 @@ public class MemoryInlineJob implements IActionScriptBridge
 
 				if( getLex.property.equals( Settings.MEMORY_QNAME ) )
 				{
-					replaceStack.push( Boolean.TRUE );
 					removes.add( getLex );
-				}
-				else
-				{
-					replaceStack.push( Boolean.FALSE );
+					++balance;
 				}
 			}
-			else if( code == Op.FindProperty || code == Op.FindPropStrict )
+			else if( code == Op.CallPropVoid && balance > 0 )
 			{
-				replaceStack.push( Boolean.FALSE );
-			}
-			else if( code == Op.CallPropVoid && !replaceStack.isEmpty() )
-			{
-				if( replaceStack.pop() )
+				final CallPropVoid callPropVoid = (CallPropVoid)op;
+				final QName qname = (QName)callPropVoid.property;
+				final String property = qname.name;
+
+				AbstractOperation replacement = null;
+
+				if( property.equals( "writeByte" ) )
 				{
-					final CallPropVoid callPropVoid = (CallPropVoid)op;
-					final QName qname = (QName)callPropVoid.property;
-					final String property = qname.name;
+					replacement = new SetByte();
+				}
+				else if( property.equals( "writeShort" ) )
+				{
+					replacement = new SetShort();
+				}
+				else if( property.equals( "writeInt" ) )
+				{
+					replacement = new SetInt();
+				}
+				else if( property.equals( "writeFloat" ) )
+				{
+					replacement = new SetFloat();
+				}
+				else if( property.equals( "writeDouble" ) )
+				{
+					replacement = new SetDouble();
+				}
+				else if( property.equals( "select" ) )
+				{
+					removes.removeLast();
+				}
 
-					AbstractOperation replacement = null;
-
-					if( property.equals( "writeByte" ) )
-					{
-						replacement = new SetByte();
-					}
-					else if( property.equals( "writeShort" ) )
-					{
-						replacement = new SetShort();
-					}
-					else if( property.equals( "writeInt" ) )
-					{
-						replacement = new SetInt();
-					}
-					else if( property.equals( "writeFloat" ) )
-					{
-						replacement = new SetFloat();
-					}
-					else if( property.equals( "writeDouble" ) )
-					{
-						replacement = new SetDouble();
-					}
-					else if( property.equals( "select" ) )
-					{
-						removes.removeLast();
-					}
-					else
-					{
-						//
-						// Ignore
-						//
-
-						replaceStack.push( true );
-					}
-
-					if( null != replacement )
-					{
-						replacements.put( callPropVoid, replacement );
-						modified = true;
-					}
+				if( null != replacement )
+				{
+					--balance;
+					replacements.put( callPropVoid, replacement );
+					modified = true;
 				}
 			}
-			else if( code == Op.CallProperty && !replaceStack.isEmpty() )
+			else if( code == Op.CallProperty && balance > 0 )
 			{
-				if( replaceStack.pop() )
+				final CallProperty callProperty = (CallProperty)op;
+				final QName qname = (QName)callProperty.property;
+				final String property = qname.name;
+
+				AbstractOperation replacement = null;
+
+				if( property.equals( "readUnsignedByte" ) )
 				{
-					final CallProperty callProperty = (CallProperty)op;
-					final QName qname = (QName)callProperty.property;
-					final String property = qname.name;
+					replacement = new GetByte();
+				}
+				else if( property.equals( "readUnsignedShort" ) )
+				{
+					replacement = new GetShort();
+				}
+				else if( property.equals( "readInt" ) )
+				{
+					replacement = new GetInt();
+				}
+				else if( property.equals( "readFloat" ) )
+				{
+					replacement = new GetFloat();
+				}
+				else if( property.equals( "readDouble" ) )
+				{
+					replacement = new GetDouble();
+				}
+				else if( property.equals( "signExtend1" ) )
+				{
+					replacement = new Sign1();
+				}
+				else if( property.equals( "signExtend8" ) )
+				{
+					replacement = new Sign8();
+				}
+				else if( property.equals( "signExtend16" ) )
+				{
+					replacement = new Sign16();
+				}
 
-					AbstractOperation replacement = null;
-
-					if( property.equals( "readUnsignedByte" ) )
-					{
-						replacement = new GetByte();
-					}
-					else if( property.equals( "readUnsignedShort" ) )
-					{
-						replacement = new GetShort();
-					}
-					else if( property.equals( "readInt" ) )
-					{
-						replacement = new GetInt();
-					}
-					else if( property.equals( "readFloat" ) )
-					{
-						replacement = new GetFloat();
-					}
-					else if( property.equals( "readDouble" ) )
-					{
-						replacement = new GetDouble();
-					}
-					else if( property.equals( "signExtend1" ) )
-					{
-						replacement = new Sign1();
-					}
-					else if( property.equals( "signExtend8" ) )
-					{
-						replacement = new Sign8();
-					}
-					else if( property.equals( "signExtend16" ) )
-					{
-						replacement = new Sign16();
-					}
-					else
-					{
-						//
-						// Ignore
-						//
-
-						replaceStack.push( true );
-					}
-
-					if( null != replacement )
-					{
-						replacements.put( callProperty, replacement );
-						modified = true;
-					}
+				if( null != replacement )
+				{
+					--balance;
+					replacements.put( callProperty, replacement );
+					modified = true;
 				}
 			}
 		}
