@@ -1,0 +1,17 @@
+##
+## Point to the installation of your Flex SDK.
+## Use / instead of \ on Windows.
+##
+
+FLEX_HOME=
+
+##
+## Do not change anything after this line
+##
+
+flex.frameworks=${FLEX_HOME}/frameworks
+flex.bin=${FLEX_HOME}/bin
+flex.libs=${flex.frameworks}/libs
+flex.compc=${flex.bin}/compc${exe}
+flex.mxmlc=${flex.bin}/mxmlc${exe}
+flex.asdoc=${flex.bin}/asdoc${exe}
