@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>Apparat.Library.AS3</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.powerflasher.fdt.core.FlashBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.powerflasher.fdt.core.FlashNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>playerglobal.swc</name>
+			<type>1</type>
+			<location>C:/Development/HOBNOX_PRIVATE/trunk/sdks/flex/3_3_0_4852/frameworks/libs/player/10/playerglobal.swc</location>
+		</link>
+	</linkedResources>
+</projectDescription>
