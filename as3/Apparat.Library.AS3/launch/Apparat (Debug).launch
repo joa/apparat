@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="com.powerflasher.fdt.ui.CompcGroup">
+<stringAttribute key="ARGUMENTS" value="-define=CONFIG::Debug,true -define+=CONFIG::Release,false -strict -warnings -optimize -debug=true --target-player=10.0.0"/>
+<stringAttribute key="FLEX_SDK_NAME" value="APPARAT_FLEX"/>
+<stringAttribute key="OUTPUT" value="bin/apparat.swc"/>
+<booleanAttribute key="PASS_CP" value="true"/>
+<booleanAttribute key="PASS_SWCS" value="true"/>
+<stringAttribute key="PROJECT_NAME" value="Apparat.Library.AS3"/>
+<booleanAttribute key="USE_GLOBAL_FCSH_LOCATION" value="true"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/Apparat.Library.AS3"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="4"/>
+</listAttribute>
+<stringAttribute key="process_factory_id" value="com.powerflasher.fdt.ui.launch.fcsh.ProcessFactory"/>
+</launchConfiguration>
