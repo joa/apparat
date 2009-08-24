@@ -33,6 +33,14 @@
 	
 	<property file="${dir.build}/build.properties"/>
 	
+	<fail unless="FLEX_HOME"/>
+	<fail unless="flex.frameworks"/>
+	<fail unless="flex.bin"/>
+	<fail unless="flex.libs"/>
+	<fail unless="flex.compc"/>
+	<fail unless="flex.mxmlc"/>
+	<fail unless="flex.asdoc"/>
+	
     <target name="default" depends="compile"/>
 	
 	<target name="clean">
