@@ -18,7 +18,7 @@
 	Copyright (C) 2008, 2009 Joa Ebert
 	http://www.joa-ebert.com/
 -->
-<project name="Apparat" default="default" basedir="../">
+<project name="Apparat.Core" default="default" basedir="../">
 	
 	<property name="dir.build" value="${basedir}/build"/>
 	<property name="dir.assets" value="${dir.build}/assets"/>
@@ -45,8 +45,7 @@
 			debug="false"
 			target="1.6"
 			source="1.6"
-			srcdir="${dir.src}"
-		/>
+			srcdir="${dir.src}"/>
 	</target>
 	
 	<target name="dump" depends="compile">
@@ -66,8 +65,7 @@
 			<manifest>
 				<attribute
 					name="Main-Class"
-					value="com.joa_ebert.apparat.tools.dump.Dump"
-				/>
+					value="com.joa_ebert.apparat.tools.dump.Dump"/>
 			</manifest>
 		</jar>
 		
@@ -87,6 +85,11 @@
 	</target>
 	
 	<target name="tdsi" depends="compile">
+		
+		<property
+			name="dir.as3"
+			value="${basedir}/../../as3/Apparat.Library.AS3"/>
+		
 		<jar
 			destfile="${dir.jar}/tdsi.jar">
 			
@@ -104,10 +107,16 @@
 			<manifest>
 				<attribute
 					name="Main-Class"
-					value="com.joa_ebert.apparat.tools.tdsi.TDSI"
-				/>
+					value="com.joa_ebert.apparat.tools.tdsi.TDSI"/>
 			</manifest>
 		</jar>
+		
+		<ant
+			antfile="${dir.as3}/build/build.xml"
+			dir="${dir.as3}"
+			inheritall="false"
+			inheritrefs="false"
+			target="default"/>
 		
 		<zip
 			destfile="${dir.zip}/tdsi.zip"
@@ -119,6 +128,9 @@
 				<include name="**/*"/>
 			</fileset>
 			<fileset dir="${dir.assets}/generic">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="${dir.as3}/bin">
 				<include name="**/*"/>
 			</fileset>
 		</zip>
@@ -140,8 +152,7 @@
 			<manifest>
 				<attribute
 					name="Main-Class"
-					value="com.joa_ebert.apparat.tools.reducer.Reducer"
-				/>
+					value="com.joa_ebert.apparat.tools.reducer.Reducer"/>
 			</manifest>
 		</jar>
 		
