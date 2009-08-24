@@ -84,7 +84,7 @@ package com.joa_ebert.apparat.memory
 			_poolStrategy = strategy;
 			_poolStrategy.initialize( _buffer );
 			
-			ApplicationDomain.currentDomain.domainMemory = _buffer;
+			Memory.select( _buffer );
 		}
 	
 		/**
