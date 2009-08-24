@@ -12,5 +12,5 @@
 <stringAttribute key="org.eclipse.jdt.junit.TESTNAME" value=""/>
 <stringAttribute key="org.eclipse.jdt.junit.TEST_KIND" value="org.eclipse.jdt.junit.loader.junit4"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.joa_ebert.apparat.tests.abc.AbcReadWriteTest"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Apparat"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Apparat.Core"/>
 </launchConfiguration>

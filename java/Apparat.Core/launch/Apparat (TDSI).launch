@@ -2,12 +2,12 @@
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <stringAttribute key="bad_container_name" value="\Apparat\launc"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/Apparat/src/com/joa_ebert/apparat/tools/tdsi/TDSI.java"/>
+<listEntry value="/Apparat.Core/src/com/joa_ebert/apparat/tools/tdsi/TDSI.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.joa_ebert.apparat.tools.tdsi.TDSI"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-input &quot;C:\Dokumente und Einstellungen\joa.ebert\Eigene Dateien\Workspace\joa.pure\bin\Main.swf&quot; -output &quot;C:\Dokumente und Einstellungen\joa.ebert\Eigene Dateien\Workspace\joa.pure\bin\Main2.swf&quot;"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Apparat"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Apparat.Core"/>
 </launchConfiguration>
