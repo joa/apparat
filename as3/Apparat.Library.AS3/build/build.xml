@@ -36,7 +36,7 @@
     <target name="default" depends="compile"/>
 	
 	<target name="clean">
-		<delete failonerror="false" dir="${dir.bin}/apparat.swc"/>
+		<delete failonerror="false" file="${dir.bin}/apparat.swc"/>
 	</target>
 	
     <target name="compile" depends="clean">
