@@ -27,6 +27,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.joa_ebert.apparat.abc.Abc;
@@ -41,6 +42,7 @@ import com.joa_ebert.apparat.tools.io.TagIO;
  * @author Joa Ebert
  * 
  */
+@Ignore
 public class AbcReadWriteTest
 {
 	private void test( final DoABCTag tag, final int i ) throws Exception
