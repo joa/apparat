@@ -27,6 +27,8 @@
 	<property name="dir.jar" value="${dir.build}/jar"/>
 	<property name="dir.zip" value="${dir.build}/zip"/>
 	
+	<property name="debug" value="false"/>
+	
     <target name="default" depends="dump, reducer, tdsi"/>
 	
 	<target name="clean">
@@ -42,7 +44,7 @@
 		<javac
 			compiler="javac1.6"
 			destdir="${dir.bin}"
-			debug="false"
+			debug="${debug}"
 			target="1.6"
 			source="1.6"
 			srcdir="${dir.src}"/>
