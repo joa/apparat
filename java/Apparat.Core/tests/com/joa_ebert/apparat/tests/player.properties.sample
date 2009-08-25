@@ -1,5 +1,5 @@
 # Location of your Flash Player standalone executable
-player.exe=C:/Development/FLASH_PLAYER/10.0.32.18/flashplayer_10_sa_debug.exe
+player.exe=
 
 # Location of your flashlog.txt file
-player.log=C:/Dokumente und Einstellungen/joa.ebert/Anwendungsdaten/Macromedia/Flash Player/Logs/flashlog.txt
+player.log=
