@@ -133,6 +133,7 @@ public final class ConstantPool
 			case ExplicitNamespace:
 			case StaticProtectedNamespace:
 			case PrivateNamespace:
+				add( ( (Namespace)value ).name );
 				return 0 != getNonZeroIndex( (Namespace)value );
 			default:
 				return false;
@@ -207,11 +208,6 @@ public final class ConstantPool
 
 	public boolean add( final String value )
 	{
-		if( value == EMPTY_STRING )
-		{
-			return false;
-		}
-
 		return 0 != getIndex( value );
 		// if( !stringTable.contains( value ) )
 		// {
