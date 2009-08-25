@@ -23,43 +23,23 @@ package com.joa_ebert.apparat.tests.abc;
 
 import java.io.PrintWriter;
 
-import org.junit.Test;
-
 import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.abc.utils.UMLGraphPrinter;
-import com.joa_ebert.apparat.swf.tags.ITag;
-import com.joa_ebert.apparat.swf.tags.Tags;
-import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
-import com.joa_ebert.apparat.tools.io.TagIO;
 
 /**
  * @author Joa Ebert
  * 
  */
-public class UMLGraphPrinterTest
+public class UMLGraphPrinterTest extends AbstractAbcTest
 {
-	private void test( final DoABCTag tag ) throws Exception
+	public UMLGraphPrinterTest()
 	{
-		final Abc abc = new Abc();
-
-		abc.read( tag );
-
-		new UMLGraphPrinter( new PrintWriter( System.out ) ).print( abc );
+		input( "assets/InheritanceTest.swf" );
 	}
 
-	@Test
-	public void testReadWrite() throws Exception
+	@Override
+	protected void compute( final Abc abc )
 	{
-		final TagIO tagIO = new TagIO( "assets/InheritanceTest.swf" );
-
-		tagIO.read();
-
-		for( final ITag tag : tagIO.getTags() )
-		{
-			if( tag.getType() == Tags.DoABC )
-			{
-				test( (DoABCTag)tag );
-			}
-		}
+		new UMLGraphPrinter( new PrintWriter( System.out ) ).print( abc );
 	}
 }
