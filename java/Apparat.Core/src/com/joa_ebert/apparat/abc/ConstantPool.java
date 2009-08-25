@@ -141,59 +141,68 @@ public final class ConstantPool
 
 	public boolean add( final Double value )
 	{
-		if( !doubleTable.contains( value ) )
-		{
-			return doubleTable.add( value );
-		}
-
-		return false;
+		return 0 != getIndex( value );
+		// if( !doubleTable.contains( value ) )
+		// {
+		// return doubleTable.add( value );
+		// }
+		//
+		// return false;
 	}
 
 	public boolean add( final Integer value )
 	{
-		if( !intTable.contains( value ) )
-		{
-			return intTable.add( value );
-		}
-
-		return false;
+		return 0 != getIndex( value );
+		// if( !intTable.contains( value ) )
+		// {
+		// return intTable.add( value );
+		// }
+		//
+		// return false;
 	}
 
 	public boolean add( final Long value )
 	{
-		if( !uintTable.contains( value ) )
-		{
-			return uintTable.add( value );
-		}
-
-		return false;
+		return 0 != getIndex( value );
+		// if( !uintTable.contains( value ) )
+		// {
+		// return uintTable.add( value );
+		// }
+		//
+		// return false;
 	}
 
 	public boolean add( final Namespace value )
 	{
 		add( value.name );
-
-		if( !namespaceTable.contains( value ) )
-		{
-			return namespaceTable.add( value );
-		}
-
-		return false;
+		return 0 != getIndex( value );
+		// if( !namespaceTable.contains( value ) )
+		// {
+		// return namespaceTable.add( value );
+		// }
+		//
+		// return false;
 	}
 
 	public boolean add( final NamespaceSet value )
 	{
-		if( !namespaceSetTable.contains( value ) )
+		for( final Namespace namespace : value )
 		{
-			for( final Namespace namespace : value )
-			{
-				add( namespace );
-			}
-
-			return namespaceSetTable.add( value );
+			add( namespace );
 		}
 
-		return false;
+		return 0 != getIndex( value );
+		// if( !namespaceSetTable.contains( value ) )
+		// {
+		// for( final Namespace namespace : value )
+		// {
+		// add( namespace );
+		// }
+		//
+		// return namespaceSetTable.add( value );
+		// }
+		//
+		// return false;
 	}
 
 	public boolean add( final String value )
@@ -203,12 +212,13 @@ public final class ConstantPool
 			return false;
 		}
 
-		if( !stringTable.contains( value ) )
-		{
-			return stringTable.add( value );
-		}
-
-		return false;
+		return 0 != getIndex( value );
+		// if( !stringTable.contains( value ) )
+		// {
+		// return stringTable.add( value );
+		// }
+		//
+		// return false;
 	}
 
 	public void clear()
