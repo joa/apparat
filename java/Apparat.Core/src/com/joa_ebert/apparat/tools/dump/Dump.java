@@ -56,6 +56,11 @@ public final class Dump implements ITool
 
 	private IToolConfiguration config;
 
+	private String escapeName( final String name )
+	{
+		return name.replace( '/', '.' );
+	}
+
 	public String getHelp()
 	{
 		return "-input [file]\tThe input file\n"
@@ -93,7 +98,8 @@ public final class Dump implements ITool
 
 			if( exportABC )
 			{
-				final File file = new File( input.getName() + ".txt" );
+				final File file = new File( escapeName( input.getName() )
+						+ ".txt" );
 
 				ToolLog.info( "Exporting ABC to \"" + file.getName() + "\"." );
 
@@ -109,7 +115,8 @@ public final class Dump implements ITool
 
 			if( exportDOT )
 			{
-				final File file = new File( input.getName() + ".ig.dot" );
+				final File file = new File( escapeName( input.getName() )
+						+ ".ig.dot" );
 
 				ToolLog.info( "Exporting inheritance graph to \""
 						+ file.getName() + "\"." );
@@ -126,7 +133,8 @@ public final class Dump implements ITool
 
 			if( exportUML )
 			{
-				final File file = new File( input.getName() + ".uml.dot" );
+				final File file = new File( escapeName( input.getName() )
+						+ ".uml.dot" );
 
 				ToolLog.info( "Exporting UML diagram to \"" + file.getName()
 						+ "\"." );
@@ -234,7 +242,8 @@ public final class Dump implements ITool
 
 						if( exportABC )
 						{
-							final File file = new File( doABC.name + ".txt" );
+							final File file = new File( escapeName( doABC.name )
+									+ ".txt" );
 
 							ToolLog.info( "Exporting ABC to \""
 									+ file.getName() + "\"." );
@@ -251,7 +260,8 @@ public final class Dump implements ITool
 
 						if( exportDOT )
 						{
-							final File file = new File( doABC.name + ".ig.dot" );
+							final File file = new File( escapeName( doABC.name )
+									+ ".ig.dot" );
 
 							ToolLog.info( "Exporting inheritance graph to \""
 									+ file.getName() + "\"." );
