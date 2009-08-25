@@ -52,7 +52,7 @@ public class AbcInputStreamTest
 	{
 		final Swf swf = new Swf();
 
-		swf.read( "assets/640_480.swf" );
+		swf.read( "assets/Underflow.swf" );
 
 		final ITagVisitor visitor = new ITagVisitor()
 		{

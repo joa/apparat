@@ -59,7 +59,7 @@ public class BytecodeTest
 	public static void setUpBeforeClass() throws Exception
 	{
 		swf = new Swf();
-		swf.read( "assets/MemoryTest.swf" );
+		swf.read( "assets/Underflow.swf" );
 
 		final ITagVisitor visitor = new ITagVisitor()
 		{
@@ -78,7 +78,7 @@ public class BytecodeTest
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception
 	{
-		swf.write( "assets/MemoryTest_.swf" );
+		swf.write( "assets/Underflow_.swf" );
 	}
 
 	@Test
