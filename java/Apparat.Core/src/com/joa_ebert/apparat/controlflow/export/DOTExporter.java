@@ -80,6 +80,28 @@ public class DOTExporter<V extends Vertex, E extends Edge<V>> implements
 
 		writer.write( "digraph G {\n" );
 
+		final String fontName = "Bitstream Vera Sans Mono";
+		final int fontSize = 8;
+
+		writer.println( "fontname=\"" + fontName + "\";" );
+		writer.println( "fontsize=" + fontSize + ";" );
+		writer.println( "ratio=auto;" );
+		writer.println( "graph[" );
+		writer.println( "rankdir= \"TB\"," );
+		writer.println( "splines= true," );
+		writer.println( "overlap= false" );
+		writer.println( "];" );
+		writer.println( "node[" );
+		writer.println( "fontname=\"" + fontName + "\"," );
+		writer.println( "fontsize=" + fontSize + "," );
+		writer.println( "shape=\"box\"" );
+		writer.println( "];" );
+		writer.println( "edge[" );
+		writer.println( "fontname=\"" + fontName + "\"," );
+		writer.println( "fontsize=" + fontSize + "," );
+		writer.println( "arrowhead=\"empty\"" );
+		writer.println( "];" );
+
 		for( final V vertex : graph.vertexList() )
 		{
 			if( !vertexIndexMap.containsKey( vertex ) )

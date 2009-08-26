@@ -66,6 +66,8 @@ public class MemoryInlineJob implements IActionScriptBridge
 		final Map<AbstractOperation, AbstractOperation> replacements = new LinkedHashMap<AbstractOperation, AbstractOperation>();
 
 		boolean modified = false;
+		boolean removePop = false;
+
 		int balance = 0;
 
 		while( iter.hasNext() )
@@ -73,7 +75,12 @@ public class MemoryInlineJob implements IActionScriptBridge
 			final AbstractOperation op = iter.next();
 			final int code = op.code;
 
-			if( code == Op.GetLex )
+			if( code == Op.Pop && removePop )
+			{
+				removes.add( op );
+				removePop = false;
+			}
+			else if( code == Op.GetLex )
 			{
 				final GetLex getLex = (GetLex)op;
 
@@ -162,6 +169,34 @@ public class MemoryInlineJob implements IActionScriptBridge
 				else if( property.equals( "signExtend16" ) )
 				{
 					replacement = new Sign16();
+				}
+				else if( property.equals( "writeByte" ) )
+				{
+					replacement = new SetByte();
+					removePop = true;
+				}
+				else if( property.equals( "writeShort" ) )
+				{
+					replacement = new SetShort();
+				}
+				else if( property.equals( "writeInt" ) )
+				{
+					replacement = new SetInt();
+					removePop = true;
+				}
+				else if( property.equals( "writeFloat" ) )
+				{
+					replacement = new SetFloat();
+					removePop = true;
+				}
+				else if( property.equals( "writeDouble" ) )
+				{
+					replacement = new SetDouble();
+					removePop = true;
+				}
+				else if( property.equals( "select" ) )
+				{
+					removes.removeLast();
 				}
 
 				if( null != replacement )

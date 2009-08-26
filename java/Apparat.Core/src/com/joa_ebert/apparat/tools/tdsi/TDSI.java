@@ -32,7 +32,9 @@ import com.joa_ebert.apparat.abc.bytecode.analysis.IInterpreter;
 import com.joa_ebert.apparat.abc.bytecode.asbridge.BytecodeInlineJob;
 import com.joa_ebert.apparat.abc.bytecode.asbridge.MemoryInlineJob;
 import com.joa_ebert.apparat.abc.bytecode.permutations.DecrementIntPattern;
+import com.joa_ebert.apparat.abc.bytecode.permutations.GetLexPattern;
 import com.joa_ebert.apparat.abc.bytecode.permutations.IBytecodePermutation;
+import com.joa_ebert.apparat.abc.bytecode.permutations.IncrementIntPattern;
 import com.joa_ebert.apparat.abc.bytecode.permutations.IntegerCalculus;
 import com.joa_ebert.apparat.abc.bytecode.permutations.NamespaceSetCleanup;
 import com.joa_ebert.apparat.abc.bytecode.permutations.PermutationChain;
@@ -199,7 +201,10 @@ public final class TDSI implements ITool, ITagVisitor
 			if( bytecodePermutations )
 			{
 				abc.accept( new PermutationChain( new IBytecodePermutation[] {
-						new DecrementIntPattern(), new NamespaceSetCleanup(),
+						new GetLexPattern(),
+						new DecrementIntPattern(),
+						new IncrementIntPattern(),
+						new NamespaceSetCleanup(),
 				} ) );
 			}
 

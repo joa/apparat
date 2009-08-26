@@ -101,6 +101,37 @@ public abstract class AbstractPatternMatcher implements IInterpreter
 				}
 
 				patternPosition = 0;
+
+				//
+				// Match again, imagine this case, we search for (A,B):
+				// A
+				// A
+				// B
+				//
+				// The first A would start a match, the second A would dismiss
+				// the match. But then we would not start again from the second
+				// A.
+				//
+				// So if we did not find a match, we will search again to
+				// handle that case.
+				//
+
+				for( final int codeToMatch : pattern[ patternPosition ] )
+				{
+					if( operation.code == codeToMatch )
+					{
+						++patternPosition;
+
+						occurrences.push( operation );
+
+						if( patternPosition == pattern.length )
+						{
+							patternPosition = 0;
+						}
+
+						break;
+					}
+				}
 			}
 		}
 
