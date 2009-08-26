@@ -56,7 +56,6 @@ import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 import com.joa_ebert.apparat.taas.constants.TaasNamespace;
 import com.joa_ebert.apparat.taas.constants.TaasNull;
 import com.joa_ebert.apparat.taas.constants.TaasNumber;
-import com.joa_ebert.apparat.taas.constants.TaasObject;
 import com.joa_ebert.apparat.taas.constants.TaasString;
 import com.joa_ebert.apparat.taas.constants.TaasUInt;
 import com.joa_ebert.apparat.taas.constants.TaasUndefined;
