@@ -21,10 +21,12 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+
 /**
+ * The TJump expression is virtual and exists only during the phase of the
+ * builder and emitter.
  * 
  * @author Joa Ebert
- * 
  */
 public class TJump extends AbstractControlTransferExpr
 {

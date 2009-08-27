@@ -70,6 +70,7 @@ public class CopyPropagation implements ITaasTool
 				}
 				else if( vertex.value instanceof TJump )
 				{
+					// TODO move out of CopyPropagation
 					TaasToolkit.remove( method, vertex );
 				}
 			}
