@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 
 import com.joa_ebert.apparat.controlflow.BasicBlock;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
@@ -72,6 +73,35 @@ public final class TaasCode extends ControlFlowGraph<TaasVertex, TaasEdge>
 		}
 
 		return vertex;
+	}
+
+	void connectIfNeccessary( final TaasVertex to )
+	{
+		if( null == to )
+		{
+			return;
+		}
+
+		try
+		{
+			final List<TaasEdge> outgoingOf = outgoingOf( lastInserted );
+
+			for( final TaasEdge e : outgoingOf )
+			{
+				if( e.endVertex == to && e.kind == nextKind )
+				{
+					return;
+				}
+			}
+
+			lastEdge = new TaasEdge( lastInserted, to, nextKind );
+
+			add( lastEdge );
+		}
+		catch( final ControlFlowGraphException exception )
+		{
+			throw new TaasException( exception );
+		}
 	}
 
 	public String debug()

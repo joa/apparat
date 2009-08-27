@@ -98,6 +98,7 @@ public final class TaasBuilder implements IInterpreter
 	private final Map<BytecodeVertex, TaasStack> scopeStackAtMerge = new LinkedHashMap<BytecodeVertex, TaasStack>();
 	private final List<BytecodeVertex> visitedVertices = new LinkedList<BytecodeVertex>();
 	private final Map<Marker, TaasVertex> visitedMarkers = new LinkedHashMap<Marker, TaasVertex>();
+	private final Map<BytecodeVertex, TaasVertex> bytecodeToVertex = new LinkedHashMap<BytecodeVertex, TaasVertex>();
 
 	public TaasMethod build( final AbcEnvironment environment,
 			final Bytecode bytecode )
@@ -196,6 +197,8 @@ public final class TaasBuilder implements IInterpreter
 			//
 			// Yes, stop here.
 			//
+
+			code.connectIfNeccessary( bytecodeToVertex.get( vertex ) );
 
 			contributeStack( vertex, operandSize, scopeSize, code.getLastEdge() );
 
@@ -347,11 +350,11 @@ public final class TaasBuilder implements IInterpreter
 										operandStack, scopeStack,
 										localRegisters );
 
-								build( edge.endVertex, edge.kind, operandStack
-										.size(), scopeStack.size() );
-
 								code.setLastInserted( lastInserted );
 								code.setLastEdge( lastEdge );
+
+								build( edge.endVertex, edge.kind, operandStack
+										.size(), scopeStack.size() );
 
 								operandStack = backup.operandStack;
 								scopeStack = backup.scopeStack;
@@ -389,11 +392,11 @@ public final class TaasBuilder implements IInterpreter
 										operandStack, scopeStack,
 										localRegisters );
 
-								build( edge.endVertex, edge.kind, operandStack
-										.size(), scopeStack.size() );
-
 								code.setLastInserted( lastInserted2 );
 								code.setLastEdge( lastEdge2 );
+
+								build( edge.endVertex, edge.kind, operandStack
+										.size(), scopeStack.size() );
 
 								operandStack = backup.operandStack;
 								scopeStack = backup.scopeStack;
@@ -887,6 +890,8 @@ public final class TaasBuilder implements IInterpreter
 							.getLastInserted() );
 				}
 
+				bytecodeToVertex.put( currentVertex, code.getLastInserted() );
+
 				currentVertex = nextOf( currentVertex );
 			}
 			while( null != currentVertex
@@ -1082,6 +1087,7 @@ public final class TaasBuilder implements IInterpreter
 		visitedMarkers.clear();
 		operandStackAtMerge.clear();
 		scopeStackAtMerge.clear();
+		bytecodeToVertex.clear();
 
 		operandStack = new TaasStack( bytecode.methodBody.maxStack );
 		scopeStack = new TaasStack( bytecode.methodBody.maxScopeDepth
