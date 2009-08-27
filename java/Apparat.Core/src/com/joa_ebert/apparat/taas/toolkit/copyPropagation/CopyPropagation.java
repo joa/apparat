@@ -29,6 +29,7 @@ import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasVertex;
+import com.joa_ebert.apparat.taas.expr.TJump;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
 
@@ -66,6 +67,10 @@ public class CopyPropagation implements ITaasTool
 					TaasToolkit.remove( method, vertex );
 
 					changed = true;
+				}
+				else if( vertex.value instanceof TJump )
+				{
+					TaasToolkit.remove( method, vertex );
 				}
 			}
 		}

@@ -32,6 +32,23 @@ public class TaasEmitter
 {
 	public MethodBody emit( final TaasMethod method )
 	{
+		//
+		// Assumptions for now:
+		//
+		// 1) We assume that we are not in SSA form.
+		// 2) We assume all TaasPhi vertices have been resolved for us.
+		// 
+
+		//
+		// Strategy:
+		// 1) Convert CFG into a linked list of instructions
+		// 2) Insert TaasJump for non-reachable edges
+		// 3) Convert linked list to bytecode
+		// 4) Solve backward jumps
+		// 5) Add labels
+		// 6) Done?
+		//
+
 		return null;
 	}
 }
