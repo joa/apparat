@@ -38,4 +38,10 @@ public final class InitProperty extends AbstractOperation
 	{
 		super( Op.InitProperty );
 	}
+
+	public InitProperty( final AbstractMultiname property )
+	{
+		super( Op.InitProperty );
+		this.property = property;
+	}
 }

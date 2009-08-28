@@ -179,7 +179,7 @@ public class BytecodeInlineJob implements IActionScriptBridge
 			}
 
 			final BytecodeDecoder decoder = new BytecodeDecoder( environment
-					.contextOf( bytecode.method ).getConstantPool() );
+					.contextOf( bytecode.methodBody.method ).getConstantPool() );
 
 			final byte[] inlinedBytes = outputStream.toByteArray();
 

@@ -38,4 +38,10 @@ public final class FindPropStrict extends AbstractOperation
 	{
 		super( Op.FindPropStrict );
 	}
+
+	public FindPropStrict( final AbstractMultiname property )
+	{
+		super( Op.FindPropStrict );
+		this.property = property;
+	}
 }

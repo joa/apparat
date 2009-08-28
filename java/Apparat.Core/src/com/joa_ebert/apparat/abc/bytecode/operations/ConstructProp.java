@@ -40,4 +40,13 @@ public final class ConstructProp extends AbstractOperation
 	{
 		super( Op.ConstructProp );
 	}
+
+	public ConstructProp( final int numArguments,
+			final AbstractMultiname property )
+	{
+		super( Op.ConstructProp );
+
+		this.numArguments = numArguments;
+		this.property = property;
+	}
 }

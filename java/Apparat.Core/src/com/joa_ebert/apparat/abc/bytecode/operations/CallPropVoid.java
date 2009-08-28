@@ -40,4 +40,12 @@ public final class CallPropVoid extends AbstractOperation
 	{
 		super( Op.CallPropVoid );
 	}
+
+	public CallPropVoid( final AbstractMultiname property,
+			final int numArguments )
+	{
+		super( Op.CallPropVoid );
+		this.property = property;
+		this.numArguments = numArguments;
+	}
 }

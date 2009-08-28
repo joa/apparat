@@ -31,7 +31,6 @@ import java.util.Queue;
 
 import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.abc.ExceptionHandler;
-import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.operations.Jump;
 import com.joa_ebert.apparat.abc.bytecode.operations.LookupSwitch;
@@ -46,7 +45,6 @@ public final class Bytecode implements List<AbstractOperation>,
 {
 	public Abc abc;
 	public MethodBody methodBody;
-	public Method method;
 
 	private final LinkedList<AbstractOperation> list = new LinkedList<AbstractOperation>();
 
@@ -425,7 +423,8 @@ public final class Bytecode implements List<AbstractOperation>,
 	public boolean removeAll( final Collection<?> collection )
 	{
 		// TODO patch markers
-		return list.removeAll( collection );
+		throw new UnsupportedOperationException();
+		// return list.removeAll( collection );
 	}
 
 	public AbstractOperation removeFirst()
@@ -488,8 +487,9 @@ public final class Bytecode implements List<AbstractOperation>,
 
 	public boolean retainAll( final Collection<?> collection )
 	{
-		// TODO patch markers
-		return list.retainAll( collection );
+		// TODO patch markers.
+		throw new UnsupportedOperationException();
+		// return list.retainAll( collection );
 	}
 
 	public AbstractOperation set( final int index,

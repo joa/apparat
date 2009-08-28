@@ -633,7 +633,6 @@ public final class Abc
 
 			methodBody.code = bytecodeDecoder.decode( buffer );
 			methodBody.code.abc = this;
-			methodBody.code.method = method;
 			methodBody.code.methodBody = methodBody;
 			methodBody.exceptions = readExceptions( methodBody, input );
 			methodBody.traits = readTraits( input );

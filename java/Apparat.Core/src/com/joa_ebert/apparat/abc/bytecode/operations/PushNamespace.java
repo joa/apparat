@@ -38,4 +38,10 @@ public final class PushNamespace extends AbstractOperation
 	{
 		super( Op.PushNamespace );
 	}
+
+	public PushNamespace( final Namespace value )
+	{
+		super( Op.PushNamespace );
+		this.value = value;
+	}
 }

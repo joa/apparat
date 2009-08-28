@@ -38,4 +38,10 @@ public final class GetLex extends AbstractOperation
 	{
 		super( Op.GetLex );
 	}
+
+	public GetLex( final AbstractMultiname property )
+	{
+		super( Op.GetLex );
+		this.property = property;
+	}
 }

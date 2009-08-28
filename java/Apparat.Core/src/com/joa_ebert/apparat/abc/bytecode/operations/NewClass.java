@@ -42,4 +42,10 @@ public final class NewClass extends AbstractOperation
 	{
 		super( Op.NewClass );
 	}
+
+	public NewClass( final Class klass )
+	{
+		super( Op.NewClass );
+		this.klass = klass;
+	}
 }

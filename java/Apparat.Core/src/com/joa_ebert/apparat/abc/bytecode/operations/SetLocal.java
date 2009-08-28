@@ -37,4 +37,10 @@ public final class SetLocal extends AbstractOperation
 	{
 		super( Op.SetLocal );
 	}
+
+	public SetLocal( final int register )
+	{
+		super( Op.SetLocal );
+		this.register = register;
+	}
 }

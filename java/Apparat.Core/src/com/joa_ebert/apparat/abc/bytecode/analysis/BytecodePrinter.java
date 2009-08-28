@@ -137,6 +137,11 @@ public final class BytecodePrinter implements IInterpreter
 
 	protected static String markerToString( final Marker marker )
 	{
+		if( null == marker )
+		{
+			return "L?";
+		}
+
 		return "L" + Integer.toString( marker.key );
 	}
 
@@ -156,9 +161,11 @@ public final class BytecodePrinter implements IInterpreter
 	public void interpret( final AbcEnvironment environment,
 			final Bytecode bytecode )
 	{
-		if( printName )
+		if( printName && null != bytecode && null != bytecode.methodBody
+				&& null != bytecode.methodBody.method )
 		{
-			final Instance instance = environment.instanceOf( bytecode.method );
+			final Instance instance = environment
+					.instanceOf( bytecode.methodBody.method );
 
 			if( null != instance )
 			{
@@ -166,7 +173,8 @@ public final class BytecodePrinter implements IInterpreter
 			}
 			else
 			{
-				final Class klass = environment.classOf( bytecode.method );
+				final Class klass = environment
+						.classOf( bytecode.methodBody.method );
 
 				if( null != klass )
 				{
@@ -175,7 +183,7 @@ public final class BytecodePrinter implements IInterpreter
 				else
 				{
 					final Script script = environment
-							.scriptOf( bytecode.method );
+							.scriptOf( bytecode.methodBody.method );
 
 					if( null != script )
 					{

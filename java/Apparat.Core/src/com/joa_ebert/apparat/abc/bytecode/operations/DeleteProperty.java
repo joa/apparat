@@ -38,4 +38,10 @@ public final class DeleteProperty extends AbstractOperation
 	{
 		super( Op.DeleteProperty );
 	}
+
+	public DeleteProperty( final AbstractMultiname property )
+	{
+		super( Op.DeleteProperty );
+		this.property = property;
+	}
 }

@@ -38,4 +38,10 @@ public final class SetProperty extends AbstractOperation
 	{
 		super( Op.SetProperty );
 	}
+
+	public SetProperty( final AbstractMultiname property )
+	{
+		super( Op.SetProperty );
+		this.property = property;
+	}
 }

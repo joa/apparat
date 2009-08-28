@@ -37,4 +37,10 @@ public final class IncLocal extends AbstractOperation
 	{
 		super( Op.IncLocal );
 	}
+
+	public IncLocal( final int register )
+	{
+		super( Op.IncLocal );
+		this.register = register;
+	}
 }

@@ -37,4 +37,10 @@ public final class ConstructSuper extends AbstractOperation
 	{
 		super( Op.ConstructSuper );
 	}
+
+	public ConstructSuper( final int numArguments )
+	{
+		super( Op.ConstructSuper );
+		this.numArguments = numArguments;
+	}
 }

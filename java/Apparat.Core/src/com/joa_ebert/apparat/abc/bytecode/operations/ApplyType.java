@@ -37,4 +37,10 @@ public final class ApplyType extends AbstractOperation
 	{
 		super( Op.ApplyType );
 	}
+
+	public ApplyType( final int typeSize )
+	{
+		super( Op.ApplyType );
+		this.typeSize = typeSize;
+	}
 }

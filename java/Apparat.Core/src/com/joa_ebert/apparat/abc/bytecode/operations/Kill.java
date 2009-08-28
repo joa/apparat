@@ -37,4 +37,10 @@ public final class Kill extends AbstractOperation
 	{
 		super( Op.Kill );
 	}
+
+	public Kill( final int register )
+	{
+		super( Op.Kill );
+		this.register = register;
+	}
 }

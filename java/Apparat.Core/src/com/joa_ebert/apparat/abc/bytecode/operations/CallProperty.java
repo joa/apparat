@@ -40,4 +40,12 @@ public final class CallProperty extends AbstractOperation
 	{
 		super( Op.CallProperty );
 	}
+
+	public CallProperty( final AbstractMultiname property,
+			final int numArguments )
+	{
+		super( Op.CallProperty );
+		this.property = property;
+		this.numArguments = numArguments;
+	}
 }

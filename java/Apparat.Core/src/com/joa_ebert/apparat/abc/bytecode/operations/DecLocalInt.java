@@ -37,4 +37,10 @@ public final class DecLocalInt extends AbstractOperation
 	{
 		super( Op.DecLocalInt );
 	}
+
+	public DecLocalInt( final int register )
+	{
+		super( Op.DecLocalInt );
+		this.register = register;
+	}
 }

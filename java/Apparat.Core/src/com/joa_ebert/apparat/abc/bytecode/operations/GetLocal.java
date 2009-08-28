@@ -37,4 +37,11 @@ public final class GetLocal extends AbstractOperation
 	{
 		super( Op.GetLocal );
 	}
+
+	public GetLocal( final int register )
+	{
+		super( Op.GetLocal );
+
+		this.register = register;
+	}
 }

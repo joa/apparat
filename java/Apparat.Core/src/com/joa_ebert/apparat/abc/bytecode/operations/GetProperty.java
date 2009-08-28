@@ -38,4 +38,10 @@ public final class GetProperty extends AbstractOperation
 	{
 		super( Op.GetProperty );
 	}
+
+	public GetProperty( final AbstractMultiname property )
+	{
+		super( Op.GetProperty );
+		this.property = property;
+	}
 }

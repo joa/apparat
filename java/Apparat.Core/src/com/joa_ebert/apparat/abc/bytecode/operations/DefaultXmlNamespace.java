@@ -37,4 +37,10 @@ public final class DefaultXmlNamespace extends AbstractOperation
 	{
 		super( Op.DefaultXmlNamespace );
 	}
+
+	public DefaultXmlNamespace( final String uri )
+	{
+		super( Op.DefaultXmlNamespace );
+		this.uri = uri;
+	}
 }
