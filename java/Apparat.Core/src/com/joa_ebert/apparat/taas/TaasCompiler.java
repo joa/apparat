@@ -69,6 +69,11 @@ public class TaasCompiler implements IMethodVisitor
 			return false;
 		}
 
+		if( method.body.exceptions.size() != 0 )
+		{
+			return false;
+		}
+
 		preprocess( method );
 
 		final TaasMethod taasMethod = convertToTaas( method.body.code );

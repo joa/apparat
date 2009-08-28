@@ -106,8 +106,15 @@ public class TIf extends AbstractControlTransferExpr
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{
-		lhs.emit( environment, body, code );
-		rhs.emit( environment, body, code );
+		if( null != lhs )
+		{
+			lhs.emit( environment, body, code );
+		}
+
+		if( null != rhs )
+		{
+			rhs.emit( environment, body, code );
+		}
 
 		AbstractConditionalJump jump = null;
 

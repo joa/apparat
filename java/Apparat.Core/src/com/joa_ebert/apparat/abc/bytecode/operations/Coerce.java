@@ -38,4 +38,10 @@ public final class Coerce extends AbstractOperation
 	{
 		super( Op.Coerce );
 	}
+
+	public Coerce( final AbstractMultiname type )
+	{
+		super( Op.Coerce );
+		this.type = type;
+	}
 }

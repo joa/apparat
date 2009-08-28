@@ -71,6 +71,11 @@ public abstract class TaasValue
 		return false;
 	}
 
+	public boolean isEmitted()
+	{
+		return emitted;
+	}
+
 	public boolean isType( final TaasType type )
 	{
 		return getType().equals( type );

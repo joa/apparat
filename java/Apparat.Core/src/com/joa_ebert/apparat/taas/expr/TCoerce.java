@@ -24,6 +24,7 @@ package com.joa_ebert.apparat.taas.expr;
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.Coerce;
 import com.joa_ebert.apparat.abc.bytecode.operations.CoerceAny;
 import com.joa_ebert.apparat.abc.bytecode.operations.CoerceBoolean;
 import com.joa_ebert.apparat.abc.bytecode.operations.CoerceDouble;
@@ -36,6 +37,7 @@ import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.AnyType;
 import com.joa_ebert.apparat.taas.types.BooleanType;
 import com.joa_ebert.apparat.taas.types.IntType;
+import com.joa_ebert.apparat.taas.types.MultinameType;
 import com.joa_ebert.apparat.taas.types.NumberType;
 import com.joa_ebert.apparat.taas.types.ObjectType;
 import com.joa_ebert.apparat.taas.types.StringType;
@@ -94,7 +96,14 @@ public class TCoerce extends AbstractBinaryExpr
 		}
 		else
 		{
-			throw new TaasException( "Unexpected type: " + type.toString() );
+			if( rhs instanceof MultinameType )
+			{
+				code.add( new Coerce( ( (MultinameType)rhs ).multiname ) );
+			}
+			else
+			{
+				throw new TaasException( "Unexpected type." );
+			}
 		}
 	}
 }
