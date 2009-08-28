@@ -153,6 +153,7 @@ public class TaasEmitter
 
 			boolean needsLabel = false;
 			AbstractOperation label = null;
+			int beforeEmit = -1;
 
 			if( isJumpDestination )
 			{
@@ -178,16 +179,17 @@ public class TaasEmitter
 			//
 			// Insert label if we have to.
 			//
-			// We insert the label before the whole emit started. I am not sure
-			// if this is definitly correct and solves all possible cases.
-			// maybe we will have to adjust the jumps afterwards when checking
-			// for a balanced stack.
 			//
 
 			if( needsLabel )
 			{
 				label = new Label();
 				bytecode.add( label );
+			}
+
+			if( isJumpDestination && !needsLabel )
+			{
+				beforeEmit = bytecode.size();
 			}
 
 			value.emit( environment, result, bytecode );
@@ -203,7 +205,8 @@ public class TaasEmitter
 
 			if( isJumpDestination )
 			{
-				jmpDst.put( value, needsLabel ? label : bytecode.peekLast() );
+				jmpDst.put( value, needsLabel ? label : bytecode
+						.get( beforeEmit ) );
 			}
 
 			//
