@@ -45,6 +45,8 @@ import com.joa_ebert.apparat.abc.Parameter;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.MarkerManager;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodePrinter;
+import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodeVertex;
+import com.joa_ebert.apparat.abc.bytecode.analysis.ControlFlowGraphBuilder;
 import com.joa_ebert.apparat.abc.bytecode.operations.Add;
 import com.joa_ebert.apparat.abc.bytecode.operations.IfTrue;
 import com.joa_ebert.apparat.abc.bytecode.operations.Jump;
@@ -54,12 +56,16 @@ import com.joa_ebert.apparat.abc.bytecode.operations.PushTrue;
 import com.joa_ebert.apparat.abc.bytecode.operations.ReturnValue;
 import com.joa_ebert.apparat.abc.multinames.QName;
 import com.joa_ebert.apparat.controlflow.BasicBlock;
+import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
+import com.joa_ebert.apparat.controlflow.Edge;
+import com.joa_ebert.apparat.controlflow.export.DOTExporter;
 import com.joa_ebert.apparat.swc.Swc;
 import com.joa_ebert.apparat.swf.Swf;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 import com.joa_ebert.apparat.taas.TaasBuilder;
+import com.joa_ebert.apparat.taas.TaasEmitter;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasVertex;
@@ -73,6 +79,7 @@ import com.joa_ebert.apparat.taas.toolkit.livenessAnalysis.LivenessAnalysis;
 public class TaasBuilderTest
 {
 	@Test
+	@Ignore
 	public void testCode0() throws Exception
 	{
 		final Method method = new Method();
@@ -100,7 +107,6 @@ public class TaasBuilderTest
 		body.traits = new LinkedList<AbstractTrait>();
 		body.code = code;
 
-		code.method = method;
 		code.methodBody = body;
 
 		final MarkerManager markers = code.markers;
@@ -145,6 +151,7 @@ public class TaasBuilderTest
 	}
 
 	@Test
+	@Ignore
 	public void testCode1() throws Exception
 	{
 		final Method method = new Method();
@@ -172,7 +179,6 @@ public class TaasBuilderTest
 		body.traits = new LinkedList<AbstractTrait>();
 		body.code = code;
 
-		code.method = method;
 		code.methodBody = body;
 
 		final MarkerManager markers = code.markers;
@@ -208,7 +214,6 @@ public class TaasBuilderTest
 	}
 
 	@Test
-	@Ignore
 	public void testSWF() throws Exception
 	{
 		final Abc builtin = new Abc();
@@ -245,7 +250,7 @@ public class TaasBuilderTest
 		Assert.assertFalse( playerglobal.isEmpty() );
 
 		final Swf test = new Swf();
-		test.read( "assets/lorenz.swf" );
+		test.read( "assets/Test2.swf" );
 
 		final Abc custom = new Abc();
 
@@ -277,44 +282,76 @@ public class TaasBuilderTest
 
 			try
 			{
-				final TaasMethod method = builder.build( env, bytecode );
-				LivenessAnalysis la = null;
+				if( 4 == i )
+				{
+					final TaasMethod method = builder.build( env, bytecode );
+					LivenessAnalysis la = null;
 
-				try
-				{
-					la = new LivenessAnalysis( method );
-					la.solve();
-				}
-				catch( final TaasException e )
-				{
-					e.printStackTrace();
-					System.out.println( method.code.debug() );
-					Assert.fail( e.getMessage() );
-				}
+					try
+					{
+						la = new LivenessAnalysis( method );
+						la.solve();
+					}
+					catch( final TaasException e )
+					{
+						e.printStackTrace();
+						System.out.println( method.code.debug() );
+						Assert.fail( e.getMessage() );
+					}
 
-				final File f = new File( "assets/taas" + Integer.toString( i++ )
-						+ ".txt" );
-				final FileOutputStream fos = new FileOutputStream( f );
-				final Writer printWriter = new PrintWriter( fos );
-				printWriter.write( builder.getCode().debug() );
-				printWriter.flush();
-				printWriter.write( "\n\n" );
-				printWriter.flush();
-				new BytecodePrinter( fos ).interpret( env, bytecode );
-				printWriter.flush();
-				printWriter.write( "\n\n" );
-				for( final BasicBlock<TaasVertex> block : la.getGraph()
-						.vertexList() )
-				{
-					printWriter.write( block.toString() + "\n" );
-					printWriter.write( "IN:  " + la.liveIn( block ).toString()
-							+ "\n" );
-					printWriter.write( "OUT: " + la.liveOut( block ).toString()
-							+ "\n\n" );
+					final File f = new File( "debug/taas"
+							+ Integer.toString( i++ ) + ".txt" );
+					final FileOutputStream fos = new FileOutputStream( f );
+					final PrintWriter printWriter = new PrintWriter( fos );
+					printWriter.write( builder.getCode().debug() );
+					printWriter.flush();
+					printWriter.write( "\n\n" );
+					printWriter.flush();
+
+					final ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder();
+
+					cfgBuilder.interpret( env, bytecode );
+
+					final ControlFlowGraph<BytecodeVertex, Edge<BytecodeVertex>> graph = cfgBuilder
+							.getGraph();
+
+					final DOTExporter<BytecodeVertex, Edge<BytecodeVertex>> exporter = new DOTExporter<BytecodeVertex, Edge<BytecodeVertex>>(
+							new BytecodeVertex.LabelProvider() );
+
+					exporter.export( printWriter, graph );
+
+					printWriter.write( "\n\n" );
+					printWriter.flush();
+					new BytecodePrinter( fos ).interpret( env, bytecode );
+					printWriter.flush();
+					printWriter.write( "\n\n" );
+
+					final MethodBody newBody = new TaasEmitter().emit( env,
+							method );
+
+					newBody.method = bytecode.methodBody.method;
+
+					new BytecodePrinter( fos ).interpret( env, newBody.code );
+
+					printWriter.write( "\n\n" );
+					printWriter.flush();
+					for( final BasicBlock<TaasVertex> block : la.getGraph()
+							.vertexList() )
+					{
+						printWriter.write( block.toString() + "\n" );
+						printWriter.write( "IN:  "
+								+ la.liveIn( block ).toString() + "\n" );
+						printWriter.write( "OUT: "
+								+ la.liveOut( block ).toString() + "\n\n" );
+					}
+					printWriter.write( "\n\n" );
+					printWriter.flush();
+					printWriter.close();
 				}
-				printWriter.write( "\n\n" );
-				printWriter.flush();
-				printWriter.close();
+				else
+				{
+					++i;
+				}
 			}
 			catch( final TaasException ex )
 			{

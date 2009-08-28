@@ -106,7 +106,7 @@ public abstract class AbstractAbcTest
 
 				final FlashPlayerTest playerTest = new FlashPlayerTest();
 
-				playerTest.spawn( output );
+				playerTest.spawn( output, 5000 );
 				playerTest.assertNoError();
 			}
 

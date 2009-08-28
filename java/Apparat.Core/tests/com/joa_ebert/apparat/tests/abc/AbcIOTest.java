@@ -31,7 +31,7 @@ public final class AbcIOTest extends AbstractAbcTest
 {
 	public AbcIOTest()
 	{
-		input( "assets/Underflow.swf" );
+		input( "assets/flashSurf.swf" );
 		output();
 	}
 
