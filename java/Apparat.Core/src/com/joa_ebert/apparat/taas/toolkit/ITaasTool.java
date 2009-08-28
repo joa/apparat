@@ -21,6 +21,7 @@
 
 package com.joa_ebert.apparat.taas.toolkit;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.taas.TaasMethod;
 
 /**
@@ -30,5 +31,5 @@ import com.joa_ebert.apparat.taas.TaasMethod;
  */
 public interface ITaasTool
 {
-	boolean manipulate( final TaasMethod method );
+	boolean manipulate( AbcEnvironment environment, final TaasMethod method );
 }

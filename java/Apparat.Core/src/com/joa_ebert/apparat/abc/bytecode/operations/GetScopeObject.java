@@ -37,4 +37,10 @@ public final class GetScopeObject extends AbstractOperation
 	{
 		super( Op.GetScopeObject );
 	}
+
+	public GetScopeObject( final int scopeIndex )
+	{
+		super( Op.GetScopeObject );
+		this.scopeIndex = scopeIndex;
+	}
 }

@@ -115,7 +115,7 @@ public final class AbcBindingBuilder implements IAbcVisitor
 
 	public void visit( final AbcContext context, final MethodBody methodBody )
 	{
-		if( null == methodBody || null != methodBody.code )
+		if( null == methodBody || null == methodBody.code )
 		{
 			return;
 		}

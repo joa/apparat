@@ -24,6 +24,7 @@ package com.joa_ebert.apparat.taas.toolkit.deadCodeElimination;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.VertexKind;
 import com.joa_ebert.apparat.controlflow.utils.DepthFirstIterator;
@@ -46,7 +47,8 @@ public class DeadCodeElimination implements ITaasTool
 {
 	private boolean changed;
 
-	public boolean manipulate( final TaasMethod method )
+	public boolean manipulate( final AbcEnvironment environment,
+			final TaasMethod method )
 	{
 		changed = false;
 

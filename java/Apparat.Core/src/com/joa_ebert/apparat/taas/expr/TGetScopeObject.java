@@ -24,7 +24,7 @@ package com.joa_ebert.apparat.taas.expr;
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
-import com.joa_ebert.apparat.taas.TaasException;
+import com.joa_ebert.apparat.abc.bytecode.operations.GetScopeObject;
 import com.joa_ebert.apparat.taas.TaasExpression;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
@@ -54,8 +54,12 @@ public class TGetScopeObject extends TaasExpression
 		// This one will be hard. How should we know the index in the ScopeStack
 		// of this value?
 		//
-		throw new TaasException( "TODO" );
+		// throw new TaasException( "TODO" );
 		// code.add( new GetScopeObject() );
+
+		// FIXME verify this...
+		// asc seems to use always only index 0 ...
+		code.add( new GetScopeObject( 0 ) );
 	}
 
 	@Override

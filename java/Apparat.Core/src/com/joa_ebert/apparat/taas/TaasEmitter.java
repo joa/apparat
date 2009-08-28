@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.AbstractTrait;
 import com.joa_ebert.apparat.abc.ExceptionHandler;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
@@ -84,6 +85,8 @@ public class TaasEmitter
 
 		methodBody.exceptions = new LinkedList<ExceptionHandler>();
 		methodBody.code = bytecode;
+		methodBody.traits = new LinkedList<AbstractTrait>();
+
 		bytecode.methodBody = methodBody;
 
 		return methodBody;
@@ -172,17 +175,22 @@ public class TaasEmitter
 				}
 			}
 
-			value.emit( environment, result, bytecode );
-
 			//
 			// Insert label if we have to.
+			//
+			// We insert the label before the whole emit started. I am not sure
+			// if this is definitly correct and solves all possible cases.
+			// maybe we will have to adjust the jumps afterwards when checking
+			// for a balanced stack.
 			//
 
 			if( needsLabel )
 			{
 				label = new Label();
-				bytecode.add( bytecode.size() - 1, label );
+				bytecode.add( label );
 			}
+
+			value.emit( environment, result, bytecode );
 
 			//
 			// If we have a control transfer we have to fix the labels.

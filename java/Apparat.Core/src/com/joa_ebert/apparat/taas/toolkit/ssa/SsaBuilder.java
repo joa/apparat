@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.controlflow.BasicBlock;
 import com.joa_ebert.apparat.controlflow.BasicBlockGraph;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
@@ -276,7 +277,8 @@ public class SsaBuilder implements ITaasTool
 		}
 	}
 
-	public boolean manipulate( final TaasMethod method )
+	public boolean manipulate( final AbcEnvironment environment,
+			final TaasMethod method )
 	{
 		this.method = method;
 

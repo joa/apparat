@@ -161,9 +161,14 @@ public final class TaasBuilder implements IInterpreter
 		{
 			changed = false;
 
-			changed = copyPropagation.manipulate( result ) || changed;
-			changed = constantFolding.manipulate( result ) || changed;
-			changed = deadCodeElimination.manipulate( result ) || changed;
+			changed = copyPropagation.manipulate( environment, result )
+					|| changed;
+
+			changed = constantFolding.manipulate( environment, result )
+					|| changed;
+
+			changed = deadCodeElimination.manipulate( environment, result )
+					|| changed;
 		}
 		while( changed );
 
