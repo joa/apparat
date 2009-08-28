@@ -21,7 +21,13 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.Decrement;
+import com.joa_ebert.apparat.abc.bytecode.operations.DecrementInt;
 import com.joa_ebert.apparat.taas.TaasValue;
+import com.joa_ebert.apparat.taas.types.IntType;
 
 /**
  * 
@@ -35,6 +41,15 @@ public class TDecrement extends AbstractUnaryExpr
 	public TDecrement( final TaasValue rhs )
 	{
 		super( rhs, OPERATOR );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		rhs.emit( environment, body, code );
+		code.add( getType() == IntType.INSTANCE ? new DecrementInt()
+				: new Decrement() );
 	}
 
 	@Override

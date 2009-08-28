@@ -21,10 +21,15 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.DefaultXmlNamespace;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasExpression;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
+import com.joa_ebert.apparat.taas.constants.TaasString;
 import com.joa_ebert.apparat.taas.types.StringType;
 import com.joa_ebert.apparat.taas.types.VoidType;
 
@@ -48,5 +53,20 @@ public class TDefaultXmlNamespace extends TaasExpression
 		}
 
 		this.uri = uri;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		if( uri instanceof TaasString )
+		{
+			final TaasString uriString = (TaasString)uri;
+			code.add( new DefaultXmlNamespace( uriString.value ) );
+		}
+		else
+		{
+			throw new TaasException( "TaasString expected." );
+		}
 	}
 }

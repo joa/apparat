@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.GreaterEquals;
 import com.joa_ebert.apparat.taas.TaasValue;
 
 /**
@@ -35,5 +39,15 @@ public final class TGreaterEquals extends AbstractBinaryExpr
 	public TGreaterEquals( final TaasValue lhs, final TaasValue rhs )
 	{
 		super( lhs, rhs, OPERATOR );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		lhs.emit( environment, body, code );
+		rhs.emit( environment, body, code );
+
+		code.add( new GreaterEquals() );
 	}
 }

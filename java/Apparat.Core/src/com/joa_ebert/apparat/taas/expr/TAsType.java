@@ -21,8 +21,14 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.AsType;
+import com.joa_ebert.apparat.abc.bytecode.operations.AsTypeLate;
+import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasValue;
-import com.joa_ebert.apparat.taas.types.TaasType;
+import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 
 /**
  * 
@@ -33,8 +39,33 @@ public class TAsType extends AbstractBinaryExpr
 {
 	private static final String OPERATOR = "as";
 
-	public TAsType( final TaasValue lhs, final TaasType rhs )
+	public TAsType( final TaasValue lhs, final TaasValue rhs )
 	{
-		super( lhs, rhs, OPERATOR, rhs );
+		super( lhs, rhs, OPERATOR, rhs.getType() );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		lhs.emit( environment, body, code );
+
+		if( rhs.isConstant() )
+		{
+			if( rhs instanceof TaasMultiname )
+			{
+				code.add( new AsType( ( (TaasMultiname)rhs ).multiname ) );
+			}
+			else
+			{
+				throw new TaasException( "TaasMultiname expected." );
+			}
+		}
+		else
+		{
+			rhs.emit( environment, body, code );
+			code.add( new AsTypeLate() );
+		}
+
 	}
 }

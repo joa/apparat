@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.constants;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushDouble;
 import com.joa_ebert.apparat.taas.types.NumberType;
 
 /**
@@ -53,6 +57,13 @@ public class TaasNumber extends TaasNumeric
 	{
 		verifyType( numeric, TaasNumber.class );
 		return new TaasNumber( value / ( (TaasNumber)numeric ).value );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		code.add( new PushDouble( value ) );
 	}
 
 	@Override

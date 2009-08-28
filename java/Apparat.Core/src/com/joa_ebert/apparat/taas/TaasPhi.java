@@ -24,6 +24,9 @@ package com.joa_ebert.apparat.taas;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.taas.types.TaasType;
 import com.joa_ebert.apparat.taas.types.UnknownType;
 
@@ -83,6 +86,13 @@ public final class TaasPhi extends TaasExpression
 		}
 
 		return false;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		throw new TaasException( "TaasPhi existing during emit." );
 	}
 
 	@Override

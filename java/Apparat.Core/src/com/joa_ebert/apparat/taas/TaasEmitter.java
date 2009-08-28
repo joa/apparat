@@ -21,18 +21,33 @@
 
 package com.joa_ebert.apparat.taas;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Map.Entry;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.ExceptionHandler;
 import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodeAnalysis;
+import com.joa_ebert.apparat.abc.bytecode.operations.Jump;
+import com.joa_ebert.apparat.abc.bytecode.operations.Label;
+import com.joa_ebert.apparat.abc.bytecode.operations.LookupSwitch;
+import com.joa_ebert.apparat.abc.bytecode.operations.Pop;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.EdgeKind;
 import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.taas.expr.AbstractCallExpr;
+import com.joa_ebert.apparat.taas.expr.TGetProperty;
 import com.joa_ebert.apparat.taas.expr.TIf;
 import com.joa_ebert.apparat.taas.expr.TJump;
 import com.joa_ebert.apparat.taas.expr.TLookupSwitch;
+import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
+import com.joa_ebert.apparat.taas.types.VoidType;
 
 /**
  * 
@@ -62,7 +77,20 @@ public class TaasEmitter
 		}
 	}
 
-	public MethodBody emit( final TaasMethod method )
+	private MethodBody createBody()
+	{
+		final Bytecode bytecode = new Bytecode();
+		final MethodBody methodBody = new MethodBody();
+
+		methodBody.exceptions = new LinkedList<ExceptionHandler>();
+		methodBody.code = bytecode;
+		bytecode.methodBody = methodBody;
+
+		return methodBody;
+	}
+
+	public MethodBody emit( final AbcEnvironment environment,
+			final TaasMethod method )
 	{
 		//
 		// Assumptions for now:
@@ -78,10 +106,15 @@ public class TaasEmitter
 		// 2) Insert TaasJump for non-reachable edges (done)
 		// 3) Convert linked list to bytecode while solving jumps
 		//
-
-		//
 		// Once done, work on phi-nodes. Exit SSA and expand phi-nodes for non-
 		// register values into predecessors.
+		//
+
+		//
+		// Phase #1:
+		//
+		// Order the CFG and produce a list of instructions.
+		// We will also create a map of jumps in this step.
 		//
 
 		final LinkedList<TaasValue> list = new LinkedList<TaasValue>();
@@ -96,22 +129,151 @@ public class TaasEmitter
 			throw new TaasException( exception );
 		}
 
-		System.out.println( "List of instructions:\n" );
+		//
+		// Phase #2:
+		//
+		// Emit bytecode. Patch back- and forward jumps.
+		//
 
-		for( final TaasValue value : list )
+		final MethodBody result = createBody();
+		final Bytecode bytecode = result.code;
+
+		final Iterator<TaasValue> iter = list.listIterator();
+
+		final LinkedHashMap<TaasValue, AbstractOperation> jmpSrc = new LinkedHashMap<TaasValue, AbstractOperation>();
+		final LinkedHashMap<TaasValue, AbstractOperation> jmpDst = new LinkedHashMap<TaasValue, AbstractOperation>();
+
+		while( iter.hasNext() )
 		{
-			System.out.println( value.toString() );
+			final TaasValue value = iter.next();
+			final boolean isJumpDestination = jumps.containsValue( value );
+
+			boolean needsLabel = false;
+			AbstractOperation label = null;
+
+			if( isJumpDestination )
+			{
+				//
+				// Target of a jump.
+				//
+				// Test if the source has already been visited. If not, we have
+				// a backwards jump.
+				//
+
+				for( final Entry<TaasValue, TaasValue> entry : jumps.entrySet() )
+				{
+					if( entry.getValue() == value )
+					{
+						if( !jmpSrc.containsKey( entry.getKey() ) )
+						{
+							needsLabel = true;
+						}
+					}
+				}
+			}
+
+			value.emit( environment, result, bytecode );
+
+			//
+			// Insert label if we have to.
+			//
+
+			if( needsLabel )
+			{
+				label = new Label();
+				bytecode.add( bytecode.size() - 1, label );
+			}
+
+			//
+			// If we have a control transfer we have to fix the labels.
+			//
+
+			if( jumps.containsKey( value ) )
+			{
+				jmpSrc.put( value, bytecode.peekLast() );
+			}
+
+			if( isJumpDestination )
+			{
+				jmpDst.put( value, needsLabel ? label : bytecode.peekLast() );
+			}
+
+			//
+			// If we have an expression with side-effects that is dead code
+			// we may not remove it.
+			//
+			// Although we have to remove its result.
+			//
+
+			if( value.getType() != VoidType.INSTANCE
+					&& ( value instanceof AbstractCallExpr || value instanceof TGetProperty ) )
+			{
+				final Iterator<TaasValue> refIter = list.descendingIterator();
+				boolean keepValue = false;
+
+				while( refIter.hasNext() )
+				{
+					final TaasValue refValue = refIter.next();
+
+					if( refValue == value )
+					{
+						break;
+					}
+					else if( TaasToolkit.references( refValue, value ) )
+					{
+						keepValue = true;
+						break;
+					}
+				}
+
+				if( !keepValue )
+				{
+					bytecode.add( new Pop() );
+				}
+			}
 		}
 
-		System.out.println( "\nList of jumps:\n" );
+		fixMarkers( jumps, jmpSrc, jmpDst, bytecode );
 
-		for( final Entry<TaasValue, TaasValue> jump : jumps.entrySet() )
+		//
+		// Phase #3:
+		//
+		// Finalize bytecode by filling the missing variables like max stack,
+		// scope depth and local count.
+		//
+
+		putACherryOnTheCake( environment, bytecode );
+
+		//
+		// Et voilà ...
+		//
+
+		return result;
+	}
+
+	private void fixMarkers( final LinkedHashMap<TaasValue, TaasValue> jumps,
+			final LinkedHashMap<TaasValue, AbstractOperation> jmpSrc,
+			final LinkedHashMap<TaasValue, AbstractOperation> jmpDst,
+			final Bytecode bytecode )
+	{
+		final Set<Entry<TaasValue, TaasValue>> entrySet = jumps.entrySet();
+
+		for( final Entry<TaasValue, TaasValue> jmp : entrySet )
 		{
-			System.out.println( jump.getKey().toString() + " -> "
-					+ jump.getValue().toString() );
-		}
+			final TaasValue tsrc = jmp.getKey();
+			final TaasValue tdst = jmp.getValue();
+			final AbstractOperation bsrc = jmpSrc.get( tsrc );
+			final AbstractOperation bdst = jmpDst.get( tdst );
 
-		return null;
+			if( bsrc instanceof Jump )
+			{
+				( (Jump)bsrc ).marker = bytecode.markers.mark( bdst );
+			}
+			else if( bsrc instanceof LookupSwitch )
+			{
+				// TODO implement this mess...
+			}
+		}
 	}
 
 	private void invalidCode()
@@ -263,5 +425,14 @@ public class TaasEmitter
 				continueWith( defaultEdge.endVertex, code, list, jumps );
 			}
 		}
+	}
+
+	private void putACherryOnTheCake( final AbcEnvironment environment,
+			final Bytecode bytecode )
+	{
+		final BytecodeAnalysis analysis = new BytecodeAnalysis( environment,
+				bytecode );
+
+		analysis.updateAll();
 	}
 }

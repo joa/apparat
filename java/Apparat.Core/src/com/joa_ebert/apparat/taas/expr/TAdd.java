@@ -21,7 +21,13 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.Add;
+import com.joa_ebert.apparat.abc.bytecode.operations.AddInt;
 import com.joa_ebert.apparat.taas.TaasValue;
+import com.joa_ebert.apparat.taas.types.IntType;
 
 /**
  * 
@@ -35,5 +41,22 @@ public final class TAdd extends AbstractBinaryExpr
 	public TAdd( final TaasValue lhs, final TaasValue rhs )
 	{
 		super( lhs, rhs, OPERATOR );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		lhs.emit( environment, body, code );
+		rhs.emit( environment, body, code );
+
+		if( getType() == IntType.INSTANCE )
+		{
+			code.add( new AddInt() );
+		}
+		else
+		{
+			code.add( new Add() );
+		}
 	}
 }

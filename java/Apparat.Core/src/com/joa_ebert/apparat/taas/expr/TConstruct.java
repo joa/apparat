@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.Construct;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.TaasType;
@@ -47,6 +51,15 @@ public class TConstruct extends AbstractCallExpr
 		super( parameters, returnType );
 
 		this.object = object;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		emitParams( environment, body, code );
+		object.emit( environment, body, code );
+		code.add( new Construct( parameters.length ) );
 	}
 
 	@Override

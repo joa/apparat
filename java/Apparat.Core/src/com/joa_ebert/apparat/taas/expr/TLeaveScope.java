@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.PopScope;
 import com.joa_ebert.apparat.taas.TaasExpression;
 import com.joa_ebert.apparat.taas.types.VoidType;
 
@@ -34,6 +38,13 @@ public class TLeaveScope extends TaasExpression
 	public TLeaveScope()
 	{
 		super( VoidType.INSTANCE );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		code.add( new PopScope() );
 	}
 
 	@Override

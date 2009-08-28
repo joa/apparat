@@ -21,6 +21,11 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.CallPropVoid;
+import com.joa_ebert.apparat.abc.bytecode.operations.CallProperty;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
@@ -53,6 +58,28 @@ public class TCallProperty extends AbstractCallExpr
 
 		this.object = object;
 		this.property = property;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		emitParams( environment, body, code );
+		// property.emit( environment, body, code );
+		object.emit( environment, body, code );
+
+		if( getType() == VoidType.INSTANCE )
+		{
+			code
+					.add( new CallPropVoid( property.multiname,
+							parameters.length ) );
+		}
+		else
+		{
+			code
+					.add( new CallProperty( property.multiname,
+							parameters.length ) );
+		}
 	}
 
 	@Override

@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
 
@@ -37,6 +41,13 @@ public class TLookupSwitch extends AbstractControlTransferExpr
 	public TLookupSwitch( final TaasValue index )
 	{
 		this.index = index;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		throw new TaasException( "TODO" );
 	}
 
 	@Override

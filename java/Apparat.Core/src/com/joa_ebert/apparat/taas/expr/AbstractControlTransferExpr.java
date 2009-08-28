@@ -29,7 +29,7 @@ import com.joa_ebert.apparat.taas.types.VoidType;
  * @author Joa Ebert
  * 
  */
-public class AbstractControlTransferExpr extends TaasExpression
+public abstract class AbstractControlTransferExpr extends TaasExpression
 {
 	protected AbstractControlTransferExpr()
 	{

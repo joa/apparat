@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.SetProperty;
 import com.joa_ebert.apparat.taas.TaasExpression;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
@@ -51,6 +55,17 @@ public class TSetProperty extends TaasExpression
 		this.object = object;
 		this.property = property;
 		this.value = value;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		object.emit( environment, body, code );
+		// property.emit( environment, body, code );
+		value.emit( environment, body, code );
+
+		code.add( new SetProperty( property.multiname ) );
 	}
 
 	@Override

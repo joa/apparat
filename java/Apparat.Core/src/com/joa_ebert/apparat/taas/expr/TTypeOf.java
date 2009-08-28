@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.TypeOf;
 import com.joa_ebert.apparat.taas.TaasExpression;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
@@ -41,5 +45,19 @@ public class TTypeOf extends TaasExpression
 		super( StringType.INSTANCE );
 
 		this.value = value;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		value.emit( environment, body, code );
+		code.add( new TypeOf() );
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[TTypeOf " + value.toString() + "]";
 	}
 }

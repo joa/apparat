@@ -21,6 +21,15 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal;
+import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal0;
+import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal1;
+import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal2;
+import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal3;
 import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
@@ -40,6 +49,42 @@ public class TSetLocal extends AbstractLocalExpr
 		super( local );
 
 		this.value = value;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		value.emit( environment, body, code );
+
+		final int index = local.getIndex();
+
+		AbstractOperation op = null;
+
+		switch( index )
+		{
+			case 0:
+				op = new SetLocal0();
+				break;
+
+			case 1:
+				op = new SetLocal1();
+				break;
+
+			case 2:
+				op = new SetLocal2();
+				break;
+
+			case 3:
+				op = new SetLocal3();
+				break;
+
+			default:
+				op = new SetLocal( index );
+				break;
+		}
+
+		code.add( op );
 	}
 
 	@Override

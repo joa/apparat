@@ -120,9 +120,9 @@ public final class TaasBuilder implements IInterpreter
 		//
 
 		final ArrayList<TaasParameter> parameters = new ArrayList<TaasParameter>(
-				bytecode.method.parameters.size() );
+				bytecode.methodBody.method.parameters.size() );
 
-		for( final Parameter oldParameter : bytecode.method.parameters )
+		for( final Parameter oldParameter : bytecode.methodBody.method.parameters )
 		{
 			final TaasParameter newParameter = new TaasParameter();
 
@@ -1103,7 +1103,8 @@ public final class TaasBuilder implements IInterpreter
 	{
 		if( localRegisters.numRegisters() != 0 )
 		{
-			final Object scope = environment.scopeOf( bytecode.method );
+			final Object scope = environment
+					.scopeOf( bytecode.methodBody.method );
 
 			if( null == scope )
 			{
@@ -1145,11 +1146,11 @@ public final class TaasBuilder implements IInterpreter
 		}
 		catch( final TaasException ex )
 		{
-			System.out.println( "####ERROR LOG##############################" );
-			System.out.println( localRegisters.debug() + "\n" );
-			System.out.println( operandStack.debug() + "\n" );
-			System.out.println( code.debug() );
-			System.out.println( "###########################################" );
+			System.err.println( "####TAAS#ERROR#LOG#########################" );
+			System.err.println( localRegisters.debug() + "\n" );
+			System.err.println( operandStack.debug() + "\n" );
+			System.err.println( code.debug() );
+			System.err.println( "###########################################" );
 
 			throw ex;
 		}
@@ -1240,12 +1241,12 @@ public final class TaasBuilder implements IInterpreter
 	protected void onAsType( final AsType operation )
 	{
 		code.add( operandStack.push( TAAS.asType( operandStack.pop(),
-				toType( constant( operation.type ) ) ) ) );
+				constant( operation.type ) ) ) );
 	}
 
 	protected void onAsTypeLate( final AsTypeLate operation )
 	{
-		final TaasType rhs = toType( operandStack.pop() );
+		final TaasValue rhs = operandStack.pop();
 		final TaasValue lhs = operandStack.pop();
 
 		code.add( operandStack.push( TAAS.asType( lhs, rhs ) ) );
@@ -1831,7 +1832,7 @@ public final class TaasBuilder implements IInterpreter
 	protected void onNewClass( final NewClass operation )
 	{
 		code.add( operandStack.push( TAAS.newClass( operandStack.pop(),
-				new TaasInt( operation.classIndex ) ) ) );
+				operation.klass ) ) );
 	}
 
 	protected void onNewFunction( final NewFunction operation )
@@ -2205,19 +2206,18 @@ public final class TaasBuilder implements IInterpreter
 	 *            The value to cast as TaasType.
 	 * @return The value casted as TaasType.
 	 */
-	private TaasType toType( final TaasValue value )
-	{
-		if( value instanceof TaasType )
-		{
-			return (TaasType)value;
-		}
-		else
-		{
-			throw new TaasException( "Can not convert from " + value
-					+ " to TaasType." );
-		}
-	}
-
+	// private TaasType toType( final TaasValue value )
+	// {
+	// if( value instanceof TaasType )
+	// {
+	// return (TaasType)value;
+	// }
+	// else
+	// {
+	// throw new TaasException( "Can not convert from " + value
+	// + " to TaasType." );
+	// }
+	// }
 	/**
 	 * Looks up the stack delta at the current vertex and transforms all
 	 * additional values to boxes.

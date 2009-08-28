@@ -21,6 +21,12 @@
 
 package com.joa_ebert.apparat.taas.constants;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushByte;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushInt;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushShort;
 import com.joa_ebert.apparat.taas.types.IntType;
 
 /**
@@ -51,6 +57,24 @@ public class TaasInt extends TaasNumeric
 	{
 		verifyType( numeric, TaasInt.class );
 		return new TaasInt( value / ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		if( value <= 127 && value >= -128 )
+		{
+			code.add( new PushByte( value ) );
+		}
+		else if( value <= 32767 && value >= -32768 )
+		{
+			code.add( new PushShort( value ) );
+		}
+		else
+		{
+			code.add( new PushInt( value ) );
+		}
 	}
 
 	@Override

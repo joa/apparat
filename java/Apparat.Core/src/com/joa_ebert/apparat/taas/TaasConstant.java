@@ -28,7 +28,7 @@ import com.joa_ebert.apparat.taas.types.TaasType;
  * @author Joa Ebert
  * 
  */
-public class TaasConstant extends TaasValue
+public abstract class TaasConstant extends TaasValue
 {
 	protected TaasConstant( final TaasType type )
 	{

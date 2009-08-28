@@ -34,6 +34,7 @@ import com.joa_ebert.apparat.taas.TaasPhi;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
 import com.joa_ebert.apparat.taas.constants.TaasBoolean;
+import com.joa_ebert.apparat.taas.constants.TaasInt;
 import com.joa_ebert.apparat.taas.constants.TaasNumber;
 import com.joa_ebert.apparat.taas.constants.TaasNumeric;
 import com.joa_ebert.apparat.taas.expr.AbstractBinaryExpr;
@@ -41,6 +42,7 @@ import com.joa_ebert.apparat.taas.expr.TAdd;
 import com.joa_ebert.apparat.taas.expr.TIf;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
+import com.joa_ebert.apparat.taas.types.IntType;
 import com.joa_ebert.apparat.taas.types.NumberType;
 import com.joa_ebert.apparat.taas.types.TaasType;
 
@@ -118,10 +120,21 @@ public class ConstantFolding implements ITaasTool
 
 					if( binExpr instanceof TAdd )
 					{
-						if( type instanceof NumberType )
+						if( type == NumberType.INSTANCE )
 						{
 							final TaasNumber nlhs = (TaasNumber)lhs;
 							final TaasNumber nrhs = (TaasNumber)rhs;
+
+							final TaasNumeric result = nlhs.add( nrhs );
+
+							TaasToolkit.replace( method, binExpr, result );
+
+							changed = true;
+						}
+						else if( type == IntType.INSTANCE )
+						{
+							final TaasInt nlhs = (TaasInt)lhs;
+							final TaasInt nrhs = (TaasInt)rhs;
 
 							final TaasNumeric result = nlhs.add( nrhs );
 

@@ -21,10 +21,14 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.Class;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.NewClass;
 import com.joa_ebert.apparat.taas.TaasExpression;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
-import com.joa_ebert.apparat.taas.constants.TaasInt;
 import com.joa_ebert.apparat.taas.types.ClassType;
 
 /**
@@ -38,19 +42,27 @@ public class TNewClass extends TaasExpression
 	public TaasValue base;
 
 	@TaasReference
-	public TaasInt index;
+	public Class klass;
 
-	public TNewClass( final TaasValue base, final TaasInt index )
+	public TNewClass( final TaasValue base, final Class klass )
 	{
 		super( ClassType.INSTANCE );
 
 		this.base = base;
-		this.index = index;
+		this.klass = klass;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		base.emit( environment, body, code );
+		code.add( new NewClass( klass ) );
 	}
 
 	@Override
 	public String toString()
 	{
-		return "[TNewClass " + base.toString() + ", " + index.toString() + "]";
+		return "[TNewClass " + base.toString() + ", " + klass.toString() + "]";
 	}
 }

@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.constants;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushUndefined;
 import com.joa_ebert.apparat.taas.TaasConstant;
 import com.joa_ebert.apparat.taas.types.UndefinedType;
 
@@ -36,6 +40,13 @@ public class TaasUndefined extends TaasConstant
 	private TaasUndefined()
 	{
 		super( UndefinedType.INSTANCE );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		code.add( new PushUndefined() );
 	}
 
 	@Override

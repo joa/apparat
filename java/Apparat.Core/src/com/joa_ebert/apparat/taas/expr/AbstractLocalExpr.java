@@ -29,7 +29,7 @@ import com.joa_ebert.apparat.taas.TaasLocal;
  * @author Joa Ebert
  * 
  */
-public class AbstractLocalExpr extends TaasExpression
+public abstract class AbstractLocalExpr extends TaasExpression
 {
 	public TaasLocal local;
 

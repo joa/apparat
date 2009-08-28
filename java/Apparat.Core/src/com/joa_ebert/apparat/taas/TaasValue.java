@@ -21,6 +21,9 @@
 
 package com.joa_ebert.apparat.taas;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.taas.types.TaasType;
 
 /**
@@ -30,12 +33,28 @@ import com.joa_ebert.apparat.taas.types.TaasType;
  */
 public abstract class TaasValue
 {
+	private boolean emitted = false;
 	private TaasType type;
 
 	public TaasValue( final TaasType type )
 	{
 		this.type = type;
 	}
+
+	public void emit( final AbcEnvironment environment, final MethodBody body,
+			final Bytecode code )
+	{
+		if( emitted )
+		{
+			return;
+		}
+
+		emitOps( environment, body, code );
+		emitted = true;
+	}
+
+	protected abstract void emitOps( AbcEnvironment environment,
+			MethodBody body, Bytecode code );
 
 	public TaasType getType()
 	{

@@ -21,8 +21,15 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.IncLocal;
+import com.joa_ebert.apparat.abc.bytecode.operations.IncLocalInt;
 import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasReference;
+import com.joa_ebert.apparat.taas.types.IntType;
 
 /**
  * 
@@ -39,6 +46,24 @@ public class TIncLocal extends AbstractLocalExpr
 		super( local );
 
 		source = local;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		AbstractOperation op = null;
+
+		if( getType() == IntType.INSTANCE )
+		{
+			op = new IncLocalInt( local.getIndex() );
+		}
+		else
+		{
+			op = new IncLocal( local.getIndex() );
+		}
+
+		code.add( op );
 	}
 
 	@Override

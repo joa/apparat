@@ -21,6 +21,9 @@
 
 package com.joa_ebert.apparat.taas;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.taas.types.TaasType;
 
 /**
@@ -33,6 +36,13 @@ public abstract class TaasExpression extends TaasValue
 	protected TaasExpression( final TaasType type )
 	{
 		super( type );
+	}
+
+	@Override
+	public final void emit( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		super.emit( environment, body, code );
 	}
 
 	@Override

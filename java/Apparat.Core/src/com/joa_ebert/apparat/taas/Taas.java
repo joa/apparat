@@ -21,7 +21,7 @@
 
 package com.joa_ebert.apparat.taas;
 
-import com.joa_ebert.apparat.taas.constants.TaasInt;
+import com.joa_ebert.apparat.abc.Class;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 import com.joa_ebert.apparat.taas.expr.TAdd;
 import com.joa_ebert.apparat.taas.expr.TApplyType;
@@ -99,7 +99,7 @@ public final class Taas
 		return new TApplyType( object, parameters );
 	}
 
-	public TAsType asType( final TaasValue lhs, final TaasType rhs )
+	public TAsType asType( final TaasValue lhs, final TaasValue rhs )
 	{
 		return new TAsType( lhs, rhs );
 	}
@@ -328,9 +328,9 @@ public final class Taas
 		return new TNegate( rhs );
 	}
 
-	public TNewClass newClass( final TaasValue base, final TaasInt index )
+	public TNewClass newClass( final TaasValue base, final Class klass )
 	{
-		return new TNewClass( base, index );
+		return new TNewClass( base, klass );
 	}
 
 	public TNot not( final TaasValue rhs )

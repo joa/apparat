@@ -21,6 +21,24 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.AbstractConditionalJump;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfEqual;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfFalse;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfGreaterEqual;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfGreaterThan;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfLessEqual;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfLessThan;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfNotEqual;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfNotGreaterEqual;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfNotGreaterThan;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfNotLessEqual;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfNotLessThan;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfStrictEqual;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfStrictNotEqual;
+import com.joa_ebert.apparat.abc.bytecode.operations.IfTrue;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
 
@@ -82,6 +100,77 @@ public class TIf extends AbstractControlTransferExpr
 		this.rhs = rhs;
 
 		this.operator = operator;
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		lhs.emit( environment, body, code );
+		rhs.emit( environment, body, code );
+
+		AbstractConditionalJump jump = null;
+
+		switch( operator )
+		{
+			case Equal:
+				jump = new IfEqual();
+				break;
+
+			case False:
+				jump = new IfFalse();
+				break;
+
+			case GreaterEqual:
+				jump = new IfGreaterEqual();
+				break;
+
+			case GreaterThan:
+				jump = new IfGreaterThan();
+				break;
+
+			case LessEqual:
+				jump = new IfLessEqual();
+				break;
+
+			case LessThan:
+				jump = new IfLessThan();
+				break;
+
+			case NotEqual:
+				jump = new IfNotEqual();
+				break;
+
+			case NotGreaterEqual:
+				jump = new IfNotGreaterEqual();
+				break;
+
+			case NotGreaterThan:
+				jump = new IfNotGreaterThan();
+				break;
+
+			case NotLessEqual:
+				jump = new IfNotLessEqual();
+				break;
+
+			case NotLessThan:
+				jump = new IfNotLessThan();
+				break;
+
+			case StrictEqual:
+				jump = new IfStrictEqual();
+				break;
+
+			case StrictNotEqual:
+				jump = new IfStrictNotEqual();
+				break;
+
+			case True:
+				jump = new IfTrue();
+				break;
+		}
+
+		code.add( jump );
 	}
 
 	@Override

@@ -21,10 +21,14 @@
 
 package com.joa_ebert.apparat.taas.constants;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.Namespace;
 import com.joa_ebert.apparat.abc.NamespaceKind;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.multinames.QName;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.types.MultinameType;
 
 /**
@@ -40,6 +44,13 @@ public class TaasGlobalScope extends TaasConstant
 	{
 		super( new MultinameType( new QName( new Namespace(
 				NamespaceKind.PackageNamespace, "" ), "" ) ) );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		throw new TaasException( "Can not emit TaasGlobalScope." );
 	}
 
 	@Override

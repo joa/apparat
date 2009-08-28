@@ -21,6 +21,9 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.taas.TaasExpression;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
@@ -31,7 +34,7 @@ import com.joa_ebert.apparat.taas.types.TaasType;
  * @author Joa Ebert
  * 
  */
-public class AbstractCallExpr extends TaasExpression
+public abstract class AbstractCallExpr extends TaasExpression
 {
 	@TaasReference
 	public TaasValue[] parameters;
@@ -42,6 +45,15 @@ public class AbstractCallExpr extends TaasExpression
 		super( returnType );
 
 		this.parameters = parameters;
+	}
+
+	protected final void emitParams( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		for( int i = 0, n = parameters.length; i < n; ++i )
+		{
+			parameters[ i ].emit( environment, body, code );
+		}
 	}
 
 	public String parametersToString()

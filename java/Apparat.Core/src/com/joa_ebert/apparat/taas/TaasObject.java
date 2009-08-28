@@ -23,7 +23,13 @@ package com.joa_ebert.apparat.taas;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.NewObject;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushString;
 import com.joa_ebert.apparat.taas.constants.TaasString;
 import com.joa_ebert.apparat.taas.types.ObjectType;
 
@@ -39,6 +45,19 @@ public final class TaasObject extends TaasValue
 	public TaasObject()
 	{
 		super( ObjectType.INSTANCE );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		for( final Entry<String, TaasValue> entry : map.entrySet() )
+		{
+			code.add( new PushString( entry.getKey() ) );
+			entry.getValue().emit( environment, body, code );
+		}
+
+		code.add( new NewObject() );
 	}
 
 	public TaasValue get( final String key )

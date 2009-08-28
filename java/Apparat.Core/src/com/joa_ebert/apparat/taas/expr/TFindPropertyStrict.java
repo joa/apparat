@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.FindPropStrict;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 
 /**
@@ -33,6 +37,13 @@ public class TFindPropertyStrict extends TFindProperty
 	public TFindPropertyStrict( final TaasMultiname property )
 	{
 		super( property );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		code.add( new FindPropStrict( property.multiname ) );
 	}
 
 	@Override

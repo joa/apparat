@@ -21,6 +21,15 @@
 
 package com.joa_ebert.apparat.taas;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.GetLocal;
+import com.joa_ebert.apparat.abc.bytecode.operations.GetLocal0;
+import com.joa_ebert.apparat.abc.bytecode.operations.GetLocal1;
+import com.joa_ebert.apparat.abc.bytecode.operations.GetLocal2;
+import com.joa_ebert.apparat.abc.bytecode.operations.GetLocal3;
 import com.joa_ebert.apparat.taas.types.TaasType;
 import com.joa_ebert.apparat.taas.types.UnknownType;
 
@@ -50,6 +59,45 @@ public final class TaasLocal extends TaasValue
 
 		this.index = index;
 		this.subscript = subscript;
+	}
+
+	@Override
+	public void emit( final AbcEnvironment environment, final MethodBody body,
+			final Bytecode code )
+	{
+		emitOps( environment, body, code );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		AbstractOperation op = null;
+
+		switch( index )
+		{
+			case 0:
+				op = new GetLocal0();
+				break;
+
+			case 1:
+				op = new GetLocal1();
+				break;
+
+			case 2:
+				op = new GetLocal2();
+				break;
+
+			case 3:
+				op = new GetLocal3();
+				break;
+
+			default:
+				op = new GetLocal( index );
+				break;
+		}
+
+		code.add( op );
 	}
 
 	@Override

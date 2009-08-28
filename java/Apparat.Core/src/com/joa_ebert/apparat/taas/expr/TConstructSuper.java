@@ -21,6 +21,10 @@
 
 package com.joa_ebert.apparat.taas.expr;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.ConstructSuper;
 import com.joa_ebert.apparat.taas.TaasValue;
 
 /**
@@ -33,6 +37,15 @@ public class TConstructSuper extends TConstruct
 	public TConstructSuper( final TaasValue object, final TaasValue[] parameters )
 	{
 		super( object, parameters );
+	}
+
+	@Override
+	protected void emitOps( final AbcEnvironment environment,
+			final MethodBody body, final Bytecode code )
+	{
+		emitParams( environment, body, code );
+		object.emit( environment, body, code );
+		code.add( new ConstructSuper( parameters.length ) );
 	}
 
 	@Override
