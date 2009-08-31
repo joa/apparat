@@ -43,7 +43,7 @@ public final class TaasLocal extends TaasValue
 	private TaasValue value;
 	private boolean isTyped;
 
-	private final int index;
+	private int index;
 	private final int subscript;
 
 	public TaasLocal( final int index )
@@ -153,6 +153,11 @@ public final class TaasLocal extends TaasValue
 		}
 
 		return result;
+	}
+
+	public void setIndex( final int value )
+	{
+		index = value;
 	}
 
 	public void setValue( final TaasValue value )

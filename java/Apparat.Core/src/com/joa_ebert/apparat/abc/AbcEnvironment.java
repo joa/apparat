@@ -144,6 +144,60 @@ public final class AbcEnvironment
 		return null;
 	}
 
+	public Method findProperty( final AbstractMultiname object,
+			final AbstractMultiname property ) throws AbcException
+	{
+		Instance instance = null;
+
+		search: for( final AbcContext ctx : contexts )
+		{
+			for( final Instance inst : ctx.getAbc().instances )
+			{
+				if( inst.name.equals( object ) )
+				{
+					instance = inst;
+					break search;
+				}
+			}
+		}
+
+		final Method result = null;
+
+		while( null == result && null != instance )
+		{
+			final List<AbstractTrait> traits = instance.traits;
+
+			for( final AbstractTrait trait : traits )
+			{
+				if( !trait.name.equals( property ) )
+				{
+					continue;
+				}
+
+				if( trait.kind == TraitKind.Method )
+				{
+					return ( (TraitMethod)trait ).method;
+				}
+				else if( trait.kind == TraitKind.Getter )
+				{
+					return ( (TraitGetter)trait ).method;
+				}
+				else if( trait.kind == TraitKind.Setter )
+				{
+					return ( (TraitSetter)trait ).method;
+				}
+				else if( trait.kind == TraitKind.Function )
+				{
+					return ( (TraitFunction)trait ).function;
+				}
+			}
+
+			instance = instanceOf( instance.base );
+		}
+
+		return result;
+	}
+
 	public List<AbcContext> getContexts()
 	{
 		return contexts;

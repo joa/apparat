@@ -1250,7 +1250,7 @@ public final class TaasBuilder implements IInterpreter
 
 			for( final Parameter parameter : method.parameters )
 			{
-				localAt( localIndex++ ).setType(
+				localAt( localIndex++ ).typeAs(
 						typer.toNativeType( parameter.type ) );
 			}
 		}

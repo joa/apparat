@@ -25,14 +25,28 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.ConvertBoolean;
+import com.joa_ebert.apparat.abc.bytecode.operations.ConvertDouble;
+import com.joa_ebert.apparat.abc.bytecode.operations.ConvertInt;
+import com.joa_ebert.apparat.abc.bytecode.operations.ConvertObject;
+import com.joa_ebert.apparat.abc.bytecode.operations.ConvertString;
+import com.joa_ebert.apparat.abc.bytecode.operations.ConvertUInt;
 import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal;
 import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal0;
 import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal1;
 import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal2;
 import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal3;
+import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
+import com.joa_ebert.apparat.taas.types.BooleanType;
+import com.joa_ebert.apparat.taas.types.IntType;
+import com.joa_ebert.apparat.taas.types.NumberType;
+import com.joa_ebert.apparat.taas.types.ObjectType;
+import com.joa_ebert.apparat.taas.types.StringType;
+import com.joa_ebert.apparat.taas.types.TaasType;
+import com.joa_ebert.apparat.taas.types.UIntType;
 
 /**
  * 
@@ -57,6 +71,41 @@ public class TSetLocal extends AbstractLocalExpr
 	{
 		value.emit( environment, body, code );
 
+		if( value.getType() != getType() )
+		{
+			final TaasType type = getType();
+
+			if( type == IntType.INSTANCE )
+			{
+				code.add( new ConvertInt() );
+			}
+			else if( type == UIntType.INSTANCE )
+			{
+				code.add( new ConvertUInt() );
+			}
+			else if( type == NumberType.INSTANCE )
+			{
+				code.add( new ConvertDouble() );
+			}
+			else if( type == BooleanType.INSTANCE )
+			{
+				code.add( new ConvertBoolean() );
+			}
+			else if( type == StringType.INSTANCE )
+			{
+				code.add( new ConvertString() );
+			}
+			else if( type == ObjectType.INSTANCE )
+			{
+				code.add( new ConvertObject() );
+			}
+			else
+			{
+				throw new TaasException( "Implicit conversion from "
+						+ value.getType().toString() + " to " + type.toString()
+						+ "." );
+			}
+		}
 		final int index = local.getIndex();
 
 		AbstractOperation op = null;

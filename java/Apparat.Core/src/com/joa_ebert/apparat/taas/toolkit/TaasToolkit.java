@@ -31,6 +31,7 @@ import com.joa_ebert.apparat.controlflow.VertexKind;
 import com.joa_ebert.apparat.taas.TaasCode;
 import com.joa_ebert.apparat.taas.TaasEdge;
 import com.joa_ebert.apparat.taas.TaasException;
+import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasPhi;
 import com.joa_ebert.apparat.taas.TaasReference;
@@ -54,6 +55,13 @@ public class TaasToolkit
 		}
 
 		return result;
+	}
+
+	public static TaasLocal createRegister( final TaasMethod method )
+	{
+		final TaasLocal local = method.locals.create();
+
+		return local;
 	}
 
 	private static void fixPhiEdge( final TaasMethod method,

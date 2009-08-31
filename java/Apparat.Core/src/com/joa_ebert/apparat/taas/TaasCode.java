@@ -27,10 +27,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 
-import com.joa_ebert.apparat.controlflow.BasicBlock;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.controlflow.Edge;
 import com.joa_ebert.apparat.controlflow.EdgeKind;
 import com.joa_ebert.apparat.controlflow.export.DOTExporter;
 
@@ -108,26 +106,30 @@ public final class TaasCode extends ControlFlowGraph<TaasVertex, TaasEdge>
 	{
 		final StringBuilder builder = new StringBuilder( "Code:\n" );
 		final StringWriter writer = new StringWriter();
-		final StringWriter writer2 = new StringWriter();
+		// final StringWriter writer2 = new StringWriter();
 		final DOTExporter<TaasVertex, TaasEdge> exporter = new DOTExporter<TaasVertex, TaasEdge>(
 				new TaasVertex.LabelProvider(), new TaasEdge.LabelProvider() );
-		final DOTExporter<BasicBlock<TaasVertex>, Edge<BasicBlock<TaasVertex>>> exporter2 = new DOTExporter<BasicBlock<TaasVertex>, Edge<BasicBlock<TaasVertex>>>(
-				new BasicBlock.LabelProvider<TaasVertex>() );
+		// final DOTExporter<BasicBlock<TaasVertex>,
+		// Edge<BasicBlock<TaasVertex>>> exporter2 = new
+		// DOTExporter<BasicBlock<TaasVertex>, Edge<BasicBlock<TaasVertex>>>(
+		// new BasicBlock.LabelProvider<TaasVertex>() );
 
 		exporter.export( new PrintWriter( writer ), this );
 
-		try
-		{
-			exporter2.export( new PrintWriter( writer2 ), this.toBlockGraph() );
-		}
-		catch( final ControlFlowGraphException e )
-		{
-			e.printStackTrace();
-		}
-
+		// try
+		// {
+		// exporter2.export( new PrintWriter( writer2 ), this.toBlockGraph() );
+		// }
+		// catch( final ControlFlowGraphException e )
+		// {
+		// e.printStackTrace();
+		// }
+		//
 		builder.append( writer );
-		builder.append( "\nBasic blocks:\n" );
-		builder.append( writer2 );
+		// builder.append( "\nBasic blocks:\n" );
+		// builder.append( writer2 );
+		//
+		// return builder.toString();
 
 		return builder.toString();
 	}

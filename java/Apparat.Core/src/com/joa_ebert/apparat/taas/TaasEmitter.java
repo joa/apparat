@@ -40,7 +40,11 @@ import com.joa_ebert.apparat.abc.bytecode.operations.Jump;
 import com.joa_ebert.apparat.abc.bytecode.operations.Label;
 import com.joa_ebert.apparat.abc.bytecode.operations.LookupSwitch;
 import com.joa_ebert.apparat.abc.bytecode.operations.Pop;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushByte;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushDouble;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushScope;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushUInt;
+import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.EdgeKind;
 import com.joa_ebert.apparat.controlflow.VertexKind;
@@ -50,6 +54,9 @@ import com.joa_ebert.apparat.taas.expr.TIf;
 import com.joa_ebert.apparat.taas.expr.TJump;
 import com.joa_ebert.apparat.taas.expr.TLookupSwitch;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
+import com.joa_ebert.apparat.taas.types.IntType;
+import com.joa_ebert.apparat.taas.types.NumberType;
+import com.joa_ebert.apparat.taas.types.UIntType;
 import com.joa_ebert.apparat.taas.types.VoidType;
 
 /**
@@ -150,6 +157,25 @@ public class TaasEmitter
 
 		result.code.add( new GetLocal0() );
 		result.code.add( new PushScope() );
+
+		for( final TaasLocal local : method.locals.getRegisterList() )
+		{
+			if( local.getType() == IntType.INSTANCE )
+			{
+				result.code.add( new PushByte( 0 ) );
+				result.code.add( new SetLocal( local.getIndex() ) );
+			}
+			else if( local.getType() == UIntType.INSTANCE )
+			{
+				result.code.add( new PushUInt( 0L ) );
+				result.code.add( new SetLocal( local.getIndex() ) );
+			}
+			else if( local.getType() == NumberType.INSTANCE )
+			{
+				result.code.add( new PushDouble( 0.0 ) );
+				result.code.add( new SetLocal( local.getIndex() ) );
+			}
+		}
 
 		while( iter.hasNext() )
 		{

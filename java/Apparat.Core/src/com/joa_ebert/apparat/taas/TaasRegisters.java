@@ -34,7 +34,7 @@ import java.util.List;
 public final class TaasRegisters
 {
 	private final List<TaasLocal> registers;
-	private final int numRegisters;
+	private int numRegisters;
 
 	public TaasRegisters( final int numRegisters )
 	{
@@ -48,6 +48,25 @@ public final class TaasRegisters
 		this.numRegisters = numRegisters;
 	}
 
+	public void add( final TaasLocal local )
+	{
+		final int index = local.getIndex();
+
+		for( final TaasLocal localToCompare : registers )
+		{
+			if( localToCompare.getIndex() == index )
+			{
+				if( null != get( local.getIndex() ) )
+				{
+					throw new TaasException( "Register " + index
+							+ " already exists." );
+				}
+			}
+		}
+
+		registers.add( local );
+	}
+
 	@Override
 	public TaasRegisters clone()
 	{
@@ -57,6 +76,15 @@ public final class TaasRegisters
 		{
 			result.registers.set( i, registers.get( i ) );
 		}
+
+		return result;
+	}
+
+	public TaasLocal create()
+	{
+		final TaasLocal result = new TaasLocal( numRegisters++ );
+
+		registers.add( result );
 
 		return result;
 	}
@@ -96,11 +124,12 @@ public final class TaasRegisters
 		{
 			if( local.getIndex() == index && local.getSubscript() == subscript )
 			{
-				return registers.get( index );
+				return local;
 			}
 		}
 
-		throw new TaasException( "Register does not exist." );
+		throw new TaasException( "Register (" + index + "," + subscript
+				+ ") does not exist." );
 	}
 
 	public List<TaasLocal> getRegisterList()
@@ -111,5 +140,13 @@ public final class TaasRegisters
 	public int numRegisters()
 	{
 		return numRegisters;
+	}
+
+	public void offset( final int value )
+	{
+		for( final TaasLocal local : registers )
+		{
+			local.setIndex( local.getIndex() + value );
+		}
 	}
 }
