@@ -21,16 +21,18 @@
 
 package com.joa_ebert.apparat.taas.toolkit.copyPropagation;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
-import com.joa_ebert.apparat.controlflow.utils.DepthFirstIterator;
+import com.joa_ebert.apparat.controlflow.VertexKind;
 import com.joa_ebert.apparat.taas.TaasConstant;
-import com.joa_ebert.apparat.taas.TaasEdge;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
-import com.joa_ebert.apparat.taas.expr.TJump;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
 
@@ -50,31 +52,64 @@ public class CopyPropagation implements ITaasTool
 
 		try
 		{
-			final DepthFirstIterator<TaasVertex, TaasEdge> iter = new DepthFirstIterator<TaasVertex, TaasEdge>(
-					method.code );
+			final LinkedList<TaasVertex> list = method.code.vertexList();
+			final LinkedList<TaasVertex> removes = new LinkedList<TaasVertex>();
+			final Iterator<TaasVertex> iter = list.listIterator();
 
 			while( iter.hasNext() )
 			{
 				final TaasVertex vertex = iter.next();
 
-				if( vertex.value instanceof TaasConstant
-						&& vertex.value.isConstant() )
+				if( VertexKind.Default != vertex.kind )
 				{
-					TaasToolkit.remove( method, vertex );
+					continue;
+				}
 
-					changed = true;
-				}
-				else if( vertex.value instanceof TaasLocal )
-				{
-					TaasToolkit.remove( method, vertex );
+				final TaasValue value = vertex.value;
 
-					changed = true;
-				}
-				else if( vertex.value instanceof TJump )
+				if( value instanceof TaasConstant && value.isConstant() )
 				{
-					// TODO move out of CopyPropagation
-					TaasToolkit.remove( method, vertex );
+					removes.add( vertex );
 				}
+				else if( value instanceof TaasLocal )
+				{
+					removes.add( vertex );
+				}
+				else
+				{
+					final Iterator<TaasVertex> refIter = list
+							.descendingIterator();
+
+					boolean canRemove = false;
+
+					while( refIter.hasNext() )
+					{
+						final TaasVertex refVert = refIter.next();
+						final TaasValue refValue = refVert.value;
+
+						if( refValue == value )
+						{
+							break;
+						}
+						else if( TaasToolkit.references( refValue, value ) )
+						{
+							canRemove = true;
+							break;
+						}
+					}
+
+					if( canRemove )
+					{
+						removes.add( vertex );
+					}
+				}
+			}
+
+			changed = !removes.isEmpty();
+
+			for( final TaasVertex vertex : removes )
+			{
+				TaasToolkit.remove( method, vertex );
 			}
 		}
 		catch( final ControlFlowGraphException e )

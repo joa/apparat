@@ -60,6 +60,28 @@ public final class TaasTyper
 		this.environment = environment;
 	}
 
+	public TaasType baseOf( final MultinameType type )
+	{
+		if( type.multiname.kind != MultinameKind.QName )
+		{
+			throw new TaasException( "Multiname has to be of kind QName." );
+		}
+
+		final QName name = (QName)type.multiname;
+
+		return toNativeType( environment.baseType( name ) );
+	}
+
+	public TaasType baseOf( final TaasType type )
+	{
+		if( type instanceof MultinameType )
+		{
+			return baseOf( (MultinameType)type );
+		}
+
+		throw new TaasException( "Can not find base type." );
+	}
+
 	/**
 	 * Converts an abstract multiname to the native Taas type.
 	 * 
@@ -68,7 +90,7 @@ public final class TaasTyper
 	 * 
 	 * @return The native Taas type for the given multiname.
 	 */
-	private TaasType toNativeType( final AbstractMultiname multiname )
+	public TaasType toNativeType( final AbstractMultiname multiname )
 	{
 		if( null == multiname )
 		{

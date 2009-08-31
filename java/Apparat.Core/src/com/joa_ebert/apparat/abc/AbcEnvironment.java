@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.joa_ebert.apparat.abc.analysis.TypeSolver;
+import com.joa_ebert.apparat.abc.multinames.QName;
 import com.joa_ebert.apparat.abc.traits.TraitFunction;
 import com.joa_ebert.apparat.abc.traits.TraitGetter;
 import com.joa_ebert.apparat.abc.traits.TraitMethod;
@@ -82,6 +83,24 @@ public final class AbcEnvironment
 	public void addContext( final AbcContext context )
 	{
 		contexts.add( context );
+	}
+
+	public QName baseType( final QName name )
+	{
+		for( final AbcContext context : contexts )
+		{
+			final Abc abc = context.getAbc();
+
+			for( final Instance instance : abc.instances )
+			{
+				if( instance.name.equals( name ) )
+				{
+					return (QName)instance.base;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	public Class classOf( final Method method )

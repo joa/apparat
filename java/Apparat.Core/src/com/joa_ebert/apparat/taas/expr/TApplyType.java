@@ -50,8 +50,8 @@ public class TApplyType extends AbstractCallExpr
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{
-		emitParams( environment, body, code );
 		object.emit( environment, body, code );
+		emitParams( environment, body, code );
 		code.add( new ApplyType( parameters.length ) );
 	}
 

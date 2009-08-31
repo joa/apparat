@@ -62,16 +62,12 @@ public class TaasCompiler implements IMethodVisitor
 		optimizers.add( optimizer );
 	}
 
-	public boolean compile( final Method method )
+	public TaasMethod compile( final Method method )
 	{
-		if( null == method || null == method.body || null == method.body.code )
+		if( null == method || null == method.body || null == method.body.code
+				|| !method.body.exceptions.isEmpty() )
 		{
-			return false;
-		}
-
-		if( method.body.exceptions.size() != 0 )
-		{
-			return false;
+			return null;
 		}
 
 		preprocess( method );
@@ -80,21 +76,10 @@ public class TaasCompiler implements IMethodVisitor
 
 		if( null == taasMethod || !optimize( taasMethod ) )
 		{
-			return false;
+			return null;
 		}
 
-		final MethodBody methodBody = convertToBytecode( taasMethod );
-
-		if( null == methodBody )
-		{
-			return false;
-		}
-
-		method.body = methodBody;
-
-		postprocess( method );
-
-		return true;
+		return taasMethod;
 	}
 
 	private MethodBody convertToBytecode( final TaasMethod method )
@@ -188,6 +173,29 @@ public class TaasCompiler implements IMethodVisitor
 		method.accept( new AbcContext( method.abc ), preprocessor );
 	}
 
+	public boolean replace( final Method method )
+	{
+		final TaasMethod taasMethod = compile( method );
+
+		if( null == taasMethod )
+		{
+			return false;
+		}
+
+		final MethodBody methodBody = convertToBytecode( taasMethod );
+
+		if( null == methodBody )
+		{
+			return false;
+		}
+
+		method.body = methodBody;
+
+		postprocess( method );
+
+		return true;
+	}
+
 	public void setPostprocessor( final PermutationChain value )
 	{
 		postprocessor = value;
@@ -200,6 +208,6 @@ public class TaasCompiler implements IMethodVisitor
 
 	public void visit( final AbcContext context, final Method method )
 	{
-		compile( method );
+		replace( method );
 	}
 }

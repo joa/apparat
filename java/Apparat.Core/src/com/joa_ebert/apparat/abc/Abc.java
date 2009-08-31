@@ -1149,8 +1149,6 @@ public final class Abc
 	{
 		final AbcOutputStream abcOutput = new AbcOutputStream( output );
 
-		// TODO replace with chained visitor
-
 		accept( new ConstantPoolBuilder() );
 		accept( new MetadataBuilder() );
 		accept( new AbcBindingBuilder() );

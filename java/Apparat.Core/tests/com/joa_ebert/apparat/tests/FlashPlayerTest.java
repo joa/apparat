@@ -47,7 +47,8 @@ public class FlashPlayerTest
 		{
 			final String line = bufferedReader.readLine();
 
-			if( line.startsWith( "VerifyError:" ) )
+			if( line.startsWith( "VerifyError:" )
+					|| line.startsWith( "ReferenceError:" ) )
 			{
 				bufferedReader.close();
 				fileReader.close();

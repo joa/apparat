@@ -39,6 +39,7 @@ import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 import com.joa_ebert.apparat.taas.TaasCompiler;
+import com.joa_ebert.apparat.taas.toolkit.flowOptimizer.FlowOptimizer;
 import com.joa_ebert.apparat.tests.FlashPlayerTest;
 
 /**
@@ -50,6 +51,8 @@ public class TaasCompilerTest
 	@Test
 	public void testTaasCompiler() throws Exception
 	{
+		final String input = "assets/Test2.swf";
+
 		final Map<Abc, DoABCTag> abcs = new LinkedHashMap<Abc, DoABCTag>();
 		final Abc builtin = new Abc();
 		final Abc toplevel = new Abc();
@@ -63,7 +66,7 @@ public class TaasCompilerTest
 		playerGlobalSwf.read(
 				new ByteArrayInputStream( playerGlobalSwc.library ),
 				playerGlobalSwc.library.length );
-		test.read( "assets/Test2.swf" );
+		test.read( input );
 
 		final List<Abc> playerglobal = new LinkedList<Abc>();
 
@@ -83,6 +86,8 @@ public class TaasCompilerTest
 
 		Assert.assertFalse( playerglobal.isEmpty() );
 
+		System.out.println( "-----------------------------------------------" );
+
 		for( final ITag tag : test.tags )
 		{
 			if( tag.getType() == Tags.DoABC )
@@ -91,6 +96,8 @@ public class TaasCompilerTest
 				final Abc temp = new Abc();
 
 				temp.read( doAbc );
+
+				// temp.constantPool.debug( System.out );
 
 				abcs.put( temp, doAbc );
 
@@ -107,6 +114,8 @@ public class TaasCompilerTest
 
 		final TaasCompiler compiler = new TaasCompiler( env );
 
+		compiler.addOptimizer( new FlowOptimizer() );
+
 		for( final Abc abc : abcs.keySet() )
 		{
 			abc.accept( compiler );
@@ -115,12 +124,21 @@ public class TaasCompilerTest
 		for( final Entry<Abc, DoABCTag> entry : abcs.entrySet() )
 		{
 			entry.getKey().write( entry.getValue() );
+
+			final Abc temp = new Abc();
+			temp.read( entry.getValue() );
+			// temp.constantPool.debug( System.out );
 		}
 
 		test.write( "assets/compiled.swf" );
 
 		final FlashPlayerTest playerTest = new FlashPlayerTest();
 
+		System.out.println( "Before:" );
+		playerTest.spawn( input, 1000 );
+		playerTest.printLog( System.out );
+
+		System.out.println( "After:" );
 		playerTest.spawn( "assets/compiled.swf", 1000 );
 		playerTest.printLog( System.out );
 		playerTest.assertNoError();

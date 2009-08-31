@@ -30,6 +30,8 @@ public abstract class Vertex
 {
 	public final VertexKind kind;
 	public VertexColor color;
+	public int index;
+	public int lowlink;
 
 	protected Vertex( final VertexKind kind )
 	{

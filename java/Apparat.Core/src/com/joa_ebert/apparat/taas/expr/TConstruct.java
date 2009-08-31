@@ -57,8 +57,8 @@ public class TConstruct extends AbstractCallExpr
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{
-		emitParams( environment, body, code );
 		object.emit( environment, body, code );
+		emitParams( environment, body, code );
 		code.add( new Construct( parameters.length ) );
 	}
 

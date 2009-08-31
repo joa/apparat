@@ -117,7 +117,8 @@ public final class ConstantPoolBuilder implements IAbcVisitor
 
 	public void visit( final AbcContext context, final ConstantPool constantPool )
 	{
-		constantPool.clear();
+		// TODO fix me and put this line back in!
+		// constantPool.clear();
 	}
 
 	public void visit( final AbcContext context,

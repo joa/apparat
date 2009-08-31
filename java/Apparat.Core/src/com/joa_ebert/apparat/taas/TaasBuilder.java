@@ -31,6 +31,7 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.AbstractMultiname;
 import com.joa_ebert.apparat.abc.Class;
 import com.joa_ebert.apparat.abc.Instance;
+import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.Namespace;
 import com.joa_ebert.apparat.abc.Parameter;
 import com.joa_ebert.apparat.abc.Script;
@@ -59,7 +60,17 @@ import com.joa_ebert.apparat.taas.constants.TaasNumber;
 import com.joa_ebert.apparat.taas.constants.TaasString;
 import com.joa_ebert.apparat.taas.constants.TaasUInt;
 import com.joa_ebert.apparat.taas.constants.TaasUndefined;
+import com.joa_ebert.apparat.taas.expr.AbstractCallExpr;
+import com.joa_ebert.apparat.taas.expr.AbstractLocalExpr;
+import com.joa_ebert.apparat.taas.expr.AbstractReturnExpr;
+import com.joa_ebert.apparat.taas.expr.TApplyType;
+import com.joa_ebert.apparat.taas.expr.TDefaultXmlNamespace;
+import com.joa_ebert.apparat.taas.expr.TDeleteProperty;
 import com.joa_ebert.apparat.taas.expr.TIf;
+import com.joa_ebert.apparat.taas.expr.TInitProperty;
+import com.joa_ebert.apparat.taas.expr.TLookupSwitch;
+import com.joa_ebert.apparat.taas.expr.TSetProperty;
+import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
 import com.joa_ebert.apparat.taas.toolkit.constantFolding.ConstantFolding;
 import com.joa_ebert.apparat.taas.toolkit.copyPropagation.CopyPropagation;
 import com.joa_ebert.apparat.taas.toolkit.deadCodeElimination.DeadCodeElimination;
@@ -173,6 +184,12 @@ public final class TaasBuilder implements IInterpreter
 		while( changed );
 
 		// ssaBuilder.manipulate( result );
+
+		//
+		// Cleanup dead vertices.
+		//
+
+		cleanup( result );
 
 		//
 		// Clear all maps and references.
@@ -928,6 +945,99 @@ public final class TaasBuilder implements IInterpreter
 		build( vertex, EdgeKind.Default, operandSize, scopeSize );
 	}
 
+	/**
+	 * @param method
+	 */
+	private void cleanup( final TaasMethod method )
+	{
+		final TaasCode code = method.code;
+		final List<TaasVertex> vertices = code.vertexList();
+		final List<TaasVertex> removes = new LinkedList<TaasVertex>();
+
+		for( final TaasVertex vertex : vertices )
+		{
+			if( VertexKind.Default != vertex.kind )
+			{
+				continue;
+			}
+
+			boolean remove = true;
+
+			final TaasValue value = vertex.value;
+
+			if( value instanceof AbstractCallExpr )
+			{
+				remove = value instanceof TApplyType;
+			}
+			else if( value instanceof AbstractLocalExpr )
+			{
+				remove = false;
+			}
+			else if( value instanceof AbstractReturnExpr )
+			{
+				remove = false;
+			}
+			else if( value instanceof TDefaultXmlNamespace )
+			{
+				remove = false;
+			}
+			else if( value instanceof TDeleteProperty )
+			{
+				remove = false;
+			}
+			// else if( value instanceof TEnterScope )
+			// {
+			// remove = true;
+			// }
+			// else if( value instanceof TLeaveScope )
+			// {
+			// remove = true;
+			// }
+			// else if( value instanceof TNewClass )
+			// {
+			// remove = true;
+			// }
+			// else if( value instanceof TGetProperty )
+			// {
+			// // disscuss this ...
+			// // remove = false;
+			// }
+			else if( value instanceof TInitProperty )
+			{
+				remove = false;
+			}
+			else if( value instanceof TSetProperty )
+			{
+				remove = false;
+			}
+			else if( value instanceof TIf )
+			{
+				remove = false;
+			}
+			else if( value instanceof TLookupSwitch )
+			{
+				remove = false;
+			}
+
+			if( remove )
+			{
+				removes.add( vertex );
+			}
+		}
+
+		try
+		{
+			for( final TaasVertex vertex : removes )
+			{
+				TaasToolkit.remove( method, vertex );
+			}
+		}
+		catch( final ControlFlowGraphException exception )
+		{
+			throw new TaasException( exception );
+		}
+	}
+
 	private TaasMultiname constant( final AbstractMultiname value )
 	{
 		TaasNamespace namespace;
@@ -989,7 +1099,6 @@ public final class TaasBuilder implements IInterpreter
 			final int operandSize, final int scopeSize,
 			final TaasEdge previousEdge )
 	{
-		// 0x000137 L0: GetLocal0
 		int delta = operandStack.size() - operandSize;
 
 		if( delta > 0 )
@@ -1130,6 +1239,19 @@ public final class TaasBuilder implements IInterpreter
 			else
 			{
 				throw new TaasException( "Unknown scope type." );
+			}
+
+			//
+			// Type local variables:
+			//
+
+			final Method method = bytecode.methodBody.method;
+			int localIndex = 1;
+
+			for( final Parameter parameter : method.parameters )
+			{
+				localAt( localIndex++ ).setType(
+						typer.toNativeType( parameter.type ) );
 			}
 		}
 

@@ -37,8 +37,8 @@ import com.joa_ebert.apparat.controlflow.utils.BasicBlockBuilder;
  */
 public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 {
-	private final List<E> edges = new LinkedList<E>();
-	private final List<V> vertices = new LinkedList<V>();
+	private final LinkedList<E> edges = new LinkedList<E>();
+	private final LinkedList<V> vertices = new LinkedList<V>();
 	private final Map<V, List<E>> adjacency = new HashMap<V, List<E>>();
 
 	private V entryPoint;
@@ -100,7 +100,9 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 	{
 		if( !contains( vertex ) )
 		{
-			throw new ControlFlowGraphException( "Unknown vertex." );
+			throw new ControlFlowGraphException( "Unknown vertex "
+					+ ( ( null == vertex ) ? "(null)" : vertex.toString() )
+					+ "." );
 		}
 
 		resetColors();
@@ -158,7 +160,7 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 		return false;
 	}
 
-	public List<E> edgeList()
+	public LinkedList<E> edgeList()
 	{
 		return edges;
 	}
@@ -183,7 +185,9 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 	{
 		if( !contains( vertex ) )
 		{
-			throw new ControlFlowGraphException( "Unknown vertex." );
+			throw new ControlFlowGraphException( "Unknown vertex "
+					+ ( ( null == vertex ) ? "(null)" : vertex.toString() )
+					+ "." );
 		}
 
 		final List<E> result = new LinkedList<E>();
@@ -203,7 +207,9 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 	{
 		if( !contains( vertex ) )
 		{
-			throw new ControlFlowGraphException( "Unknown vertex." );
+			throw new ControlFlowGraphException( "Unknown vertex "
+					+ ( ( null == vertex ) ? "(null)" : vertex.toString() )
+					+ "." );
 		}
 
 		int numEdges = 0;
@@ -223,7 +229,9 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 	{
 		if( !contains( vertex ) )
 		{
-			throw new ControlFlowGraphException( "Unknown vertex." );
+			throw new ControlFlowGraphException( "Unknown vertex "
+					+ ( ( null == vertex ) ? "(null)" : vertex.toString() )
+					+ "." );
 		}
 
 		return adjacency.get( vertex ).size();
@@ -234,7 +242,9 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 	{
 		if( !contains( vertex ) )
 		{
-			throw new ControlFlowGraphException( "Unknown vertex." );
+			throw new ControlFlowGraphException( "Unknown vertex "
+					+ ( ( null == vertex ) ? "(null)" : vertex.toString() )
+					+ "." );
 		}
 
 		return adjacency.get( vertex );
@@ -245,7 +255,9 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 	{
 		if( !contains( vertex ) )
 		{
-			throw new ControlFlowGraphException( "Unknown vertex." );
+			throw new ControlFlowGraphException( "Unknown vertex "
+					+ ( ( null == vertex ) ? "(null)" : vertex.toString() )
+					+ "." );
 		}
 
 		final List<V> result = new LinkedList<V>();
@@ -274,7 +286,9 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 	{
 		if( !contains( vertex ) )
 		{
-			throw new ControlFlowGraphException( "Unknown vertex." );
+			throw new ControlFlowGraphException( "Unknown vertex "
+					+ ( ( null == vertex ) ? "(null)" : vertex.toString() )
+					+ "." );
 		}
 
 		final List<E> outgoing = outgoingOf( vertex );
@@ -341,7 +355,9 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 	{
 		if( !contains( vertex ) )
 		{
-			throw new ControlFlowGraphException( "Unknown vertex." );
+			throw new ControlFlowGraphException( "Unknown vertex "
+					+ ( ( null == vertex ) ? "(null)" : vertex.toString() )
+					+ "." );
 		}
 
 		final List<V> result = new LinkedList<V>();
@@ -363,7 +379,7 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 		return builder.getBlockGraph();
 	}
 
-	public List<V> vertexList()
+	public LinkedList<V> vertexList()
 	{
 		return vertices;
 	}

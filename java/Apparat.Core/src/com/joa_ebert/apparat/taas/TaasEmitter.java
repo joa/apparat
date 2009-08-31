@@ -35,10 +35,12 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodeAnalysis;
+import com.joa_ebert.apparat.abc.bytecode.operations.GetLocal0;
 import com.joa_ebert.apparat.abc.bytecode.operations.Jump;
 import com.joa_ebert.apparat.abc.bytecode.operations.Label;
 import com.joa_ebert.apparat.abc.bytecode.operations.LookupSwitch;
 import com.joa_ebert.apparat.abc.bytecode.operations.Pop;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushScope;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.EdgeKind;
 import com.joa_ebert.apparat.controlflow.VertexKind;
@@ -145,6 +147,9 @@ public class TaasEmitter
 
 		final LinkedHashMap<TaasValue, AbstractOperation> jmpSrc = new LinkedHashMap<TaasValue, AbstractOperation>();
 		final LinkedHashMap<TaasValue, AbstractOperation> jmpDst = new LinkedHashMap<TaasValue, AbstractOperation>();
+
+		result.code.add( new GetLocal0() );
+		result.code.add( new PushScope() );
 
 		while( iter.hasNext() )
 		{

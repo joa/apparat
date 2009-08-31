@@ -86,7 +86,7 @@ public class TIf extends AbstractControlTransferExpr
 	@TaasReference
 	public TaasValue rhs;
 
-	public final Operator operator;
+	public Operator operator;
 
 	public TIf( final TaasValue lhs, final Operator operator )
 	{
