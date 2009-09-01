@@ -130,6 +130,10 @@ public class StrengthReduction implements ITaasTool
 		{
 			change0 = reduce( value, (TDivide)binExpr );
 		}
+		else if( binExpr instanceof TAdd || binExpr instanceof TSubtract )
+		{
+			change0 = reduceAddOrSub( value, binExpr );
+		}
 
 		final boolean change1 = binExpr.lhs instanceof AbstractBinaryExpr ? reduce(
 				binExpr, (AbstractBinaryExpr)binExpr.lhs )
@@ -518,7 +522,8 @@ public class StrengthReduction implements ITaasTool
 
 	private boolean reduce( final TIf ifExpr )
 	{
-		if( ifExpr.operator == Operator.Equal )
+		if( ifExpr.operator == Operator.Equal
+				|| ifExpr.operator == Operator.NotEqual )
 		{
 			if( ifExpr.lhs.getType() != ifExpr.rhs.getType()
 					|| !ifExpr.rhs.isConstant() )
@@ -601,15 +606,29 @@ public class StrengthReduction implements ITaasTool
 						{
 							if( addExpr.lhs instanceof TaasNumber )
 							{
-								//
-								// x + y == 0 -> y == -x
-								//
-
 								final TaasNumber numberValue = (TaasNumber)addExpr.lhs;
 
-								ifExpr.lhs = addExpr.rhs;
-								ifExpr.rhs = new TaasNumber( -numberValue.value );
+								if( Double.isNaN( numberValue.value ) )
+								{
+									//
+									// NaN + x == 0 -> false
+									//
 
+									ifExpr.lhs = null;
+									ifExpr.rhs = null;
+
+									ifExpr.operator = Operator.False;
+								}
+								else
+								{
+									//
+									// x + y == 0 -> y == -x
+									//
+
+									ifExpr.lhs = addExpr.rhs;
+									ifExpr.rhs = new TaasNumber(
+											-numberValue.value );
+								}
 								return true;
 							}
 						}
@@ -617,14 +636,29 @@ public class StrengthReduction implements ITaasTool
 						{
 							if( addExpr.rhs instanceof TaasNumber )
 							{
-								//
-								// x + y == 0 -> x == -y
-								//
-
 								final TaasNumber numberValue = (TaasNumber)addExpr.rhs;
 
-								ifExpr.lhs = addExpr.lhs;
-								ifExpr.rhs = new TaasNumber( -numberValue.value );
+								if( Double.isNaN( numberValue.value ) )
+								{
+									//
+									// x + NaN == 0 -> false
+									//
+
+									ifExpr.lhs = null;
+									ifExpr.rhs = null;
+
+									ifExpr.operator = Operator.False;
+								}
+								else
+								{
+									//
+									// x + y == 0 -> x == -y
+									//
+
+									ifExpr.lhs = addExpr.lhs;
+									ifExpr.rhs = new TaasNumber(
+											-numberValue.value );
+								}
 
 								return true;
 							}
@@ -643,6 +677,123 @@ public class StrengthReduction implements ITaasTool
 
 						return true;
 					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private boolean reduceAddOrSub( final TaasValue value,
+			final AbstractBinaryExpr binExpr )
+	{
+		if( binExpr.lhs.isConstant() )
+		{
+			final TaasValue lhs = binExpr.lhs;
+
+			if( lhs instanceof TaasInt && 0 == ( (TaasInt)lhs ).value )
+			{
+				//
+				// 0 + x -> x
+				// 0 - x -> x
+				//
+
+				TaasToolkit.replace( value, binExpr, binExpr.rhs );
+
+				return true;
+			}
+			else if( lhs instanceof TaasUInt && 0L == ( (TaasUInt)lhs ).value )
+			{
+				//
+				// 0 + x -> x
+				// 0 - x -> x
+				//
+
+				TaasToolkit.replace( value, binExpr, binExpr.rhs );
+
+				return true;
+			}
+			else if( lhs instanceof TaasNumber )
+			{
+				final TaasNumber numberValue = (TaasNumber)lhs;
+
+				if( 0.0 == numberValue.value )
+				{
+					//
+					// 0.0 + x -> x
+					// 0.0 - x -> x
+					//
+
+					TaasToolkit.replace( value, binExpr, binExpr.rhs );
+
+					return true;
+				}
+				else if( Double.isNaN( numberValue.value ) )
+				{
+					//
+					// NaN + x -> NaN
+					// NaN - x -> NaN
+					// 
+
+					TaasToolkit.replace( value, binExpr, new TaasNumber(
+							Double.NaN ) );
+
+					return true;
+				}
+			}
+		}
+		else if( binExpr.rhs.isConstant() )
+		{
+			final TaasValue rhs = binExpr.rhs;
+
+			if( rhs instanceof TaasInt && 0 == ( (TaasInt)rhs ).value )
+			{
+				//
+				// x + 0 -> x
+				// x - 0 -> x
+				//
+
+				TaasToolkit.replace( value, binExpr, binExpr.lhs );
+
+				return true;
+			}
+			else if( rhs instanceof TaasUInt && 0L == ( (TaasUInt)rhs ).value )
+			{
+				//
+				// x + 0 -> x
+				// x - 0 -> x
+				//
+
+				TaasToolkit.replace( value, binExpr, binExpr.lhs );
+
+				return true;
+			}
+			else if( rhs instanceof TaasNumber )
+			{
+				final TaasNumber numberValue = (TaasNumber)rhs;
+
+				if( 0.0 == numberValue.value )
+				{
+					//
+					// x + 0.0 -> x
+					// x - 0.0 -> x
+					//
+
+					TaasToolkit.replace( value, binExpr, binExpr.lhs );
+
+					return true;
+				}
+				else if( Double.isNaN( numberValue.value ) )
+				{
+					//
+					// x + NaN -> NaN
+					// x - NaN -> NaN
+					// 
+
+					TaasToolkit.replace( value, binExpr, new TaasNumber(
+							Double.NaN ) );
+
+					return true;
 				}
 			}
 		}

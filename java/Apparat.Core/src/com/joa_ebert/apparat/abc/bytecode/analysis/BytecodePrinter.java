@@ -528,9 +528,10 @@ public final class BytecodePrinter implements IInterpreter
 
 				case Op.PushByte:
 					line
-							.append( "0x"
+							.append( ( (PushByte)operation ).value >= 0 ? "0x"
 									+ Integer
-											.toHexString( ( (PushByte)operation ).value ) );
+											.toHexString( ( (PushByte)operation ).value )
+									: ( (PushByte)operation ).value );
 					break;
 
 				case Op.PushDouble:
@@ -539,10 +540,10 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.PushInt:
-					line
-							.append( "0x"
-									+ Integer
-											.toHexString( ( (PushInt)operation ).value ) );
+					line.append( ( (PushInt)operation ).value >= 0 ? "0x"
+							+ Integer
+									.toHexString( ( (PushInt)operation ).value )
+							: ( (PushInt)operation ).value );
 					break;
 
 				case Op.PushNamespace:
@@ -552,9 +553,10 @@ public final class BytecodePrinter implements IInterpreter
 
 				case Op.PushShort:
 					line
-							.append( "0x"
+							.append( ( (PushShort)operation ).value >= 0 ? "0x"
 									+ Integer
-											.toHexString( ( (PushShort)operation ).value ) );
+											.toHexString( ( (PushShort)operation ).value )
+									: ( (PushShort)operation ).value );
 					break;
 
 				case Op.PushString:
