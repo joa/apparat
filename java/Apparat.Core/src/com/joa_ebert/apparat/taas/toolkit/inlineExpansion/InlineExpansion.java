@@ -21,7 +21,6 @@
 
 package com.joa_ebert.apparat.taas.toolkit.inlineExpansion;
 
-import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,8 +42,6 @@ import com.joa_ebert.apparat.taas.TaasEdge;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
-import com.joa_ebert.apparat.taas.TaasPhi;
-import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
@@ -81,103 +78,6 @@ public class InlineExpansion implements ITaasTool
 
 	private static final Taas TAAS = new Taas();
 	private final TaasBuilder builder = new TaasBuilder();
-
-	private TCallProperty findCall( final TaasValue value )
-	{
-		if( null == value )
-		{
-			return null;
-		}
-
-		if( value instanceof TCallProperty )
-		{
-			return (TCallProperty)value;
-		}
-		else if( value instanceof TaasPhi )
-		{
-			final TaasPhi phi = (TaasPhi)value;
-
-			for( final TaasPhi.Element element : phi.values )
-			{
-				if( element.value != null
-						&& element.value instanceof TCallProperty )
-				{
-					return (TCallProperty)element.value;
-				}
-
-				final TCallProperty result = findCall( element.value );
-
-				if( null != result )
-				{
-					return result;
-				}
-			}
-
-			return null;
-		}
-		else
-		{
-			final Field[] fields = value.getClass().getFields();
-
-			for( final Field field : fields )
-			{
-				if( field.isAnnotationPresent( TaasReference.class ) )
-				{
-					try
-					{
-						final Object referencedObject = field.get( value );
-
-						if( referencedObject instanceof TaasValue )
-						{
-							final TaasValue referenced = (TaasValue)referencedObject;
-
-							if( null != referenced
-									&& referenced instanceof TCallProperty )
-							{
-								return (TCallProperty)referenced;
-							}
-
-							final TCallProperty result = findCall( referenced );
-
-							if( null != result )
-							{
-								return result;
-							}
-						}
-						else if( referencedObject instanceof TaasValue[] )
-						{
-							final TaasValue[] referenced = (TaasValue[])referencedObject;
-
-							if( null != referenced )
-							{
-								for( final TaasValue referencedValue : referenced )
-								{
-									if( null != referencedValue
-											&& referencedValue instanceof TCallProperty )
-									{
-										return (TCallProperty)referencedValue;
-									}
-
-									final TCallProperty result = findCall( referencedValue );
-
-									if( null != result )
-									{
-										return result;
-									}
-								}
-							}
-						}
-					}
-					catch( final Exception e )
-					{
-						throw new TaasException( e );
-					}
-				}
-			}
-
-			return null;
-		}
-	}
 
 	private void inline( final TaasMethod targetMethod,
 			final TaasVertex insertionVertex, final TaasMethod inlinedMethod,
@@ -295,7 +195,8 @@ public class InlineExpansion implements ITaasTool
 		for( final TaasVertex vertex : vertices )
 		{
 			final TaasValue value = vertex.value;
-			final TCallProperty callProperty = findCall( value );
+			final TCallProperty callProperty = TaasToolkit.search( value,
+					TCallProperty.class );
 
 			//
 			// Inline TCallProperty expressions:
@@ -369,6 +270,9 @@ public class InlineExpansion implements ITaasTool
 						{
 							if( null != methodInfo.instance )
 							{
+								// FIXME should compare against scope of
+								// original method
+
 								if( !methodInfo.instance.name
 										.equals( mobj.multiname ) )
 								{

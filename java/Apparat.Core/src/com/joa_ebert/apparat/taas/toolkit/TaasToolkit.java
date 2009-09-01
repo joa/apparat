@@ -555,4 +555,111 @@ public class TaasToolkit
 			}
 		}
 	}
+
+	public static <E> E search( final TaasValue value,
+			final Class<? extends TaasValue> type )
+	{
+		return search( value, type, false );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public static <E> E search( final TaasValue value,
+			final Class<? extends TaasValue> type, final boolean childrenOnly )
+	{
+		if( null == value )
+		{
+			return null;
+		}
+
+		if( !childrenOnly && type.isInstance( value ) )
+		{
+			return (E)value;
+		}
+		else if( value instanceof TaasPhi )
+		{
+			final TaasPhi phi = (TaasPhi)value;
+
+			for( final TaasPhi.Element element : phi.values )
+			{
+				if( element.value != null && type.isInstance( element.value ) )
+				{
+					return (E)element.value;
+				}
+
+				final E result = search( element.value, type, childrenOnly );
+
+				if( null != result )
+				{
+					return result;
+				}
+			}
+
+			return null;
+		}
+		else
+		{
+			final Field[] fields = value.getClass().getFields();
+
+			for( final Field field : fields )
+			{
+				if( field.isAnnotationPresent( TaasReference.class ) )
+				{
+					try
+					{
+						final Object referencedObject = field.get( value );
+
+						if( referencedObject instanceof TaasValue )
+						{
+							final TaasValue referenced = (TaasValue)referencedObject;
+
+							if( null != referenced
+									&& type.isInstance( referenced ) )
+							{
+								return (E)referenced;
+							}
+
+							final E result = search( referenced, type,
+									childrenOnly );
+
+							if( null != result )
+							{
+								return result;
+							}
+						}
+						else if( referencedObject instanceof TaasValue[] )
+						{
+							final TaasValue[] referenced = (TaasValue[])referencedObject;
+
+							if( null != referenced )
+							{
+								for( final TaasValue referencedValue : referenced )
+								{
+									if( null != referencedValue
+											&& type
+													.isInstance( referencedValue ) )
+									{
+										return (E)referencedValue;
+									}
+
+									final E result = search( referencedValue,
+											type, childrenOnly );
+
+									if( null != result )
+									{
+										return result;
+									}
+								}
+							}
+						}
+					}
+					catch( final Exception e )
+					{
+						throw new TaasException( e );
+					}
+				}
+			}
+
+			return null;
+		}
+	}
 }

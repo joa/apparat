@@ -30,7 +30,7 @@ import java.util.Stack;
  * @author Joa Ebert
  * 
  */
-public final class TaasStack
+final class TaasStack
 {
 	private final Stack<TaasValue> stack = new Stack<TaasValue>();
 

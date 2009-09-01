@@ -39,6 +39,7 @@ import com.joa_ebert.apparat.taas.toolkit.copyPropagation.CopyPropagation;
 import com.joa_ebert.apparat.taas.toolkit.deadCodeElimination.DeadCodeElimination;
 import com.joa_ebert.apparat.taas.toolkit.flowOptimizer.FlowOptimizer;
 import com.joa_ebert.apparat.taas.toolkit.inlineExpansion.InlineExpansion;
+import com.joa_ebert.apparat.taas.toolkit.strengthReduction.StrengthReduction;
 
 /**
  * @author Joa Ebert
@@ -181,11 +182,15 @@ public class TaasCompiler implements IMethodVisitor
 			boolean changed = false;
 
 			final InlineExpansion inlineExpansion = new InlineExpansion();
+			final StrengthReduction strengthReduction = new StrengthReduction();
 
 			do
 			{
 				changed = inlineExpansion.manipulate( environment, method );
 				CPCFDCE( method );
+
+				changed = strengthReduction.manipulate( environment, method )
+						|| changed;
 			}
 			while( changed );
 

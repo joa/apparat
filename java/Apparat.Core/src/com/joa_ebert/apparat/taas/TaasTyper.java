@@ -191,7 +191,7 @@ public final class TaasTyper
 		while( --n > -1 && result == UnknownType.INSTANCE )
 		{
 			if( !globalScopeVisited
-					&& scopeStack.get( n ) == TaasGlobalScope.INSTANCE )
+					&& scopeStack.get( n ) instanceof TaasGlobalScope )
 			{
 				globalScopeVisited = true;
 

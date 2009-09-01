@@ -26,7 +26,7 @@ package com.joa_ebert.apparat.taas;
  * @author Joa Ebert
  * 
  */
-public final class TaasFrame
+final class TaasFrame
 {
 	public final TaasStack operandStack;
 	public final TaasStack scopeStack;

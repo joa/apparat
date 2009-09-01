@@ -1060,6 +1060,11 @@ public final class TaasBuilder implements IInterpreter
 		}
 	}
 
+	private TaasBoolean constant( final boolean value )
+	{
+		return new TaasBoolean( value );
+	}
+
 	private TaasNumber constant( final Double value )
 	{
 		return new TaasNumber( value );
@@ -1228,7 +1233,7 @@ public final class TaasBuilder implements IInterpreter
 
 			if( ( scope instanceof Class ) || ( scope instanceof Script ) )
 			{
-				localAt( 0 ).setValue( TaasGlobalScope.INSTANCE );
+				localAt( 0 ).setValue( new TaasGlobalScope() );
 			}
 			else if( scope instanceof Instance )
 			{
@@ -1704,7 +1709,7 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onGetGlobalScope( final GetGlobalScope operation )
 	{
-		TODO();
+		code.add( operandStack.push( new TaasGlobalScope() ) );
 	}
 
 	protected void onGetGlobalSlot( final GetGlobalSlot operation )
@@ -2039,7 +2044,7 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onPushFalse( final PushFalse operation )
 	{
-		code.add( operandStack.push( new TaasBoolean( false ) ) );
+		code.add( operandStack.push( constant( false ) ) );
 	}
 
 	protected void onPushInt( final PushInt operation )
@@ -2054,7 +2059,7 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onPushNaN( final PushNaN operation )
 	{
-		code.add( operandStack.push( new TaasNumber( Double.NaN ) ) );
+		code.add( operandStack.push( constant( Double.NaN ) ) );
 	}
 
 	protected void onPushNull( final PushNull operation )
@@ -2090,7 +2095,7 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onPushTrue( final PushTrue operation )
 	{
-		code.add( operandStack.push( new TaasBoolean( true ) ) );
+		code.add( operandStack.push( constant( true ) ) );
 	}
 
 	protected void onPushUInt( final PushUInt operation )
@@ -2131,7 +2136,7 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onSetGlobalSlot( final SetGlobalSlot operation )
 	{
-
+		TODO();
 	}
 
 	protected void onSetLocal( final SetLocal operation )
@@ -2273,8 +2278,6 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onSwap( final Swap operation )
 	{
-		// TODO is this correct?
-
 		final TaasValue a = operandStack.pop();
 		final TaasValue b = operandStack.pop();
 
