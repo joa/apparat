@@ -56,8 +56,6 @@ public class TaasCompiler implements IMethodVisitor
 	private PermutationChain preprocessor;
 	private PermutationChain postprocessor;
 
-	int mi = 0;
-
 	public TaasCompiler( final AbcEnvironment environment )
 	{
 		this.environment = environment;
@@ -272,9 +270,6 @@ public class TaasCompiler implements IMethodVisitor
 
 	public void visit( final AbcContext context, final Method method )
 	{
-		if( mi++ == 5 )
-		{
-			replace( method );
-		}
+		replace( method );
 	}
 }
