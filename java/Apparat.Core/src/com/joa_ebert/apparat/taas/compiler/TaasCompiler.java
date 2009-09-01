@@ -21,9 +21,6 @@
 
 package com.joa_ebert.apparat.taas.compiler;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import com.joa_ebert.apparat.abc.AbcContext;
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.IMethodVisitor;
@@ -37,6 +34,11 @@ import com.joa_ebert.apparat.taas.TaasEmitter;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
+import com.joa_ebert.apparat.taas.toolkit.constantFolding.ConstantFolding;
+import com.joa_ebert.apparat.taas.toolkit.copyPropagation.CopyPropagation;
+import com.joa_ebert.apparat.taas.toolkit.deadCodeElimination.DeadCodeElimination;
+import com.joa_ebert.apparat.taas.toolkit.flowOptimizer.FlowOptimizer;
+import com.joa_ebert.apparat.taas.toolkit.inlineExpansion.InlineExpansion;
 
 /**
  * @author Joa Ebert
@@ -51,19 +53,16 @@ public class TaasCompiler implements IMethodVisitor
 	private final TaasBuilder builder = new TaasBuilder();
 	private final TaasEmitter emitter = new TaasEmitter();
 
-	private final List<ITaasTool> optimizers = new LinkedList<ITaasTool>();
-
 	private PermutationChain preprocessor;
 	private PermutationChain postprocessor;
+
+	int mi = 0;
 
 	public TaasCompiler( final AbcEnvironment environment )
 	{
 		this.environment = environment;
-	}
-
-	public void addOptimizer( final ITaasTool optimizer )
-	{
-		optimizers.add( optimizer );
+		setPreprocessor( TaasPreprocessor.INSTANCE );
+		setPostprocessor( TaasPostprocessor.INSTANCE );
 	}
 
 	public TaasMethod compile( final Method method )
@@ -114,20 +113,81 @@ public class TaasCompiler implements IMethodVisitor
 		}
 	}
 
-	private boolean optimize( final TaasMethod method )
+	private boolean CPCFDCE( final TaasMethod method )
 	{
 		try
 		{
+			final CopyPropagation copyPropagation = new CopyPropagation();
+			final ConstantFolding constantFolding = new ConstantFolding();
+			final DeadCodeElimination deadCodeElimination = new DeadCodeElimination();
+
 			boolean changed;
 
 			do
 			{
 				changed = false;
 
-				for( final ITaasTool tool : optimizers )
-				{
-					changed = tool.manipulate( environment, method ) || changed;
-				}
+				changed = copyPropagation.manipulate( environment, method )
+						|| changed;
+
+				changed = constantFolding.manipulate( environment, method )
+						|| changed;
+
+				changed = deadCodeElimination.manipulate( environment, method )
+						|| changed;
+			}
+			while( changed );
+
+			return true;
+		}
+		catch( final TaasException taasException )
+		{
+			taasException.printStackTrace();
+
+			return false;
+		}
+	}
+
+	private boolean execOptimizer( final ITaasTool tool, final TaasMethod method )
+	{
+		try
+		{
+			boolean changed = false;
+
+			do
+			{
+				changed = tool.manipulate( environment, method );
+			}
+			while( changed );
+
+			return true;
+		}
+		catch( final TaasException taasException )
+		{
+			taasException.printStackTrace();
+
+			return false;
+		}
+
+	}
+
+	private boolean optimize( final TaasMethod method )
+	{
+		try
+		{
+			if( !execOptimizer( new FlowOptimizer(), method ) )
+			{
+				return false;
+			}
+
+			boolean changed = false;
+
+			final InlineExpansion inlineExpansion = new InlineExpansion();
+
+			do
+			{
+				changed = inlineExpansion.manipulate( environment, method );
+				CPCFDCE( method );
 			}
 			while( changed );
 
@@ -143,6 +203,13 @@ public class TaasCompiler implements IMethodVisitor
 
 	private void postprocess( final Method method )
 	{
+		if( null == postprocessor )
+		{
+			return;
+		}
+
+		method.accept( new AbcContext( method.abc ), postprocessor );
+
 		if( DEBUG )
 		{
 			System.out.println( "Post:" );
@@ -151,13 +218,6 @@ public class TaasCompiler implements IMethodVisitor
 			System.out
 					.println( "\n-----------------------------------------\n" );
 		}
-
-		if( null == postprocessor )
-		{
-			return;
-		}
-
-		method.accept( new AbcContext( method.abc ), postprocessor );
 	}
 
 	private void preprocess( final Method method )
@@ -212,6 +272,9 @@ public class TaasCompiler implements IMethodVisitor
 
 	public void visit( final AbcContext context, final Method method )
 	{
-		replace( method );
+		if( mi++ == 5 )
+		{
+			replace( method );
+		}
 	}
 }

@@ -50,6 +50,7 @@ import com.joa_ebert.apparat.taas.TaasVertex;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 import com.joa_ebert.apparat.taas.expr.TCallProperty;
 import com.joa_ebert.apparat.taas.expr.TReturn;
+import com.joa_ebert.apparat.taas.expr.TReturnVoid;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
 import com.joa_ebert.apparat.taas.types.MultinameType;
@@ -62,11 +63,14 @@ public class InlineExpansion implements ITaasTool
 	{
 		public final TaasVertex vertex;
 		public final TaasMethod method;
+		public final boolean replace;
 
-		public InlineTarget( final TaasVertex vertex, final TaasMethod method )
+		public InlineTarget( final TaasVertex vertex, final TaasMethod method,
+				final boolean replace )
 		{
 			this.vertex = vertex;
 			this.method = method;
+			this.replace = replace;
 		}
 	}
 
@@ -77,7 +81,6 @@ public class InlineExpansion implements ITaasTool
 
 	private static final Taas TAAS = new Taas();
 	private final TaasBuilder builder = new TaasBuilder();
-	private boolean changed;
 
 	private TCallProperty findCall( final TaasValue value )
 	{
@@ -177,7 +180,8 @@ public class InlineExpansion implements ITaasTool
 	}
 
 	private void inline( final TaasMethod targetMethod,
-			final TaasVertex insertionVertex, final TaasMethod inlinedMethod )
+			final TaasVertex insertionVertex, final TaasMethod inlinedMethod,
+			final boolean replace )
 	{
 		try
 		{
@@ -240,10 +244,37 @@ public class InlineExpansion implements ITaasTool
 
 			incommingOf = inlinedCode.incommingOf( inlinedCode.getExitVertex() );
 
-			for( final TaasEdge edge : incommingOf )
+			if( !replace )
 			{
-				targetCode
-						.add( new TaasEdge( edge.startVertex, insertionVertex ) );
+				for( final TaasEdge edge : incommingOf )
+				{
+					targetCode.add( new TaasEdge( edge.startVertex,
+							insertionVertex ) );
+				}
+			}
+			else
+			{
+				final TaasVertex[] returns = new TaasVertex[ incommingOf.size() ];
+				int i = 0;
+
+				for( final TaasEdge edge : incommingOf )
+				{
+					returns[ i++ ] = edge.startVertex;
+				}
+
+				final List<TaasEdge> outgoingOf = targetCode
+						.outgoingOf( insertionVertex );
+
+				for( final TaasEdge edge : outgoingOf )
+				{
+					for( final TaasVertex vertex : returns )
+					{
+						targetCode.add( new TaasEdge( vertex, edge.endVertex,
+								edge.kind ) );
+					}
+				}
+
+				TaasToolkit.remove( targetMethod, insertionVertex );
 			}
 		}
 		catch( final ControlFlowGraphException exception )
@@ -255,7 +286,7 @@ public class InlineExpansion implements ITaasTool
 	public boolean manipulate( final AbcEnvironment environment,
 			final TaasMethod method )
 	{
-		changed = false;
+		boolean changed = false;
 
 		final TaasCode code = method.code;
 		final List<TaasVertex> vertices = code.vertexList();
@@ -452,9 +483,43 @@ public class InlineExpansion implements ITaasTool
 																	param ) ) );
 						}
 
+						final LinkedList<TaasVertex> inlinedVertices = inlinedCode
+								.vertexList();
+
 						if( returnType == VoidType.INSTANCE )
 						{
-							// TODO
+							final List<TaasVertex> removes = new LinkedList<TaasVertex>();
+
+							for( final TaasVertex inlinedVertex : inlinedVertices )
+							{
+								if( VertexKind.Default != inlinedVertex.kind )
+								{
+									continue;
+								}
+
+								final TaasValue inlinedValue = inlinedVertex.value;
+
+								if( inlinedValue instanceof TReturnVoid )
+								{
+									removes.add( inlinedVertex );
+								}
+							}
+
+							for( final TaasVertex remove : removes )
+							{
+								try
+								{
+									TaasToolkit.remove( inlinedMethod, remove );
+								}
+								catch( final ControlFlowGraphException exception )
+								{
+									throw new TaasException( exception );
+								}
+							}
+
+							target = new InlineTarget( vertex, inlinedMethod,
+									true );
+							break;
 						}
 						else
 						{
@@ -478,9 +543,6 @@ public class InlineExpansion implements ITaasTool
 							// TSetLocal instead.
 							//
 
-							final LinkedList<TaasVertex> inlinedVertices = inlinedCode
-									.vertexList();
-
 							final Map<TaasValue, TaasValue> replacements = new LinkedHashMap<TaasValue, TaasValue>();
 
 							for( final TaasVertex inlinedVertex : inlinedVertices )
@@ -490,17 +552,17 @@ public class InlineExpansion implements ITaasTool
 									continue;
 								}
 
-								final TaasValue newValue = inlinedVertex.value;
+								final TaasValue inlinedValue = inlinedVertex.value;
 
-								if( newValue instanceof TReturn )
+								if( inlinedValue instanceof TReturn )
 								{
 									replacements
 											.put(
-													newValue,
+													inlinedValue,
 													TAAS
 															.setLocal(
 																	result,
-																	( (TReturn)newValue ).value ) );
+																	( (TReturn)inlinedValue ).value ) );
 								}
 							}
 
@@ -524,7 +586,8 @@ public class InlineExpansion implements ITaasTool
 							// information of what to do here.
 							//
 
-							target = new InlineTarget( vertex, inlinedMethod );
+							target = new InlineTarget( vertex, inlinedMethod,
+									false );
 							break;
 						}
 					}
@@ -540,7 +603,8 @@ public class InlineExpansion implements ITaasTool
 		if( null != target )
 		{
 			changed = true;
-			inline( method, target.vertex, target.method );
+
+			inline( method, target.vertex, target.method, target.replace );
 		}
 
 		return changed;

@@ -408,6 +408,8 @@ public class TaasToolkit
 							element.value = replacement;
 						}
 					}
+
+					phi.updateType();
 				}
 				else
 				{
@@ -430,6 +432,7 @@ public class TaasToolkit
 											&& referenced.equals( search ) )
 									{
 										field.set( value, replacement );
+										value.updateType();
 									}
 								}
 								else if( referencedObject instanceof TaasValue[] )
@@ -448,6 +451,7 @@ public class TaasToolkit
 															.equals( search ) )
 											{
 												referenced[ n ] = replacement;
+												value.updateType();
 											}
 										}
 									}
@@ -481,6 +485,7 @@ public class TaasToolkit
 				if( element.value != null && element.value.equals( search ) )
 				{
 					element.value = replacement;
+					value.updateType();
 				}
 				else if( references( element.value, search ) )
 				{
@@ -508,6 +513,7 @@ public class TaasToolkit
 									&& referenced.equals( search ) )
 							{
 								field.set( value, replacement );
+								value.updateType();
 							}
 							else if( references( referenced, search ) )
 							{
@@ -529,6 +535,7 @@ public class TaasToolkit
 											&& referencedValue.equals( search ) )
 									{
 										referenced[ n ] = replacement;
+										value.updateType();
 									}
 									else if( references( referencedValue,
 											search ) )

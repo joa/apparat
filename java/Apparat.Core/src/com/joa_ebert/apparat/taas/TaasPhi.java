@@ -89,6 +89,12 @@ public final class TaasPhi extends TaasExpression
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		throw new TaasException( "Can not duplicate a TaasPhi expression." );
+	}
+
+	@Override
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{

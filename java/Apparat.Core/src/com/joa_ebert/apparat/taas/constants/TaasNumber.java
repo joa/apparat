@@ -25,6 +25,7 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushDouble;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.NumberType;
 
 /**
@@ -34,8 +35,6 @@ import com.joa_ebert.apparat.taas.types.NumberType;
  */
 public class TaasNumber extends TaasNumeric
 {
-	public static final TaasNumber NaN = new TaasNumber( Double.NaN );
-
 	public final double value;
 
 	public TaasNumber( final double value )
@@ -57,6 +56,12 @@ public class TaasNumber extends TaasNumeric
 	{
 		verifyType( numeric, TaasNumber.class );
 		return new TaasNumber( value / ( (TaasNumber)numeric ).value );
+	}
+
+	@Override
+	public TaasValue dup()
+	{
+		return new TaasNumber( value );
 	}
 
 	@Override

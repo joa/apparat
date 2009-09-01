@@ -62,6 +62,12 @@ public final class TaasLocal extends TaasValue
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		return this;
+	}
+
+	@Override
 	public void emit( final AbcEnvironment environment, final MethodBody body,
 			final Bytecode code )
 	{

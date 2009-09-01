@@ -44,8 +44,6 @@ import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
  */
 public class FlowOptimizer implements ITaasTool
 {
-	private boolean changed;
-
 	private TIf.Operator invertOp( final TIf.Operator op )
 	{
 		switch( op )
@@ -100,7 +98,7 @@ public class FlowOptimizer implements ITaasTool
 	public boolean manipulate( final AbcEnvironment environment,
 			final TaasMethod method )
 	{
-		changed = false;
+		final boolean changed = false;
 
 		final SCCFinder<TaasVertex, TaasEdge> sccFinder = new SCCFinder<TaasVertex, TaasEdge>();
 
@@ -139,7 +137,7 @@ public class FlowOptimizer implements ITaasTool
 
 						if( null == falseEdge || null == trueEdge )
 						{
-							// let DCE clean this one up...
+							// let DCE/CF clean this one up...
 							continue;
 						}
 

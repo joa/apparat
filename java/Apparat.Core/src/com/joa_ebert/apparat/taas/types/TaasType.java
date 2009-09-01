@@ -73,6 +73,12 @@ public abstract class TaasType extends TaasValue
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		throw new TaasException( "Can not duplicate a TaasType." );
+	}
+
+	@Override
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{

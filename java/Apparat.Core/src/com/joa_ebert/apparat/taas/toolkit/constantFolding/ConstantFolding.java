@@ -54,6 +54,9 @@ import com.joa_ebert.apparat.taas.types.TaasType;
  */
 public class ConstantFolding implements ITaasTool
 {
+	private static final TaasBoolean TRUE = new TaasBoolean( true );
+	private static final TaasBoolean FALSE = new TaasBoolean( false );
+
 	private boolean changed;
 
 	public boolean manipulate( final AbcEnvironment environment,
@@ -160,13 +163,13 @@ public class ConstantFolding implements ITaasTool
 					switch( ifExpr.operator )
 					{
 						case True:
-							if( ifExpr.lhs.equals( TaasBoolean.TRUE ) )
+							if( ifExpr.lhs.equals( TRUE ) )
 							{
 								changed = remove( method, vertex,
 										EdgeKind.False )
 										|| changed;
 							}
-							else if( ifExpr.lhs == TaasBoolean.FALSE )
+							else if( ifExpr.lhs == FALSE )
 							{
 								changed = remove( method, vertex, EdgeKind.True )
 										|| changed;
@@ -174,13 +177,13 @@ public class ConstantFolding implements ITaasTool
 							break;
 
 						case False:
-							if( ifExpr.lhs.equals( TaasBoolean.FALSE ) )
+							if( ifExpr.lhs.equals( FALSE ) )
 							{
 								changed = remove( method, vertex,
 										EdgeKind.False )
 										|| changed;
 							}
-							else if( ifExpr.lhs == TaasBoolean.TRUE )
+							else if( ifExpr.lhs == TRUE )
 							{
 								changed = remove( method, vertex, EdgeKind.True )
 										|| changed;

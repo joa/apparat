@@ -27,6 +27,7 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushFalse;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushTrue;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.BooleanType;
 
 /**
@@ -36,12 +37,9 @@ import com.joa_ebert.apparat.taas.types.BooleanType;
  */
 public class TaasBoolean extends TaasConstant
 {
-	public static final TaasBoolean TRUE = new TaasBoolean( true );
-	public static final TaasBoolean FALSE = new TaasBoolean( true );
-
 	public final boolean value;
 
-	private TaasBoolean( final boolean value )
+	public TaasBoolean( final boolean value )
 	{
 		super( BooleanType.INSTANCE );
 
@@ -49,10 +47,37 @@ public class TaasBoolean extends TaasConstant
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		return new TaasBoolean( value );
+	}
+
+	@Override
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{
 		code.add( value ? new PushTrue() : new PushFalse() );
+	}
+
+	@Override
+	public boolean equals( final Object other )
+	{
+		if( other instanceof TaasBoolean )
+		{
+			return ( (TaasBoolean)other ).value == value;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		int hash = 2203;
+
+		hash = 31 * hash + ( value ? 1 : 0 );
+
+		return hash;
 	}
 
 	@Override

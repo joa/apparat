@@ -26,6 +26,7 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushUndefined;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.UndefinedType;
 
 /**
@@ -35,11 +36,15 @@ import com.joa_ebert.apparat.taas.types.UndefinedType;
  */
 public class TaasUndefined extends TaasConstant
 {
-	public static final TaasUndefined INSTANCE = new TaasUndefined();
-
-	private TaasUndefined()
+	public TaasUndefined()
 	{
 		super( UndefinedType.INSTANCE );
+	}
+
+	@Override
+	public TaasValue dup()
+	{
+		return new TaasUndefined();
 	}
 
 	@Override

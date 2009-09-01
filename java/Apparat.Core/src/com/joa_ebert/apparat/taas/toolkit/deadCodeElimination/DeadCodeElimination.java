@@ -21,20 +21,20 @@
 
 package com.joa_ebert.apparat.taas.toolkit.deadCodeElimination;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.VertexKind;
-import com.joa_ebert.apparat.controlflow.utils.DepthFirstIterator;
 import com.joa_ebert.apparat.taas.TaasCode;
-import com.joa_ebert.apparat.taas.TaasConstant;
-import com.joa_ebert.apparat.taas.TaasEdge;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
+import com.joa_ebert.apparat.taas.expr.AbstractLocalExpr;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
 
@@ -57,33 +57,103 @@ public class DeadCodeElimination implements ITaasTool
 			final TaasCode graph = method.code;
 			final List<TaasVertex> vertices = graph.vertexList();
 			final List<TaasVertex> removes = new LinkedList<TaasVertex>();
+			final List<TaasLocal> deadLocals = new LinkedList<TaasLocal>();
 
-			final DepthFirstIterator<TaasVertex, TaasEdge> iter = new DepthFirstIterator<TaasVertex, TaasEdge>(
-					graph );
+			//
+			// Remove any local variable with no use.
+			//
 
-			while( iter.hasNext() )
+			for( final TaasLocal local : method.locals.getRegisterList() )
 			{
-				final TaasVertex vertex = iter.next();
-
-				if( vertex.value instanceof TaasConstant
-						&& vertex.value.isConstant() )
+				if( local.getIndex() != 0 )
 				{
-					TaasToolkit.remove( method, vertex );
-
-					changed = true;
-				}
-				else if( vertex.value instanceof TaasLocal )
-				{
-					TaasToolkit.remove( method, vertex );
-
-					changed = true;
+					deadLocals.add( local );
 				}
 			}
 
+			for( final TaasVertex vertex : vertices )
+			{
+				if( vertex.kind != VertexKind.Default )
+				{
+					continue;
+				}
+
+				final Iterator<TaasLocal> iter = deadLocals.iterator();
+
+				while( iter.hasNext() )
+				{
+					final TaasLocal local = iter.next();
+
+					if( TaasToolkit.references( vertex.value, local ) )
+					{
+						iter.remove();
+					}
+				}
+
+				if( deadLocals.isEmpty() )
+				{
+					break;
+				}
+			}
+
+			if( !deadLocals.isEmpty() )
+			{
+				do
+				{
+					removes.clear();
+
+					for( final TaasVertex vertex : vertices )
+					{
+						if( vertex.kind != VertexKind.Default )
+						{
+							continue;
+						}
+
+						final TaasValue value = vertex.value;
+
+						if( value instanceof AbstractLocalExpr )
+						{
+							final AbstractLocalExpr localExpr = (AbstractLocalExpr)value;
+
+							for( final TaasLocal local : deadLocals )
+							{
+								if( local == localExpr.local )
+								{
+									removes.add( vertex );
+									break;
+								}
+							}
+						}
+					}
+
+					for( final TaasVertex vertex : removes )
+					{
+						TaasToolkit.remove( method, vertex );
+
+						changed = true;
+					}
+
+					if( !removes.isEmpty() )
+					{
+						changed = TaasToolkit.phiCleanup( method ) || changed;
+					}
+				}
+				while( !removes.isEmpty() );
+
+				for( final TaasLocal deadLocal : deadLocals )
+				{
+					method.locals.remove( deadLocal );
+				}
+
+				method.locals.defragment();
+			}
+
+			//
+			// Remove any vertex V of G with indegree(G,V) = 0
+			// 
+
 			do
 			{
-				// TODO remove any unreferenced TaasValue without side effects
-
 				removes.clear();
 
 				for( final TaasVertex vertex : vertices )

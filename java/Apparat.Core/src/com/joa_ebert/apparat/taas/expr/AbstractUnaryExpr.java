@@ -66,4 +66,10 @@ public abstract class AbstractUnaryExpr extends TaasExpression
 	{
 		return "[AbstractUnaryExpr " + operator + " " + rhs.toString() + "]";
 	}
+
+	@Override
+	public void updateType()
+	{
+		setType( rhs.getType() );
+	}
 }

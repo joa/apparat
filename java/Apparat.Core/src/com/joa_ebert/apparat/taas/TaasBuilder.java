@@ -1660,7 +1660,7 @@ public final class TaasBuilder implements IInterpreter
 		final TaasValue value = operandStack.pop();
 
 		operandStack.push( value );
-		operandStack.push( value );
+		operandStack.push( value.dup() );
 	}
 
 	protected void onEquals( final Equals operation )
@@ -2039,7 +2039,7 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onPushFalse( final PushFalse operation )
 	{
-		code.add( operandStack.push( TaasBoolean.FALSE ) );
+		code.add( operandStack.push( new TaasBoolean( false ) ) );
 	}
 
 	protected void onPushInt( final PushInt operation )
@@ -2054,12 +2054,12 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onPushNaN( final PushNaN operation )
 	{
-		code.add( operandStack.push( TaasNumber.NaN ) );
+		code.add( operandStack.push( new TaasNumber( Double.NaN ) ) );
 	}
 
 	protected void onPushNull( final PushNull operation )
 	{
-		code.add( operandStack.push( TaasNull.INSTANCE ) );
+		code.add( operandStack.push( new TaasNull() ) );
 	}
 
 	protected void onPushScope( final PushScope operation )
@@ -2090,7 +2090,7 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onPushTrue( final PushTrue operation )
 	{
-		code.add( operandStack.push( TaasBoolean.TRUE ) );
+		code.add( operandStack.push( new TaasBoolean( true ) ) );
 	}
 
 	protected void onPushUInt( final PushUInt operation )
@@ -2100,7 +2100,7 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onPushUndefined( final PushUndefined operation )
 	{
-		code.add( operandStack.push( TaasUndefined.INSTANCE ) );
+		code.add( operandStack.push( new TaasUndefined() ) );
 	}
 
 	protected void onPushWith( final PushWith operation )

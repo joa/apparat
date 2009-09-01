@@ -48,6 +48,19 @@ public final class TaasObject extends TaasValue
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		final TaasObject result = new TaasObject();
+
+		for( final Entry<String, TaasValue> entry : map.entrySet() )
+		{
+			result.map.put( entry.getKey(), entry.getValue() );
+		}
+
+		return result;
+	}
+
+	@Override
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{

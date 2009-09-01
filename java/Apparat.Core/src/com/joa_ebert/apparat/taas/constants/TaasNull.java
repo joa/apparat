@@ -26,6 +26,7 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushNull;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.NullType;
 
 /**
@@ -35,11 +36,15 @@ import com.joa_ebert.apparat.taas.types.NullType;
  */
 public class TaasNull extends TaasConstant
 {
-	public static final TaasNull INSTANCE = new TaasNull();
-
-	private TaasNull()
+	public TaasNull()
 	{
 		super( NullType.INSTANCE );
+	}
+
+	@Override
+	public TaasValue dup()
+	{
+		return new TaasNull();
 	}
 
 	@Override

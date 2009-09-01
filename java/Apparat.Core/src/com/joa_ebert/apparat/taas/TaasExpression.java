@@ -39,6 +39,12 @@ public abstract class TaasExpression extends TaasValue
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		throw new TaasException( "TODO" );
+	}
+
+	@Override
 	public final void emit( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{

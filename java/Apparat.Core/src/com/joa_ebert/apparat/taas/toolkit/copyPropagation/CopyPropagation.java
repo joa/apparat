@@ -23,8 +23,12 @@ package com.joa_ebert.apparat.taas.toolkit.copyPropagation;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 
 import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.controlflow.BasicBlock;
+import com.joa_ebert.apparat.controlflow.BasicBlockGraph;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.VertexKind;
 import com.joa_ebert.apparat.taas.TaasConstant;
@@ -33,8 +37,11 @@ import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
+import com.joa_ebert.apparat.taas.expr.AbstractLocalExpr;
+import com.joa_ebert.apparat.taas.expr.TSetLocal;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
+import com.joa_ebert.apparat.taas.toolkit.livenessAnalysis.LivenessAnalysis;
 
 /**
  * 
@@ -45,10 +52,222 @@ public class CopyPropagation implements ITaasTool
 {
 	private boolean changed;
 
+	private boolean cp( final AbcEnvironment environment,
+			final TaasMethod method ) throws ControlFlowGraphException
+	{
+		final LivenessAnalysis la = new LivenessAnalysis( method );
+		final BasicBlockGraph<TaasVertex> graph = la.getGraph();
+
+		la.solve();
+
+		for( final BasicBlock<TaasVertex> block : graph.vertexList() )
+		{
+			final List<TaasLocal> liveOut = la.liveOut( block );
+			final List<TaasVertex> vertices = block.vertices();
+
+			final List<TSetLocal> locals = new LinkedList<TSetLocal>();
+
+			for( final TaasVertex vertex : vertices )
+			{
+				if( VertexKind.Default != vertex.kind )
+				{
+					continue;
+				}
+
+				final TaasValue value = vertex.value;
+
+				if( value instanceof TSetLocal )
+				{
+					final TSetLocal setLocal = (TSetLocal)value;
+
+					if( !liveOut.contains( setLocal.local ) )
+					{
+						locals.add( setLocal );
+					}
+				}
+			}
+
+			nextLocal: for( final TSetLocal setLocal : locals )
+			{
+				if( setLocal.value instanceof TaasConstant )
+				{
+					//
+					// Constant assignment:
+					//
+					// x = 1;
+					//
+
+					final ListIterator<TaasVertex> iter = vertices
+							.listIterator();
+
+					while( iter.hasNext() )
+					{
+						final TaasVertex vertex = iter.next();
+
+						if( VertexKind.Default != vertex.kind )
+						{
+							continue;
+						}
+
+						final TaasValue value = vertex.value;
+
+						if( value == setLocal )
+						{
+							continue;
+						}
+						else if( value instanceof AbstractLocalExpr
+								&& ( (AbstractLocalExpr)value ).local
+										.getIndex() == setLocal.local
+										.getIndex() )
+						{
+							continue nextLocal;
+						}
+						else if( TaasToolkit.references( value, setLocal.local ) )
+						{
+							TaasToolkit.replace( value, setLocal.local,
+									setLocal.value.dup() );
+						}
+					}
+				}
+				else if( setLocal.value instanceof TaasLocal )
+				{
+					//
+					// Copy assignment:
+					//
+					// x = y;
+					//
+
+					final TaasLocal copy = (TaasLocal)setLocal.value;
+					final ListIterator<TaasVertex> iter = vertices
+							.listIterator();
+
+					while( iter.hasNext() )
+					{
+						final TaasVertex vertex = iter.next();
+
+						if( VertexKind.Default != vertex.kind )
+						{
+							continue;
+						}
+
+						final TaasValue value = vertex.value;
+
+						if( value == setLocal )
+						{
+							continue;
+						}
+						else if( value instanceof AbstractLocalExpr
+								&& ( ( (AbstractLocalExpr)value ).local
+										.getIndex() == setLocal.local
+										.getIndex() || ( (AbstractLocalExpr)value ).local
+										.getIndex() == copy.getIndex() ) )
+						{
+							continue nextLocal;
+						}
+						else if( TaasToolkit.references( value, setLocal.local ) )
+						{
+							TaasToolkit.replace( value, setLocal.local,
+									setLocal.value );
+						}
+					}
+				}
+				else
+				{
+					//
+					// Other assignment:
+					//
+					// x = 2 * y;
+					// x = Math.random();
+					// .
+					// .
+					// .
+					// etc.
+					//
+
+					ListIterator<TaasVertex> iter = vertices.listIterator();
+
+					int uses = 0;
+
+					while( iter.hasNext() )
+					{
+						final TaasVertex vertex = iter.next();
+
+						if( VertexKind.Default != vertex.kind )
+						{
+							continue;
+						}
+
+						final TaasValue value = vertex.value;
+
+						if( value == setLocal )
+						{
+							continue;
+						}
+						else if( value instanceof AbstractLocalExpr
+								&& ( (AbstractLocalExpr)value ).local
+										.getIndex() == setLocal.local
+										.getIndex() )
+						{
+							continue nextLocal;
+						}
+						else if( TaasToolkit.references( value, setLocal.local ) )
+						{
+							uses++;
+						}
+					}
+
+					if( 1 == uses )
+					{
+						iter = vertices.listIterator();
+
+						while( iter.hasNext() )
+						{
+							final TaasVertex vertex = iter.next();
+
+							if( VertexKind.Default != vertex.kind )
+							{
+								continue;
+							}
+
+							final TaasValue value = vertex.value;
+
+							if( value == setLocal )
+							{
+								continue;
+							}
+							else if( value instanceof AbstractLocalExpr
+									&& ( (AbstractLocalExpr)value ).local
+											.getIndex() == setLocal.local
+											.getIndex() )
+							{
+								continue nextLocal;
+							}
+							else if( TaasToolkit.references( value,
+									setLocal.local ) )
+							{
+								TaasToolkit.replace( value, setLocal.local,
+										setLocal.value );
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
 	public boolean manipulate( final AbcEnvironment environment,
 			final TaasMethod method )
 	{
-		changed = false;
+		try
+		{
+			changed = cp( environment, method );
+		}
+		catch( final ControlFlowGraphException exception )
+		{
+			throw new TaasException( exception );
+		}
 
 		try
 		{

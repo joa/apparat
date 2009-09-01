@@ -45,4 +45,10 @@ public abstract class AbstractLocalExpr extends TaasExpression
 	{
 		return "[AbstractLocalExpr " + local.toString() + "]";
 	}
+
+	@Override
+	public void updateType()
+	{
+		setType( local.getType() );
+	}
 }

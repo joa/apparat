@@ -70,4 +70,10 @@ public abstract class AbstractBinaryExpr extends TaasExpression
 		return "[AbstractBinaryExpr " + lhs.toString() + " " + operator + " "
 				+ rhs.toString() + "]";
 	}
+
+	@Override
+	public void updateType()
+	{
+		setType( TaasType.typeOf( lhs, rhs ) );
+	}
 }

@@ -26,6 +26,7 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushString;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.StringType;
 
 /**
@@ -42,6 +43,12 @@ public class TaasString extends TaasConstant
 		super( StringType.INSTANCE );
 
 		this.value = value;
+	}
+
+	@Override
+	public TaasValue dup()
+	{
+		return new TaasString( value );
 	}
 
 	@Override

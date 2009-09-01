@@ -64,6 +64,7 @@ public final class TaasRegisters
 			}
 		}
 
+		++numRegisters;
 		registers.add( local );
 	}
 
@@ -82,7 +83,9 @@ public final class TaasRegisters
 
 	public TaasLocal create()
 	{
-		final TaasLocal result = new TaasLocal( numRegisters++ );
+		final TaasLocal result = new TaasLocal( numRegisters - 1 );
+
+		numRegisters++;
 
 		registers.add( result );
 
@@ -111,6 +114,21 @@ public final class TaasRegisters
 	{
 		output.print( debug() );
 		output.flush();
+	}
+
+	public void defragment()
+	{
+		int i = 0;
+
+		for( final TaasLocal local : registers )
+		{
+			if( null != local )
+			{
+				local.setIndex( i++ );
+			}
+		}
+
+		numRegisters = i;
 	}
 
 	public TaasLocal get( final int index )
@@ -146,7 +164,15 @@ public final class TaasRegisters
 	{
 		for( final TaasLocal local : registers )
 		{
-			local.setIndex( local.getIndex() + value );
+			if( 0 != local.getIndex() )
+			{
+				local.setIndex( local.getIndex() + value );
+			}
 		}
+	}
+
+	public boolean remove( final TaasLocal value )
+	{
+		return registers.remove( value );
 	}
 }

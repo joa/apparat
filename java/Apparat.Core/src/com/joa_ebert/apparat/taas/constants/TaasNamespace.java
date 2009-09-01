@@ -28,6 +28,7 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushNamespace;
 import com.joa_ebert.apparat.abc.utils.StringConverter;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.NamespaceType;
 
 /**
@@ -44,6 +45,12 @@ public class TaasNamespace extends TaasConstant
 		super( NamespaceType.INSTANCE );
 
 		this.value = value;
+	}
+
+	@Override
+	public TaasValue dup()
+	{
+		return new TaasNamespace( value );
 	}
 
 	@Override

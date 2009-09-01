@@ -75,6 +75,13 @@ public class TaasMultiname extends TaasConstant
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		return ( noRuntimeName ) ? new TaasMultiname( multiname )
+				: new TaasMultiname( multiname, runtimeNamespace, runtimeName );
+	}
+
+	@Override
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{

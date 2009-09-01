@@ -27,6 +27,7 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushByte;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushInt;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushShort;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.IntType;
 
 /**
@@ -57,6 +58,12 @@ public class TaasInt extends TaasNumeric
 	{
 		verifyType( numeric, TaasInt.class );
 		return new TaasInt( value / ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasValue dup()
+	{
+		return new TaasInt( value );
 	}
 
 	@Override

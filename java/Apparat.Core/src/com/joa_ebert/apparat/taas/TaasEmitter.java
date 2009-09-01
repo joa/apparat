@@ -158,22 +158,31 @@ public class TaasEmitter
 		result.code.add( new GetLocal0() );
 		result.code.add( new PushScope() );
 
+		final int numParameters = method.parameters.size();
+
 		for( final TaasLocal local : method.locals.getRegisterList() )
 		{
+			final int index = local.getIndex();
+
+			if( index <= numParameters )
+			{
+				continue;
+			}
+
 			if( local.getType() == IntType.INSTANCE )
 			{
 				result.code.add( new PushByte( 0 ) );
-				result.code.add( new SetLocal( local.getIndex() ) );
+				result.code.add( new SetLocal( index ) );
 			}
 			else if( local.getType() == UIntType.INSTANCE )
 			{
 				result.code.add( new PushUInt( 0L ) );
-				result.code.add( new SetLocal( local.getIndex() ) );
+				result.code.add( new SetLocal( index ) );
 			}
 			else if( local.getType() == NumberType.INSTANCE )
 			{
 				result.code.add( new PushDouble( 0.0 ) );
-				result.code.add( new SetLocal( local.getIndex() ) );
+				result.code.add( new SetLocal( index ) );
 			}
 		}
 

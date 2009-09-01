@@ -39,8 +39,6 @@ import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
-import com.joa_ebert.apparat.taas.toolkit.flowOptimizer.FlowOptimizer;
-import com.joa_ebert.apparat.taas.toolkit.inlineExpansion.InlineExpansion;
 import com.joa_ebert.apparat.tests.FlashPlayerTest;
 
 /**
@@ -114,9 +112,6 @@ public class TaasCompilerTest
 		env.addAll( abcs.keySet() );
 
 		final TaasCompiler compiler = new TaasCompiler( env );
-
-		compiler.addOptimizer( new FlowOptimizer() );
-		compiler.addOptimizer( new InlineExpansion() );
 
 		for( final Abc abc : abcs.keySet() )
 		{

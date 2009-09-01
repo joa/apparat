@@ -41,6 +41,8 @@ public abstract class TaasValue
 		this.type = type;
 	}
 
+	public abstract TaasValue dup();
+
 	public void emit( final AbcEnvironment environment, final MethodBody body,
 			final Bytecode code )
 	{
@@ -95,5 +97,10 @@ public abstract class TaasValue
 	public String toString()
 	{
 		return "[TaasValue type: " + type.toString() + "]";
+	}
+
+	public void updateType()
+	{
+
 	}
 }
