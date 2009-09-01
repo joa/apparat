@@ -93,7 +93,7 @@ public class LivenessAnalysis
 		throw new TaasException( "Vertex can not be resolved." );
 	}
 
-	private List<TaasLocal> def( final BasicBlock<TaasVertex> b )
+	public List<TaasLocal> def( final BasicBlock<TaasVertex> b )
 	{
 		final List<TaasLocal> result = new LinkedList<TaasLocal>();
 
@@ -116,7 +116,7 @@ public class LivenessAnalysis
 
 		nextLocal: for( final TaasLocal local : method.locals.getRegisterList() )
 		{
-			final Iterator<TaasVertex> iter = b.vertices().descendingIterator();
+			final Iterator<TaasVertex> iter = b.vertices().listIterator();
 
 			while( iter.hasNext() )
 			{
@@ -124,17 +124,23 @@ public class LivenessAnalysis
 
 				if( vertex.value instanceof AbstractLocalExpr )
 				{
-					if( ( (AbstractLocalExpr)vertex.value ).local == local )
+					if( TaasToolkit.references( vertex.value, local ) )
 					{
+						continue nextLocal;
+					}
+					else if( ( (AbstractLocalExpr)vertex.value ).local == local )
+					{
+						if( ( vertex.value instanceof TIncLocal )
+								|| ( vertex.value instanceof TDecLocal ) )
+						{
+							continue nextLocal;
+						}
+
 						if( !result.contains( local ) )
 						{
 							result.add( local );
 						}
 
-						continue nextLocal;
-					}
-					else if( TaasToolkit.references( vertex.value, local ) )
-					{
 						continue nextLocal;
 					}
 				}
@@ -198,7 +204,7 @@ public class LivenessAnalysis
 
 			while( iter.hasNext() )
 			{
-				blockSet.push( iter.next() );
+				blockSet.addLast( iter.next() );
 			}
 
 			//
@@ -286,13 +292,13 @@ public class LivenessAnalysis
 		return result;
 	}
 
-	private List<TaasLocal> use( final BasicBlock<TaasVertex> b )
+	public List<TaasLocal> use( final BasicBlock<TaasVertex> b )
 	{
 		final List<TaasLocal> result = new LinkedList<TaasLocal>();
 
 		nextLocal: for( final TaasLocal local : method.locals.getRegisterList() )
 		{
-			final Iterator<TaasVertex> iter = b.vertices().descendingIterator();
+			final Iterator<TaasVertex> iter = b.vertices().listIterator();
 
 			while( iter.hasNext() )
 			{
@@ -300,7 +306,16 @@ public class LivenessAnalysis
 
 				if( vertex.value instanceof AbstractLocalExpr )
 				{
-					if( ( (AbstractLocalExpr)vertex.value ).local == local )
+					if( TaasToolkit.references( vertex.value, local ) )
+					{
+						if( !result.contains( local ) )
+						{
+							result.add( local );
+						}
+
+						continue nextLocal;
+					}
+					else if( ( (AbstractLocalExpr)vertex.value ).local == local )
 					{
 						if( ( vertex.value instanceof TIncLocal )
 								|| ( vertex.value instanceof TDecLocal ) )
@@ -309,15 +324,6 @@ public class LivenessAnalysis
 							{
 								result.add( local );
 							}
-						}
-
-						continue nextLocal;
-					}
-					else if( TaasToolkit.references( vertex.value, local ) )
-					{
-						if( !result.contains( local ) )
-						{
-							result.add( local );
 						}
 
 						continue nextLocal;
