@@ -27,9 +27,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.Method;
+import com.joa_ebert.apparat.abc.MultinameKind;
+import com.joa_ebert.apparat.abc.NamespaceKind;
+import com.joa_ebert.apparat.abc.multinames.QName;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.VertexKind;
 import com.joa_ebert.apparat.taas.Taas;
@@ -65,6 +69,11 @@ public class InlineExpansion implements ITaasTool
 			this.method = method;
 		}
 	}
+
+	private static final boolean DEBUG = true;
+
+	private static final Logger LOG = DEBUG ? Logger
+			.getLogger( InlineExpansion.class.getName() ) : null;
 
 	private static final Taas TAAS = new Taas();
 	private final TaasBuilder builder = new TaasBuilder();
@@ -250,7 +259,7 @@ public class InlineExpansion implements ITaasTool
 
 		final TaasCode code = method.code;
 		final List<TaasVertex> vertices = code.vertexList();
-		final List<InlineTarget> targets = new LinkedList<InlineTarget>();
+		InlineTarget target = null;
 
 		for( final TaasVertex vertex : vertices )
 		{
@@ -306,17 +315,71 @@ public class InlineExpansion implements ITaasTool
 							continue;
 						}
 
-						final Method abcMethod = method.typer.findProperty(
-								mobj, mprp );
+						final AbcEnvironment.MethodInfo methodInfo = method.typer
+								.findProperty( mobj, mprp );
 
-						if( null == abcMethod )
+						if( null == methodInfo )
 						{
 							//
 							// Typer could not find method.
 							//
 
+							if( DEBUG )
+							{
+								LOG.info( "Typer could not find property ("
+										+ mobj + ", " + mprp + ")" );
+							}
+
 							continue;
 						}
+
+						if( mprp.multiname.kind == MultinameKind.QName
+								&& ( (QName)mprp.multiname ).namespace.kind == NamespaceKind.PrivateNamespace )
+						{
+							if( null != methodInfo.instance )
+							{
+								if( !methodInfo.instance.name
+										.equals( mobj.multiname ) )
+								{
+									if( DEBUG )
+									{
+										LOG.info( "Property (" + mobj + ", "
+												+ mprp + ") is private and "
+												+ "part of a different "
+												+ "instance." );
+									}
+
+									continue;
+								}
+							}
+							else
+							{
+								if( DEBUG )
+								{
+									LOG.info( "Property (" + mobj + ", " + mprp
+											+ ") is private but not "
+											+ "part of an instance." );
+								}
+
+								continue;
+							}
+						}
+						else
+						{
+							if( !methodInfo.isFinal )
+							{
+
+								if( DEBUG )
+								{
+									LOG.info( "Property (" + mobj + ", " + mprp
+											+ ") is not final." );
+								}
+
+								continue;
+							}
+						}
+
+						final Method abcMethod = methodInfo.method;
 
 						if( null == abcMethod.body
 								|| null == abcMethod.body.code )
@@ -461,8 +524,8 @@ public class InlineExpansion implements ITaasTool
 							// information of what to do here.
 							//
 
-							targets.add( new InlineTarget( vertex,
-									inlinedMethod ) );
+							target = new InlineTarget( vertex, inlinedMethod );
+							break;
 						}
 					}
 				}
@@ -474,8 +537,9 @@ public class InlineExpansion implements ITaasTool
 		// Inline all methods now.
 		//
 
-		for( final InlineTarget target : targets )
+		if( null != target )
 		{
+			changed = true;
 			inline( method, target.vertex, target.method );
 		}
 

@@ -25,7 +25,6 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.AbcException;
 import com.joa_ebert.apparat.abc.AbstractMultiname;
 import com.joa_ebert.apparat.abc.ConstantPool;
-import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.MultinameKind;
 import com.joa_ebert.apparat.abc.NamespaceKind;
 import com.joa_ebert.apparat.abc.multinames.QName;
@@ -83,11 +82,7 @@ public final class TaasTyper
 		throw new TaasException( "Can not find base type." );
 	}
 
-	/**
-	 * @param object
-	 * @param property
-	 */
-	public Method findProperty( final MultinameType object,
+	public AbcEnvironment.MethodInfo findProperty( final MultinameType object,
 			final MultinameType property )
 	{
 		try

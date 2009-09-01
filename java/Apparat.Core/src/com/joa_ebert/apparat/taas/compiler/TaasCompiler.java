@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.taas;
+package com.joa_ebert.apparat.taas.compiler;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,6 +32,10 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodePrinter;
 import com.joa_ebert.apparat.abc.bytecode.permutations.PermutationChain;
+import com.joa_ebert.apparat.taas.TaasBuilder;
+import com.joa_ebert.apparat.taas.TaasEmitter;
+import com.joa_ebert.apparat.taas.TaasException;
+import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 
 /**

@@ -41,6 +41,53 @@ import com.joa_ebert.apparat.abc.utils.StringConverter;
  */
 public final class AbcEnvironment
 {
+	/**
+	 * The MethodInfo class is a descriptor for a method.
+	 * 
+	 * @author Joa Ebert
+	 */
+	public static final class MethodInfo
+	{
+		/**
+		 * The method.
+		 */
+		public Method method;
+
+		/**
+		 * Whether or not the method is considered final.
+		 */
+		public boolean isFinal;
+
+		/**
+		 * The instance to which this method belongs to.
+		 * 
+		 * This field is also set if a method belongs to a class instead of an
+		 * instance. It is not set if the method belongs to a script.
+		 */
+		public Instance instance;
+
+		/**
+		 * The script to which this method belongs to.
+		 * 
+		 * This field is not set if the method belongs to an instance or a
+		 * class.
+		 */
+		public Script script;
+
+		/**
+		 * The trait of the method.
+		 */
+		public AbstractTrait trait;
+
+		/**
+		 * Creates and returns a new MethodInfo instance.
+		 */
+		public MethodInfo()
+		{
+
+		}
+	}
+
 	private static final TypeSolver TYPER_INSTANCE = new TypeSolver();
 
 	private final List<AbcContext> contexts = new LinkedList<AbcContext>();
@@ -144,10 +191,35 @@ public final class AbcEnvironment
 		return null;
 	}
 
-	public Method findProperty( final AbstractMultiname object,
+	private Method findMethod( final AbstractTrait trait )
+	{
+		if( trait.kind == TraitKind.Method )
+		{
+			return ( (TraitMethod)trait ).method;
+		}
+		else if( trait.kind == TraitKind.Getter )
+		{
+			return ( (TraitGetter)trait ).method;
+		}
+		else if( trait.kind == TraitKind.Setter )
+		{
+			return ( (TraitSetter)trait ).method;
+		}
+		else if( trait.kind == TraitKind.Function )
+		{
+			return ( (TraitFunction)trait ).function;
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	public MethodInfo findProperty( final AbstractMultiname object,
 			final AbstractMultiname property ) throws AbcException
 	{
 		Instance instance = null;
+		Method result = null;
 
 		search: for( final AbcContext ctx : contexts )
 		{
@@ -159,13 +231,43 @@ public final class AbcEnvironment
 					break search;
 				}
 			}
+
+			for( final Script script : ctx.getAbc().scripts )
+			{
+				for( final AbstractTrait trait : script.traits )
+				{
+					if( !trait.name.equals( object )
+							|| !trait.name.equals( property ) )
+					{
+						continue;
+					}
+
+					result = findMethod( trait );
+
+					if( null != result )
+					{
+						//
+						// Package functions can not be overriden, so they are
+						// always marked as final.
+						//
+
+						final MethodInfo methodInfo = new MethodInfo();
+
+						methodInfo.instance = null;
+						methodInfo.isFinal = true;
+						methodInfo.method = result;
+						methodInfo.script = script;
+						methodInfo.trait = trait;
+
+						return methodInfo;
+					}
+				}
+			}
 		}
 
-		final Method result = null;
-
-		while( null == result && null != instance )
+		while( null != instance )
 		{
-			final List<AbstractTrait> traits = instance.traits;
+			List<AbstractTrait> traits = instance.traits;
 
 			for( final AbstractTrait trait : traits )
 			{
@@ -174,28 +276,65 @@ public final class AbcEnvironment
 					continue;
 				}
 
-				if( trait.kind == TraitKind.Method )
+				result = findMethod( trait );
+
+				if( null != result )
 				{
-					return ( (TraitMethod)trait ).method;
+					//
+					// An instance trait is final, if the instance itself or
+					// the trait is final.
+					//
+					//
+					// An instance trait is also final, if it is part of a
+					// custom namespace or private.
+					//
+
+					final MethodInfo methodInfo = new MethodInfo();
+
+					methodInfo.instance = instance;
+					methodInfo.isFinal = instance.isFinal
+							|| isTraitFinal( trait );
+					methodInfo.method = result;
+					methodInfo.script = null;
+					methodInfo.trait = trait;
+
+					return methodInfo;
 				}
-				else if( trait.kind == TraitKind.Getter )
+			}
+
+			traits = instance.klass.traits;
+
+			for( final AbstractTrait trait : traits )
+			{
+				if( !trait.name.equals( property ) )
 				{
-					return ( (TraitGetter)trait ).method;
+					continue;
 				}
-				else if( trait.kind == TraitKind.Setter )
+
+				result = findMethod( trait );
+
+				if( null != result )
 				{
-					return ( (TraitSetter)trait ).method;
-				}
-				else if( trait.kind == TraitKind.Function )
-				{
-					return ( (TraitFunction)trait ).function;
+					//
+					// A class trait is always considered final.
+					//
+
+					final MethodInfo methodInfo = new MethodInfo();
+
+					methodInfo.instance = instance;
+					methodInfo.isFinal = true;
+					methodInfo.method = result;
+					methodInfo.script = null;
+					methodInfo.trait = trait;
+
+					return methodInfo;
 				}
 			}
 
 			instance = instanceOf( instance.base );
 		}
 
-		return result;
+		return null;
 	}
 
 	public List<AbcContext> getContexts()
@@ -240,6 +379,26 @@ public final class AbcEnvironment
 		}
 
 		return null;
+	}
+
+	private boolean isTraitFinal( final AbstractTrait trait )
+	{
+		if( trait.kind == TraitKind.Method )
+		{
+			return ( (TraitMethod)trait ).isFinal;
+		}
+		else if( trait.kind == TraitKind.Getter )
+		{
+			return ( (TraitGetter)trait ).isFinal;
+		}
+		else if( trait.kind == TraitKind.Setter )
+		{
+			return ( (TraitSetter)trait ).isFinal;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	public AbstractMultiname propertyType( final AbstractMultiname object,
