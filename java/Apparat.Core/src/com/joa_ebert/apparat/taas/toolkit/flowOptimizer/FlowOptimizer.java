@@ -35,8 +35,10 @@ import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
+import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.expr.TIf;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
+import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
 
 /**
  * @author Joa Ebert
@@ -161,6 +163,11 @@ public class FlowOptimizer implements ITaasTool
 		catch( final ControlFlowGraphException exception )
 		{
 			throw new TaasException( exception );
+		}
+
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS && changed )
+		{
+			TaasToolkit.debug( "FlowOptimizer", method );
 		}
 
 		return changed;

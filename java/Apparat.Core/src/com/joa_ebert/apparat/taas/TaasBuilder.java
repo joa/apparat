@@ -49,6 +49,7 @@ import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.Edge;
 import com.joa_ebert.apparat.controlflow.EdgeKind;
 import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.constants.TaasBoolean;
 import com.joa_ebert.apparat.taas.constants.TaasGlobalScope;
 import com.joa_ebert.apparat.taas.constants.TaasInstance;
@@ -155,6 +156,11 @@ public final class TaasBuilder implements IInterpreter
 		final TaasMethod result = new TaasMethod( typer, localRegisters, code,
 				parameters );
 
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS )
+		{
+			TaasToolkit.debug( "TaasBuilder", result );
+		}
+
 		//
 		// Perform these steps as outlined in
 		// "Jimple: Simplifying Java Bytecode for Analyses and Transformation"
@@ -190,6 +196,11 @@ public final class TaasBuilder implements IInterpreter
 		//
 
 		cleanup( result );
+
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS )
+		{
+			TaasToolkit.debug( "TaasBuilder.cleanup()", result );
+		}
 
 		//
 		// Clear all maps and references.
@@ -1560,38 +1571,38 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onConvertBoolean( final ConvertBoolean operation )
 	{
-		code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-				BooleanType.INSTANCE ) ) );
+		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
+		// BooleanType.INSTANCE ) ) );
 	}
 
 	protected void onConvertDouble( final ConvertDouble operation )
 	{
-		code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-				NumberType.INSTANCE ) ) );
+		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
+		// NumberType.INSTANCE ) ) );
 	}
 
 	protected void onConvertInt( final ConvertInt operation )
 	{
-		code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-				IntType.INSTANCE ) ) );
+		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
+		// IntType.INSTANCE ) ) );
 	}
 
 	protected void onConvertObject( final ConvertObject operation )
 	{
-		code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-				ObjectType.INSTANCE ) ) );
+		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
+		// ObjectType.INSTANCE ) ) );
 	}
 
 	protected void onConvertString( final ConvertString operation )
 	{
-		code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-				StringType.INSTANCE ) ) );
+		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
+		// StringType.INSTANCE ) ) );
 	}
 
 	protected void onConvertUInt( final ConvertUInt operation )
 	{
-		code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-				UIntType.INSTANCE ) ) );
+		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
+		// UIntType.INSTANCE ) ) );
 	}
 
 	protected void onDebug( final Debug operation )

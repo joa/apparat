@@ -145,6 +145,16 @@ public final class TaasCode extends ControlFlowGraph<TaasVertex, TaasEdge>
 		output.flush();
 	}
 
+	public void debug( final PrintWriter printWriter )
+	{
+		final DOTExporter<TaasVertex, TaasEdge> exporter = new DOTExporter<TaasVertex, TaasEdge>(
+				new TaasVertex.LabelProvider(), new TaasEdge.LabelProvider() );
+
+		exporter.export( printWriter, this );
+
+		printWriter.flush();
+	}
+
 	TaasEdge getLastEdge()
 	{
 		return lastEdge;

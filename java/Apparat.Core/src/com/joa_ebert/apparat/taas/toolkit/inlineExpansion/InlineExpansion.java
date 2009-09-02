@@ -44,6 +44,7 @@ import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
+import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 import com.joa_ebert.apparat.taas.expr.TCallProperty;
 import com.joa_ebert.apparat.taas.expr.TReturn;
@@ -509,6 +510,11 @@ public class InlineExpansion implements ITaasTool
 			changed = true;
 
 			inline( method, target.vertex, target.method, target.replace );
+		}
+
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS && changed )
+		{
+			TaasToolkit.debug( "InlineExpansion", method );
 		}
 
 		return changed;

@@ -21,6 +21,7 @@
 
 package com.joa_ebert.apparat.taas.toolkit;
 
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,6 +63,29 @@ public class TaasToolkit
 		final TaasLocal local = method.locals.create();
 
 		return local;
+	}
+
+	public static void debug( final PrintWriter printWriter,
+			final String title, final TaasCode code )
+	{
+		printWriter.println( title + ":" );
+		code.debug( printWriter );
+	}
+
+	public static void debug( final PrintWriter printWriter,
+			final String title, final TaasMethod method )
+	{
+		debug( printWriter, title, method.code );
+	}
+
+	public static void debug( final String title, final TaasCode code )
+	{
+		debug( new PrintWriter( System.out ), title, code );
+	}
+
+	public static void debug( final String title, final TaasMethod method )
+	{
+		debug( new PrintWriter( System.out ), title, method.code );
 	}
 
 	private static void fixPhiEdge( final TaasMethod method,
@@ -564,8 +588,8 @@ public class TaasToolkit
 	}
 
 	@SuppressWarnings( "unchecked" )
-	public static <E> E search( final TaasValue value,
-			final Class<? extends TaasValue> type, final boolean childrenOnly )
+	public static <E extends TaasValue> E search( final TaasValue value,
+			final Class<E> type, final boolean childrenOnly )
 	{
 		if( null == value )
 		{
@@ -587,7 +611,7 @@ public class TaasToolkit
 					return (E)element.value;
 				}
 
-				final E result = (E)search( element.value, type, childrenOnly );
+				final E result = search( element.value, type, childrenOnly );
 
 				if( null != result )
 				{
@@ -619,7 +643,7 @@ public class TaasToolkit
 								return (E)referenced;
 							}
 
-							final E result = (E)search( referenced, type,
+							final E result = search( referenced, type,
 									childrenOnly );
 
 							if( null != result )
@@ -642,8 +666,8 @@ public class TaasToolkit
 										return (E)referencedValue;
 									}
 
-									final E result = (E)search(
-											referencedValue, type, childrenOnly );
+									final E result = search( referencedValue,
+											type, childrenOnly );
 
 									if( null != result )
 									{

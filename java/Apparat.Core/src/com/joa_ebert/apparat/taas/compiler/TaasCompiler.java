@@ -47,6 +47,8 @@ import com.joa_ebert.apparat.taas.toolkit.strengthReduction.StrengthReduction;
  */
 public class TaasCompiler implements IMethodVisitor
 {
+	public static final boolean SHOW_ALL_TRANSFORMATIONS = true;
+
 	private static final boolean DEBUG = true;
 
 	private final AbcEnvironment environment;
@@ -56,6 +58,8 @@ public class TaasCompiler implements IMethodVisitor
 
 	private PermutationChain preprocessor;
 	private PermutationChain postprocessor;
+
+	int methodIndex = 0;
 
 	public TaasCompiler( final AbcEnvironment environment )
 	{
@@ -187,6 +191,7 @@ public class TaasCompiler implements IMethodVisitor
 			do
 			{
 				changed = inlineExpansion.manipulate( environment, method );
+
 				CPCFDCE( method );
 
 				changed = strengthReduction.manipulate( environment, method )
@@ -275,6 +280,9 @@ public class TaasCompiler implements IMethodVisitor
 
 	public void visit( final AbcContext context, final Method method )
 	{
-		replace( method );
+		if( 7 == methodIndex++ )
+		{
+			replace( method );
+		}
 	}
 }

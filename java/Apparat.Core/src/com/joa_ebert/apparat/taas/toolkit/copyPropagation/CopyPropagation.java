@@ -37,6 +37,7 @@ import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
+import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.expr.AbstractLocalExpr;
 import com.joa_ebert.apparat.taas.expr.TSetLocal;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
@@ -50,11 +51,11 @@ import com.joa_ebert.apparat.taas.toolkit.livenessAnalysis.LivenessAnalysis;
  */
 public class CopyPropagation implements ITaasTool
 {
-	private boolean changed;
-
 	private boolean cp( final AbcEnvironment environment,
 			final TaasMethod method ) throws ControlFlowGraphException
 	{
+		boolean changed = false;
+
 		final LivenessAnalysis la = new LivenessAnalysis( method );
 		final BasicBlockGraph<TaasVertex> graph = la.getGraph();
 
@@ -100,6 +101,8 @@ public class CopyPropagation implements ITaasTool
 					final ListIterator<TaasVertex> iter = vertices
 							.listIterator();
 
+					final List<TaasVertex> verticesToRemove = new LinkedList<TaasVertex>();
+
 					while( iter.hasNext() )
 					{
 						final TaasVertex vertex = iter.next();
@@ -113,6 +116,7 @@ public class CopyPropagation implements ITaasTool
 
 						if( value == setLocal )
 						{
+							verticesToRemove.add( vertex );
 							continue;
 						}
 						else if( value instanceof AbstractLocalExpr
@@ -126,7 +130,15 @@ public class CopyPropagation implements ITaasTool
 						{
 							TaasToolkit.replace( value, setLocal.local,
 									setLocal.value.dup() );
+
+							changed = true;
 						}
+					}
+
+					for( final TaasVertex vertex : verticesToRemove )
+					{
+						TaasToolkit.remove( method, vertex );
+						changed = true;
 					}
 				}
 				else if( setLocal.value instanceof TaasLocal )
@@ -141,6 +153,8 @@ public class CopyPropagation implements ITaasTool
 					final ListIterator<TaasVertex> iter = vertices
 							.listIterator();
 
+					final List<TaasVertex> verticesToRemove = new LinkedList<TaasVertex>();
+
 					while( iter.hasNext() )
 					{
 						final TaasVertex vertex = iter.next();
@@ -154,6 +168,7 @@ public class CopyPropagation implements ITaasTool
 
 						if( value == setLocal )
 						{
+							verticesToRemove.add( vertex );
 							continue;
 						}
 						else if( value instanceof AbstractLocalExpr
@@ -168,7 +183,15 @@ public class CopyPropagation implements ITaasTool
 						{
 							TaasToolkit.replace( value, setLocal.local,
 									setLocal.value );
+
+							changed = true;
 						}
+					}
+
+					for( final TaasVertex vertex : verticesToRemove )
+					{
+						TaasToolkit.remove( method, vertex );
+						changed = true;
 					}
 				}
 				else
@@ -220,6 +243,8 @@ public class CopyPropagation implements ITaasTool
 					{
 						iter = vertices.listIterator();
 
+						final List<TaasVertex> verticesToRemove = new LinkedList<TaasVertex>();
+
 						while( iter.hasNext() )
 						{
 							final TaasVertex vertex = iter.next();
@@ -233,6 +258,8 @@ public class CopyPropagation implements ITaasTool
 
 							if( value == setLocal )
 							{
+								verticesToRemove.add( vertex );
+
 								continue;
 							}
 							else if( value instanceof AbstractLocalExpr
@@ -247,19 +274,29 @@ public class CopyPropagation implements ITaasTool
 							{
 								TaasToolkit.replace( value, setLocal.local,
 										setLocal.value );
+
+								changed = true;
 							}
+						}
+
+						for( final TaasVertex vertex : verticesToRemove )
+						{
+							TaasToolkit.remove( method, vertex );
+							changed = true;
 						}
 					}
 				}
 			}
 		}
 
-		return false;
+		return changed;
 	}
 
 	public boolean manipulate( final AbcEnvironment environment,
 			final TaasMethod method )
 	{
+		boolean changed = false;
+
 		try
 		{
 			changed = cp( environment, method );
@@ -324,7 +361,10 @@ public class CopyPropagation implements ITaasTool
 				}
 			}
 
-			changed = !removes.isEmpty();
+			if( !changed )
+			{
+				changed = !removes.isEmpty();
+			}
 
 			for( final TaasVertex vertex : removes )
 			{
@@ -334,6 +374,11 @@ public class CopyPropagation implements ITaasTool
 		catch( final ControlFlowGraphException e )
 		{
 			throw new TaasException( e );
+		}
+
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS && changed )
+		{
+			TaasToolkit.debug( "CopyPropagation", method );
 		}
 
 		return changed;

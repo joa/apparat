@@ -34,6 +34,7 @@ import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasPhi;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
+import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.constants.TaasBoolean;
 import com.joa_ebert.apparat.taas.constants.TaasInt;
 import com.joa_ebert.apparat.taas.constants.TaasNumber;
@@ -57,12 +58,10 @@ public class ConstantFolding implements ITaasTool
 	private static final TaasBoolean TRUE = new TaasBoolean( true );
 	private static final TaasBoolean FALSE = new TaasBoolean( false );
 
-	private boolean changed;
-
 	public boolean manipulate( final AbcEnvironment environment,
 			final TaasMethod method )
 	{
-		changed = TaasToolkit.phiCleanup( method );
+		boolean changed = TaasToolkit.phiCleanup( method );
 
 		final List<TaasPhi> phiExprs = TaasToolkit.phisOf( method );
 
@@ -196,6 +195,11 @@ public class ConstantFolding implements ITaasTool
 		catch( final ControlFlowGraphException e )
 		{
 			throw new TaasException( e );
+		}
+
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS && changed )
+		{
+			TaasToolkit.debug( "ConstantFolding", method );
 		}
 
 		return changed;

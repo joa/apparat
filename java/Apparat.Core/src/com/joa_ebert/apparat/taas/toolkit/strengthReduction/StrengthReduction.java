@@ -30,6 +30,7 @@ import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
+import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.constants.TaasInt;
 import com.joa_ebert.apparat.taas.constants.TaasNumber;
 import com.joa_ebert.apparat.taas.constants.TaasUInt;
@@ -114,6 +115,12 @@ public class StrengthReduction implements ITaasTool
 				}
 			}
 		}
+
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS && changed )
+		{
+			TaasToolkit.debug( "StrengthReduction", method );
+		}
+
 		return changed;
 	}
 

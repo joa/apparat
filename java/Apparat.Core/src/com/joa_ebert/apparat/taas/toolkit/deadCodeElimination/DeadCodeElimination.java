@@ -34,6 +34,7 @@ import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
+import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.expr.AbstractLocalExpr;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
@@ -45,12 +46,10 @@ import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
  */
 public class DeadCodeElimination implements ITaasTool
 {
-	private boolean changed;
-
 	public boolean manipulate( final AbcEnvironment environment,
 			final TaasMethod method )
 	{
-		changed = false;
+		boolean changed = false;
 
 		try
 		{
@@ -186,6 +185,11 @@ public class DeadCodeElimination implements ITaasTool
 		catch( final ControlFlowGraphException e )
 		{
 			throw new TaasException( e );
+		}
+
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS && changed )
+		{
+			TaasToolkit.debug( "DeadCodeElimination", method );
 		}
 
 		return changed;
