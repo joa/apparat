@@ -1590,8 +1590,8 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onConvertUInt( final ConvertUInt operation )
 	{
-		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-		// UIntType.INSTANCE ) ) );
+		code.add( operandStack.push( TAAS.convert( operandStack.pop(),
+				UIntType.INSTANCE ) ) );
 	}
 
 	protected void onDebug( final Debug operation )
