@@ -556,10 +556,11 @@ public class TaasToolkit
 		}
 	}
 
+	@SuppressWarnings( "unchecked" )
 	public static <E> E search( final TaasValue value,
 			final Class<? extends TaasValue> type )
 	{
-		return search( value, type, false );
+		return (E)search( value, type, false );
 	}
 
 	@SuppressWarnings( "unchecked" )
@@ -586,7 +587,7 @@ public class TaasToolkit
 					return (E)element.value;
 				}
 
-				final E result = search( element.value, type, childrenOnly );
+				final E result = (E)search( element.value, type, childrenOnly );
 
 				if( null != result )
 				{
@@ -618,7 +619,7 @@ public class TaasToolkit
 								return (E)referenced;
 							}
 
-							final E result = search( referenced, type,
+							final E result = (E)search( referenced, type,
 									childrenOnly );
 
 							if( null != result )
@@ -641,8 +642,8 @@ public class TaasToolkit
 										return (E)referencedValue;
 									}
 
-									final E result = search( referencedValue,
-											type, childrenOnly );
+									final E result = (E)search(
+											referencedValue, type, childrenOnly );
 
 									if( null != result )
 									{
