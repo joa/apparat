@@ -29,6 +29,7 @@ import java.util.Map;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
 import com.joa_ebert.apparat.controlflow.Edge;
 import com.joa_ebert.apparat.controlflow.Vertex;
+import com.joa_ebert.apparat.utils.IndentingPrintWriter;
 
 /**
  * 
@@ -75,32 +76,41 @@ public class DOTExporter<V extends Vertex, E extends Edge<V>> implements
 	public void export( final PrintWriter writer,
 			final ControlFlowGraph<V, E> graph )
 	{
+		final IndentingPrintWriter ipw = new IndentingPrintWriter( writer );
+
 		vertexIndex = 0;
 		vertexIndexMap.clear();
 
-		writer.write( "digraph G {\n" );
+		ipw.println( "digraph G {" );
 
 		final String fontName = "Bitstream Vera Sans Mono";
 		final int fontSize = 8;
 
-		writer.println( "fontname=\"" + fontName + "\";" );
-		writer.println( "fontsize=" + fontSize + ";" );
-		writer.println( "ratio=auto;" );
-		writer.println( "graph[" );
-		writer.println( "rankdir= \"TB\"," );
-		writer.println( "splines= true," );
-		writer.println( "overlap= false" );
-		writer.println( "];" );
-		writer.println( "node[" );
-		writer.println( "fontname=\"" + fontName + "\"," );
-		writer.println( "fontsize=" + fontSize + "," );
-		writer.println( "shape=\"box\"" );
-		writer.println( "];" );
-		writer.println( "edge[" );
-		writer.println( "fontname=\"" + fontName + "\"," );
-		writer.println( "fontsize=" + fontSize + "," );
-		writer.println( "arrowhead=\"empty\"" );
-		writer.println( "];" );
+		ipw.pushIndent();
+		ipw.println( "fontname=\"" + fontName + "\";" );
+		ipw.println( "fontsize=" + fontSize + ";" );
+		ipw.println( "ratio=auto;" );
+		ipw.println( "graph[" );
+		ipw.pushIndent();
+		ipw.println( "rankdir= \"TB\"," );
+		ipw.println( "splines= true," );
+		ipw.println( "overlap= false" );
+		ipw.popIndent();
+		ipw.println( "];" );
+		ipw.println( "node[" );
+		ipw.pushIndent();
+		ipw.println( "fontname=\"" + fontName + "\"," );
+		ipw.println( "fontsize=" + fontSize + "," );
+		ipw.println( "shape=\"box\"" );
+		ipw.popIndent();
+		ipw.println( "];" );
+		ipw.println( "edge[" );
+		ipw.pushIndent();
+		ipw.println( "fontname=\"" + fontName + "\"," );
+		ipw.println( "fontsize=" + fontSize + "," );
+		ipw.println( "arrowhead=\"empty\"" );
+		ipw.popIndent();
+		ipw.println( "];" );
 
 		for( final V vertex : graph.vertexList() )
 		{
@@ -109,38 +119,54 @@ public class DOTExporter<V extends Vertex, E extends Edge<V>> implements
 				vertexIndexMap.put( vertex, vertexIndex++ );
 			}
 
-			writer.write( "\t"
-					+ Integer.toString( vertexIndexMap.get( vertex ) )
-					+ " [label = \""
-					+ escape( vertexLabelProvider.toString( vertex ) )
-					+ "\"];\n" );
+			ipw
+					.println( Integer.toString( vertexIndexMap.get( vertex ) )
+							+ " [label = \""
+							+ escape( vertexLabelProvider.toString( vertex ) )
+							+ "\"];" );
 		}
 
 		final boolean hasEdgeLabels = null != edgeLabelProvider;
 
 		for( final E edge : graph.edgeList() )
 		{
-			writer.write( "\t"
-					+ Integer.toString( vertexIndexMap.get( edge.startVertex ) )
-					+ " -> "
-					+ Integer.toString( vertexIndexMap.get( edge.endVertex ) ) );
-
-			if( hasEdgeLabels )
+			if( !hasEdgeLabels )
+			{
+				ipw
+						.println( Integer.toString( vertexIndexMap
+								.get( edge.startVertex ) )
+								+ " -> "
+								+ Integer.toString( vertexIndexMap
+										.get( edge.endVertex ) ) + ";" );
+			}
+			else
 			{
 				final String label = edgeLabelProvider.toString( edge );
 
 				if( null != label && label.length() > 0 )
 				{
-					writer.write( " [label = \""
+					ipw.println( Integer.toString( vertexIndexMap
+							.get( edge.startVertex ) )
+							+ " -> "
+							+ Integer.toString( vertexIndexMap
+									.get( edge.endVertex ) )
+							+ " [label = \""
 							+ escape( edgeLabelProvider.toString( edge ) )
-							+ "\"]" );
+							+ "\"];" );
+				}
+				else
+				{
+					ipw.println( Integer.toString( vertexIndexMap
+							.get( edge.startVertex ) )
+							+ " -> "
+							+ Integer.toString( vertexIndexMap
+									.get( edge.endVertex ) ) + ";" );
 				}
 			}
-
-			writer.write( ";\n" );
 		}
 
-		writer.write( "}\n" );
-		writer.flush();
+		ipw.popIndent();
+		ipw.println( "}" );
+		ipw.flush();
 	}
 }

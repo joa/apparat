@@ -52,6 +52,7 @@ public class TConstructProperty extends TConstruct
 			final MethodBody body, final Bytecode code )
 	{
 		object.emit( environment, body, code );
+		property.emit( environment, body, code );
 		emitParams( environment, body, code );
 		code.add( new ConstructProp( parameters.length, property.multiname ) );
 	}

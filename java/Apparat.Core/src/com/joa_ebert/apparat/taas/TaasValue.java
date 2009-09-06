@@ -48,7 +48,7 @@ public abstract class TaasValue
 	{
 		if( emitted )
 		{
-			return;
+			throw new TaasException( "Value has already been emitted." );
 		}
 
 		emitOps( environment, body, code );

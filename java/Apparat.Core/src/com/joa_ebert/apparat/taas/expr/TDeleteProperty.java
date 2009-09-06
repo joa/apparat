@@ -57,7 +57,7 @@ public class TDeleteProperty extends TaasExpression
 			final MethodBody body, final Bytecode code )
 	{
 		object.emit( environment, body, code );
-
+		property.emit( environment, body, code );
 		code.add( new DeleteProperty( property.multiname ) );
 	}
 

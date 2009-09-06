@@ -48,6 +48,7 @@ import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.EdgeKind;
 import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.expr.AbstractCallExpr;
 import com.joa_ebert.apparat.taas.expr.TGetProperty;
 import com.joa_ebert.apparat.taas.expr.TIf;
@@ -139,6 +140,18 @@ public class TaasEmitter
 		catch( final ControlFlowGraphException exception )
 		{
 			throw new TaasException( exception );
+		}
+
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS )
+		{
+			System.out.println( "TaasEmitter:" );
+
+			final Iterator<TaasValue> iter = list.listIterator();
+
+			while( iter.hasNext() )
+			{
+				System.out.println( iter.next() );
+			}
 		}
 
 		//

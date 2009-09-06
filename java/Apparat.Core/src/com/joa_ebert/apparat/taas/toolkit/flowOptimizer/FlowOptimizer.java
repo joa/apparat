@@ -100,7 +100,7 @@ public class FlowOptimizer implements ITaasTool
 	public boolean manipulate( final AbcEnvironment environment,
 			final TaasMethod method )
 	{
-		final boolean changed = false;
+		boolean changed = false;
 
 		final SCCFinder<TaasVertex, TaasEdge> sccFinder = new SCCFinder<TaasVertex, TaasEdge>();
 
@@ -154,6 +154,8 @@ public class FlowOptimizer implements ITaasTool
 
 							trueEdge.endVertex = falseEdge.endVertex;
 							falseEdge.endVertex = h;
+
+							changed = true;
 						}
 					}
 				}

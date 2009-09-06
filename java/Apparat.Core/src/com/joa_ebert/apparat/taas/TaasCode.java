@@ -22,7 +22,6 @@
 package com.joa_ebert.apparat.taas;
 
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
@@ -136,13 +135,7 @@ public final class TaasCode extends ControlFlowGraph<TaasVertex, TaasEdge>
 
 	public void debug( final OutputStream output )
 	{
-		debug( new PrintStream( output ) );
-	}
-
-	public void debug( final PrintStream output )
-	{
-		output.print( debug() );
-		output.flush();
+		debug( new PrintWriter( output ) );
 	}
 
 	public void debug( final PrintWriter printWriter )

@@ -43,6 +43,7 @@ public class TFindPropertyStrict extends TFindProperty
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{
+		property.emit( environment, body, code );
 		code.add( new FindPropStrict( property.multiname ) );
 	}
 

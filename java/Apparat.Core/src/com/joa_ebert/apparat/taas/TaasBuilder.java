@@ -49,6 +49,7 @@ import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.Edge;
 import com.joa_ebert.apparat.controlflow.EdgeKind;
 import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.controlflow.export.DOTExporter;
 import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.constants.TaasBoolean;
 import com.joa_ebert.apparat.taas.constants.TaasGlobalScope;
@@ -1279,11 +1280,16 @@ public final class TaasBuilder implements IInterpreter
 			// this.bytecode = bytecode;
 			markers = bytecode.markers;
 			bytecodeGraph = graphBuilder.getGraph();
-			//
-			// final DOTExporter<BytecodeVertex, Edge<BytecodeVertex>> export =
-			// new DOTExporter<BytecodeVertex, Edge<BytecodeVertex>>(
-			// new BytecodeVertex.LabelProvider() );
-			// export.export( System.out, bytecodeGraph );
+
+			if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS )
+			{
+				System.out.println( "ControlFlowGraphBuilder:" );
+
+				final DOTExporter<BytecodeVertex, Edge<BytecodeVertex>> export = new DOTExporter<BytecodeVertex, Edge<BytecodeVertex>>(
+						new BytecodeVertex.LabelProvider() );
+
+				export.export( System.out, bytecodeGraph );
+			}
 
 			build( bytecodeGraph.getEntryVertex(), 0, 0 );
 		}

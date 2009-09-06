@@ -54,6 +54,7 @@ public class TAsType extends AbstractBinaryExpr
 		{
 			if( rhs instanceof TaasMultiname )
 			{
+				rhs.emit( environment, body, code );
 				code.add( new AsType( ( (TaasMultiname)rhs ).multiname ) );
 			}
 			else

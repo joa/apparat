@@ -103,6 +103,8 @@ public class CopyPropagation implements ITaasTool
 
 					final List<TaasVertex> verticesToRemove = new LinkedList<TaasVertex>();
 
+					boolean startPropagation = false;
+
 					while( iter.hasNext() )
 					{
 						final TaasVertex vertex = iter.next();
@@ -116,6 +118,7 @@ public class CopyPropagation implements ITaasTool
 
 						if( value == setLocal )
 						{
+							startPropagation = true;
 							verticesToRemove.add( vertex );
 							continue;
 						}
@@ -128,10 +131,13 @@ public class CopyPropagation implements ITaasTool
 						}
 						else if( TaasToolkit.references( value, setLocal.local ) )
 						{
-							TaasToolkit.replace( value, setLocal.local,
-									setLocal.value.dup() );
+							if( startPropagation )
+							{
+								TaasToolkit.replace( value, setLocal.local,
+										setLocal.value.dup() );
 
-							changed = true;
+								changed = true;
+							}
 						}
 					}
 
@@ -155,6 +161,8 @@ public class CopyPropagation implements ITaasTool
 
 					final List<TaasVertex> verticesToRemove = new LinkedList<TaasVertex>();
 
+					boolean startPropagation = false;
+
 					while( iter.hasNext() )
 					{
 						final TaasVertex vertex = iter.next();
@@ -168,6 +176,7 @@ public class CopyPropagation implements ITaasTool
 
 						if( value == setLocal )
 						{
+							startPropagation = true;
 							verticesToRemove.add( vertex );
 							continue;
 						}
@@ -181,10 +190,13 @@ public class CopyPropagation implements ITaasTool
 						}
 						else if( TaasToolkit.references( value, setLocal.local ) )
 						{
-							TaasToolkit.replace( value, setLocal.local,
-									setLocal.value );
+							if( startPropagation )
+							{
+								TaasToolkit.replace( value, setLocal.local,
+										setLocal.value );
 
-							changed = true;
+								changed = true;
+							}
 						}
 					}
 
@@ -211,6 +223,8 @@ public class CopyPropagation implements ITaasTool
 
 					int uses = 0;
 
+					boolean startPropagation = false;
+
 					while( iter.hasNext() )
 					{
 						final TaasVertex vertex = iter.next();
@@ -224,6 +238,7 @@ public class CopyPropagation implements ITaasTool
 
 						if( value == setLocal )
 						{
+							startPropagation = true;
 							continue;
 						}
 						else if( value instanceof AbstractLocalExpr
@@ -233,14 +248,20 @@ public class CopyPropagation implements ITaasTool
 						{
 							continue nextLocal;
 						}
-						else if( TaasToolkit.references( value, setLocal.local ) )
+						else
 						{
-							uses++;
+							if( startPropagation )
+							{
+								uses += TaasToolkit.numReferences( value,
+										setLocal.local );
+							}
 						}
 					}
 
 					if( 1 == uses )
 					{
+						startPropagation = false;
+
 						iter = vertices.listIterator();
 
 						final List<TaasVertex> verticesToRemove = new LinkedList<TaasVertex>();
@@ -258,8 +279,8 @@ public class CopyPropagation implements ITaasTool
 
 							if( value == setLocal )
 							{
+								startPropagation = true;
 								verticesToRemove.add( vertex );
-
 								continue;
 							}
 							else if( value instanceof AbstractLocalExpr
@@ -272,10 +293,13 @@ public class CopyPropagation implements ITaasTool
 							else if( TaasToolkit.references( value,
 									setLocal.local ) )
 							{
-								TaasToolkit.replace( value, setLocal.local,
-										setLocal.value );
+								if( startPropagation )
+								{
+									TaasToolkit.replace( value, setLocal.local,
+											setLocal.value );
 
-								changed = true;
+									changed = true;
+								}
 							}
 						}
 

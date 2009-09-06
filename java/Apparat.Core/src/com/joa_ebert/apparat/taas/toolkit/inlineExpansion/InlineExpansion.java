@@ -88,19 +88,6 @@ public class InlineExpansion implements ITaasTool
 		{
 			final TaasCode targetCode = targetMethod.code;
 
-			final List<TaasLocal> registersToContribute = inlinedMethod.locals
-					.getRegisterList();
-
-			//
-			// We do not want to add the first register since it stores only
-			// the scope object. So we can drop it here.
-			//
-
-			for( int i = 1, n = registersToContribute.size(); i < n; ++i )
-			{
-				targetMethod.locals.add( registersToContribute.get( i ) );
-			}
-
 			//
 			// Now copy all vertices and edges into the method.
 			// We ignore of course the start and end vertex.
@@ -336,7 +323,21 @@ public class InlineExpansion implements ITaasTool
 						//
 
 						final int offset = method.locals.numRegisters();
+
 						inlinedMethod.locals.offset( offset );
+
+						final List<TaasLocal> registersToContribute = inlinedMethod.locals
+								.getRegisterList();
+
+						//
+						// We do not want to add the first register since it
+						// stores only the scope object. So we can drop it here.
+						//
+
+						for( int i = 1, n = registersToContribute.size(); i < n; ++i )
+						{
+							method.locals.add( registersToContribute.get( i ) );
+						}
 
 						final TaasType returnType = method.typer
 								.toNativeType( abcMethod.returnType );
@@ -387,6 +388,8 @@ public class InlineExpansion implements ITaasTool
 																					+ localIndex++ ),
 																	param ) ) );
 						}
+
+						method.locals.defragment();
 
 						final LinkedList<TaasVertex> inlinedVertices = inlinedCode
 								.vertexList();

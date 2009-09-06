@@ -62,6 +62,7 @@ public class TaasCompiler implements IMethodVisitor
 	public TaasCompiler( final AbcEnvironment environment )
 	{
 		this.environment = environment;
+
 		setPreprocessor( TaasPreprocessor.INSTANCE );
 		setPostprocessor( TaasPostprocessor.INSTANCE );
 	}
@@ -190,10 +191,13 @@ public class TaasCompiler implements IMethodVisitor
 			{
 				changed = inlineExpansion.manipulate( environment, method );
 
-				CPCFDCE( method );
-
 				changed = strengthReduction.manipulate( environment, method )
 						|| changed;
+
+				if( !CPCFDCE( method ) )
+				{
+					return false;
+				}
 			}
 			while( changed );
 
@@ -257,6 +261,13 @@ public class TaasCompiler implements IMethodVisitor
 		if( null == methodBody )
 		{
 			return false;
+		}
+
+		final int minLocalCount = method.parameters.size() + 1;
+
+		if( methodBody.localCount < minLocalCount )
+		{
+			methodBody.localCount = minLocalCount;
 		}
 
 		method.body = methodBody;

@@ -65,6 +65,14 @@ public class TaasToolkit
 		return local;
 	}
 
+	public static TaasLocal createRegister( final TaasMethod method,
+			final int index )
+	{
+		final TaasLocal local = method.locals.create( index );
+
+		return local;
+	}
+
 	public static void debug( final PrintWriter printWriter,
 			final String title, final TaasCode code )
 	{
@@ -137,6 +145,84 @@ public class TaasToolkit
 		{
 			throw new TaasException( e );
 		}
+	}
+
+	public static int numReferences( final TaasValue value,
+			final TaasValue search )
+	{
+		int result = 0;
+
+		if( null == value )
+		{
+			return result;
+		}
+
+		if( value instanceof TaasPhi )
+		{
+			final TaasPhi phi = (TaasPhi)value;
+
+			for( final TaasPhi.Element element : phi.values )
+			{
+				if( element.value != null && element.value.equals( search ) )
+				{
+					++result;
+				}
+
+				result += numReferences( element.value, search );
+			}
+		}
+		else
+		{
+			final Field[] fields = value.getClass().getFields();
+
+			for( final Field field : fields )
+			{
+				if( field.isAnnotationPresent( TaasReference.class ) )
+				{
+					try
+					{
+						final Object referencedObject = field.get( value );
+
+						if( referencedObject instanceof TaasValue )
+						{
+							final TaasValue referenced = (TaasValue)referencedObject;
+
+							if( null != referenced
+									&& referenced.equals( search ) )
+							{
+								++result;
+							}
+
+							result += numReferences( referenced, search );
+						}
+						else if( referencedObject instanceof TaasValue[] )
+						{
+							final TaasValue[] referenced = (TaasValue[])referencedObject;
+
+							if( null != referenced )
+							{
+								for( final TaasValue referencedValue : referenced )
+								{
+									if( null != referencedValue
+											&& referencedValue.equals( search ) )
+									{
+										++result;
+									}
+
+									result += numReferences( referencedValue,
+											search );
+								}
+							}
+						}
+					}
+					catch( final Exception e )
+					{
+						throw new TaasException( e );
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 	public static boolean phiCleanup( final TaasMethod method )

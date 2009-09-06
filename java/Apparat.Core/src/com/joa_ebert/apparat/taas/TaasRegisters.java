@@ -83,9 +83,21 @@ public final class TaasRegisters
 
 	public TaasLocal create()
 	{
-		final TaasLocal result = new TaasLocal( numRegisters - 1 );
+		final TaasLocal result = new TaasLocal( numRegisters++ );
 
-		numRegisters++;
+		registers.add( result );
+
+		return result;
+	}
+
+	public TaasLocal create( final int index )
+	{
+		final TaasLocal result = new TaasLocal( index );
+
+		for( final TaasLocal local : registers )
+		{
+			numRegisters = Math.max( local.getIndex() + 1, numRegisters );
+		}
 
 		registers.add( result );
 
@@ -146,6 +158,8 @@ public final class TaasRegisters
 			}
 		}
 
+		debug( System.out );
+
 		throw new TaasException( "Register (" + index + "," + subscript
 				+ ") does not exist." );
 	}
@@ -157,7 +171,15 @@ public final class TaasRegisters
 
 	public int numRegisters()
 	{
-		return numRegisters;
+		int index = 0;
+
+		for( final TaasLocal local : registers )
+		{
+			index = Math.max( local.getIndex() + 1, index );
+		}
+
+		return index;
+		// return numRegisters;
 	}
 
 	public void offset( final int value )

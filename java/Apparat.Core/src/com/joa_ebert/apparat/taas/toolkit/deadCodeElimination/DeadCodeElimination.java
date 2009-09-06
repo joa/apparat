@@ -62,9 +62,11 @@ public class DeadCodeElimination implements ITaasTool
 			// Remove any local variable with no use.
 			//
 
+			final int minRegisterIndex = method.parameters.size();
+
 			for( final TaasLocal local : method.locals.getRegisterList() )
 			{
-				if( local.getIndex() != 0 )
+				if( local.getIndex() > minRegisterIndex )
 				{
 					deadLocals.add( local );
 				}

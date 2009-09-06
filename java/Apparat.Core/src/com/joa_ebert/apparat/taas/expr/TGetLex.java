@@ -51,6 +51,7 @@ public class TGetLex extends TaasExpression
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{
+		property.emit( environment, body, code );
 		code.add( new GetLex( property.multiname ) );
 	}
 

@@ -65,7 +65,7 @@ public class TCallProperty extends AbstractCallExpr
 			final MethodBody body, final Bytecode code )
 	{
 		object.emit( environment, body, code );
-		// property.emit( environment, body, code );
+		property.emit( environment, body, code );
 		emitParams( environment, body, code );
 
 		if( getType() == VoidType.INSTANCE )

@@ -27,6 +27,7 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.taas.TaasConstant;
 import com.joa_ebert.apparat.taas.TaasException;
+import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.MultinameType;
 
@@ -38,8 +39,12 @@ import com.joa_ebert.apparat.taas.types.MultinameType;
 public class TaasMultiname extends TaasConstant
 {
 	public final AbstractMultiname multiname;
+
+	@TaasReference
 	public final TaasValue runtimeName;
+
 	public final TaasNamespace runtimeNamespace;
+
 	private final boolean noRuntimeName;
 
 	public TaasMultiname( final AbstractMultiname multiname )
@@ -85,7 +90,19 @@ public class TaasMultiname extends TaasConstant
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{
-		throw new TaasException( "Can not emit TaasMultiname." );
+		switch( multiname.kind )
+		{
+			case RTQName:
+				runtimeNamespace.emit( environment, body, code );
+				break;
+			case RTQNameL:
+				runtimeName.emit( environment, body, code );
+				runtimeNamespace.emit( environment, body, code );
+				break;
+			case MultinameL:
+				runtimeName.emit( environment, body, code );
+				break;
+		}
 	}
 
 	@Override
