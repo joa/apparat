@@ -146,6 +146,7 @@ public final class BytecodePrinter implements IInterpreter
 	}
 
 	private final PrintWriter output;
+	private boolean showPositions = true;
 	private boolean printName = true;
 
 	public BytecodePrinter( final OutputStream output )
@@ -156,6 +157,11 @@ public final class BytecodePrinter implements IInterpreter
 	public BytecodePrinter( final PrintWriter output )
 	{
 		this.output = output;
+	}
+
+	public boolean getShowPositions()
+	{
+		return showPositions;
 	}
 
 	public void interpret( final AbcEnvironment environment,
@@ -203,18 +209,22 @@ public final class BytecodePrinter implements IInterpreter
 			final int code = operation.code;
 
 			final StringBuilder line = new StringBuilder();
-			final StringBuilder positionString = new StringBuilder( Integer
-					.toHexString( operation.getPosition() ) );
 
-			while( positionString.length() < 6 )
+			if( showPositions )
 			{
-				positionString.insert( 0, '0' );
+				final StringBuilder positionString = new StringBuilder( Integer
+						.toHexString( operation.getPosition() ) );
+
+				while( positionString.length() < 6 )
+				{
+					positionString.insert( 0, '0' );
+				}
+
+				positionString.insert( 0, "0x" );
+				positionString.append( ' ' );
+
+				line.append( positionString.toString() );
 			}
-
-			positionString.insert( 0, "0x" );
-			positionString.append( ' ' );
-
-			line.append( positionString.toString() );
 
 			if( bytecode.markers.hasMarkerFor( operation ) )
 			{
@@ -606,5 +616,10 @@ public final class BytecodePrinter implements IInterpreter
 	public void setPrintName( final boolean value )
 	{
 		printName = value;
+	}
+
+	public void setShowPositions( final boolean value )
+	{
+		showPositions = value;
 	}
 }
