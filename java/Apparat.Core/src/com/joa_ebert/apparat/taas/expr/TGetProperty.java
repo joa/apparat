@@ -63,6 +63,12 @@ public class TGetProperty extends TaasExpression
 	}
 
 	@Override
+	public boolean hasSideEffects()
+	{
+		return true;
+	}
+
+	@Override
 	public String toString()
 	{
 		return "[TGetProperty " + object.toString() + ", "

@@ -69,6 +69,12 @@ public class TInitProperty extends TaasExpression
 	}
 
 	@Override
+	public boolean hasSideEffects()
+	{
+		return true;
+	}
+
+	@Override
 	public String toString()
 	{
 		return "[TInitProperty " + object.toString() + ", "

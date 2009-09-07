@@ -224,6 +224,7 @@ public class TaasCompiler implements IMethodVisitor
 		{
 			System.out.println( "Post:" );
 			final BytecodePrinter printer = new BytecodePrinter( System.out );
+			printer.setShowPositions( false );
 			printer.interpret( environment, method.body.code );
 			System.out
 					.println( "\n-----------------------------------------\n" );
@@ -236,6 +237,7 @@ public class TaasCompiler implements IMethodVisitor
 		{
 			System.out.println( "Pre:" );
 			final BytecodePrinter printer = new BytecodePrinter( System.out );
+			printer.setShowPositions( false );
 			printer.interpret( environment, method.body.code );
 		}
 

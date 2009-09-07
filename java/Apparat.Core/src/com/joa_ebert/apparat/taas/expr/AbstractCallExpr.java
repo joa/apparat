@@ -56,6 +56,12 @@ public abstract class AbstractCallExpr extends TaasExpression
 		}
 	}
 
+	@Override
+	public boolean hasSideEffects()
+	{
+		return true;
+	}
+
 	public String parametersToString()
 	{
 		final StringBuilder builder = new StringBuilder();

@@ -69,6 +69,11 @@ public abstract class TaasValue
 		return type;
 	}
 
+	public boolean hasSideEffects()
+	{
+		return false;
+	}
+
 	public boolean isConstant()
 	{
 		return false;

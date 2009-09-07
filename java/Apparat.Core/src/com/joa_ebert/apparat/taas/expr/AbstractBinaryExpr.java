@@ -59,6 +59,12 @@ public abstract class AbstractBinaryExpr extends TaasExpression
 	}
 
 	@Override
+	public boolean hasSideEffects()
+	{
+		return lhs.hasSideEffects() || rhs.hasSideEffects();
+	}
+
+	@Override
 	public boolean isConstant()
 	{
 		return lhs.isConstant() && rhs.isConstant();

@@ -56,6 +56,12 @@ public abstract class AbstractUnaryExpr extends TaasExpression
 	}
 
 	@Override
+	public boolean hasSideEffects()
+	{
+		return rhs.hasSideEffects();
+	}
+
+	@Override
 	public boolean isConstant()
 	{
 		return rhs.isConstant();

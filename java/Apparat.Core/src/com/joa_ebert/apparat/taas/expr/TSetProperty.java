@@ -69,6 +69,12 @@ public class TSetProperty extends TaasExpression
 	}
 
 	@Override
+	public boolean hasSideEffects()
+	{
+		return true;
+	}
+
+	@Override
 	public String toString()
 	{
 		return "[TSetProperty " + object.toString() + ", "

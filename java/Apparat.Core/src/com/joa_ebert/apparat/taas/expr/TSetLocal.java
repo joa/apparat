@@ -137,6 +137,12 @@ public class TSetLocal extends AbstractLocalExpr
 	}
 
 	@Override
+	public boolean hasSideEffects()
+	{
+		return value.hasSideEffects();
+	}
+
+	@Override
 	public String toString()
 	{
 		return "[TSetLocal " + local.toString() + " = " + value.toString()

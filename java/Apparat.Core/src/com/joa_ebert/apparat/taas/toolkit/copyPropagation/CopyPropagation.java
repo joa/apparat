@@ -81,7 +81,8 @@ public class CopyPropagation implements ITaasTool
 				{
 					final TSetLocal setLocal = (TSetLocal)value;
 
-					if( !liveOut.contains( setLocal.local ) )
+					if( !setLocal.hasSideEffects()
+							&& !liveOut.contains( setLocal.local ) )
 					{
 						locals.add( setLocal );
 					}
