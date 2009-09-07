@@ -345,6 +345,11 @@ public class TaasEmitter
 		throw new TaasException( "Invalid code." );
 	}
 
+	private void invalidCode( final TaasVertex vertex )
+	{
+		throw new TaasException( "Invalid code at " + vertex + "." );
+	}
+
 	private void markJump( final TaasValue from, final TaasValue to,
 			final LinkedHashMap<TaasValue, TaasValue> jumps )
 	{
@@ -427,7 +432,7 @@ public class TaasEmitter
 
 				if( null == trueEdge || null == falseEdge )
 				{
-					invalidCode();
+					invalidCode( vertex );
 				}
 				else
 				{
@@ -483,7 +488,8 @@ public class TaasEmitter
 
 				if( null == defaultEdge )
 				{
-					invalidCode();
+					TaasToolkit.debug( "Error", code );
+					invalidCode( vertex );
 				}
 
 				continueWith( defaultEdge.endVertex, code, list, jumps );

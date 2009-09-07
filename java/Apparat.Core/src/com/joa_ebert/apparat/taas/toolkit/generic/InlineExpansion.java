@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.taas.toolkit.inlineExpansion;
+package com.joa_ebert.apparat.taas.toolkit.generic;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -79,6 +79,75 @@ public class InlineExpansion implements ITaasTool
 
 	private static final Taas TAAS = new Taas();
 	private final TaasBuilder builder = new TaasBuilder();
+
+	private boolean canInlineMember( final TaasMethod method,
+			final AbcEnvironment.MethodInfo methodInfo )
+	{
+		if( containsRecursion( method, methodInfo ) )
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+	private boolean containsRecursion( final TaasMethod method,
+			final AbcEnvironment.MethodInfo methodInfo )
+	{
+		final TaasCode code = method.code;
+		final List<TaasVertex> vertices = code.vertexList();
+
+		for( final TaasVertex vertex : vertices )
+		{
+			final TaasValue value = vertex.value;
+			final TCallProperty callProperty = TaasToolkit.search( value,
+					TCallProperty.class );
+
+			if( null != callProperty )
+			{
+				final TaasValue object = callProperty.object;
+				final TaasMultiname property = callProperty.property;
+
+				if( object.getType() instanceof MultinameType
+						&& property.getType() instanceof MultinameType )
+				{
+					final MultinameType mobj = (MultinameType)object.getType();
+					final MultinameType mprp = (MultinameType)property
+							.getType();
+
+					if( mobj.runtimeName != null || mprp.runtimeName != null )
+					{
+						continue;
+					}
+
+					final AbcEnvironment.MethodInfo calledMethod = method.typer
+							.findProperty( mobj, mprp );
+
+					if( null == calledMethod )
+					{
+						if( DEBUG )
+						{
+							LOG.info( "Typer could not find property (" + mobj
+									+ ", " + mprp + ")" );
+						}
+
+						continue;
+					}
+					else
+					{
+						if( methodInfo.equals( calledMethod ) )
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+
+		return false;
+	}
 
 	private void inline( final TaasMethod targetMethod,
 			final TaasVertex insertionVertex, final TaasMethod inlinedMethod,
@@ -316,7 +385,13 @@ public class InlineExpansion implements ITaasTool
 
 						final TaasMethod inlinedMethod = builder.build(
 								environment, abcMethod.body.code );
+
 						final TaasCode inlinedCode = inlinedMethod.code;
+
+						if( !canInlineMember( inlinedMethod, methodInfo ) )
+						{
+							continue;
+						}
 
 						//
 						// Shift the register indices so that we have no clash.

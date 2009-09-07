@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.taas.toolkit.flowOptimizer;
+package com.joa_ebert.apparat.taas.toolkit.generic;
 
 import java.util.List;
 

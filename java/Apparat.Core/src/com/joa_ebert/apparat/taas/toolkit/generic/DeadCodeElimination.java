@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.taas.toolkit.deadCodeElimination;
+package com.joa_ebert.apparat.taas.toolkit.generic;
 
 import java.util.Iterator;
 import java.util.LinkedList;

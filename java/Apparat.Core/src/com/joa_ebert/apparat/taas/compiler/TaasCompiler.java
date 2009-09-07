@@ -34,12 +34,12 @@ import com.joa_ebert.apparat.taas.TaasEmitter;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasMethod;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
-import com.joa_ebert.apparat.taas.toolkit.constantFolding.ConstantFolding;
-import com.joa_ebert.apparat.taas.toolkit.copyPropagation.CopyPropagation;
-import com.joa_ebert.apparat.taas.toolkit.deadCodeElimination.DeadCodeElimination;
-import com.joa_ebert.apparat.taas.toolkit.flowOptimizer.FlowOptimizer;
-import com.joa_ebert.apparat.taas.toolkit.inlineExpansion.InlineExpansion;
-import com.joa_ebert.apparat.taas.toolkit.strengthReduction.StrengthReduction;
+import com.joa_ebert.apparat.taas.toolkit.generic.ConstantFolding;
+import com.joa_ebert.apparat.taas.toolkit.generic.CopyPropagation;
+import com.joa_ebert.apparat.taas.toolkit.generic.DeadCodeElimination;
+import com.joa_ebert.apparat.taas.toolkit.generic.FlowOptimizer;
+import com.joa_ebert.apparat.taas.toolkit.generic.InlineExpansion;
+import com.joa_ebert.apparat.taas.toolkit.generic.StrengthReduction;
 
 /**
  * @author Joa Ebert
@@ -47,7 +47,7 @@ import com.joa_ebert.apparat.taas.toolkit.strengthReduction.StrengthReduction;
  */
 public class TaasCompiler implements IMethodVisitor
 {
-	public static final boolean SHOW_ALL_TRANSFORMATIONS = false;
+	public static final boolean SHOW_ALL_TRANSFORMATIONS = true;
 
 	private static final boolean DEBUG = true;
 
@@ -58,6 +58,9 @@ public class TaasCompiler implements IMethodVisitor
 
 	private PermutationChain preprocessor;
 	private PermutationChain postprocessor;
+
+	private int methodIndex = 0;
+	private final int targetMethod = 6;
 
 	public TaasCompiler( final AbcEnvironment environment )
 	{
@@ -222,7 +225,7 @@ public class TaasCompiler implements IMethodVisitor
 
 		if( DEBUG )
 		{
-			System.out.println( "Post:" );
+			System.out.println( "Post " + methodIndex + ":" );
 			final BytecodePrinter printer = new BytecodePrinter( System.out );
 			printer.setShowPositions( false );
 			printer.interpret( environment, method.body.code );
@@ -235,7 +238,7 @@ public class TaasCompiler implements IMethodVisitor
 	{
 		if( DEBUG )
 		{
-			System.out.println( "Pre:" );
+			System.out.println( "Pre " + methodIndex + ":" );
 			final BytecodePrinter printer = new BytecodePrinter( System.out );
 			printer.setShowPositions( false );
 			printer.interpret( environment, method.body.code );
@@ -291,6 +294,21 @@ public class TaasCompiler implements IMethodVisitor
 
 	public void visit( final AbcContext context, final Method method )
 	{
-		replace( method );
+		if( DEBUG )
+		{
+			if( methodIndex == targetMethod )
+			{
+				replace( method );
+			}
+		}
+		else
+		{
+			replace( method );
+		}
+
+		if( DEBUG )
+		{
+			methodIndex++;
+		}
 	}
 }

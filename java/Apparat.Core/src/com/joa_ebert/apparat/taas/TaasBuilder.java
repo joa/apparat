@@ -74,9 +74,9 @@ import com.joa_ebert.apparat.taas.expr.TInitProperty;
 import com.joa_ebert.apparat.taas.expr.TLookupSwitch;
 import com.joa_ebert.apparat.taas.expr.TSetProperty;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
-import com.joa_ebert.apparat.taas.toolkit.constantFolding.ConstantFolding;
-import com.joa_ebert.apparat.taas.toolkit.copyPropagation.CopyPropagation;
-import com.joa_ebert.apparat.taas.toolkit.deadCodeElimination.DeadCodeElimination;
+import com.joa_ebert.apparat.taas.toolkit.generic.ConstantFolding;
+import com.joa_ebert.apparat.taas.toolkit.generic.CopyPropagation;
+import com.joa_ebert.apparat.taas.toolkit.generic.DeadCodeElimination;
 import com.joa_ebert.apparat.taas.types.AnyType;
 import com.joa_ebert.apparat.taas.types.BooleanType;
 import com.joa_ebert.apparat.taas.types.IntType;
@@ -233,7 +233,14 @@ public final class TaasBuilder implements IInterpreter
 			// Yes, stop here.
 			//
 
-			code.connectIfNeccessary( bytecodeToVertex.get( vertex ) );
+			if( vertex.kind == VertexKind.Default )
+			{
+				code.connectIfNeccessary( bytecodeToVertex.get( vertex ) );
+			}
+			else if( vertex.kind == VertexKind.Exit )
+			{
+				code.connectIfNeccessary( code.getExitVertex() );
+			}
 
 			contributeStack( vertex, operandSize, scopeSize, code.getLastEdge() );
 
