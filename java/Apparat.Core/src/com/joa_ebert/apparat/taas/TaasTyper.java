@@ -36,6 +36,7 @@ import com.joa_ebert.apparat.taas.types.BooleanType;
 import com.joa_ebert.apparat.taas.types.IntType;
 import com.joa_ebert.apparat.taas.types.MultinameType;
 import com.joa_ebert.apparat.taas.types.NamespaceType;
+import com.joa_ebert.apparat.taas.types.NullType;
 import com.joa_ebert.apparat.taas.types.NumberType;
 import com.joa_ebert.apparat.taas.types.ObjectType;
 import com.joa_ebert.apparat.taas.types.StringType;
@@ -69,7 +70,14 @@ public final class TaasTyper
 
 		final QName name = (QName)type.multiname;
 
-		return toNativeType( environment.baseType( name ) );
+		try
+		{
+			return toNativeType( environment.baseType( name ) );
+		}
+		catch( final AbcException exception )
+		{
+			throw new TaasException( exception );
+		}
 	}
 
 	public TaasType baseOf( final TaasType type )
@@ -78,8 +86,12 @@ public final class TaasTyper
 		{
 			return baseOf( (MultinameType)type );
 		}
+		else if( type == NullType.INSTANCE )
+		{
+			return null;
+		}
 
-		throw new TaasException( "Can not find base type." );
+		throw new TaasException( "Can not find base type of " + type + "." );
 	}
 
 	public AbcEnvironment.MethodInfo findProperty( final MultinameType object,

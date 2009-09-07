@@ -22,6 +22,7 @@
 package com.joa_ebert.apparat.taas;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -1970,7 +1971,18 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onNewArray( final NewArray operation )
 	{
-		TODO();
+		int n = operation.numArguments;
+
+		final TaasArray result = new TaasArray( n );
+
+		while( --n > -1 )
+		{
+			result.elements.add( operandStack.pop() );
+		}
+
+		Collections.reverse( result.elements );
+
+		code.add( operandStack.push( result ) );
 	}
 
 	protected void onNewCatch( final NewCatch operation )

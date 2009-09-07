@@ -37,4 +37,11 @@ public final class NewArray extends AbstractOperation
 	{
 		super( Op.NewArray );
 	}
+
+	public NewArray( final int numArguments )
+	{
+		super( Op.NewArray );
+
+		this.numArguments = numArguments;
+	}
 }

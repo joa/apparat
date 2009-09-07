@@ -25,6 +25,9 @@ import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import com.joa_ebert.apparat.controlflow.ControlFlowGraph;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
@@ -147,6 +150,7 @@ public class TaasToolkit
 		}
 	}
 
+	@SuppressWarnings( "unchecked" )
 	public static int numReferences( final TaasValue value,
 			final TaasValue search )
 	{
@@ -214,6 +218,71 @@ public class TaasToolkit
 								}
 							}
 						}
+						else if( referencedObject instanceof List<?> )
+						{
+							final List<TaasValue> referenced = (List<TaasValue>)referencedObject;
+
+							if( null != referenced )
+							{
+								for( final TaasValue referencedValue : referenced )
+								{
+									if( null != referencedValue )
+									{
+										if( referencedValue.equals( search ) )
+										{
+											++result;
+										}
+
+										result += numReferences(
+												referencedValue, search );
+									}
+								}
+							}
+						}
+						else if( referencedObject instanceof Map<?, ?> )
+						{
+							final Map<?, ?> referenced = (Map<?, ?>)referencedObject;
+
+							if( null != referenced )
+							{
+								final Set<?> entrySet = referenced.entrySet();
+
+								for( final Object referencedValue : entrySet )
+								{
+									final Entry<?, ?> entry = (Entry<?, ?>)referencedValue;
+
+									if( entry.getValue() != null
+											&& entry.getValue() instanceof TaasValue )
+									{
+										final TaasValue taasReference = (TaasValue)entry
+												.getValue();
+
+										if( taasReference.equals( search ) )
+										{
+											++result;
+										}
+
+										result += numReferences( taasReference,
+												search );
+									}
+
+									if( entry.getKey() != null
+											&& entry.getKey() instanceof TaasValue )
+									{
+										final TaasValue taasReference = (TaasValue)entry
+												.getKey();
+
+										if( taasReference.equals( search ) )
+										{
+											++result;
+										}
+
+										result += numReferences( taasReference,
+												search );
+									}
+								}
+							}
+						}
 					}
 					catch( final Exception e )
 					{
@@ -264,6 +333,8 @@ public class TaasToolkit
 
 	public static List<TaasPhi> phisOf( final TaasMethod method )
 	{
+		// FIXME Make recursive, add collection<?> and map<?,?>
+
 		final List<TaasPhi> result = new LinkedList<TaasPhi>();
 
 		final ControlFlowGraph<TaasVertex, TaasEdge> graph = method.code;
@@ -342,6 +413,7 @@ public class TaasToolkit
 	 * @return <code>true</code> if a reference exists; <code>false</code>
 	 *         otherwise.
 	 */
+	@SuppressWarnings( "unchecked" )
 	public static boolean references( final TaasValue value,
 			final TaasValue search )
 	{
@@ -417,6 +489,77 @@ public class TaasToolkit
 								}
 							}
 						}
+						else if( referencedObject instanceof List<?> )
+						{
+							final List<TaasValue> referenced = (List<TaasValue>)referencedObject;
+
+							if( null != referenced )
+							{
+								for( final TaasValue referencedValue : referenced )
+								{
+									if( null != referencedValue )
+									{
+										if( referencedValue.equals( search ) )
+										{
+											return true;
+										}
+
+										if( references( referencedValue, search ) )
+										{
+											return true;
+										}
+									}
+								}
+							}
+						}
+						else if( referencedObject instanceof Map<?, ?> )
+						{
+							final Map<?, ?> referenced = (Map<?, ?>)referencedObject;
+
+							if( null != referenced )
+							{
+								final Set<?> entrySet = referenced.entrySet();
+
+								for( final Object referencedValue : entrySet )
+								{
+									final Entry<?, ?> entry = (Entry<?, ?>)referencedValue;
+
+									if( entry.getValue() != null
+											&& entry.getValue() instanceof TaasValue )
+									{
+										final TaasValue taasReference = (TaasValue)entry
+												.getValue();
+
+										if( taasReference.equals( search ) )
+										{
+											return true;
+										}
+
+										if( references( taasReference, search ) )
+										{
+											return true;
+										}
+									}
+
+									if( entry.getKey() != null
+											&& entry.getKey() instanceof TaasValue )
+									{
+										final TaasValue taasReference = (TaasValue)entry
+												.getKey();
+
+										if( taasReference.equals( search ) )
+										{
+											return true;
+										}
+
+										if( references( taasReference, search ) )
+										{
+											return true;
+										}
+									}
+								}
+							}
+						}
 					}
 					catch( final Exception e )
 					{
@@ -486,9 +629,12 @@ public class TaasToolkit
 	 * @param replacement
 	 *            The replacement of the TaasValue.
 	 */
+	@SuppressWarnings( "unchecked" )
 	public static void replace( final TaasMethod method,
 			final TaasValue search, final TaasValue replacement )
 	{
+		// FIXME make recursive
+
 		final ControlFlowGraph<TaasVertex, TaasEdge> graph = method.code;
 
 		for( final TaasVertex vertex : graph.vertexList() )
@@ -566,6 +712,58 @@ public class TaasToolkit
 										}
 									}
 								}
+								else if( referencedObject instanceof List<?> )
+								{
+									final List<TaasValue> referenced = (List<TaasValue>)referencedObject;
+
+									if( null != referenced )
+									{
+										for( int i = 0, n = referenced.size(); i < n; ++i )
+										{
+											final TaasValue referencedValue = referenced
+													.get( i );
+
+											if( null != referencedValue )
+											{
+												if( referencedValue
+														.equals( search ) )
+												{
+													referenced.set( i,
+															replacement );
+												}
+											}
+										}
+									}
+								}
+								else if( referencedObject instanceof Map<?, ?> )
+								{
+									final Map<?, ?> referenced = (Map<?, ?>)referencedObject;
+
+									if( null != referenced )
+									{
+										final Set<?> entrySet = referenced
+												.entrySet();
+
+										for( final Object referencedValue : entrySet )
+										{
+											final Entry<?, TaasValue> entry = (Entry<?, TaasValue>)referencedValue;
+
+											if( entry.getValue() != null
+													&& entry.getValue() instanceof TaasValue )
+											{
+												final TaasValue taasReference = entry
+														.getValue();
+
+												if( taasReference
+														.equals( search ) )
+												{
+													entry
+															.setValue( replacement );
+												}
+											}
+										}
+									}
+								}
 							}
 							catch( final Exception e )
 							{
@@ -578,6 +776,7 @@ public class TaasToolkit
 		}
 	}
 
+	@SuppressWarnings( "unchecked" )
 	public static void replace( final TaasValue value, final TaasValue search,
 			final TaasValue replacement )
 	{
@@ -652,6 +851,66 @@ public class TaasToolkit
 									{
 										replace( referencedValue, search,
 												replacement );
+									}
+								}
+							}
+						}
+						else if( referencedObject instanceof List<?> )
+						{
+							final List<TaasValue> referenced = (List<TaasValue>)referencedObject;
+
+							if( null != referenced )
+							{
+								for( int i = 0, n = referenced.size(); i < n; ++i )
+								{
+									final TaasValue referencedValue = referenced
+											.get( i );
+
+									if( null != referencedValue
+											&& referencedValue instanceof TaasValue )
+									{
+										if( referencedValue.equals( search ) )
+										{
+											referenced.set( i, replacement );
+										}
+										else if( references( referencedValue,
+												search ) )
+										{
+											replace( referencedValue, search,
+													replacement );
+										}
+									}
+								}
+							}
+						}
+						else if( referencedObject instanceof Map<?, ?> )
+						{
+							final Map<?, ?> referenced = (Map<?, ?>)referencedObject;
+
+							if( null != referenced )
+							{
+								final Set<?> entrySet = referenced.entrySet();
+
+								for( final Object referencedValue : entrySet )
+								{
+									final Entry<?, TaasValue> entry = (Entry<?, TaasValue>)referencedValue;
+
+									if( entry.getValue() != null
+											&& entry.getValue() instanceof TaasValue )
+									{
+										final TaasValue taasReference = entry
+												.getValue();
+
+										if( taasReference.equals( search ) )
+										{
+											entry.setValue( replacement );
+										}
+										else if( references( taasReference,
+												search ) )
+										{
+											replace( taasReference, search,
+													replacement );
+										}
 									}
 								}
 							}
@@ -758,6 +1017,88 @@ public class TaasToolkit
 									if( null != result )
 									{
 										return result;
+									}
+								}
+							}
+						}
+						else if( referencedObject instanceof List<?> )
+						{
+							final List<TaasValue> referenced = (List<TaasValue>)referencedObject;
+
+							if( null != referenced )
+							{
+								for( final TaasValue referencedValue : referenced )
+								{
+									if( null != referencedValue )
+									{
+										if( type.isInstance( referencedValue ) )
+										{
+											return (E)referencedValue;
+										}
+
+										final E result = search(
+												referencedValue, type,
+												childrenOnly );
+
+										if( null != result )
+										{
+											return result;
+										}
+									}
+								}
+							}
+						}
+						else if( referencedObject instanceof Map<?, ?> )
+						{
+							final Map<?, ?> referenced = (Map<?, ?>)referencedObject;
+
+							if( null != referenced )
+							{
+								final Set<?> entrySet = referenced.entrySet();
+
+								for( final Object referencedValue : entrySet )
+								{
+
+									final Entry<?, ?> entry = (Entry<?, ?>)referencedValue;
+
+									if( entry.getValue() != null
+											&& entry.getValue() instanceof TaasValue )
+									{
+										final TaasValue taasReference = (TaasValue)entry
+												.getValue();
+
+										if( type.isInstance( taasReference ) )
+										{
+											return (E)taasReference;
+										}
+
+										final E result = search( taasReference,
+												type, childrenOnly );
+
+										if( null != result )
+										{
+											return result;
+										}
+									}
+
+									if( entry.getKey() != null
+											&& entry.getKey() instanceof TaasValue )
+									{
+										final TaasValue taasReference = (TaasValue)entry
+												.getKey();
+
+										if( type.isInstance( taasReference ) )
+										{
+											return (E)taasReference;
+										}
+
+										final E result = search( taasReference,
+												type, childrenOnly );
+
+										if( null != result )
+										{
+											return result;
+										}
 									}
 								}
 							}

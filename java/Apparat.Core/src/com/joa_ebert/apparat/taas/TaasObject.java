@@ -40,6 +40,7 @@ import com.joa_ebert.apparat.taas.types.ObjectType;
  */
 public final class TaasObject extends TaasValue
 {
+	@TaasReference
 	private final Map<String, TaasValue> map = new LinkedHashMap<String, TaasValue>();
 
 	public TaasObject()

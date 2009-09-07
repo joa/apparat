@@ -375,7 +375,22 @@ public final class BytecodeDecoder
 					break;
 
 				case Op.PushByte:
-					( (PushByte)operation ).value = input.readU08();
+					//
+					// UNDOCUMENTED: The documentation states that PushByte
+					// uses an unsigned byte which is incorrect.
+					//
+					// PushByte uses a signed byte value.
+					// 
+
+					int value = input.readU08();
+
+					if( 0 != ( value & 0x80 ) )
+					{
+						value &= 0x7f;
+						value -= 0x80;
+					}
+
+					( (PushByte)operation ).value = value;
 					break;
 
 				case Op.PushDouble:

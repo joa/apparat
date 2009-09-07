@@ -132,7 +132,7 @@ public final class AbcEnvironment
 		contexts.add( context );
 	}
 
-	public QName baseType( final QName name )
+	public QName baseType( final QName name ) throws AbcException
 	{
 		for( final AbcContext context : contexts )
 		{
@@ -147,7 +147,8 @@ public final class AbcEnvironment
 			}
 		}
 
-		return null;
+		throw new AbcException( "Can not find base type of "
+				+ StringConverter.toString( name ) + "." );
 	}
 
 	public Class classOf( final Method method )

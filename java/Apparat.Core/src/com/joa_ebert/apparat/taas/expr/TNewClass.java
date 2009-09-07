@@ -41,6 +41,7 @@ import com.joa_ebert.apparat.taas.TaasTyper;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.ClassType;
 import com.joa_ebert.apparat.taas.types.MultinameType;
+import com.joa_ebert.apparat.taas.types.NullType;
 import com.joa_ebert.apparat.taas.types.ObjectType;
 import com.joa_ebert.apparat.taas.types.TaasType;
 
@@ -85,26 +86,29 @@ public class TNewClass extends TaasExpression
 		final TaasTyper typer = new TaasTyper( environment );
 		final LinkedList<AbstractMultiname> scopes = new LinkedList<AbstractMultiname>();
 
-		TaasType baseType = typer.baseOf( base.getType() );
-
-		//
-		// Get all scopes up to the ObjectType
-		//
-
-		scopes.addFirst( ( (MultinameType)( base.getType() ) ).multiname );
-
-		while( baseType != ObjectType.INSTANCE )
+		if( base.getType() != NullType.INSTANCE )
 		{
-			if( baseType instanceof MultinameType )
+			TaasType baseType = typer.baseOf( base.getType() );
+
+			//
+			// Get all scopes up to the ObjectType
+			//
+
+			scopes.addFirst( ( (MultinameType)( base.getType() ) ).multiname );
+
+			while( baseType != ObjectType.INSTANCE )
 			{
-				final MultinameType multinameType = (MultinameType)baseType;
-				scopes.addFirst( multinameType.multiname );
+				if( baseType instanceof MultinameType )
+				{
+					final MultinameType multinameType = (MultinameType)baseType;
+					scopes.addFirst( multinameType.multiname );
+				}
+
+				baseType = typer.baseOf( baseType );
 			}
 
-			baseType = typer.baseOf( baseType );
+			scopes.addFirst( OBJECT_QNAME );
 		}
-
-		scopes.addFirst( OBJECT_QNAME );
 
 		//
 		// Construct scope stack:
