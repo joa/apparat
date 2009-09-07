@@ -23,6 +23,8 @@ package com.joa_ebert.apparat.taas;
 
 import java.util.ArrayList;
 
+import com.joa_ebert.apparat.abc.AbcEnvironment;
+
 /**
  * 
  * @author Joa Ebert
@@ -34,13 +36,16 @@ public final class TaasMethod
 	public final TaasRegisters locals;
 	public final TaasCode code;
 	public final ArrayList<TaasParameter> parameters;
+	public final AbcEnvironment.PropertyInfo propertyInfo;
 
 	public TaasMethod( final TaasTyper typer, final TaasRegisters locals,
-			final TaasCode graph, final ArrayList<TaasParameter> parameters )
+			final TaasCode graph, final ArrayList<TaasParameter> parameters,
+			final AbcEnvironment.PropertyInfo propertyInfo )
 	{
 		this.typer = typer;
 		this.locals = locals;
 		this.code = graph;
 		this.parameters = parameters;
+		this.propertyInfo = propertyInfo;
 	}
 }

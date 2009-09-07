@@ -81,9 +81,9 @@ public class InlineExpansion implements ITaasTool
 	private final TaasBuilder builder = new TaasBuilder();
 
 	private boolean canInlineMember( final TaasMethod method,
-			final AbcEnvironment.MethodInfo methodInfo )
+			final AbcEnvironment.PropertyInfo propertyInfo )
 	{
-		if( containsRecursion( method, methodInfo ) )
+		if( containsRecursion( method, propertyInfo ) )
 		{
 			return false;
 		}
@@ -94,7 +94,7 @@ public class InlineExpansion implements ITaasTool
 	}
 
 	private boolean containsRecursion( final TaasMethod method,
-			final AbcEnvironment.MethodInfo methodInfo )
+			final AbcEnvironment.PropertyInfo propertyInfo )
 	{
 		final TaasCode code = method.code;
 		final List<TaasVertex> vertices = code.vertexList();
@@ -122,10 +122,10 @@ public class InlineExpansion implements ITaasTool
 						continue;
 					}
 
-					final AbcEnvironment.MethodInfo calledMethod = method.typer
+					final AbcEnvironment.PropertyInfo calledProperty = method.typer
 							.findProperty( mobj, mprp );
 
-					if( null == calledMethod )
+					if( null == calledProperty )
 					{
 						if( DEBUG )
 						{
@@ -137,7 +137,7 @@ public class InlineExpansion implements ITaasTool
 					}
 					else
 					{
-						if( methodInfo.equals( calledMethod ) )
+						if( propertyInfo.equals( calledProperty ) )
 						{
 							return true;
 						}
@@ -304,10 +304,10 @@ public class InlineExpansion implements ITaasTool
 							continue;
 						}
 
-						final AbcEnvironment.MethodInfo methodInfo = method.typer
+						final AbcEnvironment.PropertyInfo propertyInfo = method.typer
 								.findProperty( mobj, mprp );
 
-						if( null == methodInfo )
+						if( null == propertyInfo )
 						{
 							//
 							// Typer could not find method.
@@ -325,12 +325,12 @@ public class InlineExpansion implements ITaasTool
 						if( mprp.multiname.kind == MultinameKind.QName
 								&& ( (QName)mprp.multiname ).namespace.kind == NamespaceKind.PrivateNamespace )
 						{
-							if( null != methodInfo.instance )
+							if( null != propertyInfo.instance )
 							{
 								// FIXME should compare against scope of
 								// original method
 
-								if( !methodInfo.instance.name
+								if( !propertyInfo.instance.name
 										.equals( mobj.multiname ) )
 								{
 									if( DEBUG )
@@ -358,7 +358,7 @@ public class InlineExpansion implements ITaasTool
 						}
 						else
 						{
-							if( !methodInfo.isFinal )
+							if( !propertyInfo.isFinal )
 							{
 
 								if( DEBUG )
@@ -371,7 +371,7 @@ public class InlineExpansion implements ITaasTool
 							}
 						}
 
-						final Method abcMethod = methodInfo.method;
+						final Method abcMethod = propertyInfo.method;
 
 						if( null == abcMethod.body
 								|| null == abcMethod.body.code )
@@ -388,7 +388,7 @@ public class InlineExpansion implements ITaasTool
 
 						final TaasCode inlinedCode = inlinedMethod.code;
 
-						if( !canInlineMember( inlinedMethod, methodInfo ) )
+						if( !canInlineMember( inlinedMethod, propertyInfo ) )
 						{
 							continue;
 						}
@@ -425,17 +425,8 @@ public class InlineExpansion implements ITaasTool
 						// local variables with values of the parameters.
 						//
 
-						TaasVertex insertPoint = null;
-
-						try
-						{
-							insertPoint = inlinedCode.outgoingOf(
-									inlinedCode.getEntryVertex() ).get( 0 ).endVertex;
-						}
-						catch( final ControlFlowGraphException exception )
-						{
-							throw new TaasException( exception );
-						}
+						final TaasVertex insertPoint = inlinedCode
+								.getEntryVertex();
 
 						//
 						// We ignore the local at index 0 since it stores only
@@ -452,7 +443,7 @@ public class InlineExpansion implements ITaasTool
 							//
 
 							TaasToolkit
-									.insertBefore(
+									.insertAfter(
 											inlinedMethod,
 											insertPoint,
 											new TaasVertex(
@@ -469,8 +460,14 @@ public class InlineExpansion implements ITaasTool
 						final LinkedList<TaasVertex> inlinedVertices = inlinedCode
 								.vertexList();
 
-						if( returnType == VoidType.INSTANCE )
+						if( callProperty.getType() == VoidType.INSTANCE )
 						{
+							//
+							// TODO remove ReturnValue statements from methods
+							// that return a value but are called just like void
+							// methods ...
+							//
+
 							final List<TaasVertex> removes = new LinkedList<TaasVertex>();
 
 							for( final TaasVertex inlinedVertex : inlinedVertices )
@@ -585,9 +582,8 @@ public class InlineExpansion implements ITaasTool
 
 		if( null != target )
 		{
-			changed = true;
-
 			inline( method, target.vertex, target.method, target.replace );
+			changed = true;
 		}
 
 		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS && changed )

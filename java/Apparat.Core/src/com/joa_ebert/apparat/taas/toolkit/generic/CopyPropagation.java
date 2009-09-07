@@ -267,6 +267,11 @@ public class CopyPropagation implements ITaasTool
 
 						final List<TaasVertex> verticesToRemove = new LinkedList<TaasVertex>();
 
+						final LinkedList<TaasLocal> sideEffects = new LinkedList<TaasLocal>();
+
+						TaasToolkit.searchAll( setLocal, TaasLocal.class, true,
+								sideEffects );
+
 						while( iter.hasNext() )
 						{
 							final TaasVertex vertex = iter.next();
@@ -284,12 +289,61 @@ public class CopyPropagation implements ITaasTool
 								verticesToRemove.add( vertex );
 								continue;
 							}
-							else if( value instanceof AbstractLocalExpr
-									&& ( (AbstractLocalExpr)value ).local
-											.getIndex() == setLocal.local
-											.getIndex() )
+							else if( value instanceof AbstractLocalExpr )
 							{
-								continue nextLocal;
+								if( ( (AbstractLocalExpr)value ).local
+										.getIndex() == setLocal.local
+										.getIndex() )
+								{
+									continue nextLocal;
+								}
+
+								if( value instanceof TSetLocal )
+								{
+									final TSetLocal setLocal2 = (TSetLocal)value;
+
+									for( final TaasLocal local : sideEffects )
+									{
+										if( setLocal2.local.getIndex() == local
+												.getIndex() )
+										{
+											if( startPropagation
+													&& TaasToolkit.references(
+															value,
+															setLocal.local ) )
+											{
+												TaasToolkit.replace( value,
+														setLocal.local,
+														setLocal.value );
+
+												changed = true;
+											}
+
+											continue nextLocal;
+										}
+									}
+
+									if( startPropagation
+											&& TaasToolkit.references( value,
+													setLocal.local ) )
+									{
+										TaasToolkit.replace( value,
+												setLocal.local, setLocal.value );
+
+										changed = true;
+									}
+								}
+								else if( TaasToolkit.references( value,
+										setLocal.local ) )
+								{
+									if( startPropagation )
+									{
+										TaasToolkit.replace( value,
+												setLocal.local, setLocal.value );
+
+										changed = true;
+									}
+								}
 							}
 							else if( TaasToolkit.references( value,
 									setLocal.local ) )

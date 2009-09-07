@@ -77,6 +77,7 @@ import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
 import com.joa_ebert.apparat.taas.toolkit.generic.ConstantFolding;
 import com.joa_ebert.apparat.taas.toolkit.generic.CopyPropagation;
 import com.joa_ebert.apparat.taas.toolkit.generic.DeadCodeElimination;
+import com.joa_ebert.apparat.taas.toolkit.generic.TailRecursionElimination;
 import com.joa_ebert.apparat.taas.types.AnyType;
 import com.joa_ebert.apparat.taas.types.BooleanType;
 import com.joa_ebert.apparat.taas.types.IntType;
@@ -156,7 +157,7 @@ public final class TaasBuilder implements IInterpreter
 		// 
 
 		final TaasMethod result = new TaasMethod( typer, localRegisters, code,
-				parameters );
+				parameters, environment.findProperty( bytecode ) );
 
 		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS )
 		{
@@ -172,6 +173,8 @@ public final class TaasBuilder implements IInterpreter
 		final CopyPropagation copyPropagation = new CopyPropagation();
 		final ConstantFolding constantFolding = new ConstantFolding();
 		final DeadCodeElimination deadCodeElimination = new DeadCodeElimination();
+		final TailRecursionElimination tailRecursionElimination = new TailRecursionElimination();
+
 		// final SsaBuilder ssaBuilder = new SsaBuilder();
 
 		boolean changed;
@@ -188,6 +191,12 @@ public final class TaasBuilder implements IInterpreter
 
 			changed = deadCodeElimination.manipulate( environment, result )
 					|| changed;
+		}
+		while( changed );
+
+		do
+		{
+			changed = tailRecursionElimination.manipulate( environment, result );
 		}
 		while( changed );
 

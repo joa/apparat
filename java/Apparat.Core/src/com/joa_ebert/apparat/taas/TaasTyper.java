@@ -94,7 +94,7 @@ public final class TaasTyper
 		throw new TaasException( "Can not find base type of " + type + "." );
 	}
 
-	public AbcEnvironment.MethodInfo findProperty( final MultinameType object,
+	public AbcEnvironment.PropertyInfo findProperty( final MultinameType object,
 			final MultinameType property )
 	{
 		try

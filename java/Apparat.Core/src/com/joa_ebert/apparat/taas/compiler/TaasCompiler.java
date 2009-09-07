@@ -40,6 +40,7 @@ import com.joa_ebert.apparat.taas.toolkit.generic.DeadCodeElimination;
 import com.joa_ebert.apparat.taas.toolkit.generic.FlowOptimizer;
 import com.joa_ebert.apparat.taas.toolkit.generic.InlineExpansion;
 import com.joa_ebert.apparat.taas.toolkit.generic.StrengthReduction;
+import com.joa_ebert.apparat.taas.toolkit.generic.TailRecursionElimination;
 
 /**
  * @author Joa Ebert
@@ -47,7 +48,7 @@ import com.joa_ebert.apparat.taas.toolkit.generic.StrengthReduction;
  */
 public class TaasCompiler implements IMethodVisitor
 {
-	public static final boolean SHOW_ALL_TRANSFORMATIONS = true;
+	public static final boolean SHOW_ALL_TRANSFORMATIONS = false;
 
 	private static final boolean DEBUG = true;
 
@@ -60,7 +61,6 @@ public class TaasCompiler implements IMethodVisitor
 	private PermutationChain postprocessor;
 
 	private int methodIndex = 0;
-	private final int targetMethod = 6;
 
 	public TaasCompiler( final AbcEnvironment environment )
 	{
@@ -118,41 +118,6 @@ public class TaasCompiler implements IMethodVisitor
 		}
 	}
 
-	private boolean CPCFDCE( final TaasMethod method )
-	{
-		try
-		{
-			final CopyPropagation copyPropagation = new CopyPropagation();
-			final ConstantFolding constantFolding = new ConstantFolding();
-			final DeadCodeElimination deadCodeElimination = new DeadCodeElimination();
-
-			boolean changed;
-
-			do
-			{
-				changed = false;
-
-				changed = copyPropagation.manipulate( environment, method )
-						|| changed;
-
-				changed = constantFolding.manipulate( environment, method )
-						|| changed;
-
-				changed = deadCodeElimination.manipulate( environment, method )
-						|| changed;
-			}
-			while( changed );
-
-			return true;
-		}
-		catch( final TaasException taasException )
-		{
-			taasException.printStackTrace();
-
-			return false;
-		}
-	}
-
 	private boolean execOptimizer( final ITaasTool tool, final TaasMethod method )
 	{
 		try
@@ -185,6 +150,11 @@ public class TaasCompiler implements IMethodVisitor
 				return false;
 			}
 
+			if( !execOptimizer( new TailRecursionElimination(), method ) )
+			{
+				return false;
+			}
+
 			boolean changed = false;
 
 			final InlineExpansion inlineExpansion = new InlineExpansion();
@@ -197,10 +167,45 @@ public class TaasCompiler implements IMethodVisitor
 				changed = strengthReduction.manipulate( environment, method )
 						|| changed;
 
-				if( !CPCFDCE( method ) )
+				if( !performCPCFDCE( method ) )
 				{
 					return false;
 				}
+			}
+			while( changed );
+
+			return true;
+		}
+		catch( final TaasException taasException )
+		{
+			taasException.printStackTrace();
+
+			return false;
+		}
+	}
+
+	private boolean performCPCFDCE( final TaasMethod method )
+	{
+		try
+		{
+			final CopyPropagation copyPropagation = new CopyPropagation();
+			final ConstantFolding constantFolding = new ConstantFolding();
+			final DeadCodeElimination deadCodeElimination = new DeadCodeElimination();
+
+			boolean changed;
+
+			do
+			{
+				changed = false;
+
+				changed = copyPropagation.manipulate( environment, method )
+						|| changed;
+
+				changed = constantFolding.manipulate( environment, method )
+						|| changed;
+
+				changed = deadCodeElimination.manipulate( environment, method )
+						|| changed;
 			}
 			while( changed );
 
@@ -296,10 +301,10 @@ public class TaasCompiler implements IMethodVisitor
 	{
 		if( DEBUG )
 		{
-			if( methodIndex == targetMethod )
-			{
-				replace( method );
-			}
+			// if( methodIndex == targetMethod )
+			// {
+			replace( method );
+			// }
 		}
 		else
 		{

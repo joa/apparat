@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.joa_ebert.apparat.abc.analysis.TypeSolver;
+import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.multinames.QName;
 import com.joa_ebert.apparat.abc.traits.TraitFunction;
 import com.joa_ebert.apparat.abc.traits.TraitGetter;
@@ -42,11 +43,11 @@ import com.joa_ebert.apparat.abc.utils.StringConverter;
 public final class AbcEnvironment
 {
 	/**
-	 * The MethodInfo class is a descriptor for a method.
+	 * The PropertyInfo class is a descriptor for a method.
 	 * 
 	 * @author Joa Ebert
 	 */
-	public static final class MethodInfo
+	public static final class PropertyInfo
 	{
 		/**
 		 * The method.
@@ -80,11 +81,52 @@ public final class AbcEnvironment
 		public AbstractTrait trait;
 
 		/**
-		 * Creates and returns a new MethodInfo instance.
+		 * Creates and returns a new PropertyInfo instance.
 		 */
-		public MethodInfo()
+		public PropertyInfo()
 		{
+		}
 
+		@Override
+		public boolean equals( final Object other )
+		{
+			if( other instanceof PropertyInfo )
+			{
+				return equals( (PropertyInfo)other );
+			}
+
+			return false;
+		}
+
+		public boolean equals( final PropertyInfo other )
+		{
+			if( null == method )
+			{
+				if( other.method != null )
+				{
+					return false;
+				}
+
+				return true;
+			}
+			else if( method.equals( other.method ) )
+			{
+				return true;
+			}
+
+			return false;
+		}
+
+		@Override
+		public String toString()
+		{
+			return "[PropertyInfo method: "
+					+ StringConverter.toString( method )
+					+ ( ( null != instance ) ? ", instance: "
+							+ StringConverter.toString( instance )
+							: ", script: " + StringConverter.toString( script ) )
+					+ ", isFinal: " + isFinal + ", trait: "
+					+ StringConverter.toString( trait ) + "]";
 		}
 	}
 
@@ -216,7 +258,7 @@ public final class AbcEnvironment
 		}
 	}
 
-	public MethodInfo findProperty( final AbstractMultiname object,
+	public PropertyInfo findProperty( final AbstractMultiname object,
 			final AbstractMultiname property ) throws AbcException
 	{
 		Instance instance = null;
@@ -235,7 +277,9 @@ public final class AbcEnvironment
 
 			for( final Script script : ctx.getAbc().scripts )
 			{
-				for( final AbstractTrait trait : script.traits )
+				final List<AbstractTrait> traits = script.traits;
+
+				for( final AbstractTrait trait : traits )
 				{
 					if( !trait.name.equals( object )
 							|| !trait.name.equals( property ) )
@@ -252,15 +296,15 @@ public final class AbcEnvironment
 						// always marked as final.
 						//
 
-						final MethodInfo methodInfo = new MethodInfo();
+						final PropertyInfo propertyInfo = new PropertyInfo();
 
-						methodInfo.instance = null;
-						methodInfo.isFinal = true;
-						methodInfo.method = result;
-						methodInfo.script = script;
-						methodInfo.trait = trait;
+						propertyInfo.instance = null;
+						propertyInfo.isFinal = true;
+						propertyInfo.method = result;
+						propertyInfo.script = script;
+						propertyInfo.trait = trait;
 
-						return methodInfo;
+						return propertyInfo;
 					}
 				}
 			}
@@ -290,16 +334,16 @@ public final class AbcEnvironment
 					// custom namespace or private.
 					//
 
-					final MethodInfo methodInfo = new MethodInfo();
+					final PropertyInfo propertyInfo = new PropertyInfo();
 
-					methodInfo.instance = instance;
-					methodInfo.isFinal = instance.isFinal
+					propertyInfo.instance = instance;
+					propertyInfo.isFinal = instance.isFinal
 							|| isTraitFinal( trait );
-					methodInfo.method = result;
-					methodInfo.script = null;
-					methodInfo.trait = trait;
+					propertyInfo.method = result;
+					propertyInfo.script = null;
+					propertyInfo.trait = trait;
 
-					return methodInfo;
+					return propertyInfo;
 				}
 			}
 
@@ -320,19 +364,103 @@ public final class AbcEnvironment
 					// A class trait is always considered final.
 					//
 
-					final MethodInfo methodInfo = new MethodInfo();
+					final PropertyInfo propertyInfo = new PropertyInfo();
 
-					methodInfo.instance = instance;
-					methodInfo.isFinal = true;
-					methodInfo.method = result;
-					methodInfo.script = null;
-					methodInfo.trait = trait;
+					propertyInfo.instance = instance;
+					propertyInfo.isFinal = true;
+					propertyInfo.method = result;
+					propertyInfo.script = null;
+					propertyInfo.trait = trait;
 
-					return methodInfo;
+					return propertyInfo;
 				}
 			}
 
 			instance = instanceOf( instance.base );
+		}
+
+		return null;
+	}
+
+	public PropertyInfo findProperty( final Bytecode bytecode )
+	{
+		if( null == bytecode.methodBody || null == bytecode.methodBody.method )
+		{
+			return null;
+		}
+
+		final Method method = bytecode.methodBody.method;
+		final Object scope = scopeOf( method );
+
+		if( scope instanceof Instance )
+		{
+			final Instance instance = (Instance)scope;
+			final List<AbstractTrait> traits = instance.traits;
+
+			for( final AbstractTrait trait : traits )
+			{
+				final Method search = findMethod( trait );
+
+				if( null != search && search == method )
+				{
+					final PropertyInfo propertyInfo = new PropertyInfo();
+
+					propertyInfo.instance = instance;
+					propertyInfo.isFinal = instance.isFinal
+							|| isTraitFinal( trait );
+					propertyInfo.method = method;
+					propertyInfo.script = null;
+					propertyInfo.trait = trait;
+
+					return propertyInfo;
+				}
+			}
+		}
+		else if( scope instanceof Class )
+		{
+			final Class klass = (Class)scope;
+			final List<AbstractTrait> traits = klass.traits;
+
+			for( final AbstractTrait trait : traits )
+			{
+				final Method search = findMethod( trait );
+
+				if( null != search && search == method )
+				{
+					final PropertyInfo propertyInfo = new PropertyInfo();
+
+					propertyInfo.instance = klass.instance;
+					propertyInfo.isFinal = true;
+					propertyInfo.method = method;
+					propertyInfo.script = null;
+					propertyInfo.trait = trait;
+
+					return propertyInfo;
+				}
+			}
+		}
+		else if( scope instanceof Script )
+		{
+			final Script script = (Script)scope;
+			final List<AbstractTrait> traits = script.traits;
+
+			for( final AbstractTrait trait : traits )
+			{
+				final Method search = findMethod( trait );
+
+				if( null != search && search == method )
+				{
+					final PropertyInfo propertyInfo = new PropertyInfo();
+
+					propertyInfo.instance = null;
+					propertyInfo.isFinal = true;
+					propertyInfo.method = method;
+					propertyInfo.script = script;
+					propertyInfo.trait = trait;
+
+					return propertyInfo;
+				}
+			}
 		}
 
 		return null;

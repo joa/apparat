@@ -116,6 +116,42 @@ public class TaasToolkit
 		}
 	}
 
+	public static void insertAfter( final TaasMethod method,
+			final TaasVertex oldVertex, final TaasVertex newVertex )
+	{
+		try
+		{
+			final TaasCode code = method.code;
+
+			final List<TaasEdge> outgoingEdges = cloneList( code
+					.outgoingOf( oldVertex ) );
+
+			final List<TaasEdge> newEdges = cloneList( code
+					.outgoingOf( oldVertex ) );
+
+			if( !code.contains( newVertex ) )
+			{
+				code.add( newVertex );
+			}
+
+			for( final TaasEdge edge : outgoingEdges )
+			{
+				code.remove( edge );
+			}
+
+			for( final TaasEdge edge : newEdges )
+			{
+				code.add( new TaasEdge( newVertex, edge.endVertex, edge.kind ) );
+			}
+
+			code.add( new TaasEdge( oldVertex, newVertex ) );
+		}
+		catch( final ControlFlowGraphException e )
+		{
+			throw new TaasException( e );
+		}
+	}
+
 	/**
 	 * Inserts a new vertex before the old vertex.
 	 * 
@@ -1113,5 +1149,160 @@ public class TaasToolkit
 
 			return null;
 		}
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public static <E extends TaasValue> void searchAll( final TaasValue value,
+			final Class<E> type, final boolean childrenOnly,
+			final LinkedList<E> list )
+	{
+		if( null == value )
+		{
+			return;
+		}
+
+		if( !childrenOnly && type.isInstance( value ) )
+		{
+			list.add( (E)value );
+			searchAll( value, type, true, list );
+		}
+		else if( value instanceof TaasPhi )
+		{
+			final TaasPhi phi = (TaasPhi)value;
+
+			for( final TaasPhi.Element element : phi.values )
+			{
+				if( element.value != null && type.isInstance( element.value ) )
+				{
+					list.add( (E)element.value );
+				}
+
+				searchAll( element.value, type, true, list );
+			}
+		}
+		else
+		{
+			final Field[] fields = value.getClass().getFields();
+
+			for( final Field field : fields )
+			{
+				if( field.isAnnotationPresent( TaasReference.class ) )
+				{
+					try
+					{
+						final Object referencedObject = field.get( value );
+
+						if( referencedObject instanceof TaasValue )
+						{
+							final TaasValue referenced = (TaasValue)referencedObject;
+
+							if( null != referenced
+									&& type.isInstance( referenced ) )
+							{
+								list.add( (E)referenced );
+							}
+
+							searchAll( referenced, type, true, list );
+						}
+						else if( referencedObject instanceof TaasValue[] )
+						{
+							final TaasValue[] referenced = (TaasValue[])referencedObject;
+
+							if( null != referenced )
+							{
+								for( final TaasValue referencedValue : referenced )
+								{
+									if( null != referencedValue
+											&& type
+													.isInstance( referencedValue ) )
+									{
+										list.add( (E)referencedValue );
+									}
+
+									searchAll( referencedValue, type, true,
+											list );
+								}
+							}
+						}
+						else if( referencedObject instanceof List<?> )
+						{
+							final List<TaasValue> referenced = (List<TaasValue>)referencedObject;
+
+							if( null != referenced )
+							{
+								for( final TaasValue referencedValue : referenced )
+								{
+									if( null != referencedValue )
+									{
+										if( type.isInstance( referencedValue ) )
+										{
+											list.add( (E)referencedValue );
+										}
+
+										searchAll( referencedValue, type, true,
+												list );
+									}
+								}
+							}
+						}
+						else if( referencedObject instanceof Map<?, ?> )
+						{
+							final Map<?, ?> referenced = (Map<?, ?>)referencedObject;
+
+							if( null != referenced )
+							{
+								final Set<?> entrySet = referenced.entrySet();
+
+								for( final Object referencedValue : entrySet )
+								{
+
+									final Entry<?, ?> entry = (Entry<?, ?>)referencedValue;
+
+									if( entry.getValue() != null
+											&& entry.getValue() instanceof TaasValue )
+									{
+										final TaasValue taasReference = (TaasValue)entry
+												.getValue();
+
+										if( type.isInstance( taasReference ) )
+										{
+											list.add( (E)taasReference );
+										}
+
+										searchAll( taasReference, type, true,
+												list );
+									}
+
+									if( entry.getKey() != null
+											&& entry.getKey() instanceof TaasValue )
+									{
+										final TaasValue taasReference = (TaasValue)entry
+												.getKey();
+
+										if( type.isInstance( taasReference ) )
+										{
+											list.add( (E)taasReference );
+										}
+
+										searchAll( taasReference, type, true,
+												list );
+									}
+								}
+							}
+						}
+					}
+					catch( final Exception e )
+					{
+						throw new TaasException( e );
+					}
+				}
+			}
+		}
+	}
+
+	public static <E extends TaasValue> void searchAll( final TaasValue value,
+			final Class<E> type, final LinkedList<E> list )
+	{
+		searchAll( value, type, false, list );
 	}
 }

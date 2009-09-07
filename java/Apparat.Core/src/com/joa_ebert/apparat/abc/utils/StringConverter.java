@@ -22,6 +22,7 @@
 package com.joa_ebert.apparat.abc.utils;
 
 import com.joa_ebert.apparat.abc.AbstractMultiname;
+import com.joa_ebert.apparat.abc.AbstractTrait;
 import com.joa_ebert.apparat.abc.Class;
 import com.joa_ebert.apparat.abc.ExceptionHandler;
 import com.joa_ebert.apparat.abc.Instance;
@@ -98,6 +99,52 @@ public class StringConverter
 		}
 
 		return "UnknownMULTINAME()";
+	}
+
+	public static String toString( final AbstractTrait trait )
+	{
+		if( null == trait )
+		{
+			return "(NULL_TRAIT)";
+		}
+
+		String result = "Trait(" + StringConverter.toString( trait.name )
+				+ ", ";
+
+		switch( trait.kind )
+		{
+			case Class:
+				result += "Class";
+				break;
+
+			case Const:
+				result += "Const";
+				break;
+
+			case Function:
+				result += "Function";
+				break;
+
+			case Getter:
+				result += "Getter";
+				break;
+
+			case Setter:
+				result += "Setter";
+				break;
+
+			case Method:
+				result += "Method";
+				break;
+
+			case Slot:
+				result += "Slot";
+				break;
+		}
+
+		result += ")";
+
+		return result;
 	}
 
 	public static String toString( final Class klass )
