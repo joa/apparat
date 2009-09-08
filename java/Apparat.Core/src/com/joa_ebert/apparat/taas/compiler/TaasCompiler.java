@@ -61,7 +61,8 @@ public class TaasCompiler implements IMethodVisitor
 	private PermutationChain postprocessor;
 
 	private int methodIndex = 0;
-	private final int targetMethod = 5;
+
+	// private final int targetMethod = 6;
 
 	public TaasCompiler( final AbcEnvironment environment )
 	{
@@ -307,10 +308,10 @@ public class TaasCompiler implements IMethodVisitor
 	{
 		if( DEBUG )
 		{
-			if( methodIndex == targetMethod )
-			{
-				replace( method );
-			}
+			// if( methodIndex == targetMethod )
+			// {
+			replace( method );
+			// }
 		}
 		else
 		{

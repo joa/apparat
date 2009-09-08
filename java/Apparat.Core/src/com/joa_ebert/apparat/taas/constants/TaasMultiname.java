@@ -110,4 +110,25 @@ public class TaasMultiname extends TaasConstant
 	{
 		return noRuntimeName;
 	}
+
+	@Override
+	public String toString()
+	{
+		switch( multiname.kind )
+		{
+			case RTQName:
+				return "[TaasMultiname runtimeName: " + runtimeName.toString()
+						+ ", type: " + getType().toString() + "]";
+			case RTQNameL:
+				return "[TaasMultiname runtimeName: " + runtimeName.toString()
+						+ ", runtimeNamespace: " + runtimeNamespace.toString()
+						+ ", type: " + getType().toString() + "]";
+			case MultinameL:
+				return "[TaasMultiname runtimeName: " + runtimeName.toString()
+						+ ", type: " + getType().toString() + "]";
+
+			default:
+				return "[TaasMultiname type: " + getType().toString() + "]";
+		}
+	}
 }

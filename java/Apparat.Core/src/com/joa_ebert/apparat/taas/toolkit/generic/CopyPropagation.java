@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.logging.Logger;
 
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.controlflow.BasicBlock;
@@ -51,9 +52,20 @@ import com.joa_ebert.apparat.taas.toolkit.livenessAnalysis.LivenessAnalysis;
  */
 public final class CopyPropagation implements ITaasTool
 {
+	private static final boolean DEBUG = false;
+
+	private static final Logger LOG = ( DEBUG ) ? Logger
+			.getLogger( CopyPropagation.class.getName() ) : null;
+
 	private boolean cp( final AbcEnvironment environment,
 			final TaasMethod method ) throws ControlFlowGraphException
 	{
+		if( DEBUG )
+		{
+			LOG.entering( "CopyPropagation", "cp" );
+			LOG.info( "Begin CopyPropagation..." );
+		}
+
 		boolean changed = false;
 
 		final LivenessAnalysis la = new LivenessAnalysis( method );
@@ -84,6 +96,11 @@ public final class CopyPropagation implements ITaasTool
 					if( !setLocal.hasSideEffects()
 							&& !liveOut.contains( setLocal.local ) )
 					{
+						if( DEBUG )
+						{
+							LOG.info( "Candidate: " + setLocal );
+						}
+
 						locals.add( setLocal );
 					}
 				}
@@ -91,12 +108,22 @@ public final class CopyPropagation implements ITaasTool
 
 			nextLocal: for( final TSetLocal setLocal : locals )
 			{
+				if( DEBUG )
+				{
+					LOG.info( "Processing " + setLocal );
+				}
+
 				if( setLocal.value instanceof TaasConstant )
 				{
+					if( DEBUG )
+					{
+						LOG.info( "Constant assignment: x = const" );
+					}
+
 					//
 					// Constant assignment:
 					//
-					// x = 1;
+					// x = const
 					//
 
 					final ListIterator<TaasVertex> iter = vertices
@@ -119,6 +146,11 @@ public final class CopyPropagation implements ITaasTool
 
 						if( value == setLocal )
 						{
+							if( DEBUG )
+							{
+								LOG.info( "Start propagation at " + value );
+							}
+
 							startPropagation = true;
 							verticesToRemove.add( vertex );
 							continue;
@@ -128,12 +160,22 @@ public final class CopyPropagation implements ITaasTool
 										.getIndex() == setLocal.local
 										.getIndex() )
 						{
+							if( DEBUG )
+							{
+								LOG.info( "Stop propagation at " + value );
+							}
+
 							continue nextLocal;
 						}
 						else if( TaasToolkit.references( value, setLocal.local ) )
 						{
 							if( startPropagation )
 							{
+								if( DEBUG )
+								{
+									LOG.info( "Propagating copy into " + value );
+								}
+
 								TaasToolkit.replace( value, setLocal.local,
 										setLocal.value.dup() );
 
@@ -144,12 +186,22 @@ public final class CopyPropagation implements ITaasTool
 
 					for( final TaasVertex vertex : verticesToRemove )
 					{
+						if( DEBUG )
+						{
+							LOG.info( "Removing vertex " + vertex );
+						}
+
 						TaasToolkit.remove( method, vertex );
 						changed = true;
 					}
 				}
 				else if( setLocal.value instanceof TaasLocal )
 				{
+					if( DEBUG )
+					{
+						LOG.info( "Copy assignment: x = y" );
+					}
+
 					//
 					// Copy assignment:
 					//
@@ -159,6 +211,11 @@ public final class CopyPropagation implements ITaasTool
 					final TaasLocal copy = (TaasLocal)setLocal.value;
 					final ListIterator<TaasVertex> iter = vertices
 							.listIterator();
+
+					if( DEBUG )
+					{
+						LOG.info( "Copy is " + copy );
+					}
 
 					final List<TaasVertex> verticesToRemove = new LinkedList<TaasVertex>();
 
@@ -177,6 +234,11 @@ public final class CopyPropagation implements ITaasTool
 
 						if( value == setLocal )
 						{
+							if( DEBUG )
+							{
+								LOG.info( "Start propagation at " + value );
+							}
+
 							startPropagation = true;
 							verticesToRemove.add( vertex );
 							continue;
@@ -187,12 +249,27 @@ public final class CopyPropagation implements ITaasTool
 										.getIndex() || ( (AbstractLocalExpr)value ).local
 										.getIndex() == copy.getIndex() ) )
 						{
+							//
+							// || ( (AbstractLocalExpr)value ).local
+							// .getIndex() == copy.getIndex() )
+							//
+
+							if( DEBUG )
+							{
+								LOG.info( "Stop propagation at " + value );
+							}
+
 							continue nextLocal;
 						}
 						else if( TaasToolkit.references( value, setLocal.local ) )
 						{
 							if( startPropagation )
 							{
+								if( DEBUG )
+								{
+									LOG.info( "Propagating copy into " + value );
+								}
+
 								TaasToolkit.replace( value, setLocal.local,
 										setLocal.value );
 
@@ -203,12 +280,22 @@ public final class CopyPropagation implements ITaasTool
 
 					for( final TaasVertex vertex : verticesToRemove )
 					{
+						if( DEBUG )
+						{
+							LOG.info( "Removing vertex " + vertex );
+						}
+
 						TaasToolkit.remove( method, vertex );
 						changed = true;
 					}
 				}
 				else
 				{
+					if( DEBUG )
+					{
+						LOG.info( "Other assignment: x = expr" );
+					}
+
 					//
 					// Other assignment:
 					//
@@ -259,6 +346,11 @@ public final class CopyPropagation implements ITaasTool
 						}
 					}
 
+					if( DEBUG )
+					{
+						LOG.info( "Value uses: " + uses );
+					}
+
 					if( 1 == uses )
 					{
 						startPropagation = false;
@@ -285,6 +377,11 @@ public final class CopyPropagation implements ITaasTool
 
 							if( value == setLocal )
 							{
+								if( DEBUG )
+								{
+									LOG.info( "Start propagation at " + value );
+								}
+
 								startPropagation = true;
 								verticesToRemove.add( vertex );
 								continue;
@@ -295,6 +392,12 @@ public final class CopyPropagation implements ITaasTool
 										.getIndex() == setLocal.local
 										.getIndex() )
 								{
+									if( DEBUG )
+									{
+										LOG.info( "Stop propagation at "
+												+ value );
+									}
+
 									continue nextLocal;
 								}
 
@@ -312,6 +415,13 @@ public final class CopyPropagation implements ITaasTool
 															value,
 															setLocal.local ) )
 											{
+												if( DEBUG )
+												{
+													LOG
+															.info( "Propagating value into "
+																	+ value );
+												}
+
 												TaasToolkit.replace( value,
 														setLocal.local,
 														setLocal.value );
@@ -319,7 +429,17 @@ public final class CopyPropagation implements ITaasTool
 												changed = true;
 											}
 
-											continue nextLocal;
+											if( startPropagation )
+											{
+												if( DEBUG )
+												{
+													LOG
+															.info( "Stop propagation at "
+																	+ value );
+												}
+
+												continue nextLocal;
+											}
 										}
 									}
 
@@ -327,6 +447,12 @@ public final class CopyPropagation implements ITaasTool
 											&& TaasToolkit.references( value,
 													setLocal.local ) )
 									{
+										if( DEBUG )
+										{
+											LOG.info( "Propagating value into "
+													+ value );
+										}
+
 										TaasToolkit.replace( value,
 												setLocal.local, setLocal.value );
 
@@ -338,6 +464,12 @@ public final class CopyPropagation implements ITaasTool
 								{
 									if( startPropagation )
 									{
+										if( DEBUG )
+										{
+											LOG.info( "Propagating value into "
+													+ value );
+										}
+
 										TaasToolkit.replace( value,
 												setLocal.local, setLocal.value );
 
@@ -350,6 +482,12 @@ public final class CopyPropagation implements ITaasTool
 							{
 								if( startPropagation )
 								{
+									if( DEBUG )
+									{
+										LOG.info( "Propagating value into "
+												+ value );
+									}
+
 									TaasToolkit.replace( value, setLocal.local,
 											setLocal.value );
 
@@ -360,12 +498,23 @@ public final class CopyPropagation implements ITaasTool
 
 						for( final TaasVertex vertex : verticesToRemove )
 						{
+							if( DEBUG )
+							{
+								LOG.info( "Removing vertex " + vertex );
+							}
+
 							TaasToolkit.remove( method, vertex );
 							changed = true;
 						}
 					}
 				}
 			}
+		}
+
+		if( DEBUG )
+		{
+			LOG.info( "Changed: " + changed );
+			LOG.exiting( "CopyPropagation", "cp" );
 		}
 
 		return changed;
