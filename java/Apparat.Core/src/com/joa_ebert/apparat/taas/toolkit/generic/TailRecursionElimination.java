@@ -46,7 +46,7 @@ import com.joa_ebert.apparat.taas.types.MultinameType;
  * @author Joa Ebert
  * 
  */
-public class TailRecursionElimination implements ITaasTool
+public final class TailRecursionElimination implements ITaasTool
 {
 	private static final Taas TAAS = new Taas();
 

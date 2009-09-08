@@ -39,6 +39,7 @@ import com.joa_ebert.apparat.taas.toolkit.generic.CopyPropagation;
 import com.joa_ebert.apparat.taas.toolkit.generic.DeadCodeElimination;
 import com.joa_ebert.apparat.taas.toolkit.generic.FlowOptimizer;
 import com.joa_ebert.apparat.taas.toolkit.generic.InlineExpansion;
+import com.joa_ebert.apparat.taas.toolkit.generic.LoopInvariantCodeMotion;
 import com.joa_ebert.apparat.taas.toolkit.generic.StrengthReduction;
 import com.joa_ebert.apparat.taas.toolkit.generic.TailRecursionElimination;
 
@@ -49,7 +50,6 @@ import com.joa_ebert.apparat.taas.toolkit.generic.TailRecursionElimination;
 public class TaasCompiler implements IMethodVisitor
 {
 	public static final boolean SHOW_ALL_TRANSFORMATIONS = false;
-
 	private static final boolean DEBUG = true;
 
 	private final AbcEnvironment environment;
@@ -61,6 +61,7 @@ public class TaasCompiler implements IMethodVisitor
 	private PermutationChain postprocessor;
 
 	private int methodIndex = 0;
+	private final int targetMethod = 5;
 
 	public TaasCompiler( final AbcEnvironment environment )
 	{
@@ -159,6 +160,7 @@ public class TaasCompiler implements IMethodVisitor
 
 			final InlineExpansion inlineExpansion = new InlineExpansion();
 			final StrengthReduction strengthReduction = new StrengthReduction();
+			final LoopInvariantCodeMotion loopInvariantCodeMotion = new LoopInvariantCodeMotion();
 
 			do
 			{
@@ -167,7 +169,11 @@ public class TaasCompiler implements IMethodVisitor
 				changed = strengthReduction.manipulate( environment, method )
 						|| changed;
 
-				if( !performCPCFDCE( method ) )
+				changed = loopInvariantCodeMotion.manipulate( environment,
+						method )
+						|| changed;
+
+				if( changed && !performCPCFDCE( method ) )
 				{
 					return false;
 				}
@@ -301,10 +307,10 @@ public class TaasCompiler implements IMethodVisitor
 	{
 		if( DEBUG )
 		{
-			// if( methodIndex == targetMethod )
-			// {
-			replace( method );
-			// }
+			if( methodIndex == targetMethod )
+			{
+				replace( method );
+			}
 		}
 		else
 		{

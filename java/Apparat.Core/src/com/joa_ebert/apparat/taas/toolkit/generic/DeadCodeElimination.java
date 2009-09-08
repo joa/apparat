@@ -44,7 +44,7 @@ import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
  * @author Joa Ebert
  * 
  */
-public class DeadCodeElimination implements ITaasTool
+public final class DeadCodeElimination implements ITaasTool
 {
 	public boolean manipulate( final AbcEnvironment environment,
 			final TaasMethod method )

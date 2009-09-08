@@ -53,7 +53,7 @@ import com.joa_ebert.apparat.taas.types.TaasType;
  * @author Joa Ebert
  * 
  */
-public class ConstantFolding implements ITaasTool
+public final class ConstantFolding implements ITaasTool
 {
 	private static final TaasBoolean TRUE = new TaasBoolean( true );
 	private static final TaasBoolean FALSE = new TaasBoolean( false );

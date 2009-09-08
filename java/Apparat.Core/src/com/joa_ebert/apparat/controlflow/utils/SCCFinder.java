@@ -39,20 +39,20 @@ public class SCCFinder<V extends Vertex, E extends Edge<V>>
 	private int index;
 	private Stack<V> S;
 
-	public List<SCComponent<V>> find( final ControlFlowGraph<V, E> graph )
+	public List<SCComponent<V, E>> find( final ControlFlowGraph<V, E> graph )
 			throws ControlFlowGraphException
 	{
-		index = 0;
-		S = new Stack<V>();
-		final List<SCComponent<V>> components = new LinkedList<SCComponent<V>>();
+		return find( graph, graph.vertexList() );
+	}
 
-		for( final V v : graph.vertexList() )
-		{
-			v.index = -1;
-			v.lowlink = -1;
-		}
+	public List<SCComponent<V, E>> find( final ControlFlowGraph<V, E> graph,
+			final List<V> vertices ) throws ControlFlowGraphException
+	{
+		final List<SCComponent<V, E>> components = new LinkedList<SCComponent<V, E>>();
 
-		for( final V v : graph.vertexList() )
+		reset( graph );
+
+		for( final V v : vertices )
 		{
 			if( -1 == v.index )
 			{
@@ -63,12 +63,36 @@ public class SCCFinder<V extends Vertex, E extends Edge<V>>
 		return components;
 	}
 
+	public List<SCComponent<V, E>> find( final ControlFlowGraph<V, E> graph,
+			final V start ) throws ControlFlowGraphException
+	{
+		final List<SCComponent<V, E>> components = new LinkedList<SCComponent<V, E>>();
+
+		reset( graph );
+		tarjan( start, graph, components );
+
+		return components;
+	}
+
+	private void reset( final ControlFlowGraph<V, E> graph )
+	{
+		index = 0;
+		S = new Stack<V>();
+
+		for( final V v : graph.vertexList() )
+		{
+			v.index = -1;
+			v.lowlink = -1;
+		}
+	}
+
 	private void tarjan( final V v, final ControlFlowGraph<V, E> G,
-			final List<SCComponent<V>> components )
+			final List<SCComponent<V, E>> components )
 			throws ControlFlowGraphException
 	{
 		v.index = index;
 		v.lowlink = index++;
+
 		S.push( v );
 
 		for( final E e : G.outgoingOf( v ) )
@@ -88,29 +112,23 @@ public class SCCFinder<V extends Vertex, E extends Edge<V>>
 
 		if( v.index == v.lowlink )
 		{
-			V v2 = null;
-
-			LinkedList<V> list = null;
-
-			do
+			if( !S.isEmpty() )
 			{
-				v2 = S.pop();
+				V v2 = null;
 
-				if( v != v2 && list == null )
-				{
-					list = new LinkedList<V>();
-				}
+				final LinkedList<V> list = new LinkedList<V>();
 
-				if( null != list )
+				do
 				{
+					v2 = S.pop();
 					list.add( v2 );
 				}
-			}
-			while( v != v2 );
+				while( v != v2 );
 
-			if( null != list )
-			{
-				components.add( new SCComponent<V>( list ) );
+				if( list.size() > 1 )
+				{
+					components.add( new SCComponent<V, E>( list, G ) );
+				}
 			}
 		}
 	}

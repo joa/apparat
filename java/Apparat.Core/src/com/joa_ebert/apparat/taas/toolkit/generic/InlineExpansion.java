@@ -55,7 +55,7 @@ import com.joa_ebert.apparat.taas.types.MultinameType;
 import com.joa_ebert.apparat.taas.types.TaasType;
 import com.joa_ebert.apparat.taas.types.VoidType;
 
-public class InlineExpansion implements ITaasTool
+public final class InlineExpansion implements ITaasTool
 {
 	private static final class InlineTarget
 	{

@@ -49,7 +49,7 @@ import com.joa_ebert.apparat.taas.toolkit.livenessAnalysis.LivenessAnalysis;
  * @author Joa Ebert
  * 
  */
-public class CopyPropagation implements ITaasTool
+public final class CopyPropagation implements ITaasTool
 {
 	private boolean cp( final AbcEnvironment environment,
 			final TaasMethod method ) throws ControlFlowGraphException

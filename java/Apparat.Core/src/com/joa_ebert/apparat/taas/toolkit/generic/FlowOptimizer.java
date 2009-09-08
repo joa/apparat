@@ -44,7 +44,7 @@ import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
  * @author Joa Ebert
  * 
  */
-public class FlowOptimizer implements ITaasTool
+public final class FlowOptimizer implements ITaasTool
 {
 	private TIf.Operator invertOp( final TIf.Operator op )
 	{
@@ -107,9 +107,10 @@ public class FlowOptimizer implements ITaasTool
 		try
 		{
 			final TaasCode code = method.code;
-			final List<SCComponent<TaasVertex>> sccs = sccFinder.find( code );
+			final List<SCComponent<TaasVertex, TaasEdge>> sccs = sccFinder
+					.find( code );
 
-			for( final SCComponent<TaasVertex> scc : sccs )
+			for( final SCComponent<TaasVertex, TaasEdge> scc : sccs )
 			{
 				for( final TaasVertex vertex : scc.vertices )
 				{

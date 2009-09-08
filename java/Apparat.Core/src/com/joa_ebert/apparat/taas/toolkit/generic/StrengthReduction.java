@@ -52,7 +52,7 @@ import com.joa_ebert.apparat.taas.types.UIntType;
  * @author Joa Ebert
  * 
  */
-public class StrengthReduction implements ITaasTool
+public final class StrengthReduction implements ITaasTool
 {
 	private static final Taas TAAS = new Taas();
 

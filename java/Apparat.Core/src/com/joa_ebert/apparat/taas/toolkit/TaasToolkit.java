@@ -152,6 +152,12 @@ public class TaasToolkit
 		}
 	}
 
+	public static void insertBefore( final TaasMethod method,
+			final TaasVertex oldVertex, final TaasValue newValue )
+	{
+		insertBefore( method, oldVertex, new TaasVertex( newValue ) );
+	}
+
 	/**
 	 * Inserts a new vertex before the old vertex.
 	 * 
@@ -1153,8 +1159,7 @@ public class TaasToolkit
 
 	@SuppressWarnings( "unchecked" )
 	public static <E extends TaasValue> void searchAll( final TaasValue value,
-			final Class<E> type, final boolean childrenOnly,
-			final LinkedList<E> list )
+			final Class<E> type, final boolean childrenOnly, final List<E> list )
 	{
 		if( null == value )
 		{
@@ -1301,7 +1306,7 @@ public class TaasToolkit
 	}
 
 	public static <E extends TaasValue> void searchAll( final TaasValue value,
-			final Class<E> type, final LinkedList<E> list )
+			final Class<E> type, final List<E> list )
 	{
 		searchAll( value, type, false, list );
 	}
