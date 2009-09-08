@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	This file is part of Apparat.
+	
+	Apparat is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	Apparat is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+	
+	You should have received a copy of the GNU Lesser General Public License
+	along with Apparat. If not, see <http://www.gnu.org/licenses/>.
+	
+	Copyright (C) 2008, 2009 Joa Ebert
+	http://www.joa-ebert.com/
+-->
+<project name="Apparat.Tests.AS3" default="default" basedir="../">
+	
+	<condition property="exe" value=".exe">
+		<os family="windows"/>
+	</condition>
+	<condition property="exe" value="">
+		<os family="unix"/>
+	</condition>
+	
+	<property name="dir.build" value="${basedir}/build"/>
+	<property name="dir.src" value="${basedir}/src"/>
+	<property name="dir.bin" value="${basedir}/bin"/>
+	
+	<property file="${dir.build}/build.properties"/>
+	
+	<fail unless="FLEX_HOME"/>
+	<fail unless="flex.frameworks"/>
+	<fail unless="flex.bin"/>
+	<fail unless="flex.libs"/>
+	<fail unless="flex.compc"/>
+	<fail unless="flex.mxmlc"/>
+	<fail unless="flex.asdoc"/>
+	
+    <target name="default" depends="compileAll"/>
+	
+	<target name="clean">
+		<delete failonerror="false" file="${dir.bin}/apparat.swc"/>
+	</target>
+	
+	<target name="compileAll" depends="clean">
+		<antcall target="compile">
+			<param name="file" value="Test00"/>
+		</antcall>
+		
+		<antcall target="compile">
+			<param name="file" value="Test01"/>
+		</antcall>
+		
+		<antcall target="compile">
+			<param name="file" value="Test02"/>
+		</antcall>
+		
+		<antcall target="compile">
+			<param name="file" value="Test03"/>
+		</antcall>
+		
+		<antcall target="compile">
+			<param name="file" value="Test04"/>
+		</antcall>
+		
+		<antcall target="compile">
+			<param name="file" value="Test05"/>
+		</antcall>
+		
+		<antcall target="compile">
+			<param name="file" value="Test06"/>
+		</antcall>
+		
+		<antcall target="compile">
+			<param name="file" value="Test07"/>
+		</antcall>
+		
+		<copy
+			todir="${basedir}/../../java/Apparat.Core/assets/"
+			overwrite="true">
+			<fileset dir="${dir.bin}">
+				<include name="**/*.swf"/>
+		    </fileset>
+		</copy>
+	</target>
+	
+    <target name="compile">
+		<fail unless="file"/>
+    	<exec executable="${flex.mxmlc}">
+			<arg line="-define=CONFIG::Debug,false"/>
+			<arg line="-define+=CONFIG::Release,true"/>
+			<arg line="-strict"/>
+			<arg line="-optimize"/>
+			<arg line="-warnings"/>
+			<arg line="-o '${dir.bin}/${file}.swf'"/>
+			<arg line="-el '${flex.libs}/player/10/playerglobal.swc'"/>
+			<arg line="-sp '${dir.src}'"/>
+			<arg line="-- '${dir.src}/${file}.as'"/>
+		</exec>
+	</target>
+</project>
