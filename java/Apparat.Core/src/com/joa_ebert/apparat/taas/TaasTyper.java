@@ -56,75 +56,7 @@ public final class TaasTyper
 {
 	private static final String EMPTY_STRING = "";
 
-	private final AbcEnvironment environment;
-
-	public TaasTyper( final AbcEnvironment environment )
-	{
-		this.environment = environment;
-	}
-
-	public TaasType baseOf( final MultinameType type )
-	{
-		if( type.multiname.kind != MultinameKind.QName )
-		{
-			throw new TaasException( "Multiname has to be of kind QName." );
-		}
-
-		final QName name = (QName)type.multiname;
-
-		try
-		{
-			return toTaasType( environment.baseType( name ) );
-		}
-		catch( final AbcException exception )
-		{
-			throw new TaasException( exception );
-		}
-	}
-
-	public TaasType baseOf( final TaasType type )
-	{
-		if( type instanceof MultinameType )
-		{
-			return baseOf( (MultinameType)type );
-		}
-		else if( type == NullType.INSTANCE )
-		{
-			return null;
-		}
-		else if( type == ObjectType.INSTANCE )
-		{
-			return type;
-		}
-		else if( type == ArrayType.INSTANCE || type == StringType.INSTANCE
-				|| type == NumberType.INSTANCE || type == IntType.INSTANCE
-				|| type == UIntType.INSTANCE )
-		{
-			return ObjectType.INSTANCE;
-		}
-		else if( type == UnknownType.INSTANCE )
-		{
-			return AnyType.INSTANCE;
-		}
-
-		throw new TaasException( "Can not find base type of " + type + "." );
-	}
-
-	public AbcEnvironment.PropertyInfo findProperty(
-			final MultinameType object, final MultinameType property )
-	{
-		try
-		{
-			return environment.findProperty( object.multiname,
-					property.multiname );
-		}
-		catch( final AbcException exception )
-		{
-			throw new TaasException( exception );
-		}
-	}
-
-	public AbstractMultiname toAbcType( final TaasType type )
+	public static AbstractMultiname toAbcType( final TaasType type )
 	{
 		if( null == type )
 		{
@@ -193,7 +125,7 @@ public final class TaasTyper
 	 * 
 	 * @return The native Taas type for the given multiname.
 	 */
-	public TaasType toTaasType( final AbstractMultiname multiname )
+	public static TaasType toTaasType( final AbstractMultiname multiname )
 	{
 		if( null == multiname )
 		{
@@ -255,6 +187,74 @@ public final class TaasTyper
 		}
 
 		return new MultinameType( multiname );
+	}
+
+	private final AbcEnvironment environment;
+
+	public TaasTyper( final AbcEnvironment environment )
+	{
+		this.environment = environment;
+	}
+
+	public TaasType baseOf( final MultinameType type )
+	{
+		if( type.multiname.kind != MultinameKind.QName )
+		{
+			throw new TaasException( "Multiname has to be of kind QName." );
+		}
+
+		final QName name = (QName)type.multiname;
+
+		try
+		{
+			return toTaasType( environment.baseType( name ) );
+		}
+		catch( final AbcException exception )
+		{
+			throw new TaasException( exception );
+		}
+	}
+
+	public TaasType baseOf( final TaasType type )
+	{
+		if( type instanceof MultinameType )
+		{
+			return baseOf( (MultinameType)type );
+		}
+		else if( type == NullType.INSTANCE )
+		{
+			return null;
+		}
+		else if( type == ObjectType.INSTANCE )
+		{
+			return type;
+		}
+		else if( type == ArrayType.INSTANCE || type == StringType.INSTANCE
+				|| type == NumberType.INSTANCE || type == IntType.INSTANCE
+				|| type == UIntType.INSTANCE )
+		{
+			return ObjectType.INSTANCE;
+		}
+		else if( type == UnknownType.INSTANCE )
+		{
+			return AnyType.INSTANCE;
+		}
+
+		throw new TaasException( "Can not find base type of " + type + "." );
+	}
+
+	public AbcEnvironment.PropertyInfo findProperty(
+			final MultinameType object, final MultinameType property )
+	{
+		try
+		{
+			return environment.findProperty( object.multiname,
+					property.multiname );
+		}
+		catch( final AbcException exception )
+		{
+			throw new TaasException( exception );
+		}
 	}
 
 	public TaasType typeOf( final AbstractMultiname multiname )

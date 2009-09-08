@@ -48,24 +48,9 @@ public class TaasMultiname extends TaasConstant
 
 	private final boolean noRuntimeName;
 
-	public TaasMultiname( final AbstractMultiname multiname,
-			final TaasNamespace namespace, final TaasValue name )
+	public TaasMultiname( final AbstractMultiname multiname )
 	{
-		super( new MultinameType( multiname, namespace, name ) );
-
-		this.multiname = multiname;
-		this.runtimeName = name;
-		this.runtimeNamespace = namespace;
-
-		noRuntimeName = false;
-	}
-
-	public TaasMultiname( final AbstractMultiname multiname,
-			final TaasTyper typer )
-	{
-		// super( null != typer ? typer.toNativeType( multiname )
-		// : new MultinameType( multiname ) );
-		super( new MultinameType( multiname ) );
+		super( TaasTyper.toTaasType( multiname ) );
 
 		this.multiname = multiname;
 		this.runtimeName = null;
@@ -83,10 +68,22 @@ public class TaasMultiname extends TaasConstant
 		}
 	}
 
+	public TaasMultiname( final AbstractMultiname multiname,
+			final TaasNamespace namespace, final TaasValue name )
+	{
+		super( new MultinameType( multiname, namespace, name ) );
+
+		this.multiname = multiname;
+		this.runtimeName = name;
+		this.runtimeNamespace = namespace;
+
+		noRuntimeName = false;
+	}
+
 	@Override
 	public TaasValue dup()
 	{
-		return ( noRuntimeName ) ? new TaasMultiname( multiname, null )
+		return ( noRuntimeName ) ? new TaasMultiname( multiname )
 				: new TaasMultiname( multiname, runtimeNamespace, runtimeName );
 	}
 

@@ -25,25 +25,35 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
 import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.AbstractMultiname;
 import com.joa_ebert.apparat.abc.AbstractTrait;
 import com.joa_ebert.apparat.abc.ExceptionHandler;
 import com.joa_ebert.apparat.abc.MethodBody;
+import com.joa_ebert.apparat.abc.MultinameKind;
 import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodeAnalysis;
+import com.joa_ebert.apparat.abc.bytecode.operations.Coerce;
+import com.joa_ebert.apparat.abc.bytecode.operations.CoerceAny;
+import com.joa_ebert.apparat.abc.bytecode.operations.CoerceObject;
+import com.joa_ebert.apparat.abc.bytecode.operations.CoerceString;
 import com.joa_ebert.apparat.abc.bytecode.operations.GetLocal0;
 import com.joa_ebert.apparat.abc.bytecode.operations.Jump;
 import com.joa_ebert.apparat.abc.bytecode.operations.Label;
 import com.joa_ebert.apparat.abc.bytecode.operations.LookupSwitch;
 import com.joa_ebert.apparat.abc.bytecode.operations.Pop;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushByte;
-import com.joa_ebert.apparat.abc.bytecode.operations.PushDouble;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushFalse;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushNaN;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushNull;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushScope;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushUInt;
+import com.joa_ebert.apparat.abc.bytecode.operations.PushUndefined;
 import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.EdgeKind;
@@ -54,10 +64,20 @@ import com.joa_ebert.apparat.taas.expr.TGetProperty;
 import com.joa_ebert.apparat.taas.expr.TIf;
 import com.joa_ebert.apparat.taas.expr.TJump;
 import com.joa_ebert.apparat.taas.expr.TLookupSwitch;
+import com.joa_ebert.apparat.taas.expr.TSetLocal;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
+import com.joa_ebert.apparat.taas.types.AnyType;
+import com.joa_ebert.apparat.taas.types.BooleanType;
 import com.joa_ebert.apparat.taas.types.IntType;
+import com.joa_ebert.apparat.taas.types.MultinameType;
+import com.joa_ebert.apparat.taas.types.NullType;
 import com.joa_ebert.apparat.taas.types.NumberType;
+import com.joa_ebert.apparat.taas.types.ObjectType;
+import com.joa_ebert.apparat.taas.types.StringType;
+import com.joa_ebert.apparat.taas.types.TaasType;
 import com.joa_ebert.apparat.taas.types.UIntType;
+import com.joa_ebert.apparat.taas.types.UndefinedType;
+import com.joa_ebert.apparat.taas.types.UnknownType;
 import com.joa_ebert.apparat.taas.types.VoidType;
 
 /**
@@ -163,41 +183,14 @@ public class TaasEmitter
 		final MethodBody result = createBody();
 		final Bytecode bytecode = result.code;
 
-		final Iterator<TaasValue> iter = list.listIterator();
-
-		final LinkedHashMap<TaasValue, AbstractOperation> jmpSrc = new LinkedHashMap<TaasValue, AbstractOperation>();
-		final LinkedHashMap<TaasValue, AbstractOperation> jmpDst = new LinkedHashMap<TaasValue, AbstractOperation>();
-
 		result.code.add( new GetLocal0() );
 		result.code.add( new PushScope() );
 
-		final int numParameters = method.parameters.size();
+		typeLocals( list, jumps, method, result.code );
 
-		for( final TaasLocal local : method.locals.getRegisterList() )
-		{
-			final int index = local.getIndex();
-
-			if( index <= numParameters )
-			{
-				continue;
-			}
-
-			if( local.getType() == IntType.INSTANCE )
-			{
-				result.code.add( new PushByte( 0 ) );
-				result.code.add( new SetLocal( index ) );
-			}
-			else if( local.getType() == UIntType.INSTANCE )
-			{
-				result.code.add( new PushUInt( 0L ) );
-				result.code.add( new SetLocal( index ) );
-			}
-			else if( local.getType() == NumberType.INSTANCE )
-			{
-				result.code.add( new PushDouble( 0.0 ) );
-				result.code.add( new SetLocal( index ) );
-			}
-		}
+		final Iterator<TaasValue> iter = list.listIterator();
+		final LinkedHashMap<TaasValue, AbstractOperation> jmpSrc = new LinkedHashMap<TaasValue, AbstractOperation>();
+		final LinkedHashMap<TaasValue, AbstractOperation> jmpDst = new LinkedHashMap<TaasValue, AbstractOperation>();
 
 		while( iter.hasNext() )
 		{
@@ -504,5 +497,165 @@ public class TaasEmitter
 				bytecode );
 
 		analysis.updateAll();
+	}
+
+	private void typeLocals( final LinkedList<TaasValue> list,
+			final LinkedHashMap<TaasValue, TaasValue> jumps,
+			final TaasMethod method, final Bytecode code )
+	{
+		final Iterator<TaasValue> iter = list.listIterator();
+
+		final Map<TaasValue, List<TaasLocal>> typedLocals = new LinkedHashMap<TaasValue, List<TaasLocal>>();
+		final LinkedList<TaasLocal> locals = new LinkedList<TaasLocal>();
+		final LinkedList<TaasLocal> toType = new LinkedList<TaasLocal>();
+
+		while( iter.hasNext() )
+		{
+			final TaasValue value = iter.next();
+
+			if( jumps.containsValue( value ) )
+			{
+				//
+				// Jump target
+				//
+
+				int targetIndex = -1;
+				int sourceIndex = -1;
+
+				for( final Entry<TaasValue, TaasValue> entry : jumps.entrySet() )
+				{
+					if( entry.getValue() == value )
+					{
+						targetIndex = list.indexOf( value );
+						sourceIndex = list.indexOf( entry.getKey() );
+
+						break;
+					}
+				}
+
+				if( -1 == targetIndex || -1 == sourceIndex )
+				{
+					invalidCode();
+				}
+
+				if( targetIndex < sourceIndex )
+				{
+					//
+					// Backwards jump
+					//
+
+					typedLocals
+							.put( value, new LinkedList<TaasLocal>( locals ) );
+				}
+			}
+
+			if( value instanceof TSetLocal )
+			{
+				locals.add( ( (TSetLocal)value ).local );
+			}
+
+			if( jumps.containsKey( value ) )
+			{
+				//
+				// Jump source
+				//
+
+				final TaasValue target = jumps.get( value );
+
+				if( typedLocals.containsKey( target ) )
+				{
+					final List<TaasLocal> clone = new LinkedList<TaasLocal>(
+							locals );
+
+					clone.removeAll( typedLocals.get( target ) );
+
+					toType.addAll( clone );
+				}
+			}
+		}
+
+		final int numParameters = method.parameters.size();
+
+		for( final TaasLocal local : method.locals.getRegisterList() )
+		{
+			final int index = local.getIndex();
+
+			if( index <= numParameters )
+			{
+				continue;
+			}
+
+			if( !toType.contains( local ) )
+			{
+				continue;
+			}
+
+			final TaasType type = local.getType();
+
+			if( type == IntType.INSTANCE )
+			{
+				code.add( new PushByte( 0 ) );
+			}
+			else if( type == UIntType.INSTANCE )
+			{
+				code.add( new PushUInt( 0L ) );
+			}
+			else if( type == NumberType.INSTANCE )
+			{
+				code.add( new PushNaN() );
+			}
+			else if( type instanceof MultinameType )
+			{
+				final AbstractMultiname name = ( (MultinameType)type ).multiname;
+				final MultinameKind kind = name.kind;
+
+				code.add( new PushNull() );
+
+				if( kind != MultinameKind.QName && kind != MultinameKind.QNameA )
+				{
+					throw new TaasException(
+							"Local is coerced to runtime type." );
+				}
+				else
+				{
+					code.add( new Coerce( ( (MultinameType)type ).multiname ) );
+				}
+			}
+			else if( type == StringType.INSTANCE )
+			{
+				code.add( new PushNull() );
+				code.add( new CoerceString() );
+			}
+			else if( type == ObjectType.INSTANCE )
+			{
+				code.add( new PushNull() );
+				code.add( new CoerceObject() );
+			}
+			else if( type == AnyType.INSTANCE || type == UnknownType.INSTANCE )
+			{
+				code.add( new CoerceAny() );
+			}
+			else if( type == BooleanType.INSTANCE )
+			{
+				code.add( new PushFalse() );
+			}
+			else if( type == NullType.INSTANCE )
+			{
+				code.add( new PushNull() );
+			}
+			else if( type == UndefinedType.INSTANCE )
+			{
+				code.add( new PushUndefined() );
+			}
+			else
+			{
+				code.add( new PushNull() );
+				code.add( new Coerce( TaasTyper.toAbcType( type ) ) );
+
+				throw new TaasException( "Unhandled type " + type );
+			}
+
+			code.add( new SetLocal( index ) );
+		}
 	}
 }

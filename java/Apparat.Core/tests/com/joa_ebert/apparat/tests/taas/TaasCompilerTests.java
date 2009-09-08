@@ -26,8 +26,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.joa_ebert.apparat.abc.Abc;
@@ -47,8 +49,14 @@ public class TaasCompilerTests
 {
 	static private Swc playerGlobal;
 
+	@AfterClass
+	public static void aftetClass()
+	{
+		playerGlobal = null;
+	}
+
 	@BeforeClass
-	public static void parsePlayerGlobal() throws Exception
+	public static void beforeClass() throws Exception
 	{
 		final File file = new File( "assets/playerglobal.swc" );
 
@@ -121,12 +129,12 @@ public class TaasCompilerTests
 
 			final FlashPlayerTest playerTest = new FlashPlayerTest();
 
-			playerTest.spawn( input, 500 );
+			playerTest.spawn( input, 250 );
 			playerTest.assertNoError();
 
 			final String[] logBefore = playerTest.getLog();
 
-			playerTest.spawn( output, 500 );
+			playerTest.spawn( output, 250 );
 			playerTest.assertNoError();
 
 			final String[] logAfter = playerTest.getLog();
@@ -186,5 +194,30 @@ public class TaasCompilerTests
 	public void test07() throws Exception
 	{
 		compile( "assets/Test07.swf" );
+	}
+
+	@Test
+	public void test08() throws Exception
+	{
+		compile( "assets/Test08.swf" );
+	}
+
+	@Test
+	public void test09() throws Exception
+	{
+		compile( "assets/Test09.swf" );
+	}
+
+	@Test
+	public void test10() throws Exception
+	{
+		compile( "assets/Test10.swf" );
+	}
+
+	@Test
+	@Ignore
+	public void testLorenz() throws Exception
+	{
+		compile( "assets/lorenz.swf" );
 	}
 }

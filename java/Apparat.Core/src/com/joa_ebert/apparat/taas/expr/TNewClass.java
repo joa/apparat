@@ -93,11 +93,11 @@ public class TNewClass extends TaasExpression
 			// Get all scopes up to the ObjectType
 			//
 
-			scopes.addFirst( typer.toAbcType( base.getType() ) );
+			scopes.addFirst( TaasTyper.toAbcType( base.getType() ) );
 
 			while( baseType != ObjectType.INSTANCE )
 			{
-				scopes.addFirst( typer.toAbcType( baseType ) );
+				scopes.addFirst( TaasTyper.toAbcType( baseType ) );
 
 				// if( baseType instanceof MultinameType )
 				// {

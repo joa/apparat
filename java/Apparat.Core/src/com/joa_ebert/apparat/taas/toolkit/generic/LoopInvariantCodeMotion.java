@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.MultinameKind;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.VertexKind;
 import com.joa_ebert.apparat.controlflow.utils.SCCFinder;
@@ -41,6 +42,7 @@ import com.joa_ebert.apparat.taas.TaasVertex;
 import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.expr.AbstractBinaryExpr;
 import com.joa_ebert.apparat.taas.expr.AbstractLocalExpr;
+import com.joa_ebert.apparat.taas.expr.TGetLex;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
 
@@ -132,6 +134,7 @@ public final class LoopInvariantCodeMotion implements ITaasTool
 
 					final TaasValue value = vertex.value;
 					final LinkedList<AbstractBinaryExpr> binExprs = new LinkedList<AbstractBinaryExpr>();
+					final LinkedList<TGetLex> getLexs = new LinkedList<TGetLex>();
 					final LinkedList<TaasLocal> locals = new LinkedList<TaasLocal>();
 
 					//
@@ -141,6 +144,8 @@ public final class LoopInvariantCodeMotion implements ITaasTool
 
 					TaasToolkit.searchAll( value, AbstractBinaryExpr.class,
 							binExprs );
+
+					TaasToolkit.searchAll( value, TGetLex.class, getLexs );
 
 					for( final AbstractBinaryExpr binExpr : binExprs )
 					{
@@ -246,6 +251,103 @@ public final class LoopInvariantCodeMotion implements ITaasTool
 						changed = true;
 					}
 
+					for( final TGetLex getLex : getLexs )
+					{
+						if( DEBUG )
+						{
+							LOG.info( "Found GetLex expression: " + getLex );
+						}
+
+						//
+						// All locals used in this binary expression have to
+						// be loop invariants.
+						//
+
+						final MultinameKind kind = getLex.property.multiname.kind;
+
+						if( kind != MultinameKind.QName
+								&& kind != MultinameKind.QNameA )
+						{
+							LOG.info( "Type is not a QName" );
+							continue;
+						}
+
+						locals.clear();
+
+						TaasToolkit.searchAll( getLex, TaasLocal.class, locals );
+
+						if( DEBUG )
+						{
+							LOG.info( "Affected locals: " + locals.toString() );
+						}
+
+						//
+						// We do nothing if the value is not an invariant.
+						//
+
+						if( !loopInvariant( vertices, locals ) )
+						{
+							if( DEBUG )
+							{
+								LOG
+										.info( "Expression is changed in loop body." );
+							}
+
+							continue;
+						}
+
+						if( DEBUG )
+						{
+							LOG.info( "Expression is a loop invariant." );
+						}
+
+						//
+						// Now create a temporary register and put it in front
+						// of the loop.
+						//
+
+						final TaasLocal local = TaasToolkit
+								.createRegister( method );
+
+						local.typeAs( getLex.getType() );
+
+						final TaasCode code = method.code;
+
+						final List<TaasEdge> incommingOf = code
+								.incommingOf( entry );
+						TaasEdge targetEdge = null;
+
+						for( final TaasEdge edge : incommingOf )
+						{
+							if( scc.contains( edge ) )
+							{
+								continue;
+							}
+
+							if( null != targetEdge )
+							{
+								continue nextSCC;
+							}
+							else
+							{
+								targetEdge = edge;
+							}
+						}
+
+						//
+						// Insert the vertex outside of the loop.
+						// 
+
+						final TaasVertex insertion = new TaasVertex( TAAS
+								.setLocal( local, getLex ) );
+
+						code.add( insertion );
+						targetEdge.endVertex = insertion;
+						code.add( new TaasEdge( insertion, entry ) );
+						TaasToolkit.replace( value, getLex, local );
+
+						changed = true;
+					}
 				}
 
 				//

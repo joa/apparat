@@ -42,6 +42,7 @@ import com.joa_ebert.apparat.taas.TaasEdge;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasLocal;
 import com.joa_ebert.apparat.taas.TaasMethod;
+import com.joa_ebert.apparat.taas.TaasTyper;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
 import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
@@ -414,7 +415,7 @@ public final class InlineExpansion implements ITaasTool
 							method.locals.add( registersToContribute.get( i ) );
 						}
 
-						final TaasType returnType = method.typer
+						final TaasType returnType = TaasTyper
 								.toTaasType( abcMethod.returnType );
 
 						//

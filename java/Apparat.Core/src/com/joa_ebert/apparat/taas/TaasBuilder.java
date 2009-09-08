@@ -106,6 +106,7 @@ public final class TaasBuilder implements IInterpreter
 	private TaasStack operandStack;
 	private TaasStack scopeStack;
 	private TaasRegisters localRegisters;
+	private final List<TaasLocal> killedRegisters = new LinkedList<TaasLocal>();
 
 	private ControlFlowGraph<BytecodeVertex, Edge<BytecodeVertex>> bytecodeGraph;
 	private MarkerManager markers;
@@ -1086,7 +1087,7 @@ public final class TaasBuilder implements IInterpreter
 				name = operandStack.pop();
 				return new TaasMultiname( value, null, name );
 			default:
-				return new TaasMultiname( value, typer );
+				return new TaasMultiname( value );
 		}
 	}
 
@@ -1237,6 +1238,7 @@ public final class TaasBuilder implements IInterpreter
 		operandStackAtMerge.clear();
 		scopeStackAtMerge.clear();
 		bytecodeToVertex.clear();
+		killedRegisters.clear();
 
 		operandStack = new TaasStack( bytecode.methodBody.maxStack );
 		scopeStack = new TaasStack( bytecode.methodBody.maxScopeDepth
@@ -1269,7 +1271,7 @@ public final class TaasBuilder implements IInterpreter
 			{
 				localAt( 0 ).setValue(
 						new TaasInstance( new TaasMultiname(
-								( (Instance)scope ).name, typer ) ) );
+								( (Instance)scope ).name ) ) );
 			}
 			else
 			{
@@ -1286,7 +1288,7 @@ public final class TaasBuilder implements IInterpreter
 			for( final Parameter parameter : method.parameters )
 			{
 				localAt( localIndex++ ).typeAs(
-						typer.toTaasType( parameter.type ) );
+						TaasTyper.toTaasType( parameter.type ) );
 			}
 		}
 
@@ -1786,26 +1788,51 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onGetLocal( final GetLocal operation )
 	{
+		if( killedRegisters.contains( localAt( operation.register ) ) )
+		{
+			TODO();
+		}
+
 		code.add( operandStack.push( localAt( operation.register ) ) );
 	}
 
 	protected void onGetLocal0( final GetLocal0 operation )
 	{
+		if( killedRegisters.contains( localAt( 0 ) ) )
+		{
+			TODO();
+		}
+
 		code.add( operandStack.push( localAt( 0 ) ) );
 	}
 
 	protected void onGetLocal1( final GetLocal1 operation )
 	{
+		if( killedRegisters.contains( localAt( 1 ) ) )
+		{
+			TODO();
+		}
+
 		code.add( operandStack.push( localAt( 1 ) ) );
 	}
 
 	protected void onGetLocal2( final GetLocal2 operation )
 	{
+		if( killedRegisters.contains( localAt( 2 ) ) )
+		{
+			TODO();
+		}
+
 		code.add( operandStack.push( localAt( 2 ) ) );
 	}
 
 	protected void onGetLocal3( final GetLocal3 operation )
 	{
+		if( killedRegisters.contains( localAt( 3 ) ) )
+		{
+			TODO();
+		}
+
 		code.add( operandStack.push( localAt( 3 ) ) );
 	}
 
@@ -1942,7 +1969,11 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onKill( final Kill operation )
 	{
-		code.add( TAAS.kill( localAt( operation.register ) ) );
+		killedRegisters.add( localAt( operation.register ) );
+		// TODO implement this mess correct ...
+		// or assume a local register will never be set again after
+		// it has been killed ...
+		// code.add( TAAS.kill( localAt( operation.register ) ) );
 	}
 
 	protected void onLabel( final Label operation )
@@ -2214,6 +2245,11 @@ public final class TaasBuilder implements IInterpreter
 		final TaasLocal local = localAt( operation.register );
 		final TaasValue value = operandStack.pop();
 
+		if( killedRegisters.contains( local ) )
+		{
+			TODO();
+		}
+
 		if( !local.isTyped() )
 		{
 			local.typeAs( value.getType() );
@@ -2226,6 +2262,11 @@ public final class TaasBuilder implements IInterpreter
 	{
 		final TaasLocal local = localAt( 0 );
 		final TaasValue value = operandStack.pop();
+
+		if( killedRegisters.contains( local ) )
+		{
+			TODO();
+		}
 
 		if( !local.isTyped() )
 		{
@@ -2240,6 +2281,11 @@ public final class TaasBuilder implements IInterpreter
 		final TaasLocal local = localAt( 1 );
 		final TaasValue value = operandStack.pop();
 
+		if( killedRegisters.contains( local ) )
+		{
+			TODO();
+		}
+
 		if( !local.isTyped() )
 		{
 			local.typeAs( value.getType() );
@@ -2253,6 +2299,11 @@ public final class TaasBuilder implements IInterpreter
 		final TaasLocal local = localAt( 2 );
 		final TaasValue value = operandStack.pop();
 
+		if( killedRegisters.contains( local ) )
+		{
+			TODO();
+		}
+
 		if( !local.isTyped() )
 		{
 			local.typeAs( value.getType() );
@@ -2265,6 +2316,11 @@ public final class TaasBuilder implements IInterpreter
 	{
 		final TaasLocal local = localAt( 3 );
 		final TaasValue value = operandStack.pop();
+
+		if( killedRegisters.contains( local ) )
+		{
+			TODO();
+		}
 
 		if( !local.isTyped() )
 		{
@@ -2384,6 +2440,7 @@ public final class TaasBuilder implements IInterpreter
 		markers = null;
 		bytecodeGraph = null;
 
+		killedRegisters.clear();
 		visitedVertices.clear();
 		visitedMarkers.clear();
 		operandStackAtMerge.clear();

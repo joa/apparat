@@ -34,7 +34,6 @@ import com.joa_ebert.apparat.taas.TaasLocal;
  */
 public class TKill extends AbstractLocalExpr
 {
-
 	public TKill( final TaasLocal local )
 	{
 		super( local );

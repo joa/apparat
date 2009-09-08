@@ -36,6 +36,7 @@ import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.TaasVertex;
 import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.expr.AbstractLocalExpr;
+import com.joa_ebert.apparat.taas.expr.TKill;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
 import com.joa_ebert.apparat.taas.toolkit.TaasToolkit;
 
@@ -85,7 +86,10 @@ public final class DeadCodeElimination implements ITaasTool
 				{
 					final TaasLocal local = iter.next();
 
-					if( TaasToolkit.references( vertex.value, local ) )
+					final TaasValue value = vertex.value;
+
+					if( !( value instanceof TKill )
+							&& TaasToolkit.references( value, local ) )
 					{
 						iter.remove();
 					}

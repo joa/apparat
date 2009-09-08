@@ -60,7 +60,7 @@ import com.joa_ebert.apparat.tools.io.TagIO;
  */
 public class TaasCompiler implements IMethodVisitor
 {
-	public static final boolean SHOW_ALL_TRANSFORMATIONS = false;
+	public static final boolean SHOW_ALL_TRANSFORMATIONS = true;
 	private static final boolean DEBUG = false;
 
 	private final AbcEnvironment environment;
@@ -72,8 +72,7 @@ public class TaasCompiler implements IMethodVisitor
 	private PermutationChain postprocessor;
 
 	private int methodIndex = 0;
-
-	// private final int targetMethod = 6;
+	private final int targetMethod = -1;
 
 	public TaasCompiler() throws IOException
 	{
@@ -358,10 +357,17 @@ public class TaasCompiler implements IMethodVisitor
 	{
 		if( DEBUG )
 		{
-			// if( methodIndex == targetMethod )
-			// {
-			replace( method );
-			// }
+			if( targetMethod != -1 )
+			{
+				if( methodIndex == targetMethod )
+				{
+					replace( method );
+				}
+			}
+			else
+			{
+				replace( method );
+			}
 		}
 		else
 		{
