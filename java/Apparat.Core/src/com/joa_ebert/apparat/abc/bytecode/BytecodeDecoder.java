@@ -375,6 +375,7 @@ public final class BytecodeDecoder
 					break;
 
 				case Op.PushByte:
+				{
 					//
 					// UNDOCUMENTED: The documentation states that PushByte
 					// uses an unsigned byte which is incorrect.
@@ -392,6 +393,7 @@ public final class BytecodeDecoder
 
 					( (PushByte)operation ).value = value;
 					break;
+				}
 
 				case Op.PushDouble:
 					( (PushDouble)operation ).value = pool.getDouble( input
@@ -409,8 +411,24 @@ public final class BytecodeDecoder
 					break;
 
 				case Op.PushShort:
-					( (PushShort)operation ).value = input.readU30();
+				{
+					//
+					// UNDOCUMENTED: The documentation forgets to mention
+					// that the U30 which is unsigned has to be converted
+					// to a signed value.
+					//
+
+					int value = input.readU30();
+
+					if( 0 != ( value & 0x20000000 ) )
+					{
+						value &= 0x1fffffff;
+						value -= 0x20000000;
+					}
+
+					( (PushShort)operation ).value = value;
 					break;
+				}
 
 				case Op.PushString:
 					( (PushString)operation ).value = pool.getString( input
