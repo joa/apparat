@@ -72,7 +72,7 @@ public final class InlineExpansion implements ITaasTool
 		}
 	}
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private static final Logger LOG = DEBUG ? Logger
 			.getLogger( InlineExpansion.class.getName() ) : null;

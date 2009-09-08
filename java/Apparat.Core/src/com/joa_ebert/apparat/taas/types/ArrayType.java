@@ -19,40 +19,40 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc;
+package com.joa_ebert.apparat.taas.types;
 
 /**
  * 
  * @author Joa Ebert
  * 
  */
-public abstract class AbstractMultiname
+public final class ArrayType extends TaasType
 {
-	public final MultinameKind kind;
+	public static final ArrayType INSTANCE = new ArrayType();
 
-	protected AbstractMultiname( final MultinameKind kind )
+	private ArrayType()
 	{
-		this.kind = kind;
 	}
 
-	public void accept( final AbcContext context, final IAbcVisitor visitor )
+	public boolean equals( final ArrayType other )
 	{
-		visitor.visit( context, this );
-	}
-
-	public boolean equals( final AbstractMultiname other )
-	{
-		return kind.equals( other.kind );
+		return true;
 	}
 
 	@Override
 	public boolean equals( final Object other )
 	{
-		if( other instanceof AbstractMultiname )
+		if( other instanceof ArrayType )
 		{
-			return equals( (AbstractMultiname)other );
+			return true;
 		}
 
 		return false;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[ArrayType]";
 	}
 }

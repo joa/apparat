@@ -28,6 +28,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -99,6 +101,27 @@ public class FlashPlayerTest
 		return result;
 	}
 
+	public String[] getLog() throws IOException
+	{
+		final List<String> list = new LinkedList<String>();
+		final FileReader fileReader = new FileReader( getFlashLog() );
+		final BufferedReader bufferedReader = new BufferedReader( fileReader );
+
+		while( bufferedReader.ready() )
+		{
+			list.add( bufferedReader.readLine() );
+		}
+
+		bufferedReader.close();
+		fileReader.close();
+
+		final String[] result = new String[ list.size() ];
+
+		list.toArray( result );
+
+		return result;
+	}
+
 	public void printLog( final OutputStream output ) throws IOException
 	{
 		printLog( new PrintWriter( output ) );
@@ -145,7 +168,7 @@ public class FlashPlayerTest
 	public void spawn( final String swf ) throws IOException,
 			InterruptedException
 	{
-		spawn( swf, 0x200 );
+		spawn( swf, 0x3e8 );
 	}
 
 	public void spawn( final String swf, final long timeout )

@@ -101,8 +101,10 @@ public class TaasCompilerTests
 
 			for( final Entry<Abc, DoABCTag> entry : abcMap.entrySet() )
 			{
-				entry.getKey().accept( compiler );
-				entry.getKey().write( entry.getValue() );
+				final Abc abc = entry.getKey();
+
+				abc.accept( compiler );
+				abc.write( entry.getValue() );
 			}
 
 			final String name = input.getName();
@@ -119,12 +121,12 @@ public class TaasCompilerTests
 
 			final FlashPlayerTest playerTest = new FlashPlayerTest();
 
-			playerTest.spawn( input, 5000 );
+			playerTest.spawn( input, 500 );
 			playerTest.assertNoError();
 
 			final String[] logBefore = playerTest.getLog();
 
-			playerTest.spawn( output, 5000 );
+			playerTest.spawn( output, 500 );
 			playerTest.assertNoError();
 
 			final String[] logAfter = playerTest.getLog();
@@ -139,8 +141,50 @@ public class TaasCompilerTests
 	}
 
 	@Test
-	public void test() throws Exception
+	public void test00() throws Exception
 	{
-		compile( "assets/Test9.swf" );
+		compile( "assets/Test00.swf" );
+	}
+
+	@Test
+	public void test01() throws Exception
+	{
+		compile( "assets/Test01.swf" );
+	}
+
+	@Test
+	public void test02() throws Exception
+	{
+		compile( "assets/Test02.swf" );
+	}
+
+	@Test
+	public void test03() throws Exception
+	{
+		compile( "assets/Test03.swf" );
+	}
+
+	@Test
+	public void test04() throws Exception
+	{
+		compile( "assets/Test04.swf" );
+	}
+
+	@Test
+	public void test05() throws Exception
+	{
+		compile( "assets/Test05.swf" );
+	}
+
+	@Test
+	public void test06() throws Exception
+	{
+		compile( "assets/Test06.swf" );
+	}
+
+	@Test
+	public void test07() throws Exception
+	{
+		compile( "assets/Test07.swf" );
 	}
 }

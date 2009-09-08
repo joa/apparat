@@ -28,6 +28,7 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.taas.TaasConstant;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasReference;
+import com.joa_ebert.apparat.taas.TaasTyper;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.MultinameType;
 
@@ -47,8 +48,23 @@ public class TaasMultiname extends TaasConstant
 
 	private final boolean noRuntimeName;
 
-	public TaasMultiname( final AbstractMultiname multiname )
+	public TaasMultiname( final AbstractMultiname multiname,
+			final TaasNamespace namespace, final TaasValue name )
 	{
+		super( new MultinameType( multiname, namespace, name ) );
+
+		this.multiname = multiname;
+		this.runtimeName = name;
+		this.runtimeNamespace = namespace;
+
+		noRuntimeName = false;
+	}
+
+	public TaasMultiname( final AbstractMultiname multiname,
+			final TaasTyper typer )
+	{
+		// super( null != typer ? typer.toNativeType( multiname )
+		// : new MultinameType( multiname ) );
 		super( new MultinameType( multiname ) );
 
 		this.multiname = multiname;
@@ -67,22 +83,10 @@ public class TaasMultiname extends TaasConstant
 		}
 	}
 
-	public TaasMultiname( final AbstractMultiname multiname,
-			final TaasNamespace namespace, final TaasValue name )
-	{
-		super( new MultinameType( multiname, namespace, name ) );
-
-		this.multiname = multiname;
-		this.runtimeName = name;
-		this.runtimeNamespace = namespace;
-
-		noRuntimeName = false;
-	}
-
 	@Override
 	public TaasValue dup()
 	{
-		return ( noRuntimeName ) ? new TaasMultiname( multiname )
+		return ( noRuntimeName ) ? new TaasMultiname( multiname, null )
 				: new TaasMultiname( multiname, runtimeNamespace, runtimeName );
 	}
 

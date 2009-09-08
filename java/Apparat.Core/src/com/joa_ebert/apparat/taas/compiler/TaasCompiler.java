@@ -21,14 +21,24 @@
 
 package com.joa_ebert.apparat.taas.compiler;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.zip.DataFormatException;
+
+import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.abc.AbcContext;
 import com.joa_ebert.apparat.abc.AbcEnvironment;
+import com.joa_ebert.apparat.abc.AbcException;
 import com.joa_ebert.apparat.abc.IMethodVisitor;
 import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodePrinter;
 import com.joa_ebert.apparat.abc.bytecode.permutations.PermutationChain;
+import com.joa_ebert.apparat.swc.Swc;
+import com.joa_ebert.apparat.swf.Swf;
+import com.joa_ebert.apparat.swf.SwfFormatException;
+import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.taas.TaasBuilder;
 import com.joa_ebert.apparat.taas.TaasEmitter;
 import com.joa_ebert.apparat.taas.TaasException;
@@ -42,6 +52,7 @@ import com.joa_ebert.apparat.taas.toolkit.generic.InlineExpansion;
 import com.joa_ebert.apparat.taas.toolkit.generic.LoopInvariantCodeMotion;
 import com.joa_ebert.apparat.taas.toolkit.generic.StrengthReduction;
 import com.joa_ebert.apparat.taas.toolkit.generic.TailRecursionElimination;
+import com.joa_ebert.apparat.tools.io.TagIO;
 
 /**
  * @author Joa Ebert
@@ -50,7 +61,7 @@ import com.joa_ebert.apparat.taas.toolkit.generic.TailRecursionElimination;
 public class TaasCompiler implements IMethodVisitor
 {
 	public static final boolean SHOW_ALL_TRANSFORMATIONS = false;
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private final AbcEnvironment environment;
 
@@ -64,12 +75,46 @@ public class TaasCompiler implements IMethodVisitor
 
 	// private final int targetMethod = 6;
 
+	public TaasCompiler() throws IOException
+	{
+		this( DefaultEnvironmentFactory.create() );
+	}
+
 	public TaasCompiler( final AbcEnvironment environment )
 	{
 		this.environment = environment;
 
 		setPreprocessor( TaasPreprocessor.INSTANCE );
 		setPostprocessor( TaasPostprocessor.INSTANCE );
+	}
+
+	public void addLibrary( final Abc library )
+	{
+		environment.add( library );
+	}
+
+	public void addLibrary( final List<ITag> library ) throws IOException,
+			AbcException
+	{
+		environment.add( library );
+	}
+
+	public void addLibrary( final Swc library ) throws SwfFormatException,
+			IOException, DataFormatException, AbcException
+	{
+		environment.add( library );
+	}
+
+	public void addLibrary( final Swf library ) throws IOException,
+			AbcException
+	{
+		environment.add( library );
+	}
+
+	public void addLibrary( final TagIO library ) throws IOException,
+			AbcException
+	{
+		environment.add( library );
 	}
 
 	public TaasMethod compile( final Method method )
@@ -141,6 +186,11 @@ public class TaasCompiler implements IMethodVisitor
 			return false;
 		}
 
+	}
+
+	public AbcEnvironment getAbcEnvironment()
+	{
+		return environment;
 	}
 
 	private boolean optimize( final TaasMethod method )

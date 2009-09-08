@@ -27,7 +27,7 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.NewArray;
-import com.joa_ebert.apparat.taas.types.ObjectType;
+import com.joa_ebert.apparat.taas.types.ArrayType;
 
 /**
  * @author Joa Ebert
@@ -40,7 +40,7 @@ public class TaasArray extends TaasValue
 
 	public TaasArray( final int numElements )
 	{
-		super( ObjectType.INSTANCE );
+		super( ArrayType.INSTANCE );
 
 		elements = new ArrayList<TaasValue>( numElements );
 	}

@@ -1085,7 +1085,7 @@ public final class TaasBuilder implements IInterpreter
 				name = operandStack.pop();
 				return new TaasMultiname( value, null, name );
 			default:
-				return new TaasMultiname( value );
+				return new TaasMultiname( value, typer );
 		}
 	}
 
@@ -1268,7 +1268,7 @@ public final class TaasBuilder implements IInterpreter
 			{
 				localAt( 0 ).setValue(
 						new TaasInstance( new TaasMultiname(
-								( (Instance)scope ).name ) ) );
+								( (Instance)scope ).name, typer ) ) );
 			}
 			else
 			{

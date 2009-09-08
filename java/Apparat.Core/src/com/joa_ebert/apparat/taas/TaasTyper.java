@@ -32,6 +32,7 @@ import com.joa_ebert.apparat.abc.multinames.Typename;
 import com.joa_ebert.apparat.taas.constants.TaasGlobalScope;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 import com.joa_ebert.apparat.taas.types.AnyType;
+import com.joa_ebert.apparat.taas.types.ArrayType;
 import com.joa_ebert.apparat.taas.types.BooleanType;
 import com.joa_ebert.apparat.taas.types.IntType;
 import com.joa_ebert.apparat.taas.types.MultinameType;
@@ -94,8 +95,8 @@ public final class TaasTyper
 		throw new TaasException( "Can not find base type of " + type + "." );
 	}
 
-	public AbcEnvironment.PropertyInfo findProperty( final MultinameType object,
-			final MultinameType property )
+	public AbcEnvironment.PropertyInfo findProperty(
+			final MultinameType object, final MultinameType property )
 	{
 		try
 		{
@@ -133,6 +134,10 @@ public final class TaasTyper
 				{
 					final String name = qname.name;
 
+					if( name.equals( "Array" ) )
+					{
+						return ArrayType.INSTANCE;
+					}
 					if( name.equals( "int" ) )
 					{
 						return IntType.INSTANCE;

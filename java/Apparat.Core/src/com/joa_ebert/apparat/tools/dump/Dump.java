@@ -278,7 +278,7 @@ public final class Dump implements ITool
 
 						if( exportUML )
 						{
-							environment.addAbc( abc );
+							environment.add( abc );
 
 							ToolLog.success( "Added " + doABC.name
 									+ ".abc to environment." );

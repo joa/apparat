@@ -21,10 +21,13 @@
 
 package com.joa_ebert.apparat.abc;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 import com.joa_ebert.apparat.abc.analysis.TypeSolver;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
@@ -34,6 +37,13 @@ import com.joa_ebert.apparat.abc.traits.TraitGetter;
 import com.joa_ebert.apparat.abc.traits.TraitMethod;
 import com.joa_ebert.apparat.abc.traits.TraitSetter;
 import com.joa_ebert.apparat.abc.utils.StringConverter;
+import com.joa_ebert.apparat.swc.Swc;
+import com.joa_ebert.apparat.swf.Swf;
+import com.joa_ebert.apparat.swf.SwfFormatException;
+import com.joa_ebert.apparat.swf.tags.ITag;
+import com.joa_ebert.apparat.swf.tags.Tags;
+import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
+import com.joa_ebert.apparat.tools.io.TagIO;
 
 /**
  * 
@@ -140,14 +150,14 @@ public final class AbcEnvironment
 
 	public AbcEnvironment( final Abc abc )
 	{
-		addAbc( abc );
+		add( abc );
 	}
 
 	public AbcEnvironment( final Abc[] abcs )
 	{
 		for( final Abc abc : abcs )
 		{
-			addAbc( abc );
+			add( abc );
 		}
 	}
 
@@ -156,22 +166,72 @@ public final class AbcEnvironment
 		contexts.add( context );
 	}
 
-	public void addAbc( final Abc abc )
+	public void add( final Abc abc )
 	{
 		contexts.add( new AbcContext( abc ) );
+	}
+
+	public void add( final AbcContext context )
+	{
+		contexts.add( context );
+	}
+
+	public void add( final List<ITag> tags ) throws IOException, AbcException
+	{
+		for( final ITag tag : tags )
+		{
+			if( Tags.DoABC == tag.getType() )
+			{
+				final DoABCTag doABC = (DoABCTag)tag;
+				final Abc abc = new Abc();
+
+				abc.read( doABC );
+
+				add( abc );
+			}
+		}
+	}
+
+	public void add( final Swc swc ) throws SwfFormatException, IOException,
+			DataFormatException, AbcException
+	{
+		final Swf swf = new Swf();
+		ByteArrayInputStream input = null;
+
+		try
+		{
+			input = new ByteArrayInputStream( swc.library );
+
+			swf.read( input, swc.library.length );
+		}
+		finally
+		{
+			if( null != input )
+			{
+				input.close();
+				input = null;
+			}
+		}
+
+		add( swf );
+	}
+
+	public void add( final Swf swf ) throws IOException, AbcException
+	{
+		add( swf.tags );
+	}
+
+	public void add( final TagIO tagIO ) throws IOException, AbcException
+	{
+		add( tagIO.getTags() );
 	}
 
 	public void addAll( final Collection<? extends Abc> collection )
 	{
 		for( final Abc abc : collection )
 		{
-			addAbc( abc );
+			add( abc );
 		}
-	}
-
-	public void addContext( final AbcContext context )
-	{
-		contexts.add( context );
 	}
 
 	public QName baseType( final QName name ) throws AbcException
@@ -534,6 +594,15 @@ public final class AbcEnvironment
 			final AbstractMultiname property, final boolean strict )
 			throws AbcException
 	{
+		switch( property.kind )
+		{
+			case MultinameL:
+			case MultinameLA:
+			case RTQNameLA:
+			case RTQNameL:
+				return null;
+		}
+
 		AbcContext context = null;
 		Instance instance = null;
 
@@ -595,6 +664,7 @@ public final class AbcEnvironment
 
 			throw new AbcException( "Could not solve property "
 					+ StringConverter.toString( property ) + " on "
+					+ StringConverter.toString( object ) + " = "
 					+ StringConverter.toString( instance ) );
 		}
 

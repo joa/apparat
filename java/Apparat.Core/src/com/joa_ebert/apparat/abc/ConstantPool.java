@@ -70,40 +70,12 @@ public final class ConstantPool
 	{
 		if( !multinameTable.contains( value ) )
 		{
-			switch( value.kind )
-			{
-				case Multiname:
-				case MultinameA:
-					add( ( (Multiname)value ).name );
-					add( ( (Multiname)value ).namespaceSet );
-					break;
-				case MultinameL:
-				case MultinameLA:
-					add( ( (MultinameL)value ).namespaceSet );
-					break;
-				case QName:
-				case QNameA:
-					add( ( (QName)value ).name );
-					add( ( (QName)value ).namespace );
-					break;
-				case RTQName:
-				case RTQNameA:
-					add( ( (RTQName)value ).name );
-					break;
-				case Typename:
-					final Typename typename = (Typename)value;
-
-					add( typename.name );
-
-					for( final AbstractMultiname multiname : typename.parameters )
-					{
-						add( multiname );
-					}
-					break;
-
-			}
-
+			addChildren( value );
 			return multinameTable.add( value );
+		}
+		else
+		{
+			addChildren( value );
 		}
 
 		return false;
@@ -215,6 +187,42 @@ public final class ConstantPool
 		// }
 		//
 		// return false;
+	}
+
+	private void addChildren( final AbstractMultiname value )
+	{
+		switch( value.kind )
+		{
+			case Multiname:
+			case MultinameA:
+				add( ( (Multiname)value ).name );
+				add( ( (Multiname)value ).namespaceSet );
+				break;
+			case MultinameL:
+			case MultinameLA:
+				add( ( (MultinameL)value ).namespaceSet );
+				break;
+			case QName:
+			case QNameA:
+				add( ( (QName)value ).name );
+				add( ( (QName)value ).namespace );
+				break;
+			case RTQName:
+			case RTQNameA:
+				add( ( (RTQName)value ).name );
+				break;
+			case Typename:
+				final Typename typename = (Typename)value;
+
+				add( typename.name );
+
+				for( final AbstractMultiname multiname : typename.parameters )
+				{
+					add( multiname );
+				}
+				break;
+
+		}
 	}
 
 	public void clear()
