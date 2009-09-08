@@ -414,7 +414,7 @@ public class TaasEmitter
 					{
 						if( null != trueEdge )
 						{
-							invalidCode();
+							invalidCode( vertex );
 						}
 
 						trueEdge = edge;
@@ -423,7 +423,7 @@ public class TaasEmitter
 					{
 						if( null != falseEdge )
 						{
-							invalidCode();
+							invalidCode( vertex );
 						}
 
 						falseEdge = edge;

@@ -42,6 +42,12 @@ public final class TShiftLeft extends AbstractBinaryExpr
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		return new TShiftLeft( lhs.dup(), rhs.dup() );
+	}
+
+	@Override
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{

@@ -64,7 +64,7 @@ public final class MultinameType extends TaasType
 
 	public boolean equals( final MultinameType other )
 	{
-		if( multiname.equals( other ) )
+		if( multiname.equals( other.multiname ) )
 		{
 			if( null != runtimeName || null != other.runtimeName )
 			{

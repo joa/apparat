@@ -101,9 +101,13 @@ public class TSetLocal extends AbstractLocalExpr
 			}
 			else
 			{
-				throw new TaasException( "Implicit conversion from "
-						+ value.getType().toString() + " to " + type.toString()
-						+ "." );
+				if( local.isTyped() && !type.equals( value.getType() ) )
+				{
+					throw new TaasException( "Implicit conversion from "
+							+ value.getType().toString() + " to "
+							+ type.toString() + " for " + local.toString()
+							+ "." );
+				}
 			}
 		}
 		final int index = local.getIndex();

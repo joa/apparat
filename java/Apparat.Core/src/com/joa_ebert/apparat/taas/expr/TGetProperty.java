@@ -54,6 +54,13 @@ public class TGetProperty extends TaasExpression
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		return new TGetProperty( object.dup(), (TaasMultiname)property.dup(),
+				getType() );
+	}
+
+	@Override
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{

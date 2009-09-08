@@ -45,6 +45,12 @@ public class TAsType extends AbstractBinaryExpr
 	}
 
 	@Override
+	public TaasValue dup()
+	{
+		return new TAsType( lhs.dup(), rhs.dup() );
+	}
+
+	@Override
 	protected void emitOps( final AbcEnvironment environment,
 			final MethodBody body, final Bytecode code )
 	{

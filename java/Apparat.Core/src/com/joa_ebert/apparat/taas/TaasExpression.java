@@ -41,7 +41,7 @@ public abstract class TaasExpression extends TaasValue
 	@Override
 	public TaasValue dup()
 	{
-		throw new TaasException( "TODO" );
+		throw new TaasException( "TODO " + toString() );
 	}
 
 	@Override

@@ -40,7 +40,6 @@ import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasTyper;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.ClassType;
-import com.joa_ebert.apparat.taas.types.MultinameType;
 import com.joa_ebert.apparat.taas.types.NullType;
 import com.joa_ebert.apparat.taas.types.ObjectType;
 import com.joa_ebert.apparat.taas.types.TaasType;
@@ -94,15 +93,17 @@ public class TNewClass extends TaasExpression
 			// Get all scopes up to the ObjectType
 			//
 
-			scopes.addFirst( ( (MultinameType)( base.getType() ) ).multiname );
+			scopes.addFirst( typer.toAbcType( base.getType() ) );
 
 			while( baseType != ObjectType.INSTANCE )
 			{
-				if( baseType instanceof MultinameType )
-				{
-					final MultinameType multinameType = (MultinameType)baseType;
-					scopes.addFirst( multinameType.multiname );
-				}
+				scopes.addFirst( typer.toAbcType( baseType ) );
+
+				// if( baseType instanceof MultinameType )
+				// {
+				// final MultinameType multinameType = (MultinameType)baseType;
+				// scopes.addFirst( multinameType.multiname );
+				// }
 
 				baseType = typer.baseOf( baseType );
 			}

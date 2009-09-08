@@ -26,6 +26,7 @@ import com.joa_ebert.apparat.abc.AbcException;
 import com.joa_ebert.apparat.abc.AbstractMultiname;
 import com.joa_ebert.apparat.abc.ConstantPool;
 import com.joa_ebert.apparat.abc.MultinameKind;
+import com.joa_ebert.apparat.abc.Namespace;
 import com.joa_ebert.apparat.abc.NamespaceKind;
 import com.joa_ebert.apparat.abc.multinames.QName;
 import com.joa_ebert.apparat.abc.multinames.Typename;
@@ -73,7 +74,7 @@ public final class TaasTyper
 
 		try
 		{
-			return toNativeType( environment.baseType( name ) );
+			return toTaasType( environment.baseType( name ) );
 		}
 		catch( final AbcException exception )
 		{
@@ -90,6 +91,20 @@ public final class TaasTyper
 		else if( type == NullType.INSTANCE )
 		{
 			return null;
+		}
+		else if( type == ObjectType.INSTANCE )
+		{
+			return type;
+		}
+		else if( type == ArrayType.INSTANCE || type == StringType.INSTANCE
+				|| type == NumberType.INSTANCE || type == IntType.INSTANCE
+				|| type == UIntType.INSTANCE )
+		{
+			return ObjectType.INSTANCE;
+		}
+		else if( type == UnknownType.INSTANCE )
+		{
+			return AnyType.INSTANCE;
 		}
 
 		throw new TaasException( "Can not find base type of " + type + "." );
@@ -109,6 +124,67 @@ public final class TaasTyper
 		}
 	}
 
+	public AbstractMultiname toAbcType( final TaasType type )
+	{
+		if( null == type )
+		{
+			throw new TaasException( "NULL_TYPE" );
+		}
+
+		if( type instanceof MultinameType )
+		{
+			return ( (MultinameType)type ).multiname;
+		}
+
+		final QName result = new QName();
+
+		result.namespace = new Namespace( NamespaceKind.PackageNamespace,
+				EMPTY_STRING );
+
+		if( ArrayType.INSTANCE == type )
+		{
+			result.name = "Array";
+		}
+		if( IntType.INSTANCE == type )
+		{
+			result.name = "int";
+		}
+		else if( UIntType.INSTANCE == type )
+		{
+			result.name = "uint";
+		}
+		else if( NumberType.INSTANCE == type )
+		{
+			result.name = "Number";
+		}
+		else if( BooleanType.INSTANCE == type )
+		{
+			result.name = "Boolean";
+		}
+		else if( StringType.INSTANCE == type )
+		{
+			result.name = "String";
+		}
+		else if( ObjectType.INSTANCE == type )
+		{
+			result.name = "Object";
+		}
+		else if( NamespaceType.INSTANCE == type )
+		{
+			result.name = "Namespace";
+		}
+		else if( VoidType.INSTANCE == type )
+		{
+			result.name = "void";
+		}
+		else if( AnyType.INSTANCE == type )
+		{
+			result.name = ConstantPool.EMPTY_STRING;
+		}
+
+		return result;
+	}
+
 	/**
 	 * Converts an abstract multiname to the native Taas type.
 	 * 
@@ -117,7 +193,7 @@ public final class TaasTyper
 	 * 
 	 * @return The native Taas type for the given multiname.
 	 */
-	public TaasType toNativeType( final AbstractMultiname multiname )
+	public TaasType toTaasType( final AbstractMultiname multiname )
 	{
 		if( null == multiname )
 		{
@@ -183,7 +259,7 @@ public final class TaasTyper
 
 	public TaasType typeOf( final AbstractMultiname multiname )
 	{
-		return toNativeType( multiname );
+		return toTaasType( multiname );
 	}
 
 	public TaasType typeOf( final TaasStack scopeStack,
@@ -261,10 +337,10 @@ public final class TaasTyper
 				{
 					case QName:
 					case QNameA:
-						return toNativeType( environment.propertyType(
-								multiname, property.multiname, strict ) );
+						return toTaasType( environment.propertyType( multiname,
+								property.multiname, strict ) );
 					case Typename:// Undocumented, might break in the future!
-						return toNativeType( ( (Typename)multiname ).parameters
+						return toTaasType( ( (Typename)multiname ).parameters
 								.get( 0 ) );
 					case MultinameL:
 					case RTQName:

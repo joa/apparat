@@ -41,6 +41,7 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.Marker;
 import com.joa_ebert.apparat.abc.bytecode.MarkerManager;
 import com.joa_ebert.apparat.abc.bytecode.Op;
+import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodePrinter;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodeVertex;
 import com.joa_ebert.apparat.abc.bytecode.analysis.ControlFlowGraphBuilder;
 import com.joa_ebert.apparat.abc.bytecode.analysis.IInterpreter;
@@ -1285,7 +1286,7 @@ public final class TaasBuilder implements IInterpreter
 			for( final Parameter parameter : method.parameters )
 			{
 				localAt( localIndex++ ).typeAs(
-						typer.toNativeType( parameter.type ) );
+						typer.toTaasType( parameter.type ) );
 			}
 		}
 
@@ -1313,6 +1314,8 @@ public final class TaasBuilder implements IInterpreter
 		catch( final TaasException ex )
 		{
 			System.err.println( "####TAAS#ERROR#LOG#########################" );
+			new BytecodePrinter( System.err ).interpret( environment, bytecode );
+			System.err.println( "" );
 			System.err.println( localRegisters.debug() + "\n" );
 			System.err.println( operandStack.debug() + "\n" );
 			System.err.println( code.debug() );
@@ -1698,8 +1701,30 @@ public final class TaasBuilder implements IInterpreter
 	{
 		final TaasValue value = operandStack.pop();
 
-		operandStack.push( value );
-		operandStack.push( value.dup() );
+		if( value instanceof TaasLocal )
+		{
+			code.add( operandStack.push( value ) );
+			code.add( operandStack.push( value ) );
+		}
+		else
+		{
+			//
+			// Since not all variables may be duplicated we use a generic
+			// approach which will allow us to use the same value twice
+			// using a local variable.
+			//
+			// Since we perform copy propagation before sending this method
+			// out we will get for most of them.
+			//
+
+			final TaasLocal local = localRegisters.create();
+
+			local.typeAs( value.getType() );
+
+			code.add( TAAS.setLocal( local, value ) );
+			code.add( operandStack.push( local ) );
+			code.add( operandStack.push( local ) );
+		}
 	}
 
 	protected void onEquals( final Equals operation )

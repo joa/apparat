@@ -27,6 +27,7 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.GetLex;
 import com.joa_ebert.apparat.taas.TaasExpression;
 import com.joa_ebert.apparat.taas.TaasReference;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 import com.joa_ebert.apparat.taas.types.TaasType;
 
@@ -45,6 +46,12 @@ public class TGetLex extends TaasExpression
 		super( returnType );
 
 		this.property = property;
+	}
+
+	@Override
+	public TaasValue dup()
+	{
+		return new TGetLex( (TaasMultiname)property.dup(), getType() );
 	}
 
 	@Override

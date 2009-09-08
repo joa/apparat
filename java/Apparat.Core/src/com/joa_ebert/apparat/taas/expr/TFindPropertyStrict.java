@@ -25,6 +25,7 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.FindPropStrict;
+import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 
 /**
@@ -37,6 +38,12 @@ public class TFindPropertyStrict extends TFindProperty
 	public TFindPropertyStrict( final TaasMultiname property )
 	{
 		super( property );
+	}
+
+	@Override
+	public TaasValue dup()
+	{
+		return new TFindPropertyStrict( property );
 	}
 
 	@Override

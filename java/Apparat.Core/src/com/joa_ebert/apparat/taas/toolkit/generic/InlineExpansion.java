@@ -415,7 +415,7 @@ public final class InlineExpansion implements ITaasTool
 						}
 
 						final TaasType returnType = method.typer
-								.toNativeType( abcMethod.returnType );
+								.toTaasType( abcMethod.returnType );
 
 						//
 						// We have to set the local variables according to their
