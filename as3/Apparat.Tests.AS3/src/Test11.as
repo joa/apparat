@@ -21,10 +21,15 @@ package
 			var f: Number = 1.234;
 			var g: Boolean = true;
 			var h: Boolean = false;
+			var i: Number = -1234;
+			var j: Number = 3.0;
+			var k: Number = 2.0;
 
 			//
 			// int op int
 			//
+			
+			trace( "############################################# int op int" );
 			
 			trace( ~a );
 			trace( a * b );
@@ -51,6 +56,8 @@ package
 			// uint op uint
 			//
 			
+			trace( "########################################### uint op uint" );
+			
 			trace( ~c );
 			trace( c * d );
 			trace( c / d );
@@ -76,6 +83,8 @@ package
 			// uint op int
 			//
 			
+			trace( "############################################ uint op int" );
+			
 			trace( c * a );
 			trace( c / a );
 			trace( c + a );
@@ -99,6 +108,8 @@ package
 			//
 			// Number op Number
 			//
+			
+			trace( "####################################### Number op Number" );
 			
 			trace( ~e );
 			trace( e * f );
@@ -126,6 +137,8 @@ package
 			// Number op int
 			//
 			
+			trace( "########################################## Number op int" );
+			
 			trace( e * a );
 			trace( e / a );
 			trace( e + a );
@@ -150,6 +163,8 @@ package
 			// Number op uint
 			//
 			
+			trace( "######################################### Number op uint" );
+			
 			trace( e * c );
 			trace( e / c );
 			trace( e + c );
@@ -169,9 +184,12 @@ package
 			trace( e <= c );
 			trace( e === c );
 			trace( e !== c );
-			trace( 1.0 / 3.0 );
+			trace( i / j * k );
+			trace( 1.0 / 3.0 * 2.0 );
 			
 			// Boolean op Boolean
+
+			trace( "##################################### Boolean op Boolean" );
 			
 			trace( !g );
 			trace( g == h );
