@@ -32,6 +32,7 @@ import com.joa_ebert.apparat.taas.TaasConstant;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.MultinameType;
+import com.joa_ebert.apparat.taas.types.TaasType;
 
 /**
  * 
@@ -63,5 +64,12 @@ public class TaasGlobalScope extends TaasConstant
 	public String toString()
 	{
 		return "[TaasGlobalScope]";
+	}
+
+	@Override
+	public TaasConstant widen( final TaasType type )
+	{
+		throw new TaasException( "Can not convert from " + getType() + " to "
+				+ type );
 	}
 }

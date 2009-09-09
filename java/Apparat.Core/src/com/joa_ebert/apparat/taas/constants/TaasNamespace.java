@@ -28,8 +28,10 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushNamespace;
 import com.joa_ebert.apparat.abc.utils.StringConverter;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.NamespaceType;
+import com.joa_ebert.apparat.taas.types.TaasType;
 
 /**
  * 
@@ -65,5 +67,12 @@ public class TaasNamespace extends TaasConstant
 	{
 		return "[TaasNamespace value: " + StringConverter.toString( value )
 				+ "]";
+	}
+
+	@Override
+	public TaasConstant widen( final TaasType type )
+	{
+		throw new TaasException( "Can not convert from " + getType() + " to "
+				+ type );
 	}
 }

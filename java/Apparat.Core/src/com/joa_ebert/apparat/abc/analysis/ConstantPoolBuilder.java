@@ -315,7 +315,11 @@ public final class ConstantPoolBuilder implements IAbcVisitor
 					break;
 
 				case Op.PushInt:
-					pool.add( ( (PushInt)operation ).value );
+					//
+					// Undocumented:
+					// PushInt may not use the zero index.
+					//
+					pool.getNonZeroIndex( ( (PushInt)operation ).value );
 					break;
 
 				case Op.PushNamespace:
@@ -327,7 +331,11 @@ public final class ConstantPoolBuilder implements IAbcVisitor
 					break;
 
 				case Op.PushUInt:
-					pool.add( ( (PushUInt)operation ).value );
+					//
+					// Undocumented:
+					// PushUInt may not use the zero index.
+					//
+					pool.getNonZeroIndex( ( (PushUInt)operation ).value );
 					break;
 
 				case Op.SetProperty:

@@ -26,6 +26,7 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.StrictEquals;
 import com.joa_ebert.apparat.taas.TaasValue;
+import com.joa_ebert.apparat.taas.types.BooleanType;
 
 /**
  * 
@@ -38,7 +39,7 @@ public final class TStrictEquals extends AbstractBinaryExpr
 
 	public TStrictEquals( final TaasValue lhs, final TaasValue rhs )
 	{
-		super( lhs, rhs, OPERATOR );
+		super( lhs, rhs, OPERATOR, BooleanType.INSTANCE );
 	}
 
 	@Override

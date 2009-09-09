@@ -38,11 +38,43 @@ public abstract class TaasNumeric extends TaasConstant
 
 	public abstract TaasNumeric add( TaasNumeric numeric );
 
+	public abstract TaasNumeric bitAnd( TaasNumeric numeric );
+
+	public abstract TaasNumeric bitNot();
+
+	public abstract TaasNumeric bitOr( TaasNumeric numeric );
+
+	public abstract TaasNumeric bitXor( TaasNumeric numeric );
+
+	public abstract TaasNumeric decrement();
+
 	public abstract TaasNumeric divide( TaasNumeric numeric );
+
+	public abstract TaasBoolean equals( TaasNumeric numeric );
+
+	public abstract TaasBoolean greaterEquals( TaasNumeric numeric );
+
+	public abstract TaasBoolean greaterThan( TaasNumeric numeric );
+
+	public abstract TaasNumeric increment();
+
+	public abstract TaasBoolean lessEquals( TaasNumeric numeric );
+
+	public abstract TaasBoolean lessThan( TaasNumeric numeric );
 
 	public abstract TaasNumeric modulo( TaasNumeric numeric );
 
 	public abstract TaasNumeric multiply( TaasNumeric numeric );
+
+	public abstract TaasNumeric negate();
+
+	public abstract TaasNumeric shiftLeft( TaasNumeric numeric );
+
+	public abstract TaasNumeric shiftRight( TaasNumeric numeric );
+
+	public abstract TaasNumeric shiftRightUnsigned( TaasNumeric numeric );
+
+	public abstract TaasBoolean strictEquals( TaasNumeric numeric );
 
 	public abstract TaasNumeric subtract( TaasNumeric numeric );
 

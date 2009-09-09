@@ -27,8 +27,14 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushFalse;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushTrue;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.BooleanType;
+import com.joa_ebert.apparat.taas.types.IntType;
+import com.joa_ebert.apparat.taas.types.NumberType;
+import com.joa_ebert.apparat.taas.types.StringType;
+import com.joa_ebert.apparat.taas.types.TaasType;
+import com.joa_ebert.apparat.taas.types.UIntType;
 
 /**
  * 
@@ -84,5 +90,35 @@ public class TaasBoolean extends TaasConstant
 	public String toString()
 	{
 		return "[TaasBoolean value: " + Boolean.toString( value ) + "]";
+	}
+
+	@Override
+	public TaasConstant widen( final TaasType type )
+	{
+		if( type == BooleanType.INSTANCE )
+		{
+			return this;
+		}
+		else if( type == IntType.INSTANCE )
+		{
+			return new TaasInt( value ? 1 : 0 );
+		}
+		else if( type == UIntType.INSTANCE )
+		{
+			return new TaasUInt( value ? 1 : 0 );
+		}
+		else if( type == NumberType.INSTANCE )
+		{
+			return new TaasNumber( value ? 1.0 : 0.0 );
+		}
+		else if( type == StringType.INSTANCE )
+		{
+			return new TaasString( Boolean.toString( value ) );
+		}
+		else
+		{
+			throw new TaasException( "Can not convert from " + getType()
+					+ " to " + type );
+		}
 	}
 }

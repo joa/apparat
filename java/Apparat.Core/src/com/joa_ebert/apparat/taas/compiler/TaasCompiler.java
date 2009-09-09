@@ -60,8 +60,8 @@ import com.joa_ebert.apparat.tools.io.TagIO;
  */
 public class TaasCompiler implements IMethodVisitor
 {
-	public static final boolean SHOW_ALL_TRANSFORMATIONS = true;
-	private static final boolean DEBUG = false;
+	public static final boolean SHOW_ALL_TRANSFORMATIONS = false;
+	private static final boolean DEBUG = true;
 
 	private final AbcEnvironment environment;
 

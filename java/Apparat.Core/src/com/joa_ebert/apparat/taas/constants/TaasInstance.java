@@ -27,6 +27,7 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.taas.TaasConstant;
 import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasValue;
+import com.joa_ebert.apparat.taas.types.TaasType;
 
 /**
  * 
@@ -61,5 +62,12 @@ public class TaasInstance extends TaasConstant
 	public String toString()
 	{
 		return "[TaasInstance " + qname.toString() + "]";
+	}
+
+	@Override
+	public TaasConstant widen( final TaasType type )
+	{
+		throw new TaasException( "Can not convert from " + getType() + " to "
+				+ type );
 	}
 }

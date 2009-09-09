@@ -31,6 +31,7 @@ import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasTyper;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.MultinameType;
+import com.joa_ebert.apparat.taas.types.TaasType;
 
 /**
  * 
@@ -131,5 +132,12 @@ public class TaasMultiname extends TaasConstant
 			default:
 				return "[TaasMultiname type: " + getType().toString() + "]";
 		}
+	}
+
+	@Override
+	public TaasConstant widen( final TaasType type )
+	{
+		throw new TaasException( "Can not convert from " + getType() + " to "
+				+ type );
 	}
 }

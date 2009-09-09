@@ -51,9 +51,10 @@ public abstract class TaasType extends TaasValue
 		{
 			return NumberType.INSTANCE;
 		}
-		else if( typeA == UIntType.INSTANCE || typeB == UIntType.INSTANCE )
+		else if( ( typeA == UIntType.INSTANCE && typeB != UIntType.INSTANCE )
+				|| ( typeA != UIntType.INSTANCE && typeB == UIntType.INSTANCE ) )
 		{
-			return UIntType.INSTANCE;
+			return NumberType.INSTANCE;
 		}
 		else if( typeA == IntType.INSTANCE || typeB == IntType.INSTANCE )
 		{

@@ -40,4 +40,6 @@ public abstract class TaasConstant extends TaasValue
 	{
 		return true;
 	}
+
+	public abstract TaasConstant widen( TaasType type );
 }

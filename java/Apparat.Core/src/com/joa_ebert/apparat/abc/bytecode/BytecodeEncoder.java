@@ -390,7 +390,7 @@ public final class BytecodeEncoder
 
 				case Op.PushInt:
 					output.writeU30( pool
-							.getIndex( ( (PushInt)operation ).value ) );
+							.getNonZeroIndex( ( (PushInt)operation ).value ) );
 					break;
 
 				case Op.PushNamespace:
@@ -409,7 +409,7 @@ public final class BytecodeEncoder
 
 				case Op.PushUInt:
 					output.writeU30( pool
-							.getIndex( ( (PushUInt)operation ).value ) );
+							.getNonZeroIndex( ( (PushUInt)operation ).value ) );
 					break;
 
 				case Op.SetLocal:

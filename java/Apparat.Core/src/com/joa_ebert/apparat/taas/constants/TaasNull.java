@@ -26,8 +26,11 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushNull;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.NullType;
+import com.joa_ebert.apparat.taas.types.StringType;
+import com.joa_ebert.apparat.taas.types.TaasType;
 
 /**
  * 
@@ -58,5 +61,19 @@ public class TaasNull extends TaasConstant
 	public String toString()
 	{
 		return "[TaasNull]";
+	}
+
+	@Override
+	public TaasConstant widen( final TaasType type )
+	{
+		if( type == StringType.INSTANCE )
+		{
+			return new TaasString( "null" );
+		}
+		else
+		{
+			throw new TaasException( "Can not convert from " + getType()
+					+ " to " + type );
+		}
 	}
 }

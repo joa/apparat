@@ -27,8 +27,14 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushByte;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushInt;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushShort;
+import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.IntType;
+import com.joa_ebert.apparat.taas.types.NumberType;
+import com.joa_ebert.apparat.taas.types.StringType;
+import com.joa_ebert.apparat.taas.types.TaasType;
+import com.joa_ebert.apparat.taas.types.UIntType;
 
 /**
  * 
@@ -51,6 +57,39 @@ public class TaasInt extends TaasNumeric
 	{
 		verifyType( numeric, TaasInt.class );
 		return new TaasInt( value + ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasNumeric bitAnd( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasInt( value & ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasNumeric bitNot()
+	{
+		return new TaasInt( ~value );
+	}
+
+	@Override
+	public TaasNumeric bitOr( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasInt( value | ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasNumeric bitXor( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasInt( value ^ ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasNumeric decrement()
+	{
+		return new TaasInt( value - 1 );
 	}
 
 	@Override
@@ -85,6 +124,47 @@ public class TaasInt extends TaasNumeric
 	}
 
 	@Override
+	public TaasBoolean equals( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasBoolean( value == ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasBoolean greaterEquals( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasBoolean( value >= ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasBoolean greaterThan( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasBoolean( value > ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasNumeric increment()
+	{
+		return new TaasInt( value + 1 );
+	}
+
+	@Override
+	public TaasBoolean lessEquals( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasBoolean( value <= ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasBoolean lessThan( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasBoolean( value < ( (TaasInt)numeric ).value );
+	}
+
+	@Override
 	public TaasNumeric modulo( final TaasNumeric numeric )
 	{
 		verifyType( numeric, TaasInt.class );
@@ -96,6 +176,40 @@ public class TaasInt extends TaasNumeric
 	{
 		verifyType( numeric, TaasInt.class );
 		return new TaasInt( value * ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasNumeric negate()
+	{
+		return new TaasInt( -value );
+	}
+
+	@Override
+	public TaasNumeric shiftLeft( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasInt( value << ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasNumeric shiftRight( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasInt( value >> ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasNumeric shiftRightUnsigned( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasInt( value >>> ( (TaasInt)numeric ).value );
+	}
+
+	@Override
+	public TaasBoolean strictEquals( final TaasNumeric numeric )
+	{
+		verifyType( numeric, TaasInt.class );
+		return new TaasBoolean( value == ( (TaasInt)numeric ).value );
 	}
 
 	@Override
@@ -111,4 +225,29 @@ public class TaasInt extends TaasNumeric
 		return "[TaasInt value: " + Integer.toString( value ) + "]";
 	}
 
+	@Override
+	public TaasConstant widen( final TaasType type )
+	{
+		if( type == IntType.INSTANCE )
+		{
+			return this;
+		}
+		else if( type == UIntType.INSTANCE )
+		{
+			return new TaasUInt( value );
+		}
+		else if( type == NumberType.INSTANCE )
+		{
+			return new TaasNumber( value );
+		}
+		else if( type == StringType.INSTANCE )
+		{
+			return new TaasString( Integer.toString( value ) );
+		}
+		else
+		{
+			throw new TaasException( "Can not convert from " + getType()
+					+ " to " + type );
+		}
+	}
 }

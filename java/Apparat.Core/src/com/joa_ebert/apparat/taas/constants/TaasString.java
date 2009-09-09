@@ -26,8 +26,10 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.bytecode.operations.PushString;
 import com.joa_ebert.apparat.taas.TaasConstant;
+import com.joa_ebert.apparat.taas.TaasException;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.StringType;
+import com.joa_ebert.apparat.taas.types.TaasType;
 
 /**
  * 
@@ -62,5 +64,19 @@ public class TaasString extends TaasConstant
 	public String toString()
 	{
 		return "[TaasString value: " + value + "]";
+	}
+
+	@Override
+	public TaasConstant widen( final TaasType type )
+	{
+		if( type == StringType.INSTANCE )
+		{
+			return this;
+		}
+		else
+		{
+			throw new TaasException( "Can not convert from " + getType()
+					+ " to " + type );
+		}
 	}
 }

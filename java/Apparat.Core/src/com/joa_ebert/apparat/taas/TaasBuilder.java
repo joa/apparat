@@ -1599,38 +1599,88 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onConvertBoolean( final ConvertBoolean operation )
 	{
-		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-		// BooleanType.INSTANCE ) ) );
+		final TaasValue value = operandStack.pop();
+
+		if( value instanceof TaasConstant )
+		{
+			operandStack.push( ( (TaasConstant)value )
+					.widen( BooleanType.INSTANCE ) );
+		}
+		else
+		{
+			code.add( operandStack.push( TAAS.convert( value,
+					BooleanType.INSTANCE ) ) );
+		}
 	}
 
 	protected void onConvertDouble( final ConvertDouble operation )
 	{
-		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-		// NumberType.INSTANCE ) ) );
+		final TaasValue value = operandStack.pop();
+
+		if( value instanceof TaasConstant )
+		{
+			operandStack.push( ( (TaasConstant)value )
+					.widen( NumberType.INSTANCE ) );
+		}
+		else
+		{
+			code.add( operandStack.push( TAAS.convert( value,
+					NumberType.INSTANCE ) ) );
+		}
 	}
 
 	protected void onConvertInt( final ConvertInt operation )
 	{
-		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-		// IntType.INSTANCE ) ) );
+		final TaasValue value = operandStack.pop();
+
+		if( value instanceof TaasConstant )
+		{
+			operandStack
+					.push( ( (TaasConstant)value ).widen( IntType.INSTANCE ) );
+		}
+		else
+		{
+			code.add( operandStack
+					.push( TAAS.convert( value, IntType.INSTANCE ) ) );
+		}
 	}
 
 	protected void onConvertObject( final ConvertObject operation )
 	{
-		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-		// ObjectType.INSTANCE ) ) );
+		code.add( operandStack.push( TAAS.convert( operandStack.pop(),
+				ObjectType.INSTANCE ) ) );
 	}
 
 	protected void onConvertString( final ConvertString operation )
 	{
-		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-		// StringType.INSTANCE ) ) );
+		final TaasValue value = operandStack.pop();
+
+		if( value instanceof TaasConstant )
+		{
+			operandStack.push( ( (TaasConstant)value )
+					.widen( StringType.INSTANCE ) );
+		}
+		else
+		{
+			code.add( operandStack.push( TAAS.convert( value,
+					StringType.INSTANCE ) ) );
+		}
 	}
 
 	protected void onConvertUInt( final ConvertUInt operation )
 	{
-		// code.add( operandStack.push( TAAS.convert( operandStack.pop(),
-		// UIntType.INSTANCE ) ) );
+		final TaasValue value = operandStack.pop();
+
+		if( value instanceof TaasConstant )
+		{
+			operandStack.push( ( (TaasConstant)value )
+					.widen( UIntType.INSTANCE ) );
+		}
+		else
+		{
+			code.add( operandStack.push( TAAS
+					.convert( value, UIntType.INSTANCE ) ) );
+		}
 	}
 
 	protected void onDebug( final Debug operation )
