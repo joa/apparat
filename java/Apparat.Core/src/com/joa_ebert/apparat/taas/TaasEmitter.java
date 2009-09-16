@@ -61,6 +61,7 @@ import com.joa_ebert.apparat.abc.bytecode.operations.SetLocal;
 import com.joa_ebert.apparat.controlflow.ControlFlowGraphException;
 import com.joa_ebert.apparat.controlflow.EdgeKind;
 import com.joa_ebert.apparat.controlflow.VertexKind;
+import com.joa_ebert.apparat.taas.TaasPhi.Element;
 import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.expr.AbstractCallExpr;
 import com.joa_ebert.apparat.taas.expr.TGetProperty;
@@ -153,11 +154,13 @@ public class TaasEmitter
 		// 3) No jumps exist (throw error otherwise!)
 		// 
 
+		solvePhis( method );
+
 		//
 		// Strategy:
 		// 1) Convert CFG into a linked list of instructions (done)
 		// 2) Insert TaasJump for non-reachable edges (done)
-		// 3) Convert linked list to bytecode while solving jumps
+		// 3) Convert linked list to bytecode while solving jumps (done)
 		//
 		// Once done, work on phi-nodes. Exit SSA and expand phi-nodes for non-
 		// register values into predecessors.
@@ -604,6 +607,53 @@ public class TaasEmitter
 				bytecode );
 
 		analysis.updateAll();
+	}
+
+	/**
+	 * @param code
+	 */
+	private void solvePhis( final TaasMethod method )
+	{
+		boolean changed = false;
+		final TaasCode code = method.code;
+		final List<TaasPhi> phiExprs = TaasToolkit.phisOf( method );
+
+		for( final TaasPhi phiExpr : phiExprs )
+		{
+			final List<Element> phiValues = phiExpr.values;
+
+			for( final Element phiValue : phiValues )
+			{
+				if( !code.contains( phiValue.edge ) )
+				{
+					invalidCode( "Phi edge has been removed." );
+				}
+
+				final TaasValue value = phiValue.value;
+				final TaasEdge edge = phiValue.edge;
+
+				final TaasVertex valueVertex = new TaasVertex( value );
+				final TaasVertex endVertex = edge.endVertex;
+
+				try
+				{
+					code.add( valueVertex );
+					edge.endVertex = valueVertex;
+					code.add( new TaasEdge( valueVertex, endVertex ) );
+
+					changed = true;
+				}
+				catch( final ControlFlowGraphException exception )
+				{
+					throw new TaasException( exception );
+				}
+			}
+		}
+
+		if( TaasCompiler.SHOW_ALL_TRANSFORMATIONS && changed )
+		{
+			TaasToolkit.debug( "Solved Phi-Expressions", method );
+		}
 	}
 
 	private void typeLocals( final LinkedList<TaasValue> list,
