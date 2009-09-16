@@ -646,7 +646,7 @@ public class TaasToolkit
 			for( final TaasEdge outgoingEdge : outgoingEdges )
 			{
 				if( !graph.containsEdge( incommingEdge.startVertex,
-						outgoingEdge.endVertex ) )
+						outgoingEdge.endVertex, incommingEdge.kind ) )
 				{
 					final TaasEdge newEdge = new TaasEdge(
 							incommingEdge.startVertex, outgoingEdge.endVertex,

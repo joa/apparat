@@ -335,12 +335,17 @@ public class TaasEmitter
 
 	private void invalidCode()
 	{
-		throw new TaasException( "Invalid code." );
+		invalidCode( "Invalid code." );
+	}
+
+	private void invalidCode( final String message )
+	{
+		throw new TaasException( message );
 	}
 
 	private void invalidCode( final TaasVertex vertex )
 	{
-		throw new TaasException( "Invalid code at " + vertex + "." );
+		invalidCode( "Invalid code at " + vertex + "." );
 	}
 
 	private void markJump( final TaasValue from, final TaasValue to,
@@ -425,6 +430,8 @@ public class TaasEmitter
 
 				if( null == trueEdge || null == falseEdge )
 				{
+					code.debug( System.err );
+
 					invalidCode( vertex );
 				}
 				else
@@ -456,7 +463,37 @@ public class TaasEmitter
 			}
 			else if( value instanceof TLookupSwitch )
 			{
-				// TODO implement this mess...
+				final List<TaasEdge> outgoingEdges = code.outgoingOf( vertex );
+				
+				//
+				// All outgoing edges are branches, we never fall through
+				//
+				
+				for( final TaasEdge edge : outgoingEdges )
+				{
+					final EdgeKind edgeKind = edge.kind;
+
+					if( EdgeKind.Case == edgeKind || EdgeKind.DefaultCase == edgeKind )
+					{
+						final TaasValue caseValue = edge.endVertex.value;
+
+						markJump( value, caseValue, jumps );
+
+						//
+						// We might have visited this branch already so we
+						// will only continue if it has not been visited before.
+						//
+
+						if( !list.contains( caseValue ) )
+						{
+							continueWith( edge.endVertex, code, list, jumps );
+						}
+					}
+					else
+					{
+						invalidCode( vertex );
+					}
+				}
 			}
 			else
 			{

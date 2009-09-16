@@ -67,6 +67,7 @@ import com.joa_ebert.apparat.taas.expr.TModulo;
 import com.joa_ebert.apparat.taas.expr.TMultiply;
 import com.joa_ebert.apparat.taas.expr.TNegate;
 import com.joa_ebert.apparat.taas.expr.TNewClass;
+import com.joa_ebert.apparat.taas.expr.TNop;
 import com.joa_ebert.apparat.taas.expr.TNot;
 import com.joa_ebert.apparat.taas.expr.TReturn;
 import com.joa_ebert.apparat.taas.expr.TReturnVoid;
@@ -331,6 +332,11 @@ public final class Taas
 	public TNewClass newClass( final TaasValue base, final Class klass )
 	{
 		return new TNewClass( base, klass );
+	}
+
+	public TNop nop()
+	{
+		return new TNop();
 	}
 
 	public TNot not( final TaasValue rhs )

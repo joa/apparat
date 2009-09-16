@@ -2023,12 +2023,12 @@ public final class TaasBuilder implements IInterpreter
 		// TODO implement this mess correct ...
 		// or assume a local register will never be set again after
 		// it has been killed ...
-		// code.add( TAAS.kill( localAt( operation.register ) ) );
+		code.add( TAAS.nop() );
 	}
 
 	protected void onLabel( final Label operation )
 	{
-		// IGNORED
+		code.add( TAAS.nop() );
 	}
 
 	protected void onLessEquals( final LessEquals operation )
