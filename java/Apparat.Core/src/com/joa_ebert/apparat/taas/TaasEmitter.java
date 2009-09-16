@@ -21,6 +21,7 @@
 
 package com.joa_ebert.apparat.taas;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -37,6 +38,8 @@ import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.MultinameKind;
 import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.Marker;
+import com.joa_ebert.apparat.abc.bytecode.Op;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodeAnalysis;
 import com.joa_ebert.apparat.abc.bytecode.operations.Coerce;
 import com.joa_ebert.apparat.abc.bytecode.operations.CoerceAny;
@@ -89,9 +92,26 @@ public class TaasEmitter
 {
 	private static final Taas TAAS = new Taas();
 
+	private boolean containsJumpDestination(
+			final LinkedHashMap<TaasValue, List<TaasValue>> jumps,
+			final TaasValue destination )
+	{
+		final Iterator<List<TaasValue>> iterator = jumps.values().iterator();
+
+		while( iterator.hasNext() )
+		{
+			if( iterator.next().contains( destination ) )
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private void continueWith( final TaasVertex vertex, final TaasCode code,
 			final LinkedList<TaasValue> result,
-			final LinkedHashMap<TaasValue, TaasValue> jumps )
+			final LinkedHashMap<TaasValue, List<TaasValue>> jumps )
 			throws ControlFlowGraphException
 	{
 		if( result.contains( vertex.value ) )
@@ -151,7 +171,7 @@ public class TaasEmitter
 		//
 
 		final LinkedList<TaasValue> list = new LinkedList<TaasValue>();
-		final LinkedHashMap<TaasValue, TaasValue> jumps = new LinkedHashMap<TaasValue, TaasValue>();
+		final LinkedHashMap<TaasValue, List<TaasValue>> jumps = new LinkedHashMap<TaasValue, List<TaasValue>>();
 
 		try
 		{
@@ -195,7 +215,8 @@ public class TaasEmitter
 		while( iter.hasNext() )
 		{
 			final TaasValue value = iter.next();
-			final boolean isJumpDestination = jumps.containsValue( value );
+			final boolean isJumpDestination = containsJumpDestination( jumps,
+					value );
 
 			boolean needsLabel = false;
 			AbstractOperation label = null;
@@ -210,9 +231,10 @@ public class TaasEmitter
 				// a backwards jump.
 				//
 
-				for( final Entry<TaasValue, TaasValue> entry : jumps.entrySet() )
+				for( final Entry<TaasValue, List<TaasValue>> entry : jumps
+						.entrySet() )
 				{
-					if( entry.getValue() == value )
+					if( entry.getValue().contains( value ) )
 					{
 						if( !jmpSrc.containsKey( entry.getKey() ) )
 						{
@@ -308,27 +330,59 @@ public class TaasEmitter
 		return result;
 	}
 
-	private void fixMarkers( final LinkedHashMap<TaasValue, TaasValue> jumps,
+	private void fixMarkers(
+			final LinkedHashMap<TaasValue, List<TaasValue>> jumps,
 			final LinkedHashMap<TaasValue, AbstractOperation> jmpSrc,
 			final LinkedHashMap<TaasValue, AbstractOperation> jmpDst,
 			final Bytecode bytecode )
 	{
-		final Set<Entry<TaasValue, TaasValue>> entrySet = jumps.entrySet();
+		final Set<Entry<TaasValue, List<TaasValue>>> entrySet = jumps
+				.entrySet();
 
-		for( final Entry<TaasValue, TaasValue> jmp : entrySet )
+		for( final Entry<TaasValue, List<TaasValue>> jmp : entrySet )
 		{
 			final TaasValue tsrc = jmp.getKey();
-			final TaasValue tdst = jmp.getValue();
+			final List<TaasValue> tdst = jmp.getValue();
 			final AbstractOperation bsrc = jmpSrc.get( tsrc );
-			final AbstractOperation bdst = jmpDst.get( tdst );
+
+			if( tdst.isEmpty() )
+			{
+				invalidCode( "Targets of " + tsrc.toString() + " do not exist." );
+			}
 
 			if( bsrc instanceof Jump )
 			{
+				if( tdst.size() != 1 )
+				{
+					invalidCode( "TJump contains multiple destinations." );
+				}
+
+				final AbstractOperation bdst = jmpDst.get( tdst.get( 0 ) );
+
 				( (Jump)bsrc ).marker = bytecode.markers.mark( bdst );
 			}
-			else if( bsrc instanceof LookupSwitch )
+			else if( bsrc.code == Op.LookupSwitch )
 			{
-				// TODO implement this mess...
+				final LookupSwitch lookupSwitch = (LookupSwitch)bsrc;
+
+				lookupSwitch.defaultMarker = bytecode.markers.mark( jmpDst
+						.get( tdst.get( 0 ) ) );
+
+				if( null == lookupSwitch.caseMarkers )
+				{
+					lookupSwitch.caseMarkers = new ArrayList<Marker>( tdst
+							.size() - 1 );
+				}
+
+				for( int i = 1, n = tdst.size(); i < n; ++i )
+				{
+					lookupSwitch.caseMarkers.add( bytecode.markers.mark( jmpDst
+							.get( tdst.get( i ) ) ) );
+				}
+			}
+			else
+			{
+				invalidCode( "Invalid jump source " + bsrc.toString() );
 			}
 		}
 	}
@@ -349,14 +403,25 @@ public class TaasEmitter
 	}
 
 	private void markJump( final TaasValue from, final TaasValue to,
-			final LinkedHashMap<TaasValue, TaasValue> jumps )
+			final LinkedHashMap<TaasValue, List<TaasValue>> jumps )
 	{
-		jumps.put( from, to );
+		if( jumps.containsKey( from ) )
+		{
+			jumps.get( from ).add( to );
+		}
+		else
+		{
+			final List<TaasValue> list = new LinkedList<TaasValue>();
+
+			list.add( to );
+
+			jumps.put( from, list );
+		}
 	}
 
 	private void order( final TaasVertex vertex, final TaasCode code,
 			final LinkedList<TaasValue> list,
-			final LinkedHashMap<TaasValue, TaasValue> jumps )
+			final LinkedHashMap<TaasValue, List<TaasValue>> jumps )
 			throws ControlFlowGraphException
 	{
 		final VertexKind kind = vertex.kind;
@@ -426,6 +491,10 @@ public class TaasEmitter
 
 						falseEdge = edge;
 					}
+					else
+					{
+						invalidCode( vertex );
+					}
 				}
 
 				if( null == trueEdge || null == falseEdge )
@@ -464,16 +533,17 @@ public class TaasEmitter
 			else if( value instanceof TLookupSwitch )
 			{
 				final List<TaasEdge> outgoingEdges = code.outgoingOf( vertex );
-				
+
 				//
 				// All outgoing edges are branches, we never fall through
 				//
-				
+
 				for( final TaasEdge edge : outgoingEdges )
 				{
 					final EdgeKind edgeKind = edge.kind;
 
-					if( EdgeKind.Case == edgeKind || EdgeKind.DefaultCase == edgeKind )
+					if( EdgeKind.Case == edgeKind
+							|| EdgeKind.DefaultCase == edgeKind )
 					{
 						final TaasValue caseValue = edge.endVertex.value;
 
@@ -537,7 +607,7 @@ public class TaasEmitter
 	}
 
 	private void typeLocals( final LinkedList<TaasValue> list,
-			final LinkedHashMap<TaasValue, TaasValue> jumps,
+			final LinkedHashMap<TaasValue, List<TaasValue>> jumps,
 			final TaasMethod method, final Bytecode code )
 	{
 		final Iterator<TaasValue> iter = list.listIterator();
@@ -550,7 +620,7 @@ public class TaasEmitter
 		{
 			final TaasValue value = iter.next();
 
-			if( jumps.containsValue( value ) )
+			if( containsJumpDestination( jumps, value ) )
 			{
 				//
 				// Jump target
@@ -559,9 +629,10 @@ public class TaasEmitter
 				int targetIndex = -1;
 				int sourceIndex = -1;
 
-				for( final Entry<TaasValue, TaasValue> entry : jumps.entrySet() )
+				for( final Entry<TaasValue, List<TaasValue>> entry : jumps
+						.entrySet() )
 				{
-					if( entry.getValue() == value )
+					if( entry.getValue().contains( value ) )
 					{
 						targetIndex = list.indexOf( value );
 						sourceIndex = list.indexOf( entry.getKey() );
@@ -597,16 +668,19 @@ public class TaasEmitter
 				// Jump source
 				//
 
-				final TaasValue target = jumps.get( value );
+				final List<TaasValue> targets = jumps.get( value );
 
-				if( typedLocals.containsKey( target ) )
+				for( final TaasValue target : targets )
 				{
-					final List<TaasLocal> clone = new LinkedList<TaasLocal>(
-							locals );
+					if( typedLocals.containsKey( target ) )
+					{
+						final List<TaasLocal> clone = new LinkedList<TaasLocal>(
+								locals );
 
-					clone.removeAll( typedLocals.get( target ) );
+						clone.removeAll( typedLocals.get( target ) );
 
-					toType.addAll( clone );
+						toType.addAll( clone );
+					}
 				}
 			}
 		}
