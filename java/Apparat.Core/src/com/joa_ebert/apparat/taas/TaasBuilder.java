@@ -2297,7 +2297,14 @@ public final class TaasBuilder implements IInterpreter
 
 		if( killedRegisters.contains( local ) )
 		{
-			TODO();
+			if( !local.isType( value.getType() ) )
+			{
+				TODO();
+			}
+			else
+			{
+				killedRegisters.remove( local );
+			}
 		}
 
 		if( !local.isTyped() )
@@ -2315,7 +2322,14 @@ public final class TaasBuilder implements IInterpreter
 
 		if( killedRegisters.contains( local ) )
 		{
-			TODO();
+			if( !local.isType( value.getType() ) )
+			{
+				TODO();
+			}
+			else
+			{
+				killedRegisters.remove( local );
+			}
 		}
 
 		if( !local.isTyped() )
@@ -2333,7 +2347,14 @@ public final class TaasBuilder implements IInterpreter
 
 		if( killedRegisters.contains( local ) )
 		{
-			TODO();
+			if( !local.isType( value.getType() ) )
+			{
+				TODO();
+			}
+			else
+			{
+				killedRegisters.remove( local );
+			}
 		}
 
 		if( !local.isTyped() )
@@ -2351,7 +2372,14 @@ public final class TaasBuilder implements IInterpreter
 
 		if( killedRegisters.contains( local ) )
 		{
-			TODO();
+			if( !local.isType( value.getType() ) )
+			{
+				TODO();
+			}
+			else
+			{
+				killedRegisters.remove( local );
+			}
 		}
 
 		if( !local.isTyped() )
@@ -2369,7 +2397,14 @@ public final class TaasBuilder implements IInterpreter
 
 		if( killedRegisters.contains( local ) )
 		{
-			TODO();
+			if( !local.isType( value.getType() ) )
+			{
+				TODO();
+			}
+			else
+			{
+				killedRegisters.remove( local );
+			}
 		}
 
 		if( !local.isTyped() )
