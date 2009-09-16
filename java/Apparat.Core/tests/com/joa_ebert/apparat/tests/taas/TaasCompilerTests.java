@@ -129,17 +129,21 @@ public class TaasCompilerTests
 
 			final FlashPlayerTest playerTest = new FlashPlayerTest();
 
-			playerTest.spawn( input, 250 );
+			playerTest.spawn( input, 1000 );
 			playerTest.assertNoError();
 
 			final String[] logBefore = playerTest.getLog();
 
-			playerTest.spawn( output, 250 );
+			// playerTest.printLog( System.out );
+
+			playerTest.spawn( output, 1000 );
 			playerTest.assertNoError();
 
 			final String[] logAfter = playerTest.getLog();
 
 			Assert.assertArrayEquals( logBefore, logAfter );
+
+			// playerTest.printLog( System.out );
 		}
 	}
 
@@ -212,6 +216,18 @@ public class TaasCompilerTests
 	public void test10() throws Exception
 	{
 		compile( "assets/Test10.swf" );
+	}
+
+	@Test
+	public void test11() throws Exception
+	{
+		compile( "assets/Test11.swf" );
+	}
+
+	@Test
+	public void test12() throws Exception
+	{
+		compile( "assets/Test12.swf" );
 	}
 
 	@Test
