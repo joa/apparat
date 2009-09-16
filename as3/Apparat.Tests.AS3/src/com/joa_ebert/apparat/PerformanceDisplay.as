@@ -29,7 +29,7 @@ package com.joa_ebert.apparat
 			wordWrap = false;
 			background = true;
 			embedFonts = false;
-			defaultTextFormat = new TextFormat( "arial", 9, 0xffffff );
+			defaultTextFormat = new TextFormat( "arial", 16, 0xffffff );
 
 			eventDispatcher.addEventListener( Event.ENTER_FRAME, onEnterFrame );
 		}
