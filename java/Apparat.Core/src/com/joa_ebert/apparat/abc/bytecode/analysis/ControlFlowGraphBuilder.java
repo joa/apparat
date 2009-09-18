@@ -270,6 +270,12 @@ public final class ControlFlowGraphBuilder implements IInterpreter
 				final LookupSwitch lookupSwitch = (LookupSwitch)currentVertex
 						.getOperation();
 
+				if( null == lookupSwitch.defaultMarker )
+				{
+					throw new ControlFlowGraphException(
+							"Default marker of LookupSwitch is not set." );
+				}
+
 				walk( scope, currentVertex,
 						vertex( lookupSwitch.defaultMarker ),
 						EdgeKind.DefaultCase );

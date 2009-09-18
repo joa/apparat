@@ -70,6 +70,7 @@ public class TaasCompiler implements IMethodVisitor
 
 	private PermutationChain preprocessor;
 	private PermutationChain postprocessor;
+	private boolean optimizationsEnabled = true;
 
 	private int methodIndex = 0;
 	private final int targetMethod = -1;
@@ -128,7 +129,12 @@ public class TaasCompiler implements IMethodVisitor
 
 		final TaasMethod taasMethod = convertToTaas( method.body.code );
 
-		if( null == taasMethod || !optimize( taasMethod ) )
+		if( null == taasMethod )
+		{
+			return null;
+		}
+
+		if( optimizationsEnabled && !optimize( taasMethod ) )
 		{
 			return null;
 		}
@@ -136,11 +142,11 @@ public class TaasCompiler implements IMethodVisitor
 		return taasMethod;
 	}
 
-	private MethodBody convertToBytecode( final TaasMethod method )
+	private TaasMethod convertToTaas( final Bytecode bytecode )
 	{
 		try
 		{
-			return emitter.emit( environment, method );
+			return builder.build( environment, bytecode );
 		}
 		catch( final TaasException taasException )
 		{
@@ -150,11 +156,11 @@ public class TaasCompiler implements IMethodVisitor
 		}
 	}
 
-	private TaasMethod convertToTaas( final Bytecode bytecode )
+	public MethodBody emitBytecode( final TaasMethod method )
 	{
 		try
 		{
-			return builder.build( environment, bytecode );
+			return emitter.emit( environment, method );
 		}
 		catch( final TaasException taasException )
 		{
@@ -192,7 +198,12 @@ public class TaasCompiler implements IMethodVisitor
 		return environment;
 	}
 
-	private boolean optimize( final TaasMethod method )
+	public boolean getOptimizationsEnabled()
+	{
+		return optimizationsEnabled;
+	}
+
+	public boolean optimize( final TaasMethod method )
 	{
 		try
 		{
@@ -322,7 +333,7 @@ public class TaasCompiler implements IMethodVisitor
 			return false;
 		}
 
-		final MethodBody methodBody = convertToBytecode( taasMethod );
+		final MethodBody methodBody = emitBytecode( taasMethod );
 
 		if( null == methodBody )
 		{
@@ -341,6 +352,11 @@ public class TaasCompiler implements IMethodVisitor
 		postprocess( method );
 
 		return true;
+	}
+
+	public void setOptimizationsEnabled( final boolean value )
+	{
+		optimizationsEnabled = value;
 	}
 
 	public void setPostprocessor( final PermutationChain value )

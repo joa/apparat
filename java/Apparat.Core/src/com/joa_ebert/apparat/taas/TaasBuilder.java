@@ -100,21 +100,115 @@ public final class TaasBuilder implements IInterpreter
 {
 	private static final Taas TAAS = new Taas();
 
-	private TaasCode code;
-	private TaasTyper typer;
+	/**
+	 * @param method
+	 */
+	public static void cleanup( final TaasMethod method )
+	{
+		final TaasCode code = method.code;
+		final List<TaasVertex> vertices = code.vertexList();
+		final List<TaasVertex> removes = new LinkedList<TaasVertex>();
 
+		for( final TaasVertex vertex : vertices )
+		{
+			if( VertexKind.Default != vertex.kind )
+			{
+				continue;
+			}
+
+			boolean remove = true;
+
+			final TaasValue value = vertex.value;
+
+			if( value instanceof AbstractCallExpr )
+			{
+				remove = value instanceof TApplyType;
+			}
+			else if( value instanceof AbstractLocalExpr )
+			{
+				remove = false;
+			}
+			else if( value instanceof AbstractReturnExpr )
+			{
+				remove = false;
+			}
+			else if( value instanceof TDefaultXmlNamespace )
+			{
+				remove = false;
+			}
+			else if( value instanceof TDeleteProperty )
+			{
+				remove = false;
+			}
+			// else if( value instanceof TEnterScope )
+			// {
+			// remove = true;
+			// }
+			// else if( value instanceof TLeaveScope )
+			// {
+			// remove = true;
+			// }
+			// else if( value instanceof TNewClass )
+			// {
+			// remove = true;
+			// }
+			// else if( value instanceof TGetProperty )
+			// {
+			// // disscuss this ...
+			// // remove = false;
+			// }
+			else if( value instanceof TInitProperty )
+			{
+				remove = false;
+			}
+			else if( value instanceof TSetProperty )
+			{
+				remove = false;
+			}
+			else if( value instanceof TIf )
+			{
+				remove = false;
+			}
+			else if( value instanceof TLookupSwitch )
+			{
+				remove = false;
+			}
+
+			if( remove )
+			{
+				removes.add( vertex );
+			}
+		}
+
+		try
+		{
+			for( final TaasVertex vertex : removes )
+			{
+				TaasToolkit.remove( method, vertex );
+			}
+		}
+		catch( final ControlFlowGraphException exception )
+		{
+			throw new TaasException( exception );
+		}
+	}
+
+	private TaasCode code;
+
+	private TaasTyper typer;
 	private TaasStack operandStack;
 	private TaasStack scopeStack;
 	private TaasRegisters localRegisters;
+
 	private final List<TaasLocal> killedRegisters = new LinkedList<TaasLocal>();
-
 	private ControlFlowGraph<BytecodeVertex, Edge<BytecodeVertex>> bytecodeGraph;
-	private MarkerManager markers;
 
+	private MarkerManager markers;
 	private final Map<BytecodeVertex, TaasStack> operandStackAtMerge = new LinkedHashMap<BytecodeVertex, TaasStack>();
 	private final Map<BytecodeVertex, TaasStack> scopeStackAtMerge = new LinkedHashMap<BytecodeVertex, TaasStack>();
 	private final List<BytecodeVertex> visitedVertices = new LinkedList<BytecodeVertex>();
 	private final Map<Marker, TaasVertex> visitedMarkers = new LinkedHashMap<Marker, TaasVertex>();
+
 	private final Map<BytecodeVertex, TaasVertex> bytecodeToVertex = new LinkedHashMap<BytecodeVertex, TaasVertex>();
 
 	public TaasMethod build( final AbcEnvironment environment,
@@ -974,99 +1068,6 @@ public final class TaasBuilder implements IInterpreter
 			final int scopeSize ) throws TaasException
 	{
 		build( vertex, EdgeKind.Default, operandSize, scopeSize );
-	}
-
-	/**
-	 * @param method
-	 */
-	private void cleanup( final TaasMethod method )
-	{
-		final TaasCode code = method.code;
-		final List<TaasVertex> vertices = code.vertexList();
-		final List<TaasVertex> removes = new LinkedList<TaasVertex>();
-
-		for( final TaasVertex vertex : vertices )
-		{
-			if( VertexKind.Default != vertex.kind )
-			{
-				continue;
-			}
-
-			boolean remove = true;
-
-			final TaasValue value = vertex.value;
-
-			if( value instanceof AbstractCallExpr )
-			{
-				remove = value instanceof TApplyType;
-			}
-			else if( value instanceof AbstractLocalExpr )
-			{
-				remove = false;
-			}
-			else if( value instanceof AbstractReturnExpr )
-			{
-				remove = false;
-			}
-			else if( value instanceof TDefaultXmlNamespace )
-			{
-				remove = false;
-			}
-			else if( value instanceof TDeleteProperty )
-			{
-				remove = false;
-			}
-			// else if( value instanceof TEnterScope )
-			// {
-			// remove = true;
-			// }
-			// else if( value instanceof TLeaveScope )
-			// {
-			// remove = true;
-			// }
-			// else if( value instanceof TNewClass )
-			// {
-			// remove = true;
-			// }
-			// else if( value instanceof TGetProperty )
-			// {
-			// // disscuss this ...
-			// // remove = false;
-			// }
-			else if( value instanceof TInitProperty )
-			{
-				remove = false;
-			}
-			else if( value instanceof TSetProperty )
-			{
-				remove = false;
-			}
-			else if( value instanceof TIf )
-			{
-				remove = false;
-			}
-			else if( value instanceof TLookupSwitch )
-			{
-				remove = false;
-			}
-
-			if( remove )
-			{
-				removes.add( vertex );
-			}
-		}
-
-		try
-		{
-			for( final TaasVertex vertex : removes )
-			{
-				TaasToolkit.remove( method, vertex );
-			}
-		}
-		catch( final ControlFlowGraphException exception )
-		{
-			throw new TaasException( exception );
-		}
 	}
 
 	private TaasMultiname constant( final AbstractMultiname value )

@@ -440,7 +440,7 @@ public class TaasEmitter
 
 			if( 1 != outgoingEdges.size() )
 			{
-				invalidCode();
+				invalidCode( vertex );
 			}
 			else
 			{
@@ -812,8 +812,6 @@ public class TaasEmitter
 			{
 				code.add( new PushNull() );
 				code.add( new Coerce( TaasTyper.toAbcType( type ) ) );
-
-				throw new TaasException( "Unhandled type " + type );
 			}
 
 			code.add( new SetLocal( index ) );

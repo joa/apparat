@@ -160,6 +160,30 @@ public class ControlFlowGraph<V extends Vertex, E extends Edge<V>>
 		return false;
 	}
 
+	public boolean containsEdge( final V startVertex, final V endVertex,
+			final EdgeKind kind )
+	{
+		if( !contains( startVertex ) )
+		{
+			return false;
+		}
+
+		if( !contains( endVertex ) )
+		{
+			return false;
+		}
+
+		for( final E edge : adjacency.get( startVertex ) )
+		{
+			if( kind == edge.kind && edge.endVertex.equals( endVertex ) )
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public LinkedList<E> edgeList()
 	{
 		return edges;
