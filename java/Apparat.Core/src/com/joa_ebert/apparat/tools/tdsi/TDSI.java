@@ -97,7 +97,7 @@ public final class TDSI implements ITool, ITagVisitor
 		if( config.hasOption( "inline-bytecode" ) )
 		{
 			inlineBytecode = Boolean.parseBoolean( config
-					.getOption( "-inline-bytecode" ) );
+					.getOption( "inline-bytecode" ) );
 		}
 
 		if( config.hasOption( "integer-calculus" ) )
