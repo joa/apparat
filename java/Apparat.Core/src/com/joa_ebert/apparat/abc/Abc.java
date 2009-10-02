@@ -1676,7 +1676,23 @@ public final class Abc
 					}
 					else
 					{
-						output.writeU30( 0 );
+						//
+						// Issue #10: Abc.writeTraits does not handle null-type
+						// correct
+						// in case of strict equality.
+						//
+						// Patched by Patrick Leclech.
+						//
+
+						if( null != traitSlot.valueType )
+						{
+							output.writeU30( traitSlot.valueType.getByte() );
+							output.writeU08( traitSlot.valueType.getByte() );
+						}
+						else
+						{
+							output.writeU30( 0 );
+						}
 					}
 					break;
 
@@ -1694,7 +1710,23 @@ public final class Abc
 					}
 					else
 					{
-						output.writeU30( 0 );
+						//
+						// Issue #10: Abc.writeTraits does not handle null-type
+						// correct
+						// in case of strict equality.
+						//
+						// Patched by Patrick Leclech.
+						//
+
+						if( null != traitConst.valueType )
+						{
+							output.writeU30( traitConst.valueType.getByte() );
+							output.writeU08( traitConst.valueType.getByte() );
+						}
+						else
+						{
+							output.writeU30( 0 );
+						}
 					}
 					break;
 
