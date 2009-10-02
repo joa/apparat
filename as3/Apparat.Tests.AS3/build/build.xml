@@ -100,6 +100,10 @@
 			<param name="file" value="Test12"/>
 		</antcall>
 		
+		<antcall target="compile">
+			<param name="file" value="Test13"/>
+		</antcall>
+		
 		<copy
 			todir="${basedir}/../../java/Apparat.Core/assets/"
 			overwrite="true">
