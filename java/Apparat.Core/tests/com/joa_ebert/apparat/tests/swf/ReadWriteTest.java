@@ -100,7 +100,7 @@ public class ReadWriteTest
 		swf1.read( "assets/output.swf" );
 
 		Assert.assertEquals( swf0.frameCount, swf1.frameCount );
-		Assert.assertEquals( swf0.frameRate, swf1.frameRate );
+		Assert.assertEquals( swf0.frameRate, swf1.frameRate, 0 );
 		Assert.assertTrue( swf0.frameSize.equals( swf1.frameSize ) );
 		Assert.assertEquals( swf0.version, swf1.version );
 		Assert.assertEquals( swf0.isCompressed, swf1.isCompressed );

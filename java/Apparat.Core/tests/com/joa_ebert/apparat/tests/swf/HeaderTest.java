@@ -81,10 +81,10 @@ public class HeaderTest
 
 		Assert.assertTrue( swf.isCompressed );
 		Assert.assertEquals( 10, swf.version );
-		Assert.assertEquals( 0.0, swf.frameSize.minX / 20.0 );
-		Assert.assertEquals( 640.0, swf.frameSize.maxX / 20.0 );
-		Assert.assertEquals( 0.0, swf.frameSize.minY / 20.0 );
-		Assert.assertEquals( 480.0, swf.frameSize.maxY / 20.0 );
+		Assert.assertEquals( 0.0, swf.frameSize.minX / 20.0, 0 );
+		Assert.assertEquals( 640.0, swf.frameSize.maxX / 20.0, 0 );
+		Assert.assertEquals( 0.0, swf.frameSize.minY / 20.0, 0 );
+		Assert.assertEquals( 480.0, swf.frameSize.maxY / 20.0, 0 );
 		Assert.assertEquals( 32.0f, swf.frameRate, 0.0f );
 		Assert.assertEquals( 1, swf.frameCount );
 	}
