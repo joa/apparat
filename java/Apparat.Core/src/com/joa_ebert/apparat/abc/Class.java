@@ -28,7 +28,7 @@ import java.util.List;
  * @author Joa Ebert
  * 
  */
-public final class Class
+public final class Class implements ITraitsOwner
 {
 	public Abc abc;
 
@@ -53,5 +53,11 @@ public final class Class
 				trait.accept( context, visitor );
 			}
 		}
+	}
+
+	@Override
+	public List<AbstractTrait> getTraits()
+	{
+		return traits;
 	}
 }

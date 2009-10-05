@@ -32,10 +32,12 @@ import java.util.zip.DataFormatException;
 import com.joa_ebert.apparat.abc.analysis.TypeSolver;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.multinames.QName;
+import com.joa_ebert.apparat.abc.traits.TraitConst;
 import com.joa_ebert.apparat.abc.traits.TraitFunction;
 import com.joa_ebert.apparat.abc.traits.TraitGetter;
 import com.joa_ebert.apparat.abc.traits.TraitMethod;
 import com.joa_ebert.apparat.abc.traits.TraitSetter;
+import com.joa_ebert.apparat.abc.traits.TraitSlot;
 import com.joa_ebert.apparat.abc.utils.StringConverter;
 import com.joa_ebert.apparat.swc.Swc;
 import com.joa_ebert.apparat.swf.Swf;
@@ -529,6 +531,70 @@ public final class AbcEnvironment
 	public List<AbcContext> getContexts()
 	{
 		return contexts;
+	}
+
+	public AbstractMultiname getGlobalSlotType( final Abc abc,
+			final int slotIndex )
+	{
+		for( final Script script : abc.scripts )
+		{
+			final AbstractMultiname name = getSlot( script, slotIndex );
+
+			if( null != name )
+			{
+				return name;
+			}
+		}
+
+		return null;
+	}
+
+	public AbstractMultiname getSlot( final ITraitsOwner traitsOwner,
+			final int slotIndex )
+	{
+		final List<AbstractTrait> traits = traitsOwner.getTraits();
+
+		for( final AbstractTrait trait : traits )
+		{
+			if( trait.kind == TraitKind.Slot )
+			{
+				final TraitSlot slot = (TraitSlot)trait;
+
+				if( slot.slotIndex == slotIndex )
+				{
+					return( slot.type );
+				}
+			}
+			else if( trait.kind == TraitKind.Const )
+			{
+				final TraitConst const$ = (TraitConst)trait;
+
+				if( const$.slotIndex == slotIndex )
+				{
+					return( const$.type );
+				}
+			}
+			else if( trait.kind == TraitKind.Getter )
+			{
+				final TraitGetter getter = (TraitGetter)trait;
+
+				if( getter.dispIndex == slotIndex )
+				{
+					return( getter.method.returnType );
+				}
+			}
+			else if( trait.kind == TraitKind.Setter )
+			{
+				final TraitSetter setter = (TraitSetter)trait;
+
+				if( setter.dispIndex == slotIndex )
+				{
+					return( setter.method.returnType );
+				}
+			}
+		}
+
+		return null;
 	}
 
 	public Instance instanceOf( final AbstractMultiname multiname )

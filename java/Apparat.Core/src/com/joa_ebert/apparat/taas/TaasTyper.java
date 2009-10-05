@@ -21,6 +21,7 @@
 
 package com.joa_ebert.apparat.taas;
 
+import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.AbcException;
 import com.joa_ebert.apparat.abc.AbstractMultiname;
@@ -190,9 +191,11 @@ public final class TaasTyper
 	}
 
 	private final AbcEnvironment environment;
+	private final Abc abc;
 
-	public TaasTyper( final AbcEnvironment environment )
+	public TaasTyper( final Abc abc, final AbcEnvironment environment )
 	{
+		this.abc = abc;
 		this.environment = environment;
 	}
 
@@ -301,6 +304,24 @@ public final class TaasTyper
 		}
 
 		return result;
+	}
+
+	public TaasType typeOf( final TaasValue object, final int slotIndex )
+	{
+		QName result = null;
+
+		if( object instanceof TaasGlobalScope )
+		{
+			result = abc.classes.get( slotIndex ).instance.name;
+		}
+
+		if( null == result )
+		{
+			throw new TaasException( "Could not solve slot " + slotIndex
+					+ " on " + object + "." );
+		}
+
+		return toTaasType( result );
 	}
 
 	public TaasType typeOf( final TaasValue object, final TaasMultiname property )

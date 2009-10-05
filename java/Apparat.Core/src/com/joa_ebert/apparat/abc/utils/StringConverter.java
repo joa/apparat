@@ -88,7 +88,7 @@ public class StringConverter
 			case Typename:
 				final Typename typename = (Typename)name;
 				final StringBuilder builder = new StringBuilder( "Typename(" );
-				builder.append( toString( typename.name ) );
+				builder.append( toString( typename.qname ) );
 				for( final AbstractMultiname param : typename.parameters )
 				{
 					builder.append( ", " );

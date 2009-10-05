@@ -31,7 +31,7 @@ import com.joa_ebert.apparat.abc.bytecode.Bytecode;
  * @author Joa Ebert
  * 
  */
-public final class MethodBody
+public final class MethodBody implements ITraitsOwner
 {
 	public Method method;
 	public int maxStack;
@@ -95,5 +95,11 @@ public final class MethodBody
 		}
 
 		return index;
+	}
+
+	@Override
+	public List<AbstractTrait> getTraits()
+	{
+		return traits;
 	}
 }

@@ -1083,7 +1083,7 @@ public final class Abc
 	{
 		final Typename result = new Typename();
 
-		result.name = (QName)constantPool.getMultiname( input.readU30() );
+		result.qname = (QName)constantPool.getMultiname( input.readU30() );
 
 		final int paramCount = input.readU30();
 
@@ -1783,7 +1783,7 @@ public final class Abc
 	private void writeTypename( final Typename typename,
 			final AbcOutputStream output ) throws IOException
 	{
-		output.writeU30( constantPool.getIndex( typename.name ) );
+		output.writeU30( constantPool.getIndex( typename.qname ) );
 		output.writeU30( typename.parameters.size() );
 
 		for( final AbstractMultiname name : typename.parameters )

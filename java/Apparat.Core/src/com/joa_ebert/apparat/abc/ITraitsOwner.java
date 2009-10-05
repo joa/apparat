@@ -19,28 +19,15 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.bytecode.operations;
+package com.joa_ebert.apparat.abc;
 
-import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
-import com.joa_ebert.apparat.abc.bytecode.Op;
+import java.util.List;
 
 /**
- * 
  * @author Joa Ebert
  * 
  */
-public final class GetGlobalSlot extends AbstractOperation
+public interface ITraitsOwner
 {
-	public int slotIndex;
-
-	public GetGlobalSlot()
-	{
-		super( Op.GetGlobalSlot );
-	}
-
-	public GetGlobalSlot( final int slotIndex )
-	{
-		super( Op.GetGlobalSlot );
-		this.slotIndex = slotIndex;
-	}
+	List<AbstractTrait> getTraits();
 }

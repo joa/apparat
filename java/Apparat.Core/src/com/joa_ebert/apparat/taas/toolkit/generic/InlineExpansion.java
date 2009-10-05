@@ -48,6 +48,7 @@ import com.joa_ebert.apparat.taas.TaasVertex;
 import com.joa_ebert.apparat.taas.compiler.TaasCompiler;
 import com.joa_ebert.apparat.taas.constants.TaasMultiname;
 import com.joa_ebert.apparat.taas.expr.TCallProperty;
+import com.joa_ebert.apparat.taas.expr.TGetProperty;
 import com.joa_ebert.apparat.taas.expr.TReturn;
 import com.joa_ebert.apparat.taas.expr.TReturnVoid;
 import com.joa_ebert.apparat.taas.toolkit.ITaasTool;
@@ -250,335 +251,374 @@ public final class InlineExpansion implements ITaasTool
 		final List<TaasVertex> vertices = code.vertexList();
 		InlineTarget target = null;
 
-		for( final TaasVertex vertex : vertices )
+		allCalls: for( final TaasVertex vertex : vertices )
 		{
 			final TaasValue value = vertex.value;
-			final TCallProperty callProperty = TaasToolkit.search( value,
-					TCallProperty.class );
+			final List<TCallProperty> calls = new LinkedList<TCallProperty>();
 
-			//
-			// Inline TCallProperty expressions:
-			//
+			TaasToolkit.searchAll( value, TCallProperty.class, calls );
 
-			if( null != callProperty )
+			for( final TCallProperty callProperty : calls )
 			{
-				final TaasValue object = callProperty.object;
+				//
+				// Inline TCallProperty expressions:
+				//
+
 				final TaasMultiname property = callProperty.property;
 
-				if( object instanceof TaasLocal )
+				TaasValue object = callProperty.object;
+				TaasLocal localScope = null;
+				TaasValue initLocalScope = null;
+
+				if( !( object instanceof TaasLocal ) )
 				{
-					final TaasLocal local = (TaasLocal)object;
-
-					if( 0 == local.getIndex() )
+					if( object.getType() instanceof MultinameType
+							&& property.getType() instanceof MultinameType )
 					{
-						if( !( local.getType() instanceof MultinameType ) )
-						{
-							//
-							// We support only typed objects.
-							//
+						// TODO Kill local if continued or let DCE eat our
+						// waste ...
 
-							continue;
-						}
-
-						if( !( property.getType() instanceof MultinameType ) )
-						{
-							//
-							// We support only typed properties.
-							//
-
-							continue;
-						}
-
-						final MultinameType mobj = (MultinameType)local
-								.getType();
-						final MultinameType mprp = (MultinameType)property
-								.getType();
-
-						if( mobj.runtimeName != null
-								|| mprp.runtimeName != null )
-						{
-							//
-							// We do not touch anything that may be changed
-							// during runtime.
-							//
-
-							continue;
-						}
-
-						final AbcEnvironment.PropertyInfo propertyInfo = method.typer
-								.findProperty( mobj, mprp );
-
-						if( null == propertyInfo )
-						{
-							//
-							// Typer could not find method.
-							//
-
-							if( DEBUG )
-							{
-								LOG.info( "Typer could not find property ("
-										+ mobj + ", " + mprp + ")" );
-							}
-
-							continue;
-						}
-
-						if( mprp.multiname.kind == MultinameKind.QName
-								&& ( (QName)mprp.multiname ).namespace.kind == NamespaceKind.PrivateNamespace )
-						{
-							if( null != propertyInfo.instance )
-							{
-								// FIXME should compare against scope of
-								// original method
-
-								if( !propertyInfo.instance.name
-										.equals( mobj.multiname ) )
-								{
-									if( DEBUG )
-									{
-										LOG.info( "Property (" + mobj + ", "
-												+ mprp + ") is private and "
-												+ "part of a different "
-												+ "instance." );
-									}
-
-									continue;
-								}
-							}
-							else
-							{
-								if( DEBUG )
-								{
-									LOG.info( "Property (" + mobj + ", " + mprp
-											+ ") is private but not "
-											+ "part of an instance." );
-								}
-
-								continue;
-							}
-						}
-						else
-						{
-							if( !propertyInfo.isFinal )
-							{
-
-								if( DEBUG )
-								{
-									LOG.info( "Property (" + mobj + ", " + mprp
-											+ ") is not final." );
-								}
-
-								continue;
-							}
-						}
-
-						final Method abcMethod = propertyInfo.method;
-
-						if( null == abcMethod.body
-								|| null == abcMethod.body.code )
-						{
-							//
-							// External or native method.
-							//
-
-							continue;
-						}
-
-						final TaasMethod inlinedMethod = builder.build(
-								environment, abcMethod.body.code );
-
-						final TaasCode inlinedCode = inlinedMethod.code;
-
-						if( !canInlineMember( inlinedMethod, propertyInfo ) )
-						{
-							continue;
-						}
-
+						localScope = method.locals.create();
+						localScope.typeAs( object.getType() );
+						initLocalScope = TAAS.setLocal( localScope, object );
+						object = localScope;
+					}
+					else
+					{
 						//
-						// Shift the register indices so that we have no clash.
+						// Only support those types we can transform.
 						//
 
-						final int offset = method.locals.numRegisters();
-
-						inlinedMethod.locals.offset( offset );
-
-						final List<TaasLocal> registersToContribute = inlinedMethod.locals
-								.getRegisterList();
-
-						//
-						// We do not want to add the first register since it
-						// stores only the scope object. So we can drop it here.
-						//
-
-						for( int i = 1, n = registersToContribute.size(); i < n; ++i )
-						{
-							method.locals.add( registersToContribute.get( i ) );
-						}
-
-						final TaasType returnType = TaasTyper
-								.toTaasType( abcMethod.returnType );
-
-						//
-						// We have to set the local variables according to their
-						// parameters.
-						//
-						// So we search for an insertion point to set those
-						// local variables with values of the parameters.
-						//
-
-						final TaasVertex insertPoint = inlinedCode
-								.getEntryVertex();
-
-						//
-						// We ignore the local at index 0 since it stores only
-						// the scope object.
-						//
-
-						int localIndex = 1;
-
-						for( final TaasValue param : callProperty.parameters )
-						{
-							//
-							// Set the local variable with the value of the
-							// parameter.
-							//
-
-							TaasToolkit
-									.insertAfter(
-											inlinedMethod,
-											insertPoint,
-											new TaasVertex(
-													TAAS
-															.setLocal(
-																	inlinedMethod.locals
-																			.get( offset
-																					+ localIndex++ ),
-																	param ) ) );
-						}
-
-						method.locals.defragment();
-
-						final LinkedList<TaasVertex> inlinedVertices = inlinedCode
-								.vertexList();
-
-						if( callProperty.getType() == VoidType.INSTANCE )
-						{
-							//
-							// TODO remove ReturnValue statements from methods
-							// that return a value but are called just like void
-							// methods ...
-							//
-
-							final List<TaasVertex> removes = new LinkedList<TaasVertex>();
-
-							for( final TaasVertex inlinedVertex : inlinedVertices )
-							{
-								if( VertexKind.Default != inlinedVertex.kind )
-								{
-									continue;
-								}
-
-								final TaasValue inlinedValue = inlinedVertex.value;
-
-								if( inlinedValue instanceof TReturnVoid )
-								{
-									removes.add( inlinedVertex );
-								}
-							}
-
-							for( final TaasVertex remove : removes )
-							{
-								try
-								{
-									TaasToolkit.remove( inlinedMethod, remove );
-								}
-								catch( final ControlFlowGraphException exception )
-								{
-									throw new TaasException( exception );
-								}
-							}
-
-							target = new InlineTarget( vertex, inlinedMethod,
-									true );
-							break;
-						}
-						else
-						{
-							//
-							// Since we return a value we need a register to
-							// store the result.
-							//
-
-							final TaasLocal result = TaasToolkit
-									.createRegister( method );
-
-							//
-							// Also, type the register here with the return type
-							// of the inlined method.
-							//
-
-							result.typeAs( returnType );
-
-							//
-							// Next: Replace all TReturn expressions with a
-							// TSetLocal instead.
-							//
-
-							final Map<TaasValue, TaasValue> replacements = new LinkedHashMap<TaasValue, TaasValue>();
-
-							for( final TaasVertex inlinedVertex : inlinedVertices )
-							{
-								if( VertexKind.Default != inlinedVertex.kind )
-								{
-									continue;
-								}
-
-								final TaasValue inlinedValue = inlinedVertex.value;
-
-								if( inlinedValue instanceof TReturn )
-								{
-									replacements
-											.put(
-													inlinedValue,
-													TAAS
-															.setLocal(
-																	result,
-																	( (TReturn)inlinedValue ).value ) );
-								}
-							}
-
-							for( final Entry<TaasValue, TaasValue> replacement : replacements
-									.entrySet() )
-							{
-								TaasToolkit.replace( inlinedMethod, replacement
-										.getKey(), replacement.getValue() );
-							}
-
-							//
-							// And finally, we replace the call expression with
-							// the new resulting register.
-							//
-
-							TaasToolkit.replace( value, callProperty, result );
-
-							//
-							// In order to avoid a concurrent modification while
-							// traversing the list we will now save the
-							// information of what to do here.
-							//
-
-							target = new InlineTarget( vertex, inlinedMethod,
-									false );
-							break;
-						}
+						continue;
 					}
 				}
 
+				final TaasLocal local = (TaasLocal)object;
+
+				if( !( local.getType() instanceof MultinameType ) )
+				{
+					//
+					// We support only typed objects.
+					//
+
+					continue;
+				}
+
+				if( !( property.getType() instanceof MultinameType ) )
+				{
+					//
+					// We support only typed properties.
+					//
+
+					continue;
+				}
+
+				final MultinameType mobj = (MultinameType)local.getType();
+				final MultinameType mprp = (MultinameType)property.getType();
+
+				if( mobj.runtimeName != null || mprp.runtimeName != null )
+				{
+					//
+					// We do not touch anything that may be changed
+					// during runtime.
+					//
+
+					continue;
+				}
+
+				final AbcEnvironment.PropertyInfo propertyInfo = method.typer
+						.findProperty( mobj, mprp );
+
+				if( null == propertyInfo )
+				{
+					//
+					// Typer could not find method.
+					//
+
+					if( DEBUG )
+					{
+						LOG.info( "Typer could not find property (" + mobj
+								+ ", " + mprp + ")" );
+					}
+
+					continue;
+				}
+
+				if( mprp.multiname.kind == MultinameKind.QName
+						&& ( (QName)mprp.multiname ).namespace.kind == NamespaceKind.PrivateNamespace )
+				{
+					if( null != propertyInfo.instance )
+					{
+						// FIXME should compare against scope of
+						// original method
+
+						if( !propertyInfo.instance.name.equals( mobj.multiname ) )
+						{
+							if( DEBUG )
+							{
+								LOG.info( "Property (" + mobj + ", " + mprp
+										+ ") is private and "
+										+ "part of a different " + "instance." );
+							}
+
+							continue;
+						}
+					}
+					else
+					{
+						if( DEBUG )
+						{
+							LOG.info( "Property (" + mobj + ", " + mprp
+									+ ") is private but not "
+									+ "part of an instance." );
+						}
+
+						continue;
+					}
+				}
+				else
+				{
+					if( !propertyInfo.isFinal )
+					{
+
+						if( DEBUG )
+						{
+							LOG.info( "Property (" + mobj + ", " + mprp
+									+ ") is not final." );
+						}
+
+						continue;
+					}
+				}
+
+				final Method abcMethod = propertyInfo.method;
+
+				if( null == abcMethod.body || null == abcMethod.body.code )
+				{
+					//
+					// External or native method.
+					//
+
+					continue;
+				}
+
+				final TaasMethod inlinedMethod = builder.build( environment,
+						abcMethod.body.code );
+
+				final TaasCode inlinedCode = inlinedMethod.code;
+
+				if( !canInlineMember( inlinedMethod, propertyInfo ) )
+				{
+					continue;
+				}
+
+				//
+				// Shift the register indices so that we have no clash.
+				//
+
+				final int offset = method.locals.numRegisters();
+
+				inlinedMethod.locals.offset( offset );
+
+				final List<TaasLocal> registersToContribute = inlinedMethod.locals
+						.getRegisterList();
+
+				//
+				// We do not want to add the first register since it
+				// stores only the scope object. So we can drop it here.
+				//
+
+				for( int i = 1, n = registersToContribute.size(); i < n; ++i )
+				{
+					method.locals.add( registersToContribute.get( i ) );
+				}
+
+				if( 0 != local.getIndex() )
+				{
+					//
+					// If we are in a different scope we will now have
+					// to replace all occurrences of the local at index
+					// 0 with the actual register.
+					// 
+
+					for( final TaasVertex searchVertex : inlinedMethod.code
+							.vertexList() )
+					{
+						if( searchVertex.kind != VertexKind.Default )
+						{
+							continue;
+						}
+
+						TaasToolkit.replace( searchVertex.value,
+								inlinedMethod.locals.get( 0 ), local );
+					}
+				}
+
+				final TaasType returnType = TaasTyper
+						.toTaasType( abcMethod.returnType );
+
+				//
+				// We have to set the local variables according to their
+				// parameters.
+				//
+				// So we search for an insertion point to set those
+				// local variables with values of the parameters.
+				//
+
+				final TaasVertex insertPoint = inlinedCode.getEntryVertex();
+
+				//
+				// We ignore the local at index 0 since it stores only
+				// the scope object.
+				//
+
+				int localIndex = 1;
+
+				for( final TaasValue param : callProperty.parameters )
+				{
+					//
+					// Set the local variable with the value of the
+					// parameter.
+					//
+
+					TaasToolkit.insertAfter( inlinedMethod, insertPoint,
+							new TaasVertex( TAAS.setLocal( inlinedMethod.locals
+									.get( offset + localIndex++ ), param ) ) );
+				}
+
+				if( null != localScope )
+				{
+					TaasToolkit.insertAfter( inlinedMethod, insertPoint,
+							new TaasVertex( initLocalScope ) );
+				}
+
+				method.locals.defragment();
+
+				final LinkedList<TaasVertex> inlinedVertices = inlinedCode
+						.vertexList();
+
+				if( callProperty.getType() == VoidType.INSTANCE )
+				{
+					//
+					// TODO remove ReturnValue statements from methods
+					// that return a value but are called just like void
+					// methods ...
+					//
+
+					final List<TaasVertex> removes = new LinkedList<TaasVertex>();
+
+					for( final TaasVertex inlinedVertex : inlinedVertices )
+					{
+						if( VertexKind.Default != inlinedVertex.kind )
+						{
+							continue;
+						}
+
+						final TaasValue inlinedValue = inlinedVertex.value;
+
+						if( inlinedValue instanceof TReturnVoid )
+						{
+							removes.add( inlinedVertex );
+						}
+					}
+
+					for( final TaasVertex remove : removes )
+					{
+						try
+						{
+							TaasToolkit.remove( inlinedMethod, remove );
+						}
+						catch( final ControlFlowGraphException exception )
+						{
+							throw new TaasException( exception );
+						}
+					}
+
+					target = new InlineTarget( vertex, inlinedMethod, true );
+					break;
+				}
+				else
+				{
+					//
+					// Since we return a value we need a register to
+					// store the result.
+					//
+
+					final TaasLocal result = TaasToolkit
+							.createRegister( method );
+
+					//
+					// Also, type the register here with the return type
+					// of the inlined method.
+					//
+
+					result.typeAs( returnType );
+
+					//
+					// Next: Replace all TReturn expressions with a
+					// TSetLocal instead.
+					//
+
+					final Map<TaasValue, TaasValue> replacements = new LinkedHashMap<TaasValue, TaasValue>();
+
+					for( final TaasVertex inlinedVertex : inlinedVertices )
+					{
+						if( VertexKind.Default != inlinedVertex.kind )
+						{
+							continue;
+						}
+
+						final TaasValue inlinedValue = inlinedVertex.value;
+
+						if( inlinedValue instanceof TReturn )
+						{
+							replacements.put( inlinedValue, TAAS.setLocal(
+									result, ( (TReturn)inlinedValue ).value ) );
+						}
+					}
+
+					for( final Entry<TaasValue, TaasValue> replacement : replacements
+							.entrySet() )
+					{
+						TaasToolkit.replace( inlinedMethod, replacement
+								.getKey(), replacement.getValue() );
+					}
+
+					//
+					// And finally, we replace the call expression with
+					// the new resulting register.
+					//
+
+					TaasToolkit.replace( value, callProperty, result );
+
+					//
+					// In order to avoid a concurrent modification while
+					// traversing the list we will now save the
+					// information of what to do here.
+					//
+
+					target = new InlineTarget( vertex, inlinedMethod, false );
+
+					break allCalls;
+				}
 			}
+
+			//
+			// Inline TGetProperty expressions.
+			//
+
+			final List<TGetProperty> getters = new LinkedList<TGetProperty>();
+			TaasToolkit.searchAll( value, TGetProperty.class, getters );
+
+			for( final TGetProperty getter : getters )
+			{
+
+			}
+
 		}
 
 		//
-		// Inline all methods now.
+		// Inline method now, one at a time ...
 		//
 
 		if( null != target )

@@ -35,7 +35,7 @@ import com.joa_ebert.apparat.abc.MultinameKind;
  */
 public class Typename extends QName
 {
-	public QName name;
+	public QName qname;
 
 	public List<AbstractMultiname> parameters;// typename or qname
 
@@ -49,9 +49,9 @@ public class Typename extends QName
 	{
 		visitor.visit( context, this );
 
-		if( null != name )
+		if( null != qname )
 		{
-			name.accept( context, visitor );
+			qname.accept( context, visitor );
 		}
 
 		if( null != parameters )
@@ -91,6 +91,6 @@ public class Typename extends QName
 			}
 		}
 
-		return name.equals( other.name );
+		return qname.equals( other.qname );
 	}
 }

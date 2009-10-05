@@ -31,6 +31,7 @@ import java.util.Map;
 import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.AbstractMultiname;
 import com.joa_ebert.apparat.abc.Class;
+import com.joa_ebert.apparat.abc.ITraitsOwner;
 import com.joa_ebert.apparat.abc.Instance;
 import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.Namespace;
@@ -202,6 +203,7 @@ public final class TaasBuilder implements IInterpreter
 
 	private final List<TaasLocal> killedRegisters = new LinkedList<TaasLocal>();
 	private ControlFlowGraph<BytecodeVertex, Edge<BytecodeVertex>> bytecodeGraph;
+	private ITraitsOwner traitsOwner;
 
 	private MarkerManager markers;
 	private final Map<BytecodeVertex, TaasStack> operandStackAtMerge = new LinkedHashMap<BytecodeVertex, TaasStack>();
@@ -1247,7 +1249,7 @@ public final class TaasBuilder implements IInterpreter
 
 		localRegisters = new TaasRegisters( bytecode.methodBody.localCount );
 		code = new TaasCode();
-		typer = new TaasTyper( environment );
+		typer = new TaasTyper( bytecode.abc, environment );
 	}
 
 	public void interpret( final AbcEnvironment environment,
@@ -1262,6 +1264,11 @@ public final class TaasBuilder implements IInterpreter
 			{
 				throw new TaasException(
 						"Scope of method is unknown or does not exist." );
+			}
+
+			if( scope instanceof ITraitsOwner )
+			{
+				traitsOwner = (ITraitsOwner)scope;
 			}
 
 			if( ( scope instanceof Class ) || ( scope instanceof Script ) )
@@ -1478,6 +1485,10 @@ public final class TaasBuilder implements IInterpreter
 		final TaasValue[] parameters = parameters( operation.numArguments );
 		final TaasMultiname property = constant( operation.property );
 		final TaasValue object = operandStack.pop();
+
+		// FIXME If Instance and Class have a method with the same name the
+		// typeof method is broken since we do not know if we are interested in
+		// the instance or the class at the moment...
 
 		code.add( operandStack.push( TAAS.callProperty( object, property,
 				parameters, typer.typeOf( object, property ) ) ) );
@@ -1826,7 +1837,15 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onGetGlobalSlot( final GetGlobalSlot operation )
 	{
-		TODO();
+		final TaasValue value = slot( new TaasGlobalScope(),
+				operation.slotIndex );
+
+		final TaasLocal local = localRegisters.create();
+
+		local.typeAs( value.getType() );
+
+		code.add( TAAS.setLocal( local, value ) );
+		code.add( operandStack.push( local ) );
 	}
 
 	protected void onGetLex( final GetLex operation )
@@ -1909,7 +1928,22 @@ public final class TaasBuilder implements IInterpreter
 
 	protected void onGetSlot( final GetSlot operation )
 	{
-		TODO();
+		final TaasValue object = operandStack.pop();
+		final TaasValue value = slot( object, operation.slotIndex );
+
+		if( object instanceof TaasGlobalScope )
+		{
+			final TaasLocal local = localRegisters.create();
+
+			local.typeAs( value.getType() );
+
+			code.add( TAAS.setLocal( local, value ) );
+			code.add( operandStack.push( local ) );
+		}
+		else
+		{
+			code.add( operandStack.push( value ) );
+		}
 	}
 
 	protected void onGetSuper( final GetSuper operation )
@@ -2535,6 +2569,17 @@ public final class TaasBuilder implements IInterpreter
 		operandStack = null;
 		scopeStack = null;
 		localRegisters = null;
+	}
+
+	private TaasValue slot( final TaasValue object, final int slotIndex )
+	{
+		if( slotIndex < 0 )
+		{
+			throw new TaasException( "Illegal slot " + slotIndex );
+		}
+
+		return new TaasField( object, typer.typeOf( object, slotIndex ),
+				slotIndex );
 	}
 
 	private void TODO()

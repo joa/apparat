@@ -214,7 +214,7 @@ public final class ConstantPool
 			case Typename:
 				final Typename typename = (Typename)value;
 
-				add( typename.name );
+				add( typename.qname );
 
 				for( final AbstractMultiname multiname : typename.parameters )
 				{

@@ -201,7 +201,7 @@ public class UMLGraphPrinter
 
 			case Typename:
 				final Typename typename = (Typename)type;
-				return typename.name.name + ".\\<"
+				return typename.qname.name + ".\\<"
 						+ getType( typename.parameters.get( 0 ) ) + "\\>";
 
 			default:

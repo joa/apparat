@@ -30,7 +30,7 @@ import com.joa_ebert.apparat.abc.multinames.QName;
  * @author Joa Ebert
  * 
  */
-public final class Instance
+public final class Instance implements ITraitsOwner
 {
 	public Abc abc;
 	public Class klass;
@@ -90,5 +90,11 @@ public final class Instance
 				trait.accept( context, visitor );
 			}
 		}
+	}
+
+	@Override
+	public List<AbstractTrait> getTraits()
+	{
+		return traits;
 	}
 }

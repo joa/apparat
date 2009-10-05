@@ -25,6 +25,7 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.MethodBody;
 import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
+import com.joa_ebert.apparat.abc.bytecode.operations.Coerce;
 import com.joa_ebert.apparat.abc.bytecode.operations.ConvertBoolean;
 import com.joa_ebert.apparat.abc.bytecode.operations.ConvertDouble;
 import com.joa_ebert.apparat.abc.bytecode.operations.ConvertInt;
@@ -42,6 +43,7 @@ import com.joa_ebert.apparat.taas.TaasReference;
 import com.joa_ebert.apparat.taas.TaasValue;
 import com.joa_ebert.apparat.taas.types.BooleanType;
 import com.joa_ebert.apparat.taas.types.IntType;
+import com.joa_ebert.apparat.taas.types.MultinameType;
 import com.joa_ebert.apparat.taas.types.NumberType;
 import com.joa_ebert.apparat.taas.types.ObjectType;
 import com.joa_ebert.apparat.taas.types.StringType;
@@ -103,10 +105,28 @@ public class TSetLocal extends AbstractLocalExpr
 			{
 				if( local.isTyped() && !type.equals( value.getType() ) )
 				{
-					throw new TaasException( "Implicit conversion from "
-							+ value.getType().toString() + " to "
-							+ type.toString() + " for " + local.toString()
-							+ "." );
+					if( type instanceof MultinameType )
+					{
+						final MultinameType multinameType = (MultinameType)type;
+
+						if( null == multinameType.runtimeName
+								&& null == multinameType.runtimeNamespace )
+						{
+							code.add( new Coerce( multinameType.multiname ) );
+						}
+						else
+						{
+							throw new TaasException(
+									"Late coerce not supported." );
+						}
+					}
+					else
+					{
+						throw new TaasException( "Implicit conversion from "
+								+ value.getType().toString() + " to "
+								+ type.toString() + " for " + local.toString()
+								+ "." );
+					}
 				}
 			}
 		}

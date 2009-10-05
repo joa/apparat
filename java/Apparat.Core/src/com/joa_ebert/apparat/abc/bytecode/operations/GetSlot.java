@@ -37,4 +37,11 @@ public final class GetSlot extends AbstractOperation
 	{
 		super( Op.GetSlot );
 	}
+
+	public GetSlot( final int slotIndex )
+	{
+		super( Op.GetSlot );
+
+		this.slotIndex = slotIndex;
+	}
 }

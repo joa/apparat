@@ -82,7 +82,7 @@ public class TNewClass extends TaasExpression
 		// 1: B
 		//
 
-		final TaasTyper typer = new TaasTyper( environment );
+		final TaasTyper typer = new TaasTyper( klass.abc, environment );
 		final LinkedList<AbstractMultiname> scopes = new LinkedList<AbstractMultiname>();
 
 		if( base.getType() != NullType.INSTANCE )
