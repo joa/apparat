@@ -22,10 +22,8 @@
 package com.joa_ebert.apparat.abc.traits;
 
 import com.joa_ebert.apparat.abc.AbcContext;
-import com.joa_ebert.apparat.abc.AbstractMultiname;
-import com.joa_ebert.apparat.abc.AbstractTrait;
+import com.joa_ebert.apparat.abc.AbstractTraitSlot;
 import com.joa_ebert.apparat.abc.ConstantPool;
-import com.joa_ebert.apparat.abc.ConstantType;
 import com.joa_ebert.apparat.abc.IAbcVisitor;
 import com.joa_ebert.apparat.abc.Metadata;
 import com.joa_ebert.apparat.abc.TraitKind;
@@ -35,40 +33,27 @@ import com.joa_ebert.apparat.abc.TraitKind;
  * @author Joa Ebert
  * 
  */
-public final class TraitSlot extends AbstractTrait
-{
-	public int slotIndex;
+public final class TraitSlot extends AbstractTraitSlot {
+    public TraitSlot() {
+        super(TraitKind.Slot);
 
-	public AbstractMultiname type;
+        type = ConstantPool.EMPTY_MULTINAME;
+    }
 
-	public ConstantType valueType;
-	public Object value;
+    @Override
+    public void accept(final AbcContext context, final IAbcVisitor visitor) {
+        visitor.visit(context, this);
 
-	public TraitSlot()
-	{
-		super( TraitKind.Slot );
+        name.accept(context, visitor);
 
-		type = ConstantPool.EMPTY_MULTINAME;
-	}
+        if (null != type) {
+            type.accept(context, visitor);
+        }
 
-	@Override
-	public void accept( final AbcContext context, final IAbcVisitor visitor )
-	{
-		visitor.visit( context, this );
-
-		name.accept( context, visitor );
-
-		if( null != type )
-		{
-			type.accept( context, visitor );
-		}
-
-		if( null != metadata )
-		{
-			for( final Metadata meta : metadata )
-			{
-				meta.accept( context, visitor );
-			}
-		}
-	}
+        if (null != metadata) {
+            for (final Metadata meta : metadata) {
+                meta.accept(context, visitor);
+            }
+        }
+    }
 }

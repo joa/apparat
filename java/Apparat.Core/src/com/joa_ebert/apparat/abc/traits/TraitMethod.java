@@ -21,12 +21,10 @@
 
 package com.joa_ebert.apparat.abc.traits;
 
-import com.joa_ebert.apparat.abc.AbcBinding;
 import com.joa_ebert.apparat.abc.AbcContext;
-import com.joa_ebert.apparat.abc.AbstractTrait;
+import com.joa_ebert.apparat.abc.AbstractTraitMethod;
 import com.joa_ebert.apparat.abc.IAbcVisitor;
 import com.joa_ebert.apparat.abc.Metadata;
-import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.TraitKind;
 
 /**
@@ -34,35 +32,22 @@ import com.joa_ebert.apparat.abc.TraitKind;
  * @author Joa Ebert
  * 
  */
-public final class TraitMethod extends AbstractTrait
-{
-	public int dispIndex;
-	public int methodIndex;
+public final class TraitMethod extends AbstractTraitMethod {
 
-	@AbcBinding
-	public Method method;
+    public TraitMethod() {
+        super(TraitKind.Method);
+    }
 
-	public boolean isFinal;
-	public boolean isOverride;
+    @Override
+    public void accept(final AbcContext context, final IAbcVisitor visitor) {
+        visitor.visit(context, this);
 
-	public TraitMethod()
-	{
-		super( TraitKind.Method );
-	}
+        name.accept(context, visitor);
 
-	@Override
-	public void accept( final AbcContext context, final IAbcVisitor visitor )
-	{
-		visitor.visit( context, this );
-
-		name.accept( context, visitor );
-
-		if( null != metadata )
-		{
-			for( final Metadata meta : metadata )
-			{
-				meta.accept( context, visitor );
-			}
-		}
-	}
+        if (null != metadata) {
+            for (final Metadata meta : metadata) {
+                meta.accept(context, visitor);
+            }
+        }
+    }
 }
