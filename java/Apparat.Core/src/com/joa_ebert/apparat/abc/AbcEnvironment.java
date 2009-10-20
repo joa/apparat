@@ -32,6 +32,7 @@ import java.util.zip.DataFormatException;
 import com.joa_ebert.apparat.abc.analysis.TypeSolver;
 import com.joa_ebert.apparat.abc.bytecode.Bytecode;
 import com.joa_ebert.apparat.abc.multinames.QName;
+import com.joa_ebert.apparat.abc.traits.TraitClass;
 import com.joa_ebert.apparat.abc.traits.TraitConst;
 import com.joa_ebert.apparat.abc.traits.TraitFunction;
 import com.joa_ebert.apparat.abc.traits.TraitGetter;
@@ -556,7 +557,21 @@ public final class AbcEnvironment
 
 		for( final AbstractTrait trait : traits )
 		{
-			if( trait.kind == TraitKind.Slot )
+			if( trait.kind == TraitKind.Class )
+			{
+				// Patrick: add Class test on trait to simulate a code like
+				// GetGlobalScope/GetSlot index because in some test the slot
+				// index i want to retrieve is in a Class Trait and
+				// getGlobalSlotType miss it I don't know if it's ok or not,
+				// all i know it's working for my test case
+				final TraitClass klass = (TraitClass)trait;
+
+				if( klass.slotIndex == slotIndex )
+				{
+					return klass.name;
+				}
+			}
+			else if( trait.kind == TraitKind.Slot )
 			{
 				final TraitSlot slot = (TraitSlot)trait;
 
