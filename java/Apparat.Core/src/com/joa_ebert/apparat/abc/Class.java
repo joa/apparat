@@ -55,7 +55,7 @@ public final class Class implements ITraitsOwner
 		}
 	}
 
-	@Override
+	// @Override
 	public List<AbstractTrait> getTraits()
 	{
 		return traits;

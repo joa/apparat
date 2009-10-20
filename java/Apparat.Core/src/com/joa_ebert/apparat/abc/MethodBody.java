@@ -97,7 +97,7 @@ public final class MethodBody implements ITraitsOwner
 		return index;
 	}
 
-	@Override
+	// @Override
 	public List<AbstractTrait> getTraits()
 	{
 		return traits;

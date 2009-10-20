@@ -52,7 +52,7 @@ public final class Script implements ITraitsOwner
 		}
 	}
 
-	@Override
+	// @Override
 	public List<AbstractTrait> getTraits()
 	{
 		return traits;

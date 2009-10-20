@@ -92,7 +92,7 @@ public final class Instance implements ITraitsOwner
 		}
 	}
 
-	@Override
+	// @Override
 	public List<AbstractTrait> getTraits()
 	{
 		return traits;
