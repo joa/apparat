@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 
 import com.joa_ebert.apparat.swf.tags.ITag;
+import com.joa_ebert.apparat.swf.tags.Tags;
 
 /**
  * 
@@ -139,9 +140,15 @@ public final class SwfOutputStream extends OutputStream
 			throws IOException
 	{
 		int tagTypeAndLength = value.type << 6;
-		boolean writeLength = false;
+		// Patrick
+		// Fix issue n°5 (http://code.google.com/p/apparat/issues/detail?id=5#c2)
+		// smaller image disappear
+		// This was trickier to find
+		// The problem is that the SWF Format expect that length of
+		// DEFINEBITSxxx have to be written in long format even if the length is shorter
+		boolean writeLength = Tags.isLongLength( value.type );
 
-		if( value.length >= 0x3f )
+		if( writeLength || ( value.length >= 0x3f ) )
 		{
 			tagTypeAndLength |= 0x3f;
 			writeLength = true;

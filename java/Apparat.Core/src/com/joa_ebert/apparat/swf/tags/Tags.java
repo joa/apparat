@@ -21,6 +21,7 @@
 
 package com.joa_ebert.apparat.swf.tags;
 
+import java.util.HashMap;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -117,9 +118,17 @@ public final class Tags
 
 	private static final SortedMap<Integer, Class<? extends ITag>> classMap = new TreeMap<Integer, Class<? extends ITag>>();
 	private static final SortedMap<Integer, String> stringMap = new TreeMap<Integer, String>();
+	private static final HashMap<Integer, Boolean> writeLongLengthMap = new HashMap<Integer, Boolean>();
 
 	static
 	{
+		writeLongLengthMap.put( DefineBits, true );
+		writeLongLengthMap.put( DefineBitsJPEG2, true );
+		writeLongLengthMap.put( DefineBitsJPEG3, true );
+		writeLongLengthMap.put( DefineBitsJPEG4, true );
+		writeLongLengthMap.put( DefineBitsLossless, true );
+		writeLongLengthMap.put( DefineBitsLossless2, true );
+
 		stringMap.put( End, "End" );
 		stringMap.put( ShowFrame, "ShowFrame" );
 		stringMap.put( DefineShape, "DefineShape" );
@@ -223,6 +232,15 @@ public final class Tags
 		}
 
 		return klass;
+	}
+
+	public static boolean isLongLength( final int type )
+	{
+		if( writeLongLengthMap.containsKey( type ) )
+		{
+			return true;
+		}
+		return false;
 	}
 
 	public static String typeToString( final int type )

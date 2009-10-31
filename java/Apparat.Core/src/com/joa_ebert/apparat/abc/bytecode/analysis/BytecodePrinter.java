@@ -91,6 +91,7 @@ import com.joa_ebert.apparat.abc.bytecode.operations.SetProperty;
 import com.joa_ebert.apparat.abc.bytecode.operations.SetSlot;
 import com.joa_ebert.apparat.abc.bytecode.operations.SetSuper;
 import com.joa_ebert.apparat.abc.utils.StringConverter;
+import com.joa_ebert.apparat.utils.HexUtil;
 
 /**
  * 
@@ -212,18 +213,16 @@ public final class BytecodePrinter implements IInterpreter
 
 			if( showPositions )
 			{
-				final StringBuilder positionString = new StringBuilder( Integer
-						.toHexString( operation.getPosition() ) );
+				line.append( HexUtil.toString( operation.getPosition(), 6 ) );
+				line.append( ' ' );
+			}
 
-				while( positionString.length() < 6 )
-				{
-					positionString.insert( 0, '0' );
-				}
-
-				positionString.insert( 0, "0x" );
-				positionString.append( ' ' );
-
-				line.append( positionString.toString() );
+			// add by Patrick to show op code
+			{
+				final StringBuilder codeString = new StringBuilder( " [ " );
+				codeString.append( HexUtil.toString( operation.code, 2 ) );
+				codeString.append( " ] " );
+				line.append( codeString.toString() );
 			}
 
 			if( bytecode.markers.hasMarkerFor( operation ) )
@@ -527,7 +526,7 @@ public final class BytecodePrinter implements IInterpreter
 
 				case Op.NewFunction:
 					line.append( StringConverter
-							.toString( ( (NewFunction)operation ).function ) );
+							.toString( (NewFunction)operation ) );
 					break;
 
 				case Op.NewObject:
@@ -537,11 +536,9 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.PushByte:
-					line
-							.append( ( (PushByte)operation ).value >= 0 ? "0x"
-									+ Integer
-											.toHexString( ( (PushByte)operation ).value )
-									: ( (PushByte)operation ).value );
+					line.append( ( (PushByte)operation ).value >= 0 ? HexUtil
+							.toString( ( (PushByte)operation ).value )
+							: ( (PushByte)operation ).value );
 					break;
 
 				case Op.PushDouble:
@@ -550,9 +547,8 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.PushInt:
-					line.append( ( (PushInt)operation ).value >= 0 ? "0x"
-							+ Integer
-									.toHexString( ( (PushInt)operation ).value )
+					line.append( ( (PushInt)operation ).value >= 0 ? HexUtil
+							.toString( ( (PushInt)operation ).value )
 							: ( (PushInt)operation ).value );
 					break;
 
@@ -562,11 +558,9 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.PushShort:
-					line
-							.append( ( (PushShort)operation ).value >= 0 ? "0x"
-									+ Integer
-											.toHexString( ( (PushShort)operation ).value )
-									: ( (PushShort)operation ).value );
+					line.append( ( (PushShort)operation ).value >= 0 ? HexUtil
+							.toString( ( (PushShort)operation ).value )
+							: ( (PushShort)operation ).value );
 					break;
 
 				case Op.PushString:
@@ -575,9 +569,8 @@ public final class BytecodePrinter implements IInterpreter
 					break;
 
 				case Op.PushUInt:
-					line.append( "0x"
-							+ Long.toHexString( ( (PushUInt)operation ).value )
-							+ "L" );
+					line.append( HexUtil
+							.toString( ( (PushUInt)operation ).value ) );
 					break;
 
 				case Op.SetLocal:

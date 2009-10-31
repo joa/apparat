@@ -22,6 +22,7 @@
 package com.joa_ebert.apparat.abc.utils;
 
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -46,6 +47,7 @@ import com.joa_ebert.apparat.abc.traits.TraitGetter;
 import com.joa_ebert.apparat.abc.traits.TraitMethod;
 import com.joa_ebert.apparat.abc.traits.TraitSetter;
 import com.joa_ebert.apparat.abc.traits.TraitSlot;
+import com.joa_ebert.apparat.utils.HexUtil;
 import com.joa_ebert.apparat.utils.IndentingPrintWriter;
 
 /**
@@ -75,13 +77,29 @@ public final class AbcPrinter
 
 			new ConstantPoolPrinter( output ).print( abc.constantPool );
 
+			final HashMap<Method, Boolean> methodAlreadyPrinted = new HashMap<Method, Boolean>();
+
 			printHeader( abc.scripts, "Scripts" );
 			output.pushIndent();
 			{
 				for( final Script script : abc.scripts )
 				{
-					print( script );
+					print( script, methodAlreadyPrinted );
 				}
+			}
+			output.popIndent();
+			printHeader( abc.methods, "Anonymous functions",
+					methodAlreadyPrinted );
+			output.pushIndent();
+			int functionIndex = -1;
+			for( final Method method : abc.methods )
+			{
+				++functionIndex;
+				if( methodAlreadyPrinted.containsKey( method ) )
+				{
+					continue;
+				}
+				print( method, methodAlreadyPrinted, functionIndex );
 			}
 			output.popIndent();
 		}
@@ -89,36 +107,37 @@ public final class AbcPrinter
 		output.flush();
 	}
 
-	public void print( final AbstractTrait trait )
+	public void print( final AbstractTrait trait,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		switch( trait.kind )
 		{
 			case Class:
-				print( (TraitClass)trait );
+				print( (TraitClass)trait, alreadyPrinted );
 				break;
 
 			case Const:
-				print( (TraitConst)trait );
+				printTraitInfo( trait );
 				break;
 
 			case Function:
-				print( (TraitFunction)trait );
+				print( (TraitFunction)trait, alreadyPrinted );
 				break;
 
 			case Getter:
-				print( (TraitGetter)trait );
+				print( (TraitGetter)trait, alreadyPrinted );
 				break;
 
 			case Method:
-				print( (TraitMethod)trait );
+				print( (TraitMethod)trait, alreadyPrinted );
 				break;
 
 			case Setter:
-				print( (TraitSetter)trait );
+				print( (TraitSetter)trait, alreadyPrinted );
 				break;
 
 			case Slot:
-				print( (TraitSlot)trait );
+				printTraitInfo( trait );
 				break;
 
 			default:
@@ -144,17 +163,18 @@ public final class AbcPrinter
 		output.flush();
 	}
 
-	public void print( final Class klass )
+	public void print( final Class klass,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		output.println( "Class:" );
 		output.pushIndent();
 		{
-			printTraits( klass.traits, true );
-			printInitializer( klass.classInitializer );
+			printTraits( klass.traits, true, alreadyPrinted );
+			printInitializer( klass.classInitializer, alreadyPrinted );
 
 			if( null != klass.instance )
 			{
-				print( klass.instance );
+				print( klass.instance, alreadyPrinted );
 			}
 		}
 		output.popIndent();
@@ -185,7 +205,8 @@ public final class AbcPrinter
 		output.flush();
 	}
 
-	public void print( final Instance instance )
+	public void print( final Instance instance,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		output.println( "Instance:" );
 		output.pushIndent();
@@ -212,8 +233,8 @@ public final class AbcPrinter
 			}
 			output.popIndent();
 
-			printInitializer( instance.instanceInitializer );
-			printTraits( instance.traits, true );
+			printInitializer( instance.instanceInitializer, alreadyPrinted );
+			printTraits( instance.traits, true, alreadyPrinted );
 		}
 		output.popIndent();
 		output.flush();
@@ -240,9 +261,29 @@ public final class AbcPrinter
 		output.flush();
 	}
 
-	public void print( final Method method )
+	public void print( final Method method,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
-		output.println( "Method:" );
+
+		print( method, alreadyPrinted, -1 );
+	}
+
+	public void print( final Method method,
+			final HashMap<Method, Boolean> alreadyPrinted,
+			final int functionIndex )
+	{
+
+		alreadyPrinted.put( method, true );
+
+		if( functionIndex == -1 )
+		{
+			output.println( "Method:" );
+		}
+		else
+		{
+			output.println( "AnonymousFunction("
+					+ HexUtil.toString( functionIndex, 4 ) + "):" );
+		}
 		output.pushIndent();
 		{
 			output.println( "Name: " + method.name );
@@ -285,7 +326,7 @@ public final class AbcPrinter
 			output.println( "MaxScopeDepth: " + methodBody.maxScopeDepth );
 			output.println( "MaxStack: " + methodBody.maxStack );
 
-			printTraits( methodBody.traits, true );
+			printTraits( methodBody.traits, true, null );
 			printExceptions( methodBody.exceptions );
 
 			if( null != methodBody.code )
@@ -331,28 +372,30 @@ public final class AbcPrinter
 		output.flush();
 	}
 
-	public void print( final Script script )
+	public void print( final Script script,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		output.println( "Script:" );
 		output.pushIndent();
 		{
-			printTraits( script.traits );
-			printInitializer( script.initializer );
+			printTraits( script.traits, alreadyPrinted );
+			printInitializer( script.initializer, alreadyPrinted );
 		}
 		output.popIndent();
 		output.flush();
 	}
 
-	public void print( final TraitClass trait )
+	public void print( final TraitClass trait,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		output.println( "TraitClass:" );
 		output.pushIndent();
 		{
-			printTrait( trait );
+			printTraitInfo( trait );
 
 			output.println( "Slot: " + trait.slotIndex );
 
-			print( trait.klass );
+			print( trait.klass, alreadyPrinted );
 		}
 		output.popIndent();
 		output.flush();
@@ -378,18 +421,19 @@ public final class AbcPrinter
 		output.flush();
 	}
 
-	public void print( final TraitFunction trait )
+	public void print( final TraitFunction trait,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		output.println( "TraitFunction:" );
 		output.pushIndent();
 		{
-			printTrait( trait );
+			printTraitInfo( trait );
 
 			output.println( "Slot: " + trait.slotIndex );
 
 			output.pushIndent();
 			{
-				print( trait.function );
+				print( trait.function, alreadyPrinted );
 			}
 			output.popIndent();
 		}
@@ -397,12 +441,13 @@ public final class AbcPrinter
 		output.flush();
 	}
 
-	public void print( final TraitGetter trait )
+	public void print( final TraitGetter trait,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		output.println( "TraitGetter:" );
 		output.pushIndent();
 		{
-			printTrait( trait );
+			printTraitInfo( trait );
 
 			output.println( "DispIndex: " + trait.dispIndex );
 			output.println( "IsFinal: " + trait.isFinal );
@@ -410,7 +455,7 @@ public final class AbcPrinter
 
 			output.pushIndent();
 			{
-				print( trait.method );
+				print( trait.method, alreadyPrinted );
 			}
 			output.popIndent();
 		}
@@ -418,12 +463,13 @@ public final class AbcPrinter
 		output.flush();
 	}
 
-	public void print( final TraitMethod trait )
+	public void print( final TraitMethod trait,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		output.println( "TraitMethod:" );
 		output.pushIndent();
 		{
-			printTrait( trait );
+			printTraitInfo( trait );
 
 			output.println( "DispIndex: " + trait.dispIndex );
 			output.println( "IsFinal: " + trait.isFinal );
@@ -431,7 +477,7 @@ public final class AbcPrinter
 
 			output.pushIndent();
 			{
-				print( trait.method );
+				print( trait.method, alreadyPrinted );
 			}
 			output.popIndent();
 		}
@@ -439,12 +485,13 @@ public final class AbcPrinter
 		output.flush();
 	}
 
-	public void print( final TraitSetter trait )
+	public void print( final TraitSetter trait,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		output.println( "TraitSetter:" );
 		output.pushIndent();
 		{
-			printTrait( trait );
+			printTraitInfo( trait );
 
 			output.println( "DispIndex: " + trait.dispIndex );
 			output.println( "IsFinal: " + trait.isFinal );
@@ -452,7 +499,7 @@ public final class AbcPrinter
 
 			output.pushIndent();
 			{
-				print( trait.method );
+				print( trait.method, alreadyPrinted );
 			}
 			output.popIndent();
 		}
@@ -498,12 +545,29 @@ public final class AbcPrinter
 		output.println( name + " (" + list.size() + " total):" );
 	}
 
-	private void printInitializer( final Method initializer )
+	private int printHeader( final List<Method> list, final String name,
+			final HashMap<Method, Boolean> alreadyPrinted )
+	{
+		int count = 0;
+		for( final Method method : list )
+		{
+			if( alreadyPrinted.containsKey( method ) )
+			{
+				continue;
+			}
+			++count;
+		}
+		output.println( name + " (" + count + " total):" );
+		return count;
+	}
+
+	private void printInitializer( final Method initializer,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		output.println( "Initializer:" );
 		output.pushIndent();
 		{
-			print( initializer );
+			print( initializer, alreadyPrinted );
 		}
 		output.popIndent();
 	}
@@ -521,19 +585,25 @@ public final class AbcPrinter
 		output.popIndent();
 	}
 
-	private void printTrait( final AbstractTrait trait )
+	private void printTrait( final TraitConst trait )
+	{
+		printTraitInfo( trait );
+	}
+
+	private void printTrait( final TraitSlot trait )
+	{
+		printTraitInfo( trait );
+	}
+
+	private void printTraitInfo( final AbstractTrait trait )
 	{
 		output.println( "Name: " + StringConverter.toString( trait.name ) );
 		printMetadata( trait.metadata );
 	}
 
-	private void printTraits( final List<AbstractTrait> traits )
-	{
-		printTraits( traits, false );
-	}
-
 	private void printTraits( final List<AbstractTrait> traits,
-			final boolean ignoreClass )
+			final boolean ignoreClass,
+			final HashMap<Method, Boolean> alreadyPrinted )
 	{
 		printHeader( traits, "Traits" );
 		output.pushIndent();
@@ -544,15 +614,21 @@ public final class AbcPrinter
 				{
 					if( !( trait instanceof TraitClass ) )
 					{
-						print( trait );
+						print( trait, alreadyPrinted );
 					}
 				}
 				else
 				{
-					print( trait );
+					print( trait, alreadyPrinted );
 				}
 			}
 		}
 		output.popIndent();
+	}
+
+	private void printTraits( final List<AbstractTrait> traits,
+			final HashMap<Method, Boolean> alreadyPrinted )
+	{
+		printTraits( traits, false, alreadyPrinted );
 	}
 }

@@ -67,6 +67,6 @@ public class RTQName extends AbstractMultiname
 
 	public boolean equals( final RTQName other )
 	{
-		return name.equals( other.name );
+		return kind.equals( other.kind ) && name.equals( other.name );
 	}
 }

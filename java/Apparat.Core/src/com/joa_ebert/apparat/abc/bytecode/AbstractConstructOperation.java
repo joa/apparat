@@ -19,25 +19,23 @@
  * 
  */
 
-package com.joa_ebert.apparat.abc.bytecode.operations;
-
-import com.joa_ebert.apparat.abc.bytecode.AbstractConstructOperation;
-import com.joa_ebert.apparat.abc.bytecode.Op;
+package com.joa_ebert.apparat.abc.bytecode;
 
 /**
- * 
- * @author Joa Ebert
+ * @author Patrick Le Clec'h
  * 
  */
-public final class Construct extends AbstractConstructOperation
+public abstract class AbstractConstructOperation extends AbstractOperation
 {
-	public Construct()
+	public int numArguments;
+
+	/**
+	 * @param code
+	 */
+	protected AbstractConstructOperation( final int code, final int numArguments )
 	{
-		super( Op.Construct, 0 );
+		super( code );
+		this.numArguments = numArguments;
 	}
 
-	public Construct( final int numArguments )
-	{
-		super( Op.Construct, numArguments );
-	}
 }

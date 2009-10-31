@@ -21,7 +21,7 @@
 
 package com.joa_ebert.apparat.abc.bytecode.operations;
 
-import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
+import com.joa_ebert.apparat.abc.bytecode.AbstractConstructOperation;
 import com.joa_ebert.apparat.abc.bytecode.Op;
 
 /**
@@ -29,18 +29,16 @@ import com.joa_ebert.apparat.abc.bytecode.Op;
  * @author Joa Ebert
  * 
  */
-public final class ConstructSuper extends AbstractOperation
+public final class ConstructSuper extends AbstractConstructOperation
 {
-	public int numArguments;
 
 	public ConstructSuper()
 	{
-		super( Op.ConstructSuper );
+		super( Op.ConstructSuper, 0 );
 	}
 
 	public ConstructSuper( final int numArguments )
 	{
-		super( Op.ConstructSuper );
-		this.numArguments = numArguments;
+		super( Op.ConstructSuper, numArguments );
 	}
 }

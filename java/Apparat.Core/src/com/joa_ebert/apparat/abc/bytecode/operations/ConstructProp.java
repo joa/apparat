@@ -22,7 +22,7 @@
 package com.joa_ebert.apparat.abc.bytecode.operations;
 
 import com.joa_ebert.apparat.abc.AbstractMultiname;
-import com.joa_ebert.apparat.abc.bytecode.AbstractOperation;
+import com.joa_ebert.apparat.abc.bytecode.AbstractConstructOperation;
 import com.joa_ebert.apparat.abc.bytecode.Op;
 
 /**
@@ -30,23 +30,19 @@ import com.joa_ebert.apparat.abc.bytecode.Op;
  * @author Joa Ebert
  * 
  */
-public final class ConstructProp extends AbstractOperation
+public final class ConstructProp extends AbstractConstructOperation
 {
 	public AbstractMultiname property;
 
-	public int numArguments;
-
 	public ConstructProp()
 	{
-		super( Op.ConstructProp );
+		super( Op.ConstructProp, 0 );
 	}
 
 	public ConstructProp( final int numArguments,
 			final AbstractMultiname property )
 	{
-		super( Op.ConstructProp );
-
-		this.numArguments = numArguments;
+		super( Op.ConstructProp, numArguments );
 		this.property = property;
 	}
 }

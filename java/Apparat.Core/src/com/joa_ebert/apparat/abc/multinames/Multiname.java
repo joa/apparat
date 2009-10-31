@@ -75,7 +75,7 @@ public class Multiname extends AbstractMultiname
 
 	public boolean equals( final Multiname other )
 	{
-		return name.equals( other.name )
+		return kind.equals( other.kind ) && name.equals( other.name )
 				&& namespaceSet.equals( other.namespaceSet );
 	}
 }

@@ -83,7 +83,8 @@ public class QName extends AbstractMultiname
 
 	public boolean equals( final QName other )
 	{
-		return name.equals( other.name ) && namespace.equals( other.namespace );
+		return kind.equals( other.kind ) && name.equals( other.name )
+				&& namespace.equals( other.namespace );
 	}
 
 	@Override
@@ -95,5 +96,28 @@ public class QName extends AbstractMultiname
 		hash = hash * 31 + ( null == name ? 0 : name.hashCode() );
 
 		return hash;
+	}
+
+	@Override
+	public String toString()
+	{
+		String ret = "";
+		if( namespace != null )
+		{
+			ret += namespace.toString();
+		}
+		if( name != null )
+		{
+			if( !"".equals( ret ) )
+			{
+				ret += ".";
+			}
+			ret += name.toString();
+		}
+		if( "".equals( ret ) )
+		{
+			ret = super.toString();
+		}
+		return ret;
 	}
 }
