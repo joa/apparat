@@ -51,4 +51,41 @@ public class HexUtil
 
 		return resultBuffer.toString();
 	}
+
+	public static String toString( final int value )
+	{
+		final StringBuffer sb = new StringBuffer( "0x" ).append( Integer
+				.toHexString( value ) );
+		return sb.toString();
+	}
+
+	public static String toString( final int value, final int length )
+	{
+		final StringBuffer sb = new StringBuffer( Integer.toHexString( value ) );
+		while( sb.length() < length )
+		{
+			sb.insert( 0, '0' );
+		}
+		sb.insert( 0, "0x" );
+		return sb.toString();
+	}
+
+	public static String toString( final Long value )
+	{
+		final StringBuffer sb = new StringBuffer( "0x" ).append(
+				Long.toHexString( value ) ).append( "L" );
+		return sb.toString();
+	}
+
+	public static String toString( final Long value, final int length )
+	{
+		final StringBuffer sb = new StringBuffer( Long.toHexString( value ) );
+		while( sb.length() < length )
+		{
+			sb.insert( 0, '0' );
+		}
+		sb.insert( 0, "0x" );
+		sb.append( "L" );
+		return sb.toString();
+	}
 }
