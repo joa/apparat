@@ -236,11 +236,7 @@ public final class Tags
 
 	public static boolean isLongLength( final int type )
 	{
-		if( writeLongLengthMap.containsKey( type ) )
-		{
-			return true;
-		}
-		return false;
+		return writeLongLengthMap.containsKey( type );
 	}
 
 	public static String typeToString( final int type )
