@@ -33,6 +33,16 @@ public final class RECT
 	public int minY;
 	public int maxY;
 
+	// Patrick fixed for negative value
+	public int countBits( final int value )
+	{
+		if( value == 0 )
+		{
+			return 0;
+		}
+		return 33 - Integer.numberOfLeadingZeros( value < 0 ? -value : value );
+	}
+
 	@Override
 	public boolean equals( final Object obj )
 	{
@@ -52,12 +62,12 @@ public final class RECT
 
 	public int getNumberOfBits()
 	{
-		// TODO fix me for negative values
+		// Patrick fixed for negative value
 
-		final int a = 0x21 - Integer.numberOfLeadingZeros( minX );
-		final int b = 0x21 - Integer.numberOfLeadingZeros( maxX );
-		final int c = 0x21 - Integer.numberOfLeadingZeros( minY );
-		final int d = 0x21 - Integer.numberOfLeadingZeros( maxY );
+		final int a = countBits( minX );
+		final int b = countBits( maxX );
+		final int c = countBits( minY );
+		final int d = countBits( maxY );
 
 		return Math.max( Math.max( a, b ), Math.max( c, d ) );
 	}

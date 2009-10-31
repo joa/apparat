@@ -54,6 +54,16 @@ public final class SwfOutputStream extends OutputStream
 		output.close();
 	}
 
+	// Patrick fixed for negative value
+	public int countBits( final int value )
+	{
+		if( value == 0 )
+		{
+			return 0;
+		}
+		return 33 - Integer.numberOfLeadingZeros( value < 0 ? -value : value );
+	}
+
 	private void doBitAlignment() throws IOException
 	{
 		if( 0 != bitIndex )
@@ -187,27 +197,18 @@ public final class SwfOutputStream extends OutputStream
 
 	public void writeSB( final int value ) throws IOException
 	{
-		// TODO fix me for negative values
-
-		writeSB( value, 0x21 - Integer.numberOfLeadingZeros( value ) );
+		// Patrick fixed for negative values
+		writeSB( value, countBits( value ) );
 	}
 
 	public void writeSB( final int value, final int n ) throws IOException
 	{
-		// TODO implement me for negative values
-
-		if( value < 0 )
-		{
-			throw new IOException( "Negative values are currently unsupported." );
-		}
-
 		for( int i = n - 1; i > -1; --i )
 		{
 			if( 0 != ( value & ( 1 << i ) ) )
 			{
 				markCurrentBitTrue();
 			}
-
 			goToNextBit();
 		}
 	}
