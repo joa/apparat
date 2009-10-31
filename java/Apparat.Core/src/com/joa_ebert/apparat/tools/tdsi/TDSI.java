@@ -29,6 +29,7 @@ import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.Method;
 import com.joa_ebert.apparat.abc.bytecode.analysis.DeadCodeElimination;
 import com.joa_ebert.apparat.abc.bytecode.analysis.IInterpreter;
+import com.joa_ebert.apparat.abc.bytecode.analysis.InheritanceAnalyzer;
 import com.joa_ebert.apparat.abc.bytecode.asbridge.BytecodeInlineJob;
 import com.joa_ebert.apparat.abc.bytecode.asbridge.MemoryInlineJob;
 import com.joa_ebert.apparat.abc.bytecode.permutations.DecrementIntPattern;
@@ -67,6 +68,7 @@ public final class TDSI implements ITool, ITagVisitor
 	private boolean inlineBytecode = true;
 	private boolean bytecodePermutations = true;
 	private boolean integerCalculus = false;
+	private boolean finalize = false;
 	private boolean deadCodeElimination = false;
 
 	private IToolConfiguration config;
@@ -79,6 +81,7 @@ public final class TDSI implements ITool, ITagVisitor
 				+ "-integer-calculus [true|false]\t\tUse integer calculus when possible.\n"
 				+ "-bytecode-permutations [true|false]\tBytecode permutations except integer calculus.\n"
 				+ "-inline-memory [true|false]\t\tWhether or not Memory will be inlined.\n"
+				+ "-finalize [true|false]\t\tMark classes final if possible.\n"
 				+ "-dead-code-elimination [true|false]\tPeforms dead code elimination for every method.";
 	}
 
@@ -118,6 +121,11 @@ public final class TDSI implements ITool, ITagVisitor
 					.getOption( "inline-memory" ) );
 		}
 
+		if( config.hasOption( "finalize" ) )
+		{
+			finalize = Boolean.parseBoolean( config.getOption( "finalize" ) );
+		}
+
 		if( config.hasOption( "dead-code-elimination" ) )
 		{
 			deadCodeElimination = Boolean.parseBoolean( config
@@ -129,6 +137,7 @@ public final class TDSI implements ITool, ITagVisitor
 		ToolLog.info( "\tintegerCalculus\t\t= " + integerCalculus );
 		ToolLog.info( "\tbytecodePermutations\t= " + bytecodePermutations );
 		ToolLog.info( "\tinlineMemory\t\t= " + inlineMemory );
+		ToolLog.info( "\tfinalize\t\t= " + finalize );
 		ToolLog.info( "\tdeadCodeElimination\t= " + deadCodeElimination );
 
 		final TagIO tagIO = new TagIO( config.getInput() );
@@ -166,6 +175,7 @@ public final class TDSI implements ITool, ITagVisitor
 
 		final IInterpreter memInterp = new MemoryInlineJob();
 		final IInterpreter bytecodeInterp = new BytecodeInlineJob();
+		final InheritanceAnalyzer inheritanceAnalyzer = new InheritanceAnalyzer();
 
 		for( final Method method : abc.methods )
 		{
@@ -225,6 +235,15 @@ public final class TDSI implements ITool, ITagVisitor
 			{
 				abc.accept( new DeadCodeElimination( true ) );
 			}
+		}
+
+		//
+		// Mark classes final if possible
+		//
+
+		if( finalize )
+		{
+			inheritanceAnalyzer.finalize( abc.instances );
 		}
 
 		try
