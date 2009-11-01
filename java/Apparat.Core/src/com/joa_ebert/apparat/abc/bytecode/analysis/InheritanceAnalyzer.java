@@ -21,9 +21,14 @@
 
 package com.joa_ebert.apparat.abc.bytecode.analysis;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
+import com.joa_ebert.apparat.abc.Abc;
+import com.joa_ebert.apparat.abc.AbcContext;
+import com.joa_ebert.apparat.abc.AbcEnvironment;
 import com.joa_ebert.apparat.abc.AbstractMultiname;
 import com.joa_ebert.apparat.abc.Instance;
 
@@ -33,10 +38,41 @@ import com.joa_ebert.apparat.abc.Instance;
  */
 public final class InheritanceAnalyzer
 {
-	private final List<AbstractMultiname> map = new LinkedList<AbstractMultiname>();
+	public void finalize( final AbcEnvironment abcEnvironment )
+	{
+		final Set<AbstractMultiname> set = new HashSet<AbstractMultiname>();
+
+		for( final AbcContext abcContext : abcEnvironment.getContexts() )
+		{
+			final Abc abc = abcContext.getAbc();
+
+			for( final Instance instance : abc.instances )
+			{
+				if( null != instance.base )
+				{
+					set.add( instance.base );
+				}
+			}
+		}
+
+		for( final AbcContext abcContext : abcEnvironment.getContexts() )
+		{
+			final Abc abc = abcContext.getAbc();
+
+			for( final Instance instance : abc.instances )
+			{
+				if( !instance.isFinal && !set.contains( instance.name ) )
+				{
+					instance.isFinal = true;
+				}
+			}
+		}
+	}
 
 	public void finalize( final List<Instance> instances )
 	{
+		final List<AbstractMultiname> map = new LinkedList<AbstractMultiname>();
+
 		for( final Instance instance : instances )
 		{
 			if( null != instance.base )
