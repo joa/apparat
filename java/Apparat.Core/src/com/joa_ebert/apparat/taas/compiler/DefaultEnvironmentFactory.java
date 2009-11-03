@@ -44,7 +44,7 @@ public final class DefaultEnvironmentFactory
 				.getResource( "/com/joa_ebert/apparat/taas/compiler/builtin/builtin.abc" );
 
 		final URL toplevelURL = DefaultEnvironmentFactory.class
-				.getResource( "/com/joa_ebert/apparat/taas/compiler/builtin/builtin.abc" );
+				.getResource( "/com/joa_ebert/apparat/taas/compiler/builtin/toplevel.abc" );
 
 		InputStream stream = null;
 
