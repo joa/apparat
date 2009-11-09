@@ -43,6 +43,11 @@ public final class Marker
 		this( null, index );
 	}
 
+	public AbstractOperation getOperation()
+	{
+		return operation;
+	}
+
 	public int getPosition()
 	{
 		return position;
