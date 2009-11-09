@@ -60,6 +60,11 @@ public class TagIO
 		strategy.close();
 	}
 
+	public ITagIOStrategy getStrategy()
+	{
+		return strategy;
+	}
+
 	public List<ITag> getTags()
 	{
 		if( null == strategy )

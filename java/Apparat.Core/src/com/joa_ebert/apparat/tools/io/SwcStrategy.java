@@ -38,7 +38,7 @@ import com.joa_ebert.apparat.swf.tags.ITag;
  * @author Joa Ebert
  * 
  */
-final class SwcStrategy implements ITagIOStrategy
+public final class SwcStrategy implements ITagIOStrategy
 {
 	private Swc swc;
 	private Swf swf;
@@ -51,6 +51,16 @@ final class SwcStrategy implements ITagIOStrategy
 		swf = null;
 	}
 
+	public Swf getSwf()
+	{
+		return swf;
+	}
+	
+	public Swc getSwc()
+	{
+		return swc;
+	}
+	
 	public List<ITag> getTags()
 	{
 		if( null == swf )
