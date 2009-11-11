@@ -32,7 +32,7 @@ import com.joa_ebert.apparat.swf.tags.ITag;
  * @author Joa Ebert
  * 
  */
-interface ITagIOStrategy
+public interface ITagIOStrategy
 {
 	public void close();
 
