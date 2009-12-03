@@ -148,13 +148,13 @@ class Swf {
     
       if(compressed) {
         val deflater = new Deflater(Deflater.BEST_COMPRESSION)
-        val buffer2 = new Array[Byte](0x1000);
+        val buffer2 = new Array[Byte](0x8000);//assume we have 32kb of ram spare ...
         var numBytesCompressed = 0;
         deflater setInput bytes
         deflater finish
       
         do {
-          numBytesCompressed = deflater.deflate(buffer2);
+          numBytesCompressed = deflater deflate buffer2
           output write (buffer2, 0, numBytesCompressed);
         } while(0 != numBytesCompressed);
       } else {

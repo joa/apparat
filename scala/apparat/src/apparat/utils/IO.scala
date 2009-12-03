@@ -35,13 +35,13 @@ object IO {
   
   def byteArrayOf(implicit input: InputStream) = {
     val output = new ByteArrayOutputStream
-    val buffer = new Array[Byte](0x1000)
+    val buffer = new Array[Byte](0x2000)
     var bytesRead = 0
 
     bytesRead = input.read(buffer)
     
     while(bytesRead >= 0) {
-      output write (buffer, 0, bytesRead )
+      output write (buffer, 0, bytesRead)
       bytesRead = input.read(buffer)
     }
     

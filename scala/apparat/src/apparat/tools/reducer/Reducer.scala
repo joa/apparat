@@ -2,6 +2,7 @@ package apparat.tools.reducer
 
 import apparat.tools._
 import apparat.utils._
+import apparat.utils.Performance._
 import apparat.swf._
 
 import java.awt.image.BufferedImage
@@ -15,7 +16,7 @@ import javax.imageio.ImageWriter
 import scala.actors.Futures._
 
 object Reducer {
-  def main(args : Array[String]): Unit = ApparatApplication(new ReducerTool, args)
+  def main(args: Array[String]): Unit = ApparatApplication(new ReducerTool, args)
   
   class ReducerTool extends ApparatTool
   {
