@@ -69,7 +69,7 @@ public final class Reducer implements ITool
 	public String getHelp()
 	{
 		return "-input [file]\tThe input file.\n"
-				+ "-input [file]\tThe output file.\n"
+				+ "-output [file]\tThe output file.\n"
 				+ "-quality [float]\tCompression quality from 0.0 to 1.0.\n"
 				+ "-deblock [float]\tStrength of deblocking filter.\n"
 				+ "-keep-alpha-premultiplied [boolean]\tWhether or not to keep premultiplied alpha.";
