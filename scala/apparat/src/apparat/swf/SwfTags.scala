@@ -199,6 +199,12 @@ trait CharacterID {
   var characterID: Int = 0
 }
 
+trait NoData extends KnownLength {
+  def length = 0
+  def read(header: Recordheader, input: SwfInputStream): Unit = {}
+  def write(output: SwfOutputStream): Unit = {}
+}
+
 trait KnownLength {
   def length: Int
 }
@@ -233,17 +239,11 @@ class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLength
   override def toString() = "[" + (SwfTags toString kind) + "]"
 }
 
-class End extends SwfTag(SwfTags.End) with KnownLength {
-  def length = 0
-  def read(header: Recordheader, input: SwfInputStream) = {}
-  def write(output: SwfOutputStream) = {}
+class End extends SwfTag(SwfTags.End) with NoData {
   override def toString = "[End]"
 }
 
-class ShowFrame extends SwfTag(SwfTags.ShowFrame) with KnownLength {
-  def length = 0
-  def read(header: Recordheader, input: SwfInputStream) = {}
-  def write(output: SwfOutputStream) = {}
+class ShowFrame extends SwfTag(SwfTags.ShowFrame) with NoData {
   override def toString = "[ShowFrame]"
 }
 
