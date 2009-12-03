@@ -98,6 +98,7 @@ class SwfOutputStream(val output: OutputStream) extends OutputStream {
   
   def writeTAG(value: SwfTag) = {
     value match {
+      case x: NoData => writeRECORDHEADER(new Recordheader(value kind, 0))
       case x: KnownLength => {
         writeRECORDHEADER(new Recordheader(value kind, x length))
         value write this
