@@ -172,6 +172,10 @@ object SwfTags {
     case SymbolClass => Some(new SymbolClass)
     case ShowFrame => Some(new ShowFrame)
     case End => Some(new End)
+    case DefineBitsJPEG2 => Some(new DefineBitsJPEG2)
+    case DefineBitsJPEG3 => Some(new DefineBitsJPEG3)
+    case DefineBitsJPEG4 => Some(new DefineBitsJPEG4)
+    case DefineBitsLossless2 => Some(new DefineBitsLossless2)
     case _ => None
   }
   
@@ -195,7 +199,7 @@ object SwfTags {
   }
 }
 
-trait CharacterIDTag {
+trait DefineTag {
   var characterID: Int = 0
   def read(header: Recordheader)(implicit input: SwfInputStream): Unit = {
     characterID = input.readUI16()
@@ -425,14 +429,105 @@ class DoABC extends SwfTag(SwfTags.DoABC) {
 // Define Tags
 ////////////////////////////////////////////////////////////////////////////////
 
-/*class DefineBitsJPEG2 extends SwfTag(SwfTags.DefineBitsJPEG2) with KnownLength with CharacterID {
+class DefineBitsJPEG2 extends SwfTag(SwfTags.DefineBitsJPEG2) with KnownLengthTag with DefineTag {
   var imageData = new Array[Byte](0)
-  def length = 2 + imageData.length
-  override def read(header: Recordheader, input: SwfInputStream) = {
-    super.read(header, input)
-    imageData = IO read(input)
+  
+  override def length = 2 + imageData.length
+  
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
+    super.read(header)
+    imageData = IO read (header.length - 2)
   }
-  override def write(output: SwfOutputStream) = {
+  
+  override def write(implicit output: SwfOutputStream) = {
     super.write(output)
+    output write imageData
   }
-}*/
+  
+  override def toString = "[DefineBitsJPEG2]"
+}
+
+class DefineBitsJPEG3 extends SwfTag(SwfTags.DefineBitsJPEG3) with KnownLengthTag with DefineTag {
+  var imageData = new Array[Byte](0)
+  var alphaData = new Array[Byte](0)
+  
+  override def length = 6 + imageData.length + alphaData.length
+  
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
+    super.read(header)
+    val imageLength = input.readUI32().asInstanceOf[Int]
+    val alphaLength = header.length - imageLength - 6
+    imageData = IO read imageLength
+    alphaData = IO read alphaLength
+  }
+  
+  override def write(implicit output: SwfOutputStream) = {
+    super.write(output)
+    output writeUI32 imageData.length
+    output write imageData
+    output write alphaData
+  }
+  
+  override def toString = "[DefineBitsJPEG3]"
+}
+
+class DefineBitsJPEG4 extends SwfTag(SwfTags.DefineBitsJPEG4) with KnownLengthTag with DefineTag {
+  var imageData = new Array[Byte](0)
+  var alphaData = new Array[Byte](0)
+  var deblock = 0.0f
+  
+  override def length = 8 + imageData.length + alphaData.length
+  
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
+    super.read(header)
+    val imageLength = input.readUI32().asInstanceOf[Int]
+    val alphaLength = header.length - imageLength - 8
+    deblock = input.readFIXED8()
+    imageData = IO read imageLength
+    alphaData = IO read alphaLength
+  }
+  
+  override def write(implicit output: SwfOutputStream) = {
+    super.write(output)
+    output writeUI32 imageData.length
+    output writeFIXED8 deblock
+    output write imageData
+    output write alphaData
+  }
+  
+  override def toString = "[DefineBitsJPEG4]"
+}
+
+class DefineBitsLossless2 extends SwfTag(SwfTags.DefineBitsLossless2) with KnownLengthTag with DefineTag {
+  var bitmapFormat = 0
+  var bitmapWidth = 0
+  var bitmapHeight = 0
+  var bitmapColorTableSize = 0
+  var zlibBitmapData = new Array[Byte](0)
+  
+  override def length = 7 + zlibBitmapData.length + (if(3 == bitmapFormat) 1 else 0)
+  
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
+    super.read(header)
+    
+    bitmapFormat = input.readUI08()
+    bitmapWidth = input.readUI16()
+    bitmapHeight = input.readUI16()
+
+    zlibBitmapData = IO read (bitmapFormat match {
+      case 3 => { bitmapColorTableSize = input.readUI08(); header.length - 8 }
+      case _ => header.length - 7
+    }) 
+  }
+  
+  override def write(implicit output: SwfOutputStream) = {
+    super.write(output)
+    output writeUI08 bitmapFormat
+    output writeUI16 bitmapWidth
+    output writeUI16 bitmapHeight
+    if(3 == bitmapFormat) output writeUI08 bitmapColorTableSize
+    output write zlibBitmapData
+  }
+  
+  override def toString = "[DefineBitsLossless2]"
+}
