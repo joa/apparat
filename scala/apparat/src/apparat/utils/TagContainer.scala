@@ -21,13 +21,16 @@ class TagContainer {
     case Some(x) => x.tags
     case None => List()
   }
+  def tags_= (value: List[SwfTag]) = strategy match {
+    case Some(x) => x.tags = value
+    case None => {}
+  }
   
   private def strategyFor(file: File) = file.getName() match {
     case x if x endsWith ".swf" => Some(new SwfStrategy)
     case x if x endsWith ".swc" => Some(new SwcStrategy)
-    case _ => None
+    case _ => None//TODO test for header of FWS/CWS
   }
-  
   
   def read(pathname: String): Unit = read(new File(pathname))
   def read(file: File): Unit = {
@@ -41,7 +44,6 @@ class TagContainer {
       case None => {}
     }
   }
-  
   
   def write(pathname: String): Unit = write(new File(pathname)) 
   def write(file: File): Unit = {
@@ -60,14 +62,20 @@ trait TagContainerStrategy {
   def read(input: InputStream, length: Long)
   def write(output: OutputStream)
   def tags: List[SwfTag]
+  def tags_= (value: List[SwfTag])
 }
 
 private class SwfStrategy extends TagContainerStrategy {
   var swf: Option[Swf] = None
-    
+  
   override def tags: List[SwfTag] = swf match {
     case Some(x) => x.tags
     case None => Nil
+  }
+  
+  override def tags_= (value: List[SwfTag]) = swf match {
+    case Some(x) => x.tags = value
+    case None => {}
   }
   
   override def read(input: InputStream, length: Long) = {
@@ -89,6 +97,11 @@ private class SwcStrategy extends TagContainerStrategy {
   override def tags: List[SwfTag] = swf match {
     case Some(x) => x.tags
     case None => Nil
+  }
+  
+  override def tags_= (value: List[SwfTag]) = swf match {
+    case Some(x) => x.tags = value
+    case None => {}
   }
   
   override def read(input: InputStream, length: Long) = {
