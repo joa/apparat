@@ -43,6 +43,12 @@ object Swf {
     swf read swc
     swf
   }
+  
+  def fromInputStream(input: InputStream, length: Long) = {
+    val swf = new Swf
+    swf.read(input, length)
+    swf
+  } 
 }
 
 class Swf {
@@ -113,6 +119,15 @@ class Swf {
   def write(file: File): Unit = using(new FileOutputStream(file)) (write _)
   def write(pathname: String): Unit = write(new File(pathname))
   def write(output: OutputStream): Unit = using(new SwfOutputStream(output)) (write _)
+  def write(swc: Swc): Unit = {
+    val baos = new ByteArrayOutputStream()
+    try {
+      write(baos)
+      swc.library = Some(baos toByteArray)
+    } finally {
+      try { baos.close() } catch { case _ => {} }
+    }
+  }
   def write(output: SwfOutputStream): Unit = {
     val baos = new ByteArrayOutputStream(0x08 + (tags.length << 0x03));
     val buffer = new SwfOutputStream(baos)

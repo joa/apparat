@@ -23,9 +23,14 @@ import apparat.swf._
 import apparat.swf.SwfPrimitives._
 import apparat.swf.SwfTags._
 import apparat.utils.Performance._
+import apparat.utils._
     
 object Main {
   def main(args : Array[String]) : Unit = {
+    val container = TagContainer fromFile "assets/sandbox.swf"
+    (container tags) foreach (println _)
+    container write "assets/s2.swf"
+    
     /*val swf = Swf fromFile "assets/Test02.swf"
     
     for(x <- swf.tags if x.kind == SwfTags.DoABC) {
@@ -36,24 +41,24 @@ object Main {
       }
     }*/
     
-    val swf = new Swf
+    /*val swf = new Swf
     
     measure("Swf.read()") {
-      swf read("assets/Test02.swf")
+      swf read("assets/sandbox.swf")
     }
     
     swf.tags foreach (println _)
     
     measure("Swf.write()") {
-      swf write("assets/Test02.out.swf")
+      swf write("assets/sandbox.out.swf")
     }
     
     measure("Verify") {
-      (Swf fromFile "assets/Test02.out.swf" tags) foreach (println _)
+      (Swf fromFile "assets/sandbox.out.swf" tags) foreach (println _)
     }
     
     measure("playerglobal.swc") {
       (Swf fromFile "assets/playerglobal.swc" tags) foreach (println _)
-    }
+    }*/
   }
 }

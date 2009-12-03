@@ -27,12 +27,18 @@ import apparat.utils.IO
 
 object Swc {
   def fromFile(file: File): Swc = {
-    val swf = new Swc
-    swf read file
-    swf
+    val swc = new Swc
+    swc read file
+    swc
   }
   
   def fromFile(pathname: String): Swc = fromFile(new File(pathname))
+  
+  def fromInputStream(input: InputStream) = {
+    val swc = new Swc
+    swc read input
+    swc
+  }
 }
 
 class Swc {
