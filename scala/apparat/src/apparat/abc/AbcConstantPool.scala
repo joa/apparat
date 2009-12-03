@@ -20,6 +20,8 @@
  */
 package apparat.abc
 
+import scala.collection.mutable.{Buffer, ArrayBuffer};
+
 object AbcConstantPool {
   val EMPTY_STRING = ""
   val EMPTY_NAMESPACE = AbcNamespace(0,EMPTY_STRING)
@@ -132,8 +134,6 @@ class AbcConstantPool {
   def !! (that: AbcNSSet): Unit = nssets !! that
   def !! (that: AbcName): Unit = multinames !! that
 }
-
-import scala.collection.mutable.{Buffer, ArrayBuffer};
 
 class ValueTable[T](constantPool: AbcConstantPool) {
   protected val cpool = constantPool

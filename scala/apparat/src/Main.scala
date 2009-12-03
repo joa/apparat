@@ -18,15 +18,15 @@
  * http://www.joa-ebert.com/
  * 
  */
+import apparat.abc._
+import apparat.swf._
+import apparat.swf.SwfPrimitives._
+import apparat.swf.SwfTags._
+import apparat.utils.Performance._
+    
 object Main {
   def main(args : Array[String]) : Unit = {
-    import apparat.abc._
-    import apparat.swf._
-    import apparat.swf.SwfPrimitives._
-    import apparat.swf.SwfTags._
-    import apparat.utils.Performance._
-    
-    val swf = Swf fromFile "assets/Test02.swf"
+    /*val swf = Swf fromFile "assets/Test02.swf"
     
     for(x <- swf.tags if x.kind == SwfTags.DoABC) {
       val doABC = x.asInstanceOf[DoABC]
@@ -34,8 +34,9 @@ object Main {
         val abc = new Abc
         abc read doABC.abcData
       }
-    }
-    /*val swf = new Swf
+    }*/
+    
+    val swf = new Swf
     
     measure("Swf.read()") {
       swf read("assets/Test02.swf")
@@ -53,6 +54,6 @@ object Main {
     
     measure("playerglobal.swc") {
       (Swf fromFile "assets/playerglobal.swc" tags) foreach (println _)
-    }*/
+    }
   }
 }

@@ -20,10 +20,10 @@
  */
 package apparat.swf
 
-import java.io.{File, FileInputStream, FileOutputStream, ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
-import java.util.zip.{Inflater, Deflater}
 import apparat.swc.Swc
 import apparat.utils.IO._
+import java.io.{File, FileInputStream, FileOutputStream, ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
+import java.util.zip.{Inflater, Deflater}
 
 object Swf {
   def fromFile(file: File): Swf = {

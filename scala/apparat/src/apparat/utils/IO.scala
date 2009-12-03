@@ -20,10 +20,10 @@
  */
 package apparat.utils
 
+import java.io.{InputStream, OutputStream}
+import java.io.ByteArrayOutputStream
+
 object IO {
-  import java.io.{InputStream, OutputStream}
-  import java.io.ByteArrayOutputStream
-  
   def read(length: Int)(implicit input: InputStream): Array[Byte] = readBytes(length, new Array[Byte](length))
   
   def readBytes(length: Int, bytes: Array[Byte])(implicit input: InputStream): Array[Byte] = {

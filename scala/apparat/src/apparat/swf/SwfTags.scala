@@ -20,6 +20,9 @@
  */
 package apparat.swf
 
+import apparat.utils._
+import java.io.{InputStream, OutputStream}
+
 object SwfTags {  
   val End = 0
   val ShowFrame = 1
@@ -192,10 +195,7 @@ object SwfTags {
   }
 }
 
-import java.io.{InputStream, OutputStream}
-import apparat.utils._
-
-trait CharacterID {
+trait CharacterIDTag {
   var characterID: Int = 0
   def read(header: Recordheader)(implicit input: SwfInputStream): Unit = {
     characterID = input.readUI16()
@@ -205,13 +205,13 @@ trait CharacterID {
   }
 }
 
-trait NoData extends KnownLength {
+trait NoDataTag extends KnownLengthTag {
   def length = 0
   def read(header: Recordheader)(implicit input: SwfInputStream): Unit = {}
   def write(implicit output: SwfOutputStream): Unit = {}
 }
 
-trait KnownLength {
+trait KnownLengthTag {
   def length: Int
 }
 
@@ -220,7 +220,7 @@ abstract class SwfTag(val kind: Int) {
   def write(implicit output: SwfOutputStream): Unit
 }
 
-class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLength
+class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLengthTag
 {
   private var data: Option[Array[Byte]] = None;
   private var header: Option[Recordheader] = None;
@@ -247,15 +247,15 @@ class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLength
 // Control Tags
 ////////////////////////////////////////////////////////////////////////////////
 
-class End extends SwfTag(SwfTags.End) with NoData {
+class End extends SwfTag(SwfTags.End) with NoDataTag {
   override def toString = "[End]"
 }
 
-class ShowFrame extends SwfTag(SwfTags.ShowFrame) with NoData {
+class ShowFrame extends SwfTag(SwfTags.ShowFrame) with NoDataTag {
   override def toString = "[ShowFrame]"
 }
 
-class FileAttributes extends SwfTag(SwfTags.FileAttributes) with KnownLength {
+class FileAttributes extends SwfTag(SwfTags.FileAttributes) with KnownLengthTag {
   var actionScript3 = true
   var hasMetadata = false
   var useDirectBlit = false
@@ -304,7 +304,7 @@ class Metadata extends SwfTag(SwfTags.Metadata) {
   override def toString = "[Metadata \"" + metadata + "\"]"
 }
 
-class ScriptLimits extends SwfTag(SwfTags.ScriptLimits) with KnownLength {
+class ScriptLimits extends SwfTag(SwfTags.ScriptLimits) with KnownLengthTag {
   var maxRecursionDepth = 1000
   var scriptTimeoutSeconds = 60
   
@@ -324,7 +324,7 @@ class ScriptLimits extends SwfTag(SwfTags.ScriptLimits) with KnownLength {
     maxRecursionDepth + ", scriptTimeoutSeconds: " + scriptTimeoutSeconds + "]"
 }
 
-class SetBackgroundColor extends SwfTag(SwfTags.SetBackgroundColor) with KnownLength {
+class SetBackgroundColor extends SwfTag(SwfTags.SetBackgroundColor) with KnownLengthTag {
   var color = new RGB(0,0,0)
   override def length = 3
   override def read(header: Recordheader)(implicit input: SwfInputStream) = color = input readRGB
@@ -332,7 +332,7 @@ class SetBackgroundColor extends SwfTag(SwfTags.SetBackgroundColor) with KnownLe
   override def toString = "[SetBackgroundColor color: " + color + "]"
 }
 
-class ProductInfo extends SwfTag(SwfTags.ProductInfo) with KnownLength {
+class ProductInfo extends SwfTag(SwfTags.ProductInfo) with KnownLengthTag {
   var product = 0L
   var edition = 0L
   var versionMajor = 0

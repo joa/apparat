@@ -20,8 +20,8 @@
  */
 package apparat.abc
 
-import java.io.InputStream
 import apparat.utils.IO
+import java.io.InputStream
 
 class AbcInputStream(input: InputStream) extends InputStream {
   var pos: Int = 0
