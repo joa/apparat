@@ -173,6 +173,7 @@ object Reducer {
       }
       
       if(newTag.length < tag.length) {
+    	ApparatLog succ ("Compressed character " + tag.characterID)
         newTag.characterID = tag.characterID
         newTag
       } else {
