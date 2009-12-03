@@ -33,8 +33,7 @@ class Abc {
   def read(input: InputStream): Unit = using(new AbcInputStream(input)) (read _)
   def read(data: Array[Byte]): Unit = using(new ByteArrayInputStream(data)) (read _)
   def read(input: AbcInputStream): Unit = {
-    implicit val in = input;
-    
+    implicit val in = input 
     println(AbcQName("", AbcNamespace(0,"")))
     
     if(input.readU16 != 16) error("Only minor version 16 is supported.")

@@ -63,6 +63,7 @@ class Swf {
       case None => {}
     }
   }
+  
   def read(input: SwfInputStream, inputLength: Long): Unit = {
     (input readUI08, input readUI08, input readUI08) match {
       case (_ @ x,'W','S') => compressed = x match {
@@ -79,7 +80,7 @@ class Swf {
     val uncompressed = compressed match {
       case true => {
         assert(version > 5)
-        uncompress(input, inputLength, uncompressedLength)
+        uncompress(inputLength, uncompressedLength)(input)
       }
       case false => input
     }
@@ -155,13 +156,13 @@ class Swf {
     }
   }
   
-  def uncompress(input: InputStream, inputLength: Long, uncompressedLength: Long) = {
+  def uncompress(inputLength: Long, uncompressedLength: Long)(implicit input: InputStream) = {
     val totalBytes = (inputLength - 8).asInstanceOf[Int]
     val inflater = new Inflater()
     val bufferIn = new Array[Byte](totalBytes)
     val bufferOut = new Array[Byte]((uncompressedLength - 8).asInstanceOf[Int])
     
-    readBytes(input, totalBytes)(bufferIn)
+    readBytes(totalBytes, bufferIn)
         
     inflater setInput(bufferIn)
     

@@ -197,12 +197,18 @@ import apparat.utils._
 
 trait CharacterID {
   var characterID: Int = 0
+  def read(header: Recordheader)(implicit input: SwfInputStream): Unit = {
+    characterID = input.readUI16()
+  }
+  def write(implicit output: SwfOutputStream): Unit = {
+    output writeUI16 characterID
+  }
 }
 
 trait NoData extends KnownLength {
   def length = 0
-  def read(header: Recordheader, input: SwfInputStream): Unit = {}
-  def write(output: SwfOutputStream): Unit = {}
+  def read(header: Recordheader)(implicit input: SwfInputStream): Unit = {}
+  def write(implicit output: SwfOutputStream): Unit = {}
 }
 
 trait KnownLength {
@@ -210,10 +216,8 @@ trait KnownLength {
 }
 
 abstract class SwfTag(val kind: Int) {
-  def read(header: Recordheader, input: SwfInputStream): Unit
-  def write(output: SwfOutputStream): Unit
-  def read(header: Recordheader, input: InputStream): Unit = IO.using(new SwfInputStream(input)) (read(header, _))
-  def write(output: OutputStream): Unit = IO.using(new SwfOutputStream(output)) (write _)
+  def read(header: Recordheader)(implicit input: SwfInputStream): Unit
+  def write(implicit output: SwfOutputStream): Unit
 }
 
 class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLength
@@ -221,23 +225,27 @@ class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLength
   private var data: Option[Array[Byte]] = None;
   private var header: Option[Recordheader] = None;
  
-  def length = data match {
+  override def length = data match {
     case Some(x) => x.length
     case None => 0
   }
   
-  def read(header: Recordheader, input: SwfInputStream) = {
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
     this.header = Some(header)
-    data = Some(IO read (input, header length))
+    data = Some(IO read header.length)
   }
   
-  def write(output: SwfOutputStream) = data match {
+  override def write(implicit output: SwfOutputStream) = data match {
     case Some(x) => output write(x)
     case None => {}
   }
   
   override def toString() = "[" + (SwfTags toString kind) + "]"
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Control Tags
+////////////////////////////////////////////////////////////////////////////////
 
 class End extends SwfTag(SwfTags.End) with NoData {
   override def toString = "[End]"
@@ -254,9 +262,9 @@ class FileAttributes extends SwfTag(SwfTags.FileAttributes) with KnownLength {
   var useGPU = false
   var useNetwork = false
   
-  def length = 4
+  override def length = 4
 
-  def read(header: Recordheader, input: SwfInputStream) = {
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
     if(0 != input.readUB(1)) error("Reserved bit must be zero.")
     
     useDirectBlit = input.readUB(1) == 1
@@ -271,7 +279,8 @@ class FileAttributes extends SwfTag(SwfTags.FileAttributes) with KnownLength {
     if(0 != input.readUB(24)) error("Reserved bits must be zero.")
   }
   
-  def write(output: SwfOutputStream) = {
+  override def write(implicit output: SwfOutputStream) = {
+    implicit def bool2int(value: Boolean): Int = if(value) 1 else 0
     output writeUB(0,1)
     output writeUB(useDirectBlit, 1)
     output writeUB(useGPU, 1)
@@ -282,8 +291,6 @@ class FileAttributes extends SwfTag(SwfTags.FileAttributes) with KnownLength {
     output writeUB(0, 24)
   }
   
-  private implicit def bool2int(value: Boolean): Int = if(value) 1 else 0
-  
   override def toString = "[FileAttributesTag useDirectBlit: " + useDirectBlit +
     ", useGPU: " + useGPU + ", hasMetadata: " + hasMetadata +
     ", actionScript3: " + actionScript3 + ", useNetwork: " +
@@ -292,8 +299,8 @@ class FileAttributes extends SwfTag(SwfTags.FileAttributes) with KnownLength {
 
 class Metadata extends SwfTag(SwfTags.Metadata) {
   var metadata = ""
-  def read(header: Recordheader, input: SwfInputStream) = metadata = input readSTRING
-  def write(output: SwfOutputStream) = output writeSTRING metadata
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = metadata = input readSTRING
+  override def write(implicit output: SwfOutputStream) = output writeSTRING metadata
   override def toString = "[Metadata \"" + metadata + "\"]"
 }
 
@@ -301,14 +308,14 @@ class ScriptLimits extends SwfTag(SwfTags.ScriptLimits) with KnownLength {
   var maxRecursionDepth = 1000
   var scriptTimeoutSeconds = 60
   
-  def length = 4
+  override def length = 4
   
-  def read(header: Recordheader, input: SwfInputStream) = {
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
     maxRecursionDepth = input readUI16()
     scriptTimeoutSeconds = input readUI16()
   }
   
-  def write(output: SwfOutputStream) = {
+  override def write(implicit output: SwfOutputStream) = {
     output writeUI16 maxRecursionDepth
     output writeUI16 scriptTimeoutSeconds
   }
@@ -319,9 +326,9 @@ class ScriptLimits extends SwfTag(SwfTags.ScriptLimits) with KnownLength {
 
 class SetBackgroundColor extends SwfTag(SwfTags.SetBackgroundColor) with KnownLength {
   var color = new RGB(0,0,0)
-  def length = 3
-  def read(header: Recordheader, input: SwfInputStream) = color = input readRGB
-  def write(output: SwfOutputStream) = output writeRGB color
+  override def length = 3
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = color = input readRGB
+  override def write(implicit output: SwfOutputStream) = output writeRGB color
   override def toString = "[SetBackgroundColor color: " + color + "]"
 }
 
@@ -333,9 +340,9 @@ class ProductInfo extends SwfTag(SwfTags.ProductInfo) with KnownLength {
   var build = 0
   var compileDate = new java.util.Date()
    
-  def length = 26
+  override def length = 26
   
-  def read(header: Recordheader, input: SwfInputStream) = {
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
     product = input.readUI32()
     edition = input.readUI32()
     versionMajor = input.readUI08()
@@ -344,7 +351,7 @@ class ProductInfo extends SwfTag(SwfTags.ProductInfo) with KnownLength {
     compileDate = new java.util.Date(input.readUI64().longValue())
   }
   
-  def write(output: SwfOutputStream) = {
+  override def write(implicit output: SwfOutputStream) = {
     output writeUI32 product
     output writeUI32 edition
     output writeUI08 versionMajor
@@ -360,15 +367,15 @@ class ProductInfo extends SwfTag(SwfTags.ProductInfo) with KnownLength {
 
 class FrameLabel extends SwfTag(SwfTags.FrameLabel) {
   var name = ""
-  def read(header: Recordheader, input: SwfInputStream) = name = input readSTRING
-  def write(output: SwfOutputStream) = output writeSTRING name
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = name = input readSTRING
+  override def write(implicit output: SwfOutputStream) = output writeSTRING name
   override def toString = "[FrameLabel \"" + name + "\"]"
 }
 
 class SymbolClass extends SwfTag(SwfTags.SymbolClass) {
   var symbols = new Array[(Int, String)](0)
   
-  def read(header: Recordheader, input: SwfInputStream) = {
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
     val n = input readUI16()
     
     symbols = new Array[(Int, String)](n)
@@ -377,7 +384,7 @@ class SymbolClass extends SwfTag(SwfTags.SymbolClass) {
       symbols(i) = input.readUI16() -> input.readSTRING()
   }
   
-  def write(output: SwfOutputStream) = {
+  override def write(implicit output: SwfOutputStream) = {
     output writeUI16 (symbols length)
     for(x <- symbols) {
       output writeUI16 x._1
@@ -399,13 +406,13 @@ class DoABC extends SwfTag(SwfTags.DoABC) {
   var name = ""
   var abcData = new Array[Byte](0)
   
-  def read(header: Recordheader, input: SwfInputStream) = {
+  override def read(header: Recordheader)(implicit input: SwfInputStream) = {
     flags = input readUI32()
     name = input readSTRING()
-    abcData = IO read (input, header.length - name.length - 5) 
+    abcData = IO read (header.length - name.length - 5) 
   }
   
-  def write(output: SwfOutputStream) = {
+  override def write(implicit output: SwfOutputStream) = {
     output writeUI32 flags
 	output writeSTRING name
     output write abcData
@@ -413,3 +420,19 @@ class DoABC extends SwfTag(SwfTags.DoABC) {
   
   override def toString = "[DoABC flags: " + flags + ", name: \"" + name + "\"]"
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Define Tags
+////////////////////////////////////////////////////////////////////////////////
+
+/*class DefineBitsJPEG2 extends SwfTag(SwfTags.DefineBitsJPEG2) with KnownLength with CharacterID {
+  var imageData = new Array[Byte](0)
+  def length = 2 + imageData.length
+  override def read(header: Recordheader, input: SwfInputStream) = {
+    super.read(header, input)
+    imageData = IO read(input)
+  }
+  override def write(output: SwfOutputStream) = {
+    super.write(output)
+  }
+}*/

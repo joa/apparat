@@ -77,7 +77,7 @@ class Swc {
     case None => error(name + " is missing.")
   }
   
-  private def extract(input: ZipInputStream): Unit = input getNextEntry match {
+  private def extract(implicit input: ZipInputStream): Unit = input getNextEntry match {
     case null => {}
     case _ @ entry => {
       val name = entry.getName()
@@ -86,16 +86,16 @@ class Swc {
       if(entry isDirectory) error("Unexpected directory in SWC.")
       
       name match {
-        case "catalog.xml" => catalog = Some(extractBytes(input, size.asInstanceOf[Int]))
-        case "library.swf" => library = Some(extractBytes(input, size.asInstanceOf[Int]))
+        case "catalog.xml" => catalog = Some(extractBytes(size.asInstanceOf[Int]))
+        case "library.swf" => library = Some(extractBytes(size.asInstanceOf[Int]))
       }
       
       extract(input)
     }
   }
   
-  private def extractBytes(input: ZipInputStream, length: Int) = length match {
+  private def extractBytes(length: Int)(implicit input: ZipInputStream) = length match {
     case -1 => byteArrayOf(input)
-    case _ => IO read (input, length)
+    case _ => IO read length
   }
 }

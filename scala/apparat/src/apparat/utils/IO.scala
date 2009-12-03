@@ -24,16 +24,16 @@ object IO {
   import java.io.{InputStream, OutputStream}
   import java.io.ByteArrayOutputStream
   
-  def read(input: InputStream, length: Int): Array[Byte] = readBytes(input, length)(new Array[Byte](length))
+  def read(length: Int)(implicit input: InputStream): Array[Byte] = readBytes(length, new Array[Byte](length))
   
-  def readBytes(input: InputStream, length: Int)(bytes: Array[Byte]): Array[Byte] = {
+  def readBytes(length: Int, bytes: Array[Byte])(implicit input: InputStream): Array[Byte] = {
     var offset = 0
     while(offset < length)
       offset += input.read(bytes, offset, length - offset)
     bytes
   }
   
-  def byteArrayOf(input: InputStream) = {
+  def byteArrayOf(implicit input: InputStream) = {
     val output = new ByteArrayOutputStream
     val buffer = new Array[Byte](0x1000)
     var bytesRead = 0

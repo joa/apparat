@@ -23,7 +23,7 @@ package apparat.abc
 import java.io.InputStream
 import apparat.utils.IO
 
-class AbcInputStream(val input: InputStream) extends InputStream {
+class AbcInputStream(input: InputStream) extends InputStream {
   var pos: Int = 0
   def position = pos
   
@@ -73,7 +73,7 @@ class AbcInputStream(val input: InputStream) extends InputStream {
     else r.asInstanceOf[Int]
   }
   
-  def readString() = new String(IO read (input, readU30), "UTF8")
+  def readString() = new String(IO.read(readU30)(this), "UTF8")
   
   def readU08() = read
 

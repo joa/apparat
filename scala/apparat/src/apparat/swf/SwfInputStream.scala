@@ -98,7 +98,7 @@ class SwfInputStream(val input: InputStream) extends InputStream {
   def readTAG(): SwfTag = {
     val h = readRECORDHEADER()
     val t = SwfTags create h.kind
-    t read(h, this)
+    t.read(h)(this)
     t
   }
   
