@@ -97,9 +97,9 @@ object Reducer {
       for(y <- 0 until height; x <- 0 until width) {
         val index = (x << 2) + (y << 2) * width
         val alpha = lossless(index) & 0xff
-        var red = lossless(index+1) & 0xff
-        var green = lossless(index+2) & 0xff
-        var blue = lossless(index+3) & 0xff
+        val red = lossless(index+1) & 0xff
+        val green = lossless(index+2) & 0xff
+        val blue = lossless(index+3) & 0xff
         
         if(0xff != alpha) { 
           needsAlpha = true
