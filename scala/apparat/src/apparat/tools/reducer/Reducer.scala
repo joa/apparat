@@ -77,7 +77,6 @@ object Reducer {
       val alphaData = new Array[Byte](width * height)
       var needsAlpha = false
       
-      
       // decompress zlib data
       
       inflater setInput tag.zlibBitmapData
@@ -169,7 +168,7 @@ object Reducer {
         }
       } else {
         val dbj2 = new DefineBitsJPEG2()
-		dbj2.imageData = imageOutput.toByteArray();
+		dbj2.imageData = imageOutput.toByteArray()
         dbj2
       }
       
