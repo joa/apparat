@@ -102,7 +102,7 @@ class SwfInputStream(val input: InputStream) extends InputStream {
     t
   }
   
-  def readUB(n: Int) = (List.range(0, n) reverse) map bitAt reduceLeft (_ | _)
+  def readUB(n: Int) = ((n - 1) to 0 by -1) map bitAt reduceLeft (_ | _)
   
   def readUI08() = aligned { read }
   

@@ -128,7 +128,7 @@ class SwfOutputStream(val output: OutputStream) extends OutputStream {
   }
   
   def writeSB(value: Int): Unit = writeSB(value, countBits(value));
-  def writeSB(value: Int, n: Int): Unit = for(i <- (List.range(0,n) reverse)) {
+  def writeSB(value: Int, n: Int): Unit = for(i <- (n - 1) to 0 by -1) {
     if(0 != (value & (1 << i))) {
       markBit
     }
