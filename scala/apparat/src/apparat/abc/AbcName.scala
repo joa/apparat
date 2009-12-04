@@ -34,7 +34,7 @@ object AbcNameKind {
   val Typename = 0x1d
 }
 
-sealed abstract case class AbcName(val kind: Int)
+sealed abstract class AbcName(val kind: Int)
 case class AbcQName(val name: String, val namespace: AbcNamespace) extends AbcName(AbcNameKind.QName)
 case class AbcQNameA(val name: String, val namespace: AbcNamespace) extends AbcName(AbcNameKind.QNameA)
 case class AbcRTQName(val name: String) extends AbcName(AbcNameKind.RTQName)
