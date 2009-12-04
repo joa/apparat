@@ -21,12 +21,13 @@
 package apparat.swf
 
 import java.io.InputStream
+import scala.annotation.tailrec
 
 class SwfInputStream(val input: InputStream) extends InputStream {
   private var bitBuffer: Int = 0
   private var bitIndex: Int = 0
   
-  private def aligned[A](body: => A): A = {
+  private def aligned[@specialized A](body: => A): A = {
     bitBuffer = 0
     bitIndex = 0
     body
@@ -82,7 +83,7 @@ class SwfInputStream(val input: InputStream) extends InputStream {
   def readRGB() = new RGB(readUI08,readUI08,readUI08)
   
   def readSTRING(): String = {
-    def until0(seq: List[Byte]): List[Byte] = readUI08 match {
+    @tailrec def until0(seq: List[Byte]): List[Byte] = readUI08 match {
       case 0 => seq
       case _ @ y => {
         seq match {

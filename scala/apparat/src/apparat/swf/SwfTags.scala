@@ -181,8 +181,7 @@ object SwfTags {
   
   var tagFactory: (Int => Option[SwfTag]) = defaultTagFactory
   
-  //change to protected[apparat.swf] when scala 2.8 is out
-  def create(kind: Int): SwfTag = tagFactory(kind) match {
+  protected[swf] def create(kind: Int): SwfTag = tagFactory(kind) match {
     case Some(x) => x
     case None => new GenericTag(kind)
   }
