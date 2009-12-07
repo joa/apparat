@@ -209,7 +209,7 @@ trait DefineTag {
 }
 
 trait NoDataTag extends KnownLengthTag {
-  def length = 0
+  override def length = 0
   def read(header: Recordheader)(implicit input: SwfInputStream): Unit = {}
   def write(implicit output: SwfOutputStream): Unit = {}
 }
@@ -284,6 +284,7 @@ class FileAttributes extends SwfTag(SwfTags.FileAttributes) with KnownLengthTag 
   
   override def write(implicit output: SwfOutputStream) = {
     implicit def bool2int(value: Boolean): Int = if(value) 1 else 0
+    
     output writeUB(0,1)
     output writeUB(useDirectBlit, 1)
     output writeUB(useGPU, 1)

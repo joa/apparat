@@ -20,7 +20,7 @@
  */
 package apparat.utils
 
-import java.io.{InputStream, OutputStream}
+import java.io.{InputStream}
 import java.io.ByteArrayOutputStream
 
 object IO {

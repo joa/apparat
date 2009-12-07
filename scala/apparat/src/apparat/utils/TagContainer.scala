@@ -3,6 +3,7 @@ package apparat.utils
 import apparat.swc._
 import apparat.swf._
 import apparat.utils.IO._
+
 import java.io._
 
 object TagContainer {
@@ -37,7 +38,7 @@ class TagContainer {
     strategy = strategyFor(file)
     strategy match {
       case Some(x) => {
-        using(new FileInputStream(file))(input => {
+        using(new BufferedInputStream(new FileInputStream(file), 0x8000))(input => {
           x read (input, file length)
         })
       }

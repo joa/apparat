@@ -73,7 +73,7 @@ class AbcInputStream(input: InputStream) extends InputStream {
     else r.asInstanceOf[Int]
   }
   
-  def readString() = new String(IO.read(readU30)(this), "UTF8")
+  def readString() = new String(IO.read(readU30())(this), "UTF8")
   
   def readU08() = read
 

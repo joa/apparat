@@ -18,45 +18,42 @@
  * http://www.joa-ebert.com/
  * 
  */
-import apparat.abc._
-import apparat.swf._
-import apparat.swf.SwfPrimitives._
-import apparat.swf.SwfTags._
-import apparat.utils.Performance._
+import apparat.abc.Abc
+import apparat.swf.{DoABC, SwfTags, Swf}
 import apparat.utils._
-    
+
 object Main {
   def main(args : Array[String]) : Unit = {
-    val container = TagContainer fromFile "assets/sandbox.swf"
-    (container tags) foreach (println _)
-    container write "assets/s2.swf"
-    
-    /*val swf = Swf fromFile "assets/Test02.swf"
-    
+    val swf = Swf fromFile "assets/Test02.swf"
     for(x <- swf.tags if x.kind == SwfTags.DoABC) {
-      val doABC = x.asInstanceOf[DoABC]
-      measure(doABC.name) {
-        val abc = new Abc
+      val doABC = x.asInstanceOf[DoABC];
+      val abc = new Abc
+      Performance.measure(doABC.name) {
         abc read doABC.abcData
       }
-    }*/
-    
+    }
+    /*measure {
+        val container = TagContainer fromFile "assets/Test15.swf"
+        (container.tags) foreach (println _)
+        container write "assets/Test15.out.swf"
+     }*/
+
     /*val swf = new Swf
-    
+
     measure("Swf.read()") {
       swf read("assets/sandbox.swf")
     }
-    
+
     swf.tags foreach (println _)
-    
+
     measure("Swf.write()") {
       swf write("assets/sandbox.out.swf")
     }
-    
+
     measure("Verify") {
       (Swf fromFile "assets/sandbox.out.swf" tags) foreach (println _)
     }
-    
+
     measure("playerglobal.swc") {
       (Swf fromFile "assets/playerglobal.swc" tags) foreach (println _)
     }*/

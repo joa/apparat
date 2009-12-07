@@ -24,6 +24,8 @@ import apparat.swc.Swc
 import apparat.utils.IO._
 import java.io.{File, FileInputStream, FileOutputStream, ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 import java.util.zip.{Inflater, Deflater}
+import scala.annotation.tailrec
+
 
 object Swf {
   def fromFile(file: File): Swf = {
@@ -51,7 +53,7 @@ object Swf {
   } 
 }
 
-class Swf {
+final class Swf {
   var compressed: Boolean = true
   var version: Int = 10
   var frameSize: Rect = new Rect(0,20000,0,20000)
@@ -108,13 +110,16 @@ class Swf {
     }
   }
   
-  private def tagsOf(input: SwfInputStream): List[SwfTag] = {
-    val tag = input readTAG()
-    tag :: (tag.kind match {
-      case SwfTags.End => Nil
-      case _ => tagsOf(input)
-    })
+  private def tagsOf(implicit input: SwfInputStream): List[SwfTag] = {
+    @tailrec def loop(tag: SwfTag, acc: List[SwfTag]): List[SwfTag] = {
+    	val result = acc ::: List(tag)
+    
+    	if(tag.kind == SwfTags.End) result
+    	else loop(input.readTAG(), result)
+    }
+    loop(input.readTAG(), List())
   }
+
   
   def write(file: File): Unit = using(new FileOutputStream(file)) (write _)
   def write(pathname: String): Unit = write(new File(pathname))
@@ -182,7 +187,7 @@ class Swf {
     inflater setInput(bufferIn)
     
     var offset = -1
-    while(0 != offset && !inflater.finished) {
+    while(0 != offset && !inflater.finished()) {
       offset = inflater inflate bufferOut
       if(0 == offset && inflater.needsInput) {
         error("Need more input.")

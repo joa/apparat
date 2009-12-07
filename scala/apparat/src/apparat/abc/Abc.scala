@@ -20,66 +20,87 @@
  */
 package apparat.abc
 
+import apparat.utils.Performance._
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.io.{InputStream, OutputStream}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import apparat.utils.IO._
 
 class Abc {
-  val cpool = new AbcConstantPool  
+  var cpool: AbcConstantPool = _ 
 
   def read(file: File): Unit = using(new FileInputStream(file)) (read _) 
   def read(pathname: String): Unit = read(new File(pathname))
   def read(input: InputStream): Unit = using(new AbcInputStream(input)) (read _)
   def read(data: Array[Byte]): Unit = using(new ByteArrayInputStream(data)) (read _)
   def read(input: AbcInputStream): Unit = {
-    implicit val in = input 
-    println(AbcQName("", AbcNamespace(0,"")))
-    
     if(input.readU16 != 16) error("Only minor version 16 is supported.")
     if(input.readU16 != 46) error("Only major version 46 is supported.")
     
-    cpool.clear()
+    cpool = readPool(input)
+  }
+  
+  private def readPool(implicit input: AbcInputStream) = {
+    def table[T](table: Array[T], empty: T)(reader: => T) = {
+      table(0) = empty
+      for(i <- 1 until table.length) {
+        table(i) = reader
+      }
+      table
+    }
+	
+    val ints = table(new Array[Int](Math.max(1, input.readU30())), 0) {
+      input.readS32()
+    }
     
-    fillTable(cpool.ints) { input.readS32() }
-    fillTable(cpool.uints) { input.readU32() }
-    fillTable(cpool.doubles) { input.readD64() }
-    fillTable(cpool.strings) { input.readString() }
-    fillTable(cpool.namespaces) {
-      AbcNamespace(input.readU08(), cpool.strings ? input.readU30())
+    val uints = table(new Array[Long](Math.max(1, input.readU30())), 0L) {
+      input.readU32()
     }
-    fillTable(cpool.nssets) {
-      AbcNSSet(Set((for(i <- 0 until input.readU08()) yield cpool.namespaces ? input.readU30()):_*))
+    
+    val doubles = table(new Array[Double](Math.max(1, input.readU30())), Double.NaN) {
+      input.readD64()
     }
-    println(cpool.nssets.length)
-    fillTable(cpool.multinames) {
+    
+    val strings = measure("strings") { table(new Array[String](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) {
+      input.readString()
+    } }
+    
+    val namespaces = measure("namespaces") { table(new Array[AbcNamespace](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) {
+      AbcNamespace(input.readU08(), strings(input.readU30()))
+    } }
+    
+    val nssets = measure("nssets") { table(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) {
+      AbcNSSet(Set((for(i <- 0 until input.readU08()) yield namespaces(input.readU30())):_*))
+    } }
+    
+    val tmp = new Array[AbcName](Math.max(1, input.readU30()))
+    val names = measure("names") { table(tmp, AbcConstantPool.EMPTY_NAME) {
       input.readU08() match {
         case AbcNameKind.QName => {
           val namespace = input.readU30()
           val name = input.readU30()
-          AbcQName(cpool.strings ? name, cpool.namespaces ? namespace)
+          AbcQName(strings(name), namespaces(namespace))
         }
         case AbcNameKind.QNameA => {
           val namespace = input.readU30()
           val name = input.readU30()
-          AbcQNameA(cpool.strings ? name, cpool.namespaces ? namespace)
+          AbcQNameA(strings(name), namespaces(namespace))
         }
-        case AbcNameKind.RTQName => AbcRTQName(cpool.strings ? input.readU30())
-        case AbcNameKind.RTQNameA => AbcRTQNameA(cpool.strings ? input.readU30())
+        case AbcNameKind.RTQName => AbcRTQName(strings(input.readU30()))
+        case AbcNameKind.RTQNameA => AbcRTQNameA(strings(input.readU30()))
         case AbcNameKind.RTQNameL => AbcRTQNameL
         case AbcNameKind.RTQNameLA => AbcRTQNameLA
-        case AbcNameKind.Multiname => AbcMultiname(cpool.strings ? input.readU30(), cpool.nssets ? input.readU30())
-        case AbcNameKind.MultinameA => AbcMultinameA(cpool.strings ? input.readU30(), cpool.nssets ? input.readU30())
-        case AbcNameKind.MultinameL => AbcMultinameL(cpool.nssets ? input.readU30())
-        case AbcNameKind.MultinameLA => AbcMultinameLA(cpool.nssets ? input.readU30())
+        case AbcNameKind.Multiname => AbcMultiname(strings(input.readU30()), nssets(input.readU30()))
+        case AbcNameKind.MultinameA => AbcMultinameA(strings(input.readU30()), nssets(input.readU30()))
+        case AbcNameKind.MultinameL => AbcMultinameL(nssets(input.readU30()))
+        case AbcNameKind.MultinameLA => AbcMultinameLA(nssets(input.readU30()))
         case AbcNameKind.Typename => {
-          AbcTypename((cpool.multinames ? input.readU30()).asInstanceOf[AbcQName], for(i <- 0 until input.readU30()) yield cpool.multinames ? input.readU30())
+          AbcTypename((tmp(input.readU30())).asInstanceOf[AbcQName], for(i <- 0 until input.readU30()) yield tmp(input.readU30()))
         }
         case _ => error("Unknown multiname kind.")
       }
-    }
-    println(cpool.multinames)
+    } }
+    
+    new AbcConstantPool(ints, uints, doubles, strings, namespaces, nssets, names)
   }
-  
-  private def fillTable[T](table: ValueTable[T])(reader: => T)(implicit input: AbcInputStream) = for(i <- 1 until input.readU30()) table ! reader
 }
