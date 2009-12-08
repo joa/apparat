@@ -21,17 +21,17 @@
 package apparat.abc
 
 object AbcNameKind {
-  val QName = 0x07
-  val QNameA = 0x0d
-  val RTQName = 0x0f
-  val RTQNameA = 0x10
-  val RTQNameL = 0x11
-  val RTQNameLA = 0x12
-  val Multiname = 0x09
-  val MultinameA = 0x0e
-  val MultinameL = 0x1b
-  val MultinameLA = 0x1c
-  val Typename = 0x1d
+	val QName = 0x07
+	val QNameA = 0x0d
+	val RTQName = 0x0f
+	val RTQNameA = 0x10
+	val RTQNameL = 0x11
+	val RTQNameLA = 0x12
+	val Multiname = 0x09
+	val MultinameA = 0x0e
+	val MultinameL = 0x1b
+	val MultinameLA = 0x1c
+	val Typename = 0x1d
 }
 
 sealed abstract class AbcName(val kind: Int)

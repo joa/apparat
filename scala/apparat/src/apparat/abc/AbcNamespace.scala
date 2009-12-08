@@ -21,13 +21,13 @@
 package apparat.abc
 
 object AbcNamespaceKind {
-  val Namespace = 0x08
-  val Package = 0x16
-  val PackageInternal = 0x17
-  val Protected = 0x18
-  val Explicit = 0x19
-  val StaticProtected = 0x1a
-  val Private = 0x05 
+	val Namespace = 0x08
+	val Package = 0x16
+	val PackageInternal = 0x17
+	val Protected = 0x18
+	val Explicit = 0x19
+	val StaticProtected = 0x1a
+	val Private = 0x05 
 }
 
 case class AbcNamespace(val kind: Int, val name: String)

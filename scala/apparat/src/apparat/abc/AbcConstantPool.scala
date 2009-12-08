@@ -23,17 +23,17 @@ package apparat.abc
 import scala.collection.mutable.{Buffer, ArrayBuffer};
 
 object AbcConstantPool {
-  val EMPTY_STRING = ""
-  val EMPTY_NAMESPACE = AbcNamespace(0,EMPTY_STRING)
-  val EMPTY_NSSET = AbcNSSet(Set(EMPTY_NAMESPACE))
-  val EMPTY_NAME = AbcQName(EMPTY_STRING,EMPTY_NAMESPACE)
+	val EMPTY_STRING = ""
+	val EMPTY_NAMESPACE = AbcNamespace(0,EMPTY_STRING)
+	val EMPTY_NSSET = AbcNSSet(Set(EMPTY_NAMESPACE))
+	val EMPTY_NAME = AbcQName(EMPTY_STRING,EMPTY_NAMESPACE)
 }
 
 class AbcConstantPool(
-  val ints: Array[Int],
-  val uints: Array[Long],
-  val doubles: Array[Double],
-  val strings: Array[String],
-  val namespaces: Array[AbcNamespace],
-  val nssets: Array[AbcNSSet],
-  val names: Array[AbcName])
+	val ints: Array[Int],
+	val uints: Array[Long],
+	val doubles: Array[Double],
+	val strings: Array[String],
+	val namespaces: Array[AbcNamespace],
+	val nssets: Array[AbcNSSet],
+	val names: Array[AbcName])

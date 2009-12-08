@@ -21,5 +21,4 @@
 package apparat.abc
 
 class AbcOutputStream {
-
 }
