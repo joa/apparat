@@ -20,18 +20,22 @@
  */
 package apparat.abc
 
+import apparat.utils.IO._
 import apparat.utils.Performance._
+
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.io.{InputStream, OutputStream}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import apparat.utils.IO._
+
+import scala.collection.immutable._
+import scala.annotation.tailrec
 
 class Abc {
 	var cpool = new AbcConstantPool(new Array[Int](0),
 			new Array[Long](0), new Array[Double](0), new Array[String](0),
 			new Array[AbcNamespace](0), new Array[AbcNSSet](0), new Array[AbcName](0))
-	
 	var methods = new Array[AbcMethod](0)
+	var metadata = new Array[AbcMetadata](0)
 	
 	def read(file: File): Unit = using(new FileInputStream(file)) (read _) 
 	def read(pathname: String): Unit = read(new File(pathname))
@@ -43,6 +47,11 @@ class Abc {
 		
 		cpool = readPool(input)
 		methods = readMethods(input)
+		metadata = readMetadata(input)
+		
+		for(x <- metadata) { 
+			println(x.name)
+		}
 	}
   
 	private def readPool(implicit input: AbcInputStream) = {
@@ -141,6 +150,18 @@ class Abc {
 		new AbcMethod(parameters, returnType, name,
 				0 != (flags & 0x01), 0 != (flags & 0x02), 0 != (flags & 0x04),
 				0 != (flags & 0x08), 0 != (flags & 0x40), 0 != (flags & 0x80))
+	}) toArray
+	
+	private def readMetadata(implicit input: AbcInputStream) = (for(i <- 0 until input.readU30()) yield {
+		val name = cpoolString()
+		val n = input.readU30() 
+		val keys = new Array[String](n)
+		for(i <- 0 until n) keys(i) = cpoolString()
+		@tailrec def traverse(index: Int, map: Map[String, String]): Map[String, String] = index match {
+			case x if x == n - 1 => map
+			case y => { println("y is " + y); traverse(y + 1, map + (keys(y) -> cpoolString())) }  
+		}
+		new AbcMetadata(name, traverse(0, new TreeMap[String,String]))
 	}) toArray
 	
 	private def cpoolInt()(implicit input: AbcInputStream) = cpool.ints(input.readU30())

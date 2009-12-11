@@ -19,12 +19,13 @@
  * 
  */
 import apparat.abc.Abc
+import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
 import apparat.utils._
 
 object Main {
   def main(args : Array[String]) : Unit = {
-    val swf = Swf fromFile "assets/Test02.swf"
+    val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
     for(x <- swf.tags if x.kind == SwfTags.DoABC) {
       val doABC = x.asInstanceOf[DoABC];
       val abc = new Abc
