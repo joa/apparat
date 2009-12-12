@@ -158,10 +158,11 @@ class Abc {
 		val keys = new Array[String](n)
 		for(i <- 0 until n) keys(i) = cpoolString()
 		@tailrec def traverse(index: Int, map: Map[String, String]): Map[String, String] = index match {
-			case x if x == n - 1 => map
-			case y => { println("y is " + y); traverse(y + 1, map + (keys(y) -> cpoolString())) }  
+			case x if x == n => map
+			case y => { traverse(y + 1, map + (keys(y) -> cpoolString())) }  
 		}
-		new AbcMetadata(name, traverse(0, new TreeMap[String,String]))
+		val map = traverse(0, new TreeMap[String,String])
+		new AbcMetadata(name, map)
 	}) toArray
 	
 	private def cpoolInt()(implicit input: AbcInputStream) = cpool.ints(input.readU30())
