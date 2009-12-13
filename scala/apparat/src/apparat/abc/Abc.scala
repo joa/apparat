@@ -20,6 +20,7 @@
  */
 package apparat.abc
 
+import apparat.utils.IO
 import apparat.utils.IO._
 import apparat.utils.Performance._
 
@@ -37,6 +38,7 @@ class Abc {
 	var methods = new Array[AbcMethod](0)
 	var metadata = new Array[AbcMetadata](0)
 	var types = new Array[AbcNominalType](0)
+	var scripts = new Array[AbcScript](0)
 	
 	def read(file: File): Unit = using(new FileInputStream(file)) (read _) 
 	def read(pathname: String): Unit = read(new File(pathname))
@@ -50,6 +52,8 @@ class Abc {
 		methods = readMethods(input)
 		metadata = readMetadata(input)
 		types = readTypes(input)
+		scripts = readScripts(input)
+		readBodies(input)
 	}
   
 	private def readPool(implicit input: AbcInputStream) = {
@@ -208,6 +212,16 @@ class Abc {
 		result
 	}
 	
+	private def readScripts(implicit input: AbcInputStream) = {
+		val result = new Array[AbcScript](input.readU30())
+		
+		for(i <- 0 until result.length) {
+			result(i) = new AbcScript(methods(input.readU30()), readTraits())
+		}
+		
+		result
+	}
+		
 	private def readTraits()(implicit input: AbcInputStream) = {
 		val result = new Array[AbcTrait](input.readU30())
 		
@@ -256,7 +270,31 @@ class Abc {
 		result
 	}
 	
-	//private def table[T : Manifest](n: Int): Array[T] = new Array[T](n)
+	private def readBodies(implicit input: AbcInputStream) = {
+		for(i <- 0 until input.readU30()) {
+			val methodId = input.readU30()
+			val maxStack = input.readU30()
+			val localCount = input.readU30()
+			val initScopeDepth = input.readU30()
+			val maxScopeDepth = input.readU30()
+			val code = IO read input.readU30()
+			
+			methods(methodId).body = Some(new AbcMethodBody(maxStack, localCount,
+					initScopeDepth, maxScopeDepth, code, readExceptions(),
+					readTraits()))
+		}
+	}
+	
+	private def readExceptions()(implicit input: AbcInputStream) = {
+		val result = new Array[AbcExceptionHandler](input.readU30())
+		
+		for(i <- 0 until result.length) {
+			result(i) = new AbcExceptionHandler(input.readU30(),
+					input.readU30(), input.readU30(), cpoolName(), cpoolName())
+		}
+		
+		result
+	}
 	
 	private def cpoolInt()(implicit input: AbcInputStream) = cpool.ints(input.readU30())
 	private def cpoolUInt()(implicit input: AbcInputStream) = cpool.uints(input.readU30())
