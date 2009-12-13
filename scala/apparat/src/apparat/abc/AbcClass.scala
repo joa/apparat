@@ -1,5 +1,3 @@
 package apparat.abc
 
-class AbcClass {
-
-}
+class AbcClass(val init: AbcMethod, val traits: Array[AbcTrait])

@@ -201,6 +201,10 @@ class Abc {
 					interfaces, init, readTraits()))
 		}
 		
+		for(i <- 0 until result.length) {
+			result(i).klass = new AbcClass(methods(input.readU30()), readTraits())
+		}
+		
 		result
 	}
 	
@@ -222,7 +226,6 @@ class Abc {
 				None
 			}
 		
-			//TODO call to meta has to be last ...
 			result(i) = kind match {
 				case AbcTraitKind.Slot => {
 					val index = input.readU30()
