@@ -26,13 +26,14 @@ import apparat.utils._
 object Main {
   def main(args : Array[String]) : Unit = {
     val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
-    for(x <- swf.tags if x.kind == SwfTags.DoABC) {
-      val doABC = x.asInstanceOf[DoABC];
-      val abc = new Abc
-      Performance.measure(doABC.name) {
-        abc read doABC.abcData
-      }
+    Performance.measure("Total") {
+	    for(x <- swf.tags if x.kind == SwfTags.DoABC) {
+	      val doABC = x.asInstanceOf[DoABC];
+	      val abc = new Abc
+	      abc read doABC.abcData
+	    }
     }
+    
     /*measure {
         val container = TagContainer fromFile "assets/Test15.swf"
         (container.tags) foreach (println _)

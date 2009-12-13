@@ -36,6 +36,7 @@ class Abc {
 			new Array[AbcNamespace](0), new Array[AbcNSSet](0), new Array[AbcName](0))
 	var methods = new Array[AbcMethod](0)
 	var metadata = new Array[AbcMetadata](0)
+	var types = new Array[AbcNominalType](0)
 	
 	def read(file: File): Unit = using(new FileInputStream(file)) (read _) 
 	def read(pathname: String): Unit = read(new File(pathname))
@@ -48,19 +49,14 @@ class Abc {
 		cpool = readPool(input)
 		methods = readMethods(input)
 		metadata = readMetadata(input)
-		
-		for(x <- metadata) { 
-			println(x.name)
-		}
+		types = readTypes(input)
 	}
   
 	private def readPool(implicit input: AbcInputStream) = {
-		def table[T](table: Array[T], empty: T)(reader: => T) = {
-			table(0) = empty
-			for(i <- 1 until table.length) {
-				table(i) = reader
-			}
-			table
+		def table[T](t: Array[T], empty: T)(reader: => T) = {
+			t(0) = empty
+			for(i <- 1 until t.length) t(i) = reader
+			t
 		}
 
 		val ints = table(new Array[Int](Math.max(1, input.readU30())), 0) {
@@ -118,56 +114,156 @@ class Abc {
 		new AbcConstantPool(ints, uints, doubles, strings, namespaces, nssets, names)
 	}
 	
-	private def readMethods(implicit input: AbcInputStream) = (for(i <- 0 until input.readU30()) yield {
-		val numParameters = input.readU30()
-		val returnType = cpoolName()
-		val parameters = new Array[AbcMethodParameter](numParameters)
-
-		for(j <- 0 until numParameters)
-			parameters(j) = new AbcMethodParameter(cpoolName())
+	private def readMethods(implicit input: AbcInputStream) = {
+		val result = new Array[AbcMethod](input.readU30())
 		
-		val name = cpoolString()
-		val flags = input.readU08()
+		for(i <- 0 until result.length) {
+			val numParameters = input.readU30()
+			val returnType = cpoolName()
+			val parameters = new Array[AbcMethodParameter](numParameters)
+	
+			for(j <- 0 until numParameters)
+				parameters(j) = new AbcMethodParameter(cpoolName())
+			
+			val name = cpoolString()
+			val flags = input.readU08()
+			
+			if(0 != (flags & 0x08)) {
+				val numOptional = input.readU30()
+				
+				assert(numOptional <= numParameters)
+				
+				for(j <- (numParameters - numOptional) until numParameters) {
+					val parameter = parameters(j)
+					val index = input.readU30()
+					//TODO read constant from cpool
+					parameter.optional = true;
+					parameter.optionalType = Some(input.readU08())
+					parameter.optionalVal = None
+				}
+			}
+			
+			if(0 != (flags & 0x80))
+				parameters foreach (_.name = Some(cpoolString()))
+			
+			result(i) = new AbcMethod(parameters, returnType, name,
+					0 != (flags & 0x01), 0 != (flags & 0x02), 0 != (flags & 0x04),
+					0 != (flags & 0x08), 0 != (flags & 0x40), 0 != (flags & 0x80))
+		}
 		
-		if(0 != (flags & 0x08)) {
-			val numOptional = input.readU30()
+		result
+	}
+	
+	private def readMetadata(implicit input: AbcInputStream) = {
+		val result = new Array[AbcMetadata](input.readU30())
+		for(i <- 0 until result.length) {
+			val name = cpoolString()
+			val n = input.readU30() 
+			val keys = new Array[String](n)
+			for(i <- 0 until n) keys(i) = cpoolString()
 			
-			assert(numOptional <= numParameters)
+			@tailrec def traverse(index: Int, map: Map[String, String]): Map[String, String] = index match {
+				case x if x == n => map
+				case y => { traverse(y + 1, map + (keys(y) -> cpoolString())) }  
+			}
 			
-			for(j <- (numParameters - numOptional) until numParameters) {
-				val parameter = parameters(j)
-				val index = input.readU30()
-				//TODO read constant from cpool
-				parameter.optional = true;
-				parameter.optionalType = Some(input.readU08())
-				parameter.optionalVal = None
+			result(i) = new AbcMetadata(name, traverse(0, new TreeMap[String,String]))
+		}
+		
+		result
+	}
+	
+	private def readTypes(implicit input: AbcInputStream) = {
+		val result = new Array[AbcNominalType](input.readU30())
+		
+		for(i <- 0 until result.length) {
+			val name = cpoolNameNZ()
+			
+			assert(name.kind == AbcNameKind.QName)
+			
+			val baseIndex = input.readU30()
+			val base = baseIndex match {
+				case 0 => None
+				case x => Some(cpool.names(x))
+			}
+			
+			val flags = input.readU08()
+			
+			val protectedNs = if(0 != (flags & 0x08)) Some(cpoolNs()) else None
+			
+			val interfaces = new Array[AbcName](input.readU30())
+			for(j <- 0 until interfaces.length) interfaces(j) = cpoolName()
+			
+			val init = methods(input.readU30())
+			
+			result(i) = new AbcNominalType(new AbcInstance(name, base, 0 != (flags & 0x01),
+					0 != (flags & 0x02), 0 != (flags & 0x04), protectedNs,
+					interfaces, init, readTraits()))
+		}
+		
+		result
+	}
+	
+	private def readTraits()(implicit input: AbcInputStream) = {
+		val result = new Array[AbcTrait](input.readU30())
+		
+		for(i <- 0 until result.length) {
+			val name = cpoolNameNZ().asInstanceOf[AbcQName]
+			
+			val pack = input.readU08()
+			val kind = pack & 0x0f
+			val attr = (pack & 0xf0) >> 4
+			
+			def meta(a: Int) = if(0 != (a & 0x04)) {
+				val mr = new Array[AbcMetadata](input.readU30())
+				for(j <- 0 until mr.length) mr(j) = metadata(input.readU30())
+				Some(mr)
+			} else {
+				None
+			}
+		
+			//TODO call to meta has to be last ...
+			result(i) = kind match {
+				case AbcTraitKind.Slot => {
+					val index = input.readU30()
+					val typeName = cpoolName()
+					val value = input.readU30()
+					if(0 != value) {
+						//TODO read constant value
+						new AbcTraitSlot(name, index, typeName, Some(input.readU08()), None, meta(attr))
+					} else { new AbcTraitSlot(name, index, typeName, None, None, meta(attr)) }
+				}
+				case AbcTraitKind.Const => {
+					val index = input.readU30()
+					val typeName = cpoolName()
+					val value = input.readU30()
+					if(0 != value) {
+						//TODO read constant value
+						new AbcTraitConst(name, index, typeName, Some(input.readU08()), None, meta(attr))
+					} else { new AbcTraitConst(name, index, typeName, None, None, meta(attr)) }
+				}
+				case AbcTraitKind.Method => new AbcTraitMethod(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
+				case AbcTraitKind.Getter => new AbcTraitGetter(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
+				case AbcTraitKind.Setter => new AbcTraitSetter(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
+				case AbcTraitKind.Class => new AbcTraitClass(name, input.readU30(), types(input.readU30()), meta(attr))
+				case AbcTraitKind.Function => new AbcTraitFunction(name, input.readU30(), methods(input.readU30()), meta(attr))
 			}
 		}
 		
-		if(0 != (flags & 0x80))
-			parameters foreach (_.name = Some(cpoolString()))
-		
-		new AbcMethod(parameters, returnType, name,
-				0 != (flags & 0x01), 0 != (flags & 0x02), 0 != (flags & 0x04),
-				0 != (flags & 0x08), 0 != (flags & 0x40), 0 != (flags & 0x80))
-	}) toArray
+		result
+	}
 	
-	private def readMetadata(implicit input: AbcInputStream) = (for(i <- 0 until input.readU30()) yield {
-		val name = cpoolString()
-		val n = input.readU30() 
-		val keys = new Array[String](n)
-		for(i <- 0 until n) keys(i) = cpoolString()
-		@tailrec def traverse(index: Int, map: Map[String, String]): Map[String, String] = index match {
-			case x if x == n => map
-			case y => { traverse(y + 1, map + (keys(y) -> cpoolString())) }  
-		}
-		val map = traverse(0, new TreeMap[String,String])
-		new AbcMetadata(name, map)
-	}) toArray
+	//private def table[T : Manifest](n: Int): Array[T] = new Array[T](n)
 	
 	private def cpoolInt()(implicit input: AbcInputStream) = cpool.ints(input.readU30())
 	private def cpoolUInt()(implicit input: AbcInputStream) = cpool.uints(input.readU30())
 	private def cpoolDouble()(implicit input: AbcInputStream) = cpool.doubles(input.readU30())
 	private def cpoolString()(implicit input: AbcInputStream) = cpool.strings(input.readU30())
 	private def cpoolName()(implicit input: AbcInputStream) = cpool.names(input.readU30())
+	private def cpoolNameNZ()(implicit input: AbcInputStream) = {
+		val index = input.readU30()
+		if(0 == index) error("cpool index may not be zero.")
+		cpool.names(index)
+	}
+	private def cpoolNs()(implicit input: AbcInputStream) = cpool.namespaces(input.readU30())
 }
