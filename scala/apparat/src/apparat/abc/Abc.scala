@@ -22,7 +22,6 @@ package apparat.abc
 
 import apparat.utils.IO
 import apparat.utils.IO._
-import apparat.utils.Performance._
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.io.{InputStream, OutputStream}
@@ -47,7 +46,6 @@ class Abc {
 	def read(input: AbcInputStream): Unit = {
 		if(input.readU16 != 16) error("Only minor version 16 is supported.")
 		if(input.readU16 != 46) error("Only major version 46 is supported.")
-		
 		cpool = readPool(input)
 		methods = readMethods(input)
 		metadata = readMetadata(input)
@@ -140,10 +138,9 @@ class Abc {
 				for(j <- (numParameters - numOptional) until numParameters) {
 					val parameter = parameters(j)
 					val index = input.readU30()
-					//TODO read constant from cpool
 					parameter.optional = true;
 					parameter.optionalType = Some(input.readU08())
-					parameter.optionalVal = None
+					parameter.optionalVal = Some(cpool.constant(parameter.optionalType.get, index))
 				}
 			}
 			
@@ -246,8 +243,8 @@ class Abc {
 					val typeName = cpoolName()
 					val value = input.readU30()
 					if(0 != value) {
-						//TODO read constant value
-						new AbcTraitSlot(name, index, typeName, Some(input.readU08()), None, meta(attr))
+						val kind = input.readU08()
+						new AbcTraitSlot(name, index, typeName, Some(kind), Some(cpool.constant(kind, value)), meta(attr))
 					} else { new AbcTraitSlot(name, index, typeName, None, None, meta(attr)) }
 				}
 				case AbcTraitKind.Const => {
@@ -255,8 +252,8 @@ class Abc {
 					val typeName = cpoolName()
 					val value = input.readU30()
 					if(0 != value) {
-						//TODO read constant value
-						new AbcTraitConst(name, index, typeName, Some(input.readU08()), None, meta(attr))
+						val kind = input.readU08()
+           	new AbcTraitConst(name, index, typeName, Some(kind), Some(cpool.constant(kind, value)), meta(attr))
 					} else { new AbcTraitConst(name, index, typeName, None, None, meta(attr)) }
 				}
 				case AbcTraitKind.Method => new AbcTraitMethod(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))

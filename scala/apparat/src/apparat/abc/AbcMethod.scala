@@ -4,7 +4,7 @@ class AbcMethodParameter(val typeName: AbcName) {
 	var name: Option[String] = None
 	var optional = false
 	var optionalType: Option[Int] = None
-	var optionalVal: Option[AnyVal] = None
+	var optionalVal: Option[Any] = None
 }
 
 class AbcMethod(val parameters: Array[AbcMethodParameter], val returnType: AbcName,

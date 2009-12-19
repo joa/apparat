@@ -20,8 +20,6 @@
  */
 package apparat.abc
 
-import scala.collection.mutable.{Buffer, ArrayBuffer};
-
 object AbcConstantPool {
 	val EMPTY_STRING = ""
 	val EMPTY_NAMESPACE = AbcNamespace(0,EMPTY_STRING)
@@ -36,4 +34,22 @@ class AbcConstantPool(
 	val strings: Array[String],
 	val namespaces: Array[AbcNamespace],
 	val nssets: Array[AbcNSSet],
-	val names: Array[AbcName])
+	val names: Array[AbcName]) {
+	def constant(kind: Int, index: Int): Any =  kind match {
+		case AbcConstantType.Int => ints(index)
+		case AbcConstantType.UInt  => uints(index)
+		case AbcConstantType.Double => doubles(index)
+		case AbcConstantType.Utf8 => strings(index);
+		case AbcConstantType.True => true
+		case AbcConstantType.False => false;
+		case AbcConstantType.Null => null
+		case AbcConstantType.Undefined => null
+		case AbcConstantType.Namespace  |
+			 AbcConstantType.PackageNamespace |
+			 AbcConstantType.InternalNamespace |
+			 AbcConstantType.ProtectedNamespace |
+			 AbcConstantType.ExplicitNamespace |
+			 AbcConstantType.StaticProtectedNamespace |
+			 AbcConstantType.PrivateNamespace => namespaces(index)
+	}
+}

@@ -19,7 +19,7 @@ sealed abstract class AbcTraitAnyMethod(override val kind: Int, override val nam
 
 sealed abstract class AbcTraitAnySlot(override val kind: Int, override val name: AbcQName,
 		override val metadata: Option[Array[AbcMetadata]], val index: Int, val typeName: AbcName,
-		val valueType: Option[Int], val value: Option[AnyVal]) extends AbcTrait(kind, name, metadata)
+		val valueType: Option[Int], val value: Option[Any]) extends AbcTrait(kind, name, metadata)
 
 case class AbcTraitGetter(override val name: AbcQName, override val dispId: Int,
 		override val method: AbcMethod, override val isFinal: Boolean, override val isOverride: Boolean,
@@ -35,12 +35,12 @@ case class AbcTraitMethod(override val name: AbcQName, override val dispId: Int,
 
 case class AbcTraitSlot(override val name: AbcQName, override val index: Int,
 		override val typeName: AbcName, override val valueType: Option[Int],
-		override val value: Option[AnyVal],
+		override val value: Option[Any],
 		override val metadata: Option[Array[AbcMetadata]]) extends  AbcTraitAnySlot(AbcTraitKind.Slot, name, metadata, index, typeName, valueType, value)
 
 case class AbcTraitConst(override val name: AbcQName, override val index: Int,
 		override val typeName: AbcName, override val valueType: Option[Int],
-		override val value: Option[AnyVal],
+		override val value: Option[Any],
 		override val metadata: Option[Array[AbcMetadata]]) extends  AbcTraitAnySlot(AbcTraitKind.Const, name, metadata, index, typeName, valueType, value)
 
 case class AbcTraitClass(override val name: AbcQName, val index: Int,
