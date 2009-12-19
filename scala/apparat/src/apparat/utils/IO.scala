@@ -24,43 +24,43 @@ import java.io.{InputStream}
 import java.io.ByteArrayOutputStream
 
 object IO {
-  def read(length: Int)(implicit input: InputStream): Array[Byte] = readBytes(length, new Array[Byte](length))
-  
-  def readBytes(length: Int, bytes: Array[Byte])(implicit input: InputStream): Array[Byte] = {
-    var offset = 0
-    while(offset < length)
-      offset += input.read(bytes, offset, length - offset)
-    bytes
-  }
-  
-  def byteArrayOf(implicit input: InputStream) = {
-    val output = new ByteArrayOutputStream
-    val buffer = new Array[Byte](0x2000)
-    var bytesRead = 0
+	def read(length: Int)(implicit input: InputStream): Array[Byte] = readBytes(length, new Array[Byte](length))
 
-    bytesRead = input.read(buffer)
-    
-    while(bytesRead >= 0) {
-      output write (buffer, 0, bytesRead)
-      bytesRead = input.read(buffer)
-    }
-    
-    output.close()
-    output.toByteArray()
-  }
-  
-  def using[A, B <: { def close() }](stream: B)(body: B => A): A = {
-    try {
-      body(stream)
-    }
-    finally {
-      if(null != stream) {
-        try {
-          stream close()
-        } catch {
-          case _ => {}
-        }
-      }
-    }
-  }
+	def readBytes(length: Int, bytes: Array[Byte])(implicit input: InputStream): Array[Byte] = {
+		var offset = 0
+		while (offset < length)
+			offset += input.read(bytes, offset, length - offset)
+		bytes
+	}
+
+	def byteArrayOf(implicit input: InputStream) = {
+		val output = new ByteArrayOutputStream
+		val buffer = new Array[Byte](0x2000)
+		var bytesRead = 0
+
+		bytesRead = input.read(buffer)
+
+		while (bytesRead >= 0) {
+			output write (buffer, 0, bytesRead)
+			bytesRead = input.read(buffer)
+		}
+
+		output.close()
+		output.toByteArray()
+	}
+
+	def using[A, B <: {def close()}](stream: B)(body: B => A): A = {
+		try {
+			body(stream)
+		}
+		finally {
+			if (null != stream) {
+				try {
+					stream close ()
+				} catch {
+					case _ => {}
+				}
+			}
+		}
+	}
 }

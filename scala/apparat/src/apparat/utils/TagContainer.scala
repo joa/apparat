@@ -7,121 +7,128 @@ import apparat.utils.IO._
 import java.io._
 
 object TagContainer {
-  def fromFile(pathname: String): TagContainer = fromFile(new File(pathname))
-  def fromFile(file: File): TagContainer = {
-    val tc = new TagContainer
-    tc read file
-    tc
-  }
+	def fromFile(pathname: String): TagContainer = fromFile(new File(pathname))
+
+	def fromFile(file: File): TagContainer = {
+		val tc = new TagContainer
+		tc read file
+		tc
+	}
 }
 
 class TagContainer {
-  var strategy: Option[TagContainerStrategy] = None
-  
-  def tags: List[SwfTag] = strategy match {
-    case Some(x) => x.tags
-    case None => List()
-  }
-  def tags_= (value: List[SwfTag]) = strategy match {
-    case Some(x) => x.tags = value
-    case None => {}
-  }
-  
-  private def strategyFor(file: File) = file.getName() match {
-    case x if x endsWith ".swf" => Some(new SwfStrategy)
-    case x if x endsWith ".swc" => Some(new SwcStrategy)
-    case _ => None//TODO test for header of FWS/CWS
-  }
-  
-  def read(pathname: String): Unit = read(new File(pathname))
-  def read(file: File): Unit = {
-    strategy = strategyFor(file)
-    strategy match {
-      case Some(x) => {
-        using(new BufferedInputStream(new FileInputStream(file), 0x8000))(input => {
-          x read (input, file length)
-        })
-      }
-      case None => {}
-    }
-  }
-  
-  def write(pathname: String): Unit = write(new File(pathname)) 
-  def write(file: File): Unit = {
-    strategy match {
-      case Some(x) => {
-        using(new FileOutputStream(file)) (output => {
-          x write output
-        })       
-      }
-      case None	 => {}
-    }
-  }
+	var strategy: Option[TagContainerStrategy] = None
+
+	def tags: List[SwfTag] = strategy match {
+		case Some(x) => x.tags
+		case None => List()
+	}
+
+	def tags_=(value: List[SwfTag]) = strategy match {
+		case Some(x) => x.tags = value
+		case None => {}
+	}
+
+	private def strategyFor(file: File) = file.getName() match {
+		case x if x endsWith ".swf" => Some(new SwfStrategy)
+		case x if x endsWith ".swc" => Some(new SwcStrategy)
+		case _ => None //TODO test for header of FWS/CWS
+	}
+
+	def read(pathname: String): Unit = read(new File(pathname))
+
+	def read(file: File): Unit = {
+		strategy = strategyFor(file)
+		strategy match {
+			case Some(x) => {
+				using(new BufferedInputStream(new FileInputStream(file), 0x8000))(input => {
+					x read (input, file length)
+				})
+			}
+			case None => {}
+		}
+	}
+
+	def write(pathname: String): Unit = write(new File(pathname))
+
+	def write(file: File): Unit = {
+		strategy match {
+			case Some(x) => {
+				using(new FileOutputStream(file))(output => {
+					x write output
+				})
+			}
+			case None => {}
+		}
+	}
 }
 
 trait TagContainerStrategy {
-  def read(input: InputStream, length: Long)
-  def write(output: OutputStream)
-  def tags: List[SwfTag]
-  def tags_= (value: List[SwfTag])
+	def read(input: InputStream, length: Long)
+
+	def write(output: OutputStream)
+
+	def tags: List[SwfTag]
+
+	def tags_=(value: List[SwfTag])
 }
 
 private class SwfStrategy extends TagContainerStrategy {
-  var swf: Option[Swf] = None
-  
-  override def tags: List[SwfTag] = swf match {
-    case Some(x) => x.tags
-    case None => Nil
-  }
-  
-  override def tags_= (value: List[SwfTag]) = swf match {
-    case Some(x) => x.tags = value
-    case None => {}
-  }
-  
-  override def read(input: InputStream, length: Long) = {
-    swf = Some(Swf fromInputStream (input, length)) 
-  }
-  
-  override def write(output: OutputStream) = {
-    swf match {
-      case Some(x) => x write output
-      case None => {}
-    }
-  }
+	var swf: Option[Swf] = None
+
+	override def tags: List[SwfTag] = swf match {
+		case Some(x) => x.tags
+		case None => Nil
+	}
+
+	override def tags_=(value: List[SwfTag]) = swf match {
+		case Some(x) => x.tags = value
+		case None => {}
+	}
+
+	override def read(input: InputStream, length: Long) = {
+		swf = Some(Swf fromInputStream (input, length))
+	}
+
+	override def write(output: OutputStream) = {
+		swf match {
+			case Some(x) => x write output
+			case None => {}
+		}
+	}
 }
 
 private class SwcStrategy extends TagContainerStrategy {
-  var swc: Option[Swc] = None
-  var swf: Option[Swf] = None
-    
-  override def tags: List[SwfTag] = swf match {
-    case Some(x) => x.tags
-    case None => Nil
-  }
-  
-  override def tags_= (value: List[SwfTag]) = swf match {
-    case Some(x) => x.tags = value
-    case None => {}
-  }
-  
-  override def read(input: InputStream, length: Long) = {
-    swc = Some(Swc fromInputStream input)
-    swf = Some(Swf fromSwc swc.getOrElse(error("Could not read SWC."))) 
-  }
-  
-  override def write(output: OutputStream) = {
-    swc match {
-      case Some(x) => {
-       swf match {
-         case Some(y) => {
-           y write x
-         }
-         case None => {}
-       }
-       x write output
-      }
-      case None => {}
-    }
-  }
+	var swc: Option[Swc] = None
+	var swf: Option[Swf] = None
+
+	override def tags: List[SwfTag] = swf match {
+		case Some(x) => x.tags
+		case None => Nil
+	}
+
+	override def tags_=(value: List[SwfTag]) = swf match {
+		case Some(x) => x.tags = value
+		case None => {}
+	}
+
+	override def read(input: InputStream, length: Long) = {
+		swc = Some(Swc fromInputStream input)
+		swf = Some(Swf fromSwc swc.getOrElse(error("Could not read SWC.")))
+	}
+
+	override def write(output: OutputStream) = {
+		swc match {
+			case Some(x) => {
+				swf match {
+					case Some(y) => {
+						y write x
+					}
+					case None => {}
+				}
+				x write output
+			}
+			case None => {}
+		}
+	}
 }

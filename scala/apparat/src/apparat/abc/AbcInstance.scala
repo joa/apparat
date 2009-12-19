@@ -10,4 +10,4 @@ class AbcInstance(
 		val interfaces: Array[AbcName],
 		val init: AbcMethod,
 		val traits: Array[AbcTrait]
-	)
+		)

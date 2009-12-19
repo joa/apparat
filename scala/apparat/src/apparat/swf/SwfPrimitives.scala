@@ -22,12 +22,14 @@ package apparat.swf
 
 object SwfPrimitives
 {
-  implicit def tuple2Recordheader(a: (Int, Int)) = new Recordheader(a._1, a._2)
-  implicit def tuple2RGB(a: (Int, Int, Int)) = new RGB(a._1, a._2, a._3)
-  implicit def tuple2Rect(a: (Int, Int, Int, Int)) = new Rect(a._1, a._2, a._3, a._4)
+	implicit def tuple2Recordheader(a: (Int, Int)) = new Recordheader(a._1, a._2)
+
+	implicit def tuple2RGB(a: (Int, Int, Int)) = new RGB(a._1, a._2, a._3)
+
+	implicit def tuple2Rect(a: (Int, Int, Int, Int)) = new Rect(a._1, a._2, a._3, a._4)
 }
 
 //can make use of case classes, but i do not see a reason for that yet.
-class Recordheader(val kind: Int, val length: Int) extends Tuple2[Int,Int](kind, length)
-class RGB(val red: Int, val green: Int, val blue: Int) extends Tuple3[Int,Int,Int](red, green, blue)
-class Rect(val minX: Int, val maxX: Int, val minY: Int, val maxY: Int) extends Tuple4[Int,Int,Int,Int](minX, maxX, minY, maxY)
+class Recordheader(val kind: Int, val length: Int) extends Tuple2[Int, Int](kind, length)
+class RGB(val red: Int, val green: Int, val blue: Int) extends Tuple3[Int, Int, Int](red, green, blue)
+class Rect(val minX: Int, val maxX: Int, val minY: Int, val maxY: Int) extends Tuple4[Int, Int, Int, Int](minX, maxX, minY, maxY)

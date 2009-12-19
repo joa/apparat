@@ -27,7 +27,7 @@ object AbcNamespaceKind {
 	val Protected = 0x18
 	val Explicit = 0x19
 	val StaticProtected = 0x1a
-	val Private = 0x05 
+	val Private = 0x05
 }
 
 case class AbcNamespace(val kind: Int, val name: String)

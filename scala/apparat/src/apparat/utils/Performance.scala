@@ -21,11 +21,12 @@
 package apparat.utils
 
 object Performance {
-  def measure[A](body: => A): A = measure("Time")(body)
-  def measure[A](name: String)(body: => A): A = {
-    val t0 = System.currentTimeMillis();
-    val result = body
-    println(name + ": " + (System.currentTimeMillis() - t0) + "ms");
-    result
-  }
+	def measure[A](body: => A): A = measure("Time")(body)
+
+	def measure[A](name: String)(body: => A): A = {
+		val t0 = System.currentTimeMillis();
+		val result = body
+		println(name + ": " + (System.currentTimeMillis() - t0) + "ms");
+		result
+	}
 }

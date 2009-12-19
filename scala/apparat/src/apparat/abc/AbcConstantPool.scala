@@ -22,34 +22,36 @@ package apparat.abc
 
 object AbcConstantPool {
 	val EMPTY_STRING = ""
-	val EMPTY_NAMESPACE = AbcNamespace(0,EMPTY_STRING)
+	val EMPTY_NAMESPACE = AbcNamespace(0, EMPTY_STRING)
 	val EMPTY_NSSET = AbcNSSet(Set(EMPTY_NAMESPACE))
-	val EMPTY_NAME = AbcQName(EMPTY_STRING,EMPTY_NAMESPACE)
+	val EMPTY_NAME = AbcQName(EMPTY_STRING, EMPTY_NAMESPACE)
 }
 
 class AbcConstantPool(
-	val ints: Array[Int],
-	val uints: Array[Long],
-	val doubles: Array[Double],
-	val strings: Array[String],
-	val namespaces: Array[AbcNamespace],
-	val nssets: Array[AbcNSSet],
-	val names: Array[AbcName]) {
-	def constant(kind: Int, index: Int): Any =  kind match {
+		val ints: Array[Int],
+		val uints: Array[Long],
+		val doubles: Array[Double],
+		val strings: Array[String],
+		val namespaces: Array[AbcNamespace],
+		val nssets: Array[AbcNSSet],
+		val names: Array[AbcName]) {
+	def constant(kind: Some[Int], index: Int): Any = constant(kind.get, index)
+
+	def constant(kind: Int, index: Int): Any = kind match {
 		case AbcConstantType.Int => ints(index)
-		case AbcConstantType.UInt  => uints(index)
+		case AbcConstantType.UInt => uints(index)
 		case AbcConstantType.Double => doubles(index)
 		case AbcConstantType.Utf8 => strings(index);
 		case AbcConstantType.True => true
 		case AbcConstantType.False => false;
 		case AbcConstantType.Null => null
 		case AbcConstantType.Undefined => null
-		case AbcConstantType.Namespace  |
-			 AbcConstantType.PackageNamespace |
-			 AbcConstantType.InternalNamespace |
-			 AbcConstantType.ProtectedNamespace |
-			 AbcConstantType.ExplicitNamespace |
-			 AbcConstantType.StaticProtectedNamespace |
-			 AbcConstantType.PrivateNamespace => namespaces(index)
+		case AbcConstantType.Namespace |
+				AbcConstantType.PackageNamespace |
+				AbcConstantType.InternalNamespace |
+				AbcConstantType.ProtectedNamespace |
+				AbcConstantType.ExplicitNamespace |
+				AbcConstantType.StaticProtectedNamespace |
+				AbcConstantType.PrivateNamespace => namespaces(index)
 	}
 }
