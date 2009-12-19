@@ -31,8 +31,8 @@ object AbcOutputUtil {
 	}
 
 	def writeS24(output: Array[Byte], offset: Int, value: Int) = {
-		output(offset) = value & 0xff
-		output(offset+1) = (value & 0xff00) >> 0x08
-		output(offset+2) = (value & 0xff0000) >> 0x10
+		output(offset) = (value & 0xff).asInstanceOf[Byte]
+		output(offset+1) = ((value & 0xff00) >> 0x08).asInstanceOf[Byte]
+		output(offset+2) = ((value & 0xff0000) >> 0x10).asInstanceOf[Byte]
 	}
 }
