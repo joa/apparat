@@ -23,12 +23,10 @@ package apparat.abc
 import apparat.utils.IO
 import apparat.utils.IO._
 
-import java.io.{File, FileInputStream}
-import java.io.{InputStream}
-import java.io.{ByteArrayInputStream}
-
 import scala.collection.immutable._
 import scala.annotation.tailrec
+import java.io._
+import apparat.swf.DoABC
 
 class Abc {
 	var cpool = new AbcConstantPool(new Array[Int](0),
@@ -47,6 +45,8 @@ class Abc {
 
 	def read(data: Array[Byte]): Unit = using(new ByteArrayInputStream(data))(read _)
 
+	def read(doABC: DoABC): Unit = read(doABC.abcData)
+
 	def read(input: AbcInputStream): Unit = {
 		if (input.readU16 != 16) error("Only minor version 16 is supported.")
 		if (input.readU16 != 46) error("Only major version 46 is supported.")
@@ -56,6 +56,24 @@ class Abc {
 		types = readTypes(input)
 		scripts = readScripts(input)
 		readBodies(input)
+	}
+
+	def write(file: File): Unit = using(new FileOutputStream(file))(write _)
+
+	def write(pathname: String): Unit = write(new File(pathname))
+
+	def write(output: OutputStream): Unit = using(new AbcOutputStream(output))(write _)
+
+	def write(doABC: DoABC): Unit = doABC.abcData = toByteArray()
+
+	def write(output: AbcOutputStream): Unit = {
+
+	}
+
+	def toByteArray() = {
+		val baos = new ByteArrayOutputStream()
+		using(baos)(write _)
+		baos.toByteArray()
 	}
 
 	private def readPool(implicit input: AbcInputStream) = {

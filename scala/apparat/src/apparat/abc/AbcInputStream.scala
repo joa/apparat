@@ -61,8 +61,8 @@ class AbcInputStream(input: InputStream) extends InputStream {
 	}
 
 	def readS24() = {
-		val b0 = read
-		val b1 = read
+		val b0 = read()
+		val b1 = read()
 		val r = (read() << 0x10) | (b1 << 0x08) | b0;
 
 		if (0 != (r & 0x800000)) ((r & 0x7fffff) - 0x800000)
@@ -70,26 +70,26 @@ class AbcInputStream(input: InputStream) extends InputStream {
 	}
 
 	def readS32(): Int = {
-		val r = decodeInt
+		val r = decodeInt()
 		if (0 != (r & 0x80000000)) ((r & 0x7fffffff) - 0x80000000).asInstanceOf[Int] else r.asInstanceOf[Int]
 	}
 
 	def readString() = new String(IO.read(readU30())(this), "UTF8")
 
-	def readU08() = read
+	def readU08() = read()
 
 	def readU16() = {
-		val b0 = read
+		val b0 = read()
 		(read() << 0x08) | b0
 	}
 
-	def readU30() = (decodeInt & 0x3fffffffL).asInstanceOf[Int]
+	def readU30() = (decodeInt() & 0x3fffffffL).asInstanceOf[Int]
 
-	def readU32() = decodeInt
+	def readU32() = decodeInt()
 
-	override def available() = input available
+	override def available() = input.available()
 
-	override def close() = input close ()
+	override def close() = input.close()
 
 	override def read() = {
 		pos += 1
@@ -97,7 +97,7 @@ class AbcInputStream(input: InputStream) extends InputStream {
 	}
 
 	override def read(b: Array[Byte]) = {
-		val n = input read (b)
+		val n = input read b
 		pos += n
 		n
 	}
