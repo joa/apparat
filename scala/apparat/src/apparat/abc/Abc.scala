@@ -153,6 +153,16 @@ class Abc {
 		})
 		writeTable(cpool.names)(x => {
 			output writeU08 x.kind
+			x match {
+				case AbcQName(name, namespace) => {
+					output writeU30 (cpool indexOf name)
+					output writeU30 (cpool indexOf namespace)
+				}
+				case AbcQNameA(name, namespace) => {
+					output writeU30 (cpool indexOf name)
+					output writeU30 (cpool indexOf namespace)
+				}
+			}
 		})
 	}
 
