@@ -1,7 +1,7 @@
 package apparat.abc
 
 class AbcInstance(
-		val name: AbcName,
+		val name: AbcQName,
 		val base: Option[AbcName],
 		val isSealed: Boolean,
 		val isFinal: Boolean,

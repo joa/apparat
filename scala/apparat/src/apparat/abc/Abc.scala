@@ -28,6 +28,11 @@ import scala.annotation.tailrec
 import java.io._
 import apparat.swf.DoABC
 
+object Abc {
+	val MINOR = 16
+	val MAJOR = 46
+}
+
 class Abc {
 	var cpool = new AbcConstantPool(new Array[Int](0),
 		new Array[Long](0), new Array[Double](0), new Array[String](0),
@@ -48,8 +53,8 @@ class Abc {
 	def read(doABC: DoABC): Unit = read(doABC.abcData)
 
 	def read(input: AbcInputStream): Unit = {
-		if (input.readU16 != 16) error("Only minor version 16 is supported.")
-		if (input.readU16 != 46) error("Only major version 46 is supported.")
+		if (input.readU16() != Abc.MINOR) error("Minor version not supported.")
+		if (input.readU16() != Abc.MAJOR) error("Major version not supported.")
 		cpool = readPool(input)
 		methods = readMethods(input)
 		metadata = readMetadata(input)
@@ -83,30 +88,12 @@ class Abc {
 			t
 		}
 
-		val ints = table(new Array[Int](Math.max(1, input.readU30())), 0) {
-			input.readS32()
-		}
-
-		val uints = table(new Array[Long](Math.max(1, input.readU30())), 0L) {
-			input.readU32()
-		}
-
-		val doubles = table(new Array[Double](Math.max(1, input.readU30())), Double.NaN) {
-			input.readD64()
-		}
-
-		val strings = table(new Array[String](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) {
-			input.readString()
-		}
-
-		val namespaces = table(new Array[AbcNamespace](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) {
-			AbcNamespace(input.readU08(), strings(input.readU30()))
-		}
-
-		val nssets = table(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) {
-			AbcNSSet(Set((for (i <- 0 until input.readU08()) yield namespaces(input.readU30())): _*))
-		}
-
+		val ints = table(new Array[Int](Math.max(1, input.readU30())), 0) { input.readS32() }
+		val uints = table(new Array[Long](Math.max(1, input.readU30())), 0L) { input.readU32() }
+		val doubles = table(new Array[Double](Math.max(1, input.readU30())), Double.NaN) { input.readD64() }
+		val strings = table(new Array[String](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) { input.readString() }
+		val namespaces = table(new Array[AbcNamespace](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) { AbcNamespace(input.readU08(), strings(input.readU30())) }
+		val nssets = table(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet(Set((for (i <- 0 until input.readU08()) yield namespaces(input.readU30())): _*)) }
 		val tmp = new Array[AbcName](Math.max(1, input.readU30()))
 		val names = table(tmp, AbcConstantPool.EMPTY_NAME) {
 			input.readU08() match {
@@ -140,7 +127,7 @@ class Abc {
 
 	private def readMethods(implicit input: AbcInputStream) = {
 		val result = new Array[AbcMethod](input.readU30())
-
+		
 		for (i <- 0 until result.length) {
 			val numParameters = input.readU30()
 			val returnType = cpoolName()
@@ -154,7 +141,6 @@ class Abc {
 
 			if (0 != (flags & 0x08)) {
 				val numOptional = input.readU30()
-
 				assert(numOptional <= numParameters)
 
 				for (j <- (numParameters - numOptional) until numParameters) {
@@ -179,11 +165,14 @@ class Abc {
 
 	private def readMetadata(implicit input: AbcInputStream) = {
 		val result = new Array[AbcMetadata](input.readU30())
+
 		for (i <- 0 until result.length) {
 			val name = cpoolString()
 			val n = input.readU30()
 			val keys = new Array[String](n)
-			for (i <- 0 until n) keys(i) = cpoolString()
+
+			for (i <- 0 until n)
+				keys(i) = cpoolString()
 
 			@tailrec def traverse(index: Int, map: Map[String, String]): Map[String, String] = index match {
 				case x if x == n => map
@@ -200,22 +189,17 @@ class Abc {
 		val result = new Array[AbcNominalType](input.readU30())
 
 		for (i <- 0 until result.length) {
-			val name = cpoolNameNZ()
-
-			assert(name.kind == AbcNameKind.QName)
-
-			val baseIndex = input.readU30()
-			val base = baseIndex match {
+			val name = cpoolNameNZ().asInstanceOf[AbcQName]
+			val base = input.readU30() match {
 				case 0 => None
 				case x => Some(cpool.names(x))
 			}
-
 			val flags = input.readU08()
-
 			val protectedNs = if (0 != (flags & 0x08)) Some(cpoolNs()) else None
-
 			val interfaces = new Array[AbcName](input.readU30())
-			for (j <- 0 until interfaces.length) interfaces(j) = cpoolName()
+
+			for (j <- 0 until interfaces.length)
+				interfaces(j) = cpoolName()
 
 			val init = methods(input.readU30())
 
@@ -224,9 +208,8 @@ class Abc {
 				interfaces, init, readTraits()))
 		}
 
-		for (i <- 0 until result.length) {
+		for (i <- 0 until result.length)
 			result(i).klass = new AbcClass(methods(input.readU30()), readTraits())
-		}
 
 		result
 	}
@@ -234,9 +217,8 @@ class Abc {
 	private def readScripts(implicit input: AbcInputStream) = {
 		val result = new Array[AbcScript](input.readU30())
 
-		for (i <- 0 until result.length) {
+		for (i <- 0 until result.length)
 			result(i) = new AbcScript(methods(input.readU30()), readTraits())
-		}
 
 		result
 	}
@@ -267,7 +249,7 @@ class Abc {
 					if (0 != value) {
 						val kind = input.readU08()
 						new AbcTraitSlot(name, index, typeName, Some(kind), Some(cpool.constant(kind, value)), meta(attr))
-					} else {new AbcTraitSlot(name, index, typeName, None, None, meta(attr))}
+					} else { new AbcTraitSlot(name, index, typeName, None, None, meta(attr)) }
 				}
 				case AbcTraitKind.Const => {
 					val index = input.readU30()
@@ -276,7 +258,7 @@ class Abc {
 					if (0 != value) {
 						val kind = input.readU08()
 						new AbcTraitConst(name, index, typeName, Some(kind), Some(cpool.constant(kind, value)), meta(attr))
-					} else {new AbcTraitConst(name, index, typeName, None, None, meta(attr))}
+					} else { new AbcTraitConst(name, index, typeName, None, None, meta(attr)) }
 				}
 				case AbcTraitKind.Method => new AbcTraitMethod(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
 				case AbcTraitKind.Getter => new AbcTraitGetter(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
@@ -307,10 +289,9 @@ class Abc {
 	private def readExceptions()(implicit input: AbcInputStream) = {
 		val result = new Array[AbcExceptionHandler](input.readU30())
 
-		for (i <- 0 until result.length) {
+		for (i <- 0 until result.length)
 			result(i) = new AbcExceptionHandler(input.readU30(),
 				input.readU30(), input.readU30(), cpoolName(), cpoolName())
-		}
 
 		result
 	}
@@ -327,7 +308,7 @@ class Abc {
 
 	private def cpoolNameNZ()(implicit input: AbcInputStream) = {
 		val index = input.readU30()
-		if (0 == index) error("cpool index may not be zero.")
+		if (0 == index) error("Constant pool index may not be zero.")
 		cpool.names(index)
 	}
 

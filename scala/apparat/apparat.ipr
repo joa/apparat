@@ -103,6 +103,13 @@
     <dictionary name="joa">
       <words>
         <w>apparat</w>
+        <w>cpool</w>
+        <w>ints</w>
+        <w>metadata</w>
+        <w>namespaces</w>
+        <w>nssets</w>
+        <w>pathname</w>
+        <w>uints</w>
       </words>
     </dictionary>
   </component>
