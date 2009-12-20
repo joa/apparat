@@ -23,7 +23,7 @@ package apparat.abc
 object AbcConstantPool {
 	val EMPTY_STRING = ""
 	val EMPTY_NAMESPACE = AbcNamespace(0, EMPTY_STRING)
-	val EMPTY_NSSET = AbcNSSet(Set(EMPTY_NAMESPACE))
+	val EMPTY_NSSET = AbcNSSet(Array(EMPTY_NAMESPACE))
 	val EMPTY_NAME = AbcQName(EMPTY_STRING, EMPTY_NAMESPACE)
 }
 
@@ -54,4 +54,9 @@ class AbcConstantPool(
 				AbcConstantType.StaticProtectedNamespace |
 				AbcConstantType.PrivateNamespace => namespaces(index)
 	}
+
+	def indexOf(value: String) = strings indexOf value
+	def indexOf(value: AbcNamespace) = namespaces indexOf value
+	def indexOf(value: AbcNSSet) = nssets indexOf value
+	def indexOf(value: AbcName) = names indexOf value
 }

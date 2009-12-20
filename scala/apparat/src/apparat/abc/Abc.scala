@@ -69,33 +69,35 @@ class Abc {
 
 	def write(output: OutputStream): Unit = using(new AbcOutputStream(output))(write _)
 
-	def write(doABC: DoABC): Unit = doABC.abcData = toByteArray()
+	def write(doABC: DoABC): Unit = doABC.abcData = toByteArray
 
-	def write(output: AbcOutputStream): Unit = {
-
+	def write(implicit output: AbcOutputStream): Unit = {
+		output writeU16 Abc.MINOR
+		output writeU16 Abc.MAJOR
+		writePool(cpool)
 	}
 
-	def toByteArray() = {
+	def toByteArray = {
 		val baos = new ByteArrayOutputStream()
 		using(baos)(write _)
 		baos.toByteArray()
 	}
 
 	private def readPool(implicit input: AbcInputStream) = {
-		def table[T](t: Array[T], empty: T)(reader: => T) = {
+		def readTable[T](t: Array[T], empty: T)(reader: => T) = {
 			t(0) = empty
 			for (i <- 1 until t.length) t(i) = reader
 			t
 		}
 
-		val ints = table(new Array[Int](Math.max(1, input.readU30())), 0) { input.readS32() }
-		val uints = table(new Array[Long](Math.max(1, input.readU30())), 0L) { input.readU32() }
-		val doubles = table(new Array[Double](Math.max(1, input.readU30())), Double.NaN) { input.readD64() }
-		val strings = table(new Array[String](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) { input.readString() }
-		val namespaces = table(new Array[AbcNamespace](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) { AbcNamespace(input.readU08(), strings(input.readU30())) }
-		val nssets = table(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet(Set((for (i <- 0 until input.readU08()) yield namespaces(input.readU30())): _*)) }
+		val ints = readTable(new Array[Int](Math.max(1, input.readU30())), 0) { input.readS32() }
+		val uints = readTable(new Array[Long](Math.max(1, input.readU30())), 0L) { input.readU32() }
+		val doubles = readTable(new Array[Double](Math.max(1, input.readU30())), Double.NaN) { input.readD64() }
+		val strings = readTable(new Array[String](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) { input.readString() }
+		val namespaces = readTable(new Array[AbcNamespace](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) { AbcNamespace(input.readU08(), strings(input.readU30())) }
+		val nssets = readTable(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet((for (i <- 0 until input.readU08()) yield namespaces(input.readU30())).toArray) }
 		val tmp = new Array[AbcName](Math.max(1, input.readU30()))
-		val names = table(tmp, AbcConstantPool.EMPTY_NAME) {
+		val names = readTable(tmp, AbcConstantPool.EMPTY_NAME) {
 			input.readU08() match {
 				case AbcNameKind.QName => {
 					val namespace = input.readU30()
@@ -123,6 +125,35 @@ class Abc {
 		}
 
 		new AbcConstantPool(ints, uints, doubles, strings, namespaces, nssets, names)
+	}
+
+	private def writePool(cpool: AbcConstantPool)(implicit output: AbcOutputStream) = {
+		def writeTable[T](t: Array[T])(writer: T => Unit) = {
+			t.length match {
+				case 1 => output writeU30 0
+				case n => {
+					output writeU30 n
+					for(i <- 1 until n)
+						writer(t(i))
+				}
+			}
+		}
+
+		writeTable(cpool.ints)(output writeS32 _)
+		writeTable(cpool.uints)(output writeU32 _)
+		writeTable(cpool.doubles)(output writeD64 _)
+		writeTable(cpool.strings)(output writeString _)
+		writeTable(cpool.namespaces)(x => {
+			output writeU08 x.kind
+			output writeU30 (cpool indexOf x.name)
+		})
+		writeTable(cpool.nssets)(x => {
+			output writeU08 x.set.length
+			x.set foreach (y => output writeU30 (cpool indexOf y))
+		})
+		writeTable(cpool.names)(x => {
+			output writeU08 x.kind
+		})
 	}
 
 	private def readMethods(implicit input: AbcInputStream) = {
@@ -302,7 +333,7 @@ class Abc {
 
 	private def cpoolDouble()(implicit input: AbcInputStream) = cpool.doubles(input.readU30())
 
-	private def cpoolString()(implicit input: AbcInputStream) = cpool.strings(input.readU30())
+	private def cpoolString()(implicit input: AbcInputStream): String = cpool.strings(input.readU30())
 
 	private def cpoolName()(implicit input: AbcInputStream) = cpool.names(input.readU30())
 

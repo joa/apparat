@@ -20,6 +20,4 @@
  */
 package apparat.abc
 
-import scala.collection.Set
-
-case class AbcNSSet(val set: Set[AbcNamespace])
+case class AbcNSSet(val set: Array[AbcNamespace])
