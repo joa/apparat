@@ -26,27 +26,27 @@ class AbcOutputStream(val output: OutputStream) extends OutputStream {
 	private def encodeInt(value: Long) = {
 		value match {
 			case x if (x < 0 || x > 268435455) => {
-				write(((value & 0x7f) | 0x80).asInstanceOf[Byte])
-				write((value >> 7 | 0x80).asInstanceOf[Byte])
-				write((value >> 14 | 0x80).asInstanceOf[Byte])
-				write((value >> 21 | 0x80).asInstanceOf[Byte])
-				write(((value >> 28) & 0x0f).asInstanceOf[Byte])
+				write(((x & 0x7f) | 0x80).asInstanceOf[Byte])
+				write((x >> 7 | 0x80).asInstanceOf[Byte])
+				write((x >> 14 | 0x80).asInstanceOf[Byte])
+				write((x >> 21 | 0x80).asInstanceOf[Byte])
+				write(((x >> 28) & 0x0f).asInstanceOf[Byte])
 			}
-			case x if (x < 128) => write(value.asInstanceOf[Byte])
-			case x if (value < 16384) => {
-				write(((value & 0x7f) | 0x80).asInstanceOf[Byte])
-				write(((value >> 7) & 0x7f).asInstanceOf[Byte])
+			case x if (x < 128) => write(x.asInstanceOf[Byte])
+			case x if (x < 16384) => {
+				write(((x & 0x7f) | 0x80).asInstanceOf[Byte])
+				write(((x >> 7) & 0x7f).asInstanceOf[Byte])
 			}
-			case x if (value < 2097152) => {
-				write(((value & 0x7f) | 0x80).asInstanceOf[Byte])
-				write((value >> 7 | 0x80).asInstanceOf[Byte])
-				write((((value >> 14)) & 0x7f).asInstanceOf[Byte])
+			case x if (x < 2097152) => {
+				write(((x & 0x7f) | 0x80).asInstanceOf[Byte])
+				write((x >> 7 | 0x80).asInstanceOf[Byte])
+				write((((x >> 14)) & 0x7f).asInstanceOf[Byte])
 			}
-			case x if (value < 268435456) => {
-				write(((value & 0x7f) | 0x80).asInstanceOf[Byte])
-				write((value >> 7 | 0x80).asInstanceOf[Byte])
-				write((value >> 14 | 0x80).asInstanceOf[Byte])
-				write(((value >> 21) & 0x7f).asInstanceOf[Byte])
+			case x if (x < 268435456) => {
+				write(((x & 0x7f) | 0x80).asInstanceOf[Byte])
+				write((x >> 7 | 0x80).asInstanceOf[Byte])
+				write((x >> 14 | 0x80).asInstanceOf[Byte])
+				write(((x >> 21) & 0x7f).asInstanceOf[Byte])
 			}
 		}
 	}
