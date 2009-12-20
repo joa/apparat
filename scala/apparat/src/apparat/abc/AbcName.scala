@@ -45,4 +45,4 @@ case class AbcMultiname(val name: String, val nsset: AbcNSSet) extends AbcName(A
 case class AbcMultinameA(val name: String, val nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameA)
 case class AbcMultinameL(val nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameL)
 case class AbcMultinameLA(val nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameLA)
-case class AbcTypename(val name: AbcQName, val parameters: Seq[AbcName]) extends AbcName(AbcNameKind.Typename) 
+case class AbcTypename(val name: AbcQName, val parameters: Array[AbcName]) extends AbcName(AbcNameKind.Typename) 

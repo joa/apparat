@@ -118,7 +118,7 @@ class Abc {
 				case AbcNameKind.MultinameL => AbcMultinameL(nssets(input.readU30()))
 				case AbcNameKind.MultinameLA => AbcMultinameLA(nssets(input.readU30()))
 				case AbcNameKind.Typename => {
-					AbcTypename((tmp(input.readU30())).asInstanceOf[AbcQName], for (i <- 0 until input.readU30()) yield tmp(input.readU30()))
+					AbcTypename((tmp(input.readU30())).asInstanceOf[AbcQName], (for (i <- 0 until input.readU30()) yield tmp(input.readU30())).toArray)
 				}
 				case _ => error("Unknown multiname kind.")
 			}
@@ -161,6 +161,24 @@ class Abc {
 				case AbcQNameA(name, namespace) => {
 					output writeU30 (cpool indexOf name)
 					output writeU30 (cpool indexOf namespace)
+				}
+				case AbcRTQName(name) => output writeU30 (cpool indexOf name)
+				case AbcRTQNameA(name) => output writeU30 (cpool indexOf name)
+				case AbcRTQNameL | AbcRTQNameLA => {}
+				case AbcMultiname(name, nsset) => {
+					output writeU30 (cpool indexOf  name)
+					output writeU30 (cpool indexOf nsset)
+				}
+				case AbcMultinameA(name, nsset) => {
+					output writeU30 (cpool indexOf  name)
+					output writeU30 (cpool indexOf nsset)
+				}
+				case AbcMultinameL(nsset) => output writeU30 (cpool indexOf nsset)
+				case AbcMultinameLA(nsset) => output writeU30 (cpool indexOf nsset)
+				case AbcTypename(name, parameters) => {
+					output writeU30 (cpool indexOf name)
+					output writeU30 parameters.length
+					parameters foreach (p => output writeU30 (cpool indexOf p))
 				}
 			}
 		})
