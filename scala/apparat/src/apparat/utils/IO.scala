@@ -20,10 +20,60 @@
  */
 package apparat.utils
 
-import java.io.{InputStream}
-import java.io.ByteArrayOutputStream
+import java.io.{PrintStream, InputStream, ByteArrayOutputStream}
 
 object IO {
+	def dump(bytes: Array[Byte]): Unit = dump(bytes, System.out)
+	def dump(bytes: Array[Byte], printStream: PrintStream): Unit = {
+		printStream println "Hex dump:"
+		printStream println (if(null == bytes) {
+			"(null)"
+		} else {
+			val length = bytes.length
+			val output = new StringBuilder(length << 2)
+			for(i <- 0 until length by 0x10) {
+				val hs = i.toHexString
+				for(j <- 0 until (8 - hs.length))
+					output append '0'
+				output append hs
+				output append 'h'
+				output append ' '
+
+				val text = new StringBuilder(0x10)
+
+				for(j <- 0 until 0x10) {
+					val bufferIndex = i + j
+					if(bufferIndex >= length) {
+						output append "   "
+						text append ' '
+					} else {
+						val currentByte = bytes(bufferIndex) & 0xff
+						val hexString = currentByte.toHexString
+
+						if(currentByte < 0x10)
+							output append '0'
+
+						output append hexString
+						output append ' '
+
+						text append (if(currentByte > 0x20 && currentByte < 0x7f) currentByte.asInstanceOf[Char] else '.')
+					}
+
+					if((j & 0x03) == 0x03 && 0x0f != j)
+						output append "| "
+				}
+
+				output append ' '
+				output append text
+				output append '\n'
+			}
+
+			output append  ("Length: " + length + " bytes")
+			output.toString
+		})
+		printStream.flush()
+	}
+
 	def read(length: Int)(implicit input: InputStream): Array[Byte] = readBytes(length, new Array[Byte](length))
 
 	def readBytes(length: Int, bytes: Array[Byte])(implicit input: InputStream): Array[Byte] = {

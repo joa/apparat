@@ -31,6 +31,7 @@ object Main {
 				val doABC = x.asInstanceOf[DoABC];
 				val abc = new Abc
 				abc read doABC.abcData
+				IO dump abc.toByteArray
 			}
 		}
 

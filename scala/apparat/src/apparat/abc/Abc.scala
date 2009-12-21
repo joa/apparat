@@ -71,7 +71,8 @@ class Abc {
 
 	def write(doABC: DoABC): Unit = doABC.abcData = toByteArray
 
-	def write(implicit output: AbcOutputStream): Unit = {
+	def write(output: AbcOutputStream): Unit = {
+		implicit val o = output
 		output writeU16 Abc.MINOR
 		output writeU16 Abc.MAJOR
 		writePool(cpool)
