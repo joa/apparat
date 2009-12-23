@@ -56,7 +56,45 @@ class AbcConstantPool(
 	}
 
 	def indexOf(value: String) = strings indexOf value
-	def indexOf(value: AbcNamespace) = namespaces indexOf value
+	def indexOf(value: AbcNamespace) = {
+		val result = namespaces indexOf value
+		assert(result > -1 && result < namespaces.length)
+		result
+	}
 	def indexOf(value: AbcNSSet) = nssets indexOf value
 	def indexOf(value: AbcName) = names indexOf value
+
+	def indexOf(kind: Option[Int], value: Option[Any]): Int = {
+		value match {
+			case Some(x) => indexOf(kind getOrElse error("Constant value without type."), x)
+			case None => 0
+		}
+	}
+
+	def indexOf(kind: Int, value: Any): Int = error("TODO")
+
+	override def toString = {
+		"AbcConstantPool\n" +
+		"\t" + ints.length + " integer(s):\n " + mkString(ints) +
+		"\t" + uints.length + " uint(s):\n " + mkString(uints) +
+		"\t" + doubles.length + " double(s):\n " + mkString(doubles) +
+		"\t" + strings.length + " string(s):\n " + mkString2(strings)("\"" + _.toString + "\"") +
+		"\t" + namespaces.length + " namespace(s):\n " + mkString(namespaces) +
+		"\t" + nssets.length + " namespaceSet(s):\n " + mkString(nssets) +
+		"\t" + names.length + " multiname(s):\n " + mkString(names)
+	}
+
+	private def mkString[T](array: Array[T]) = mkString2(array)(_.toString)
+	private def mkString2[T](array: Array[T])(stringOf: T => String) = {
+		val buffer = new StringBuilder(array.length << 2);
+
+		for(x <- array) {
+			buffer append '\t'
+			buffer append '\t'
+			buffer append stringOf(x)
+			buffer append '\n'
+		}
+
+		buffer.toString
+	}
 }

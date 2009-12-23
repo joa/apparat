@@ -61,6 +61,8 @@ class Abc {
 		types = readTypes(input)
 		scripts = readScripts(input)
 		readBodies(input)
+
+		println(cpool.toString)
 	}
 
 	def write(file: File): Unit = using(new FileOutputStream(file))(write _)
@@ -72,10 +74,14 @@ class Abc {
 	def write(doABC: DoABC): Unit = doABC.abcData = toByteArray
 
 	def write(output: AbcOutputStream): Unit = {
-		implicit val o = output
 		output writeU16 Abc.MINOR
 		output writeU16 Abc.MAJOR
-		writePool(cpool)
+		writePool(output)
+		writeMethods(output)
+		writeMetadata(output)
+		writeTypes(output)
+		writeScripts(output)
+		writeBodies(output)
 	}
 
 	def toByteArray = {
@@ -128,7 +134,7 @@ class Abc {
 		new AbcConstantPool(ints, uints, doubles, strings, namespaces, nssets, names)
 	}
 
-	private def writePool(cpool: AbcConstantPool)(implicit output: AbcOutputStream) = {
+	private def writePool(implicit output: AbcOutputStream) = {
 		def writeTable[T](t: Array[T])(writer: T => Unit) = {
 			t.length match {
 				case 1 => output writeU30 0
@@ -223,6 +229,43 @@ class Abc {
 		result
 	}
 
+	private def writeMethods(implicit output: AbcOutputStream) = {
+		output writeU30 methods.length
+
+		for(method <- methods) {
+			output writeU30 method.parameters.length
+			output writeU30 (cpool indexOf method.returnType)
+
+			for(parameter <- method.parameters)
+				output writeU30 (cpool indexOf parameter.typeName)
+
+			output writeU30 (cpool indexOf method.name)
+
+			output writeU08 (
+				  (if(method.needsArguments) 0x01 else 0x00)
+				| (if(method.needsActivation) 0x02 else 0x00)
+				| (if(method.needsRest) 0x04 else 0x00)
+				| (if(method.hasOptionalParameters) 0x08 else 0x00)
+				| (if(method.setsDXNS) 0x40 else 0x00)
+				| (if(method.hasParameterNames) 0x80 else 0x00))
+
+			if(method.hasOptionalParameters) {
+				output writeU30 (method.parameters count (_.optional == true))
+
+				//TODO could assert that only non-optional, optional is the seq
+				//instead of maybe a cluster with and without req/opt parameters
+				
+				for(parameter <- method.parameters if parameter.optional) {
+					output writeU30 (cpool indexOf (parameter.optionalType.get, parameter.optionalVal.get))
+					output writeU08 parameter.optionalType.get
+				}
+			}
+
+			if(method.hasParameterNames)
+				method.parameters foreach (x => output writeU30 (cpool indexOf x.name.get))
+		}
+	}
+
 	private def readMetadata(implicit input: AbcInputStream) = {
 		val result = new Array[AbcMetadata](input.readU30())
 
@@ -243,6 +286,17 @@ class Abc {
 		}
 
 		result
+	}
+
+	private def writeMetadata(implicit output: AbcOutputStream) = {
+		output writeU30 metadata.length
+
+		for(meta <- metadata) {
+			output writeU30 (cpool indexOf meta.name)
+			output writeU30 meta.attributes.size
+			meta.attributes.keysIterator foreach (x => output writeU30 (cpool indexOf x))
+			meta.attributes.valuesIterator foreach (x => output writeU30 (cpool indexOf x))
+		}
 	}
 
 	private def readTypes(implicit input: AbcInputStream) = {
@@ -274,6 +328,45 @@ class Abc {
 		result
 	}
 
+	private def writeTypes(implicit output: AbcOutputStream) = {
+		output writeU30 types.length
+
+		for(nominalType <- types) {
+			val inst = nominalType.inst
+
+			output writeU30 (cpool indexOf inst.name)
+			output writeU30 (inst.base match {
+				case Some(x) => cpool indexOf x
+				case None => 0
+			})
+
+			output writeU08 (
+				  (if(inst.isSealed) 0x01 else 0x00)
+				| (if(inst.isFinal) 0x02 else 0x00)
+				| (if(inst.isInterface) 0x04 else 0x00)
+				| (if(inst.protectedNs.isDefined) 0x08 else 0x00))
+
+			inst.protectedNs match {
+				case Some(x) => output writeU30 (cpool indexOf x)
+				case None => {}
+			}
+
+			output writeU30 inst.interfaces.length
+			inst.interfaces foreach (x => output writeU30 (cpool indexOf x))
+
+			output writeU30 (methods indexOf inst.init)
+
+			writeTraits(inst.traits)
+		}
+
+		for(nominalType <- types) {
+			val klass = nominalType.klass
+
+			output writeU30 (methods indexOf klass.init)
+			writeTraits(klass.traits)
+		}
+	}
+	
 	private def readScripts(implicit input: AbcInputStream) = {
 		val result = new Array[AbcScript](input.readU30())
 
@@ -281,6 +374,14 @@ class Abc {
 			result(i) = new AbcScript(methods(input.readU30()), readTraits())
 
 		result
+	}
+
+	private def writeScripts(implicit output: AbcOutputStream) = {
+		output writeU30 scripts.length
+		for(script <- scripts) {
+			output writeU30 (methods indexOf script)
+			writeTraits(script.traits)
+		}
 	}
 
 	private def readTraits()(implicit input: AbcInputStream) = {
@@ -331,6 +432,74 @@ class Abc {
 		result
 	}
 
+	private def writeTraits(traits: Array[AbcTrait])(implicit output: AbcOutputStream) = {
+		output writeU30 traits.length
+
+		for(t <- traits) {
+			output writeU30 (cpool indexOf t.name)
+			output writeU08 (t.kind | (((t match {
+				case x: AbcTraitAnyMethod => ((if(x.isFinal) 0x01 else 0x00) | (if(x.isOverride) 0x02 else 0x00))
+				case _ => 0
+			}) | (t.metadata match {
+				case Some(x) => 0x04
+				case None => 0x00
+			})) << 0x04))
+
+			t match {
+				case AbcTraitSlot(name, index, typeName, valueType, value, metadata) => {
+					output writeU30 index
+					output writeU30 (cpool indexOf typeName)
+					value match {
+						case Some(x) => {
+							output writeU30 (cpool indexOf (valueType.get, value.get))
+							output writeU08 valueType.get
+						}
+						case None => output writeU30 0
+					}
+				}
+				case AbcTraitConst(name, index, typeName, valueType, value, metadata) => {
+					output writeU30 index
+					output writeU30 (cpool indexOf typeName)
+					value match {
+						case Some(x) => {
+							output writeU30 (cpool indexOf (valueType.get, value.get))
+							output writeU08 valueType.get
+						}
+						case None => output writeU30 0
+					}
+				}
+				case AbcTraitMethod(name, dispId, method, isFinal, isOverride, metadata) => {
+					output writeU30 dispId
+					output writeU30 (methods indexOf method)
+				}
+				case AbcTraitGetter(name, dispId, method, isFinal, isOverride, metadata) => {
+					output writeU30 dispId
+					output writeU30 (methods indexOf method)
+				}
+				case AbcTraitSetter(name, dispId, method, isFinal, isOverride, metadata) => {
+					output writeU30 dispId
+					output writeU30 (methods indexOf method)
+				}
+				case AbcTraitClass(name, index, nominalType, metadata) => {
+					output writeU30 index
+					output writeU30 (types indexOf nominalType)
+				}
+				case AbcTraitFunction(name, index, function, metadata) => {
+					output writeU30 index
+					output writeU30 (methods indexOf function)
+				}
+			}
+
+			t.metadata match {
+				case Some(meta) => {
+					output writeU30 meta.length
+					meta foreach (x => output writeU30 (metadata indexOf x))
+				}
+				case None => {}
+			}
+		}
+	}
+
 	private def readBodies(implicit input: AbcInputStream) = {
 		for (i <- 0 until input.readU30()) {
 			val methodId = input.readU30()
@@ -346,6 +515,25 @@ class Abc {
 		}
 	}
 
+	private def writeBodies(implicit output: AbcOutputStream) = {
+		for(i <- 0 until methods.length) {
+			val method = methods(i)
+			method.body match {
+				case Some(body) => {
+					output writeU30 i
+					output writeU30 body.maxStack
+					output writeU30 body.localCount
+					output writeU30 body.initScopeDepth
+					output writeU30 body.maxScopeDepth
+					output write body.code
+
+					writeExceptions(body.exceptions)
+					writeTraits(body.traits)
+				}
+				case None => {}
+			}
+		}
+	}
 	private def readExceptions()(implicit input: AbcInputStream) = {
 		val result = new Array[AbcExceptionHandler](input.readU30())
 
@@ -354,6 +542,17 @@ class Abc {
 				input.readU30(), input.readU30(), cpoolName(), cpoolName())
 
 		result
+	}
+
+	private def writeExceptions(exceptions: Array[AbcExceptionHandler])(implicit output: AbcOutputStream) = {
+		output writeU30 exceptions.length
+		for(handler <- exceptions) {
+			output writeU30 handler.from
+			output writeU30 handler.to
+			output writeU30 handler.target
+			output writeU30 (cpool indexOf handler.typeName)
+			output writeU30 (cpool indexOf handler.varName)
+		}
 	}
 
 	private def cpoolInt()(implicit input: AbcInputStream) = cpool.ints(input.readU30())

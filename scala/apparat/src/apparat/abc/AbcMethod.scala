@@ -15,8 +15,8 @@ class AbcMethod(val parameters: Array[AbcMethodParameter], val returnType: AbcNa
 	override def toString = "[AbcMethod name: " + name.toString() + "]"
 }
 
-class AbcMethodBody(maxStack: Int, localCount: Int, initScopeDepth: Int,
-					maxScopeDepth: Int, code: Array[Byte], exceptions: Array[AbcExceptionHandler],
-					traits: Array[AbcTrait])
+class AbcMethodBody(val maxStack: Int, val localCount: Int, val initScopeDepth: Int,
+					val maxScopeDepth: Int, val code: Array[Byte], val exceptions: Array[AbcExceptionHandler],
+					val traits: Array[AbcTrait])
 
-class AbcExceptionHandler(from: Int, to: Int, target: Int, typeName: AbcName, varName: AbcName)
+class AbcExceptionHandler(val from: Int, val to: Int, val target: Int, val typeName: AbcName, val varName: AbcName)

@@ -25,14 +25,36 @@ import apparat.utils._
 
 object Main {
 	def main(args: Array[String]): Unit = {
-		val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
+		/*val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 		Performance.measure("Total") {
+			val abc = new Abc
 			for (x <- swf.tags if x.kind == SwfTags.DoABC) {
 				val doABC = x.asInstanceOf[DoABC];
-				val abc = new Abc
-				abc read doABC.abcData
-				IO dump abc.toByteArray
+				Performance.measure("Read") { abc read doABC.abcData }
+				Performance.measure("Write") { abc.toByteArray }
+				//IO dump abc.toByteArray
 			}
+		}*/
+
+		val swf = Swf fromFile "assets/Test00.swf"
+
+		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
+			val doABC = x.asInstanceOf[DoABC]
+			val abc = new Abc
+
+			println("rewrite: " + doABC.name)
+
+			abc read doABC
+			abc write doABC
+		}
+
+		swf write "assets/Test00.output.swf"
+
+		val check = Swf fromFile "assets/Test00.output.swf"
+
+		for(x <- check.tags if x.kind == SwfTags.DoABC) {
+			val abc = new Abc
+			abc read x.asInstanceOf[DoABC]
 		}
 
 		/*measure {
