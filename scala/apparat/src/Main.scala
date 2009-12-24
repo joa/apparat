@@ -44,7 +44,6 @@ object Main {
 
 			println("Rewrite: " + doABC.name)
 
-			IO dump doABC
 			abc read doABC
 			abc write doABC
 		}

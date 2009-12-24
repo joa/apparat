@@ -21,7 +21,7 @@
 package apparat.abc
 
 object AbcConstantPool {
-	val EMPTY_STRING = ""
+	val EMPTY_STRING = Symbol(null)
 	val EMPTY_NAMESPACE = AbcNamespace(0, EMPTY_STRING)
 	val EMPTY_NSSET = AbcNSSet(Array(EMPTY_NAMESPACE))
 	val EMPTY_NAME = AbcQName(EMPTY_STRING, EMPTY_NAMESPACE)
@@ -31,7 +31,7 @@ class AbcConstantPool(
 		val ints: Array[Int],
 		val uints: Array[Long],
 		val doubles: Array[Double],
-		val strings: Array[String],
+		val strings: Array[Symbol],
 		val namespaces: Array[AbcNamespace],
 		val nssets: Array[AbcNSSet],
 		val names: Array[AbcName]) {
@@ -55,13 +55,12 @@ class AbcConstantPool(
 				AbcConstantType.PrivateNamespace => namespaces(index)
 	}
 
-	def indexOf(value: String) = strings indexOf value
-	def indexOf(value: AbcNamespace) = {
-		val result = namespaces indexOf value
-		assert(result > -1 && result < namespaces.length)
-		result
-	}
+	def indexOf(value: Symbol): Int = strings indexOf value
+
+	def indexOf(value: AbcNamespace) = namespaces indexOf value
+
 	def indexOf(value: AbcNSSet) = nssets indexOf value
+
 	def indexOf(value: AbcName) = names indexOf value
 
 	def indexOf(kind: Option[Int], value: Option[Any]): Int = {
@@ -78,7 +77,7 @@ class AbcConstantPool(
 		"\t" + ints.length + " integer(s):\n " + mkString(ints) +
 		"\t" + uints.length + " uint(s):\n " + mkString(uints) +
 		"\t" + doubles.length + " double(s):\n " + mkString(doubles) +
-		"\t" + strings.length + " string(s):\n " + mkString2(strings)("\"" + _.toString + "\"") +
+		"\t" + strings.length + " string(s):\n " + mkString2(strings)("\"" + _.name + "\"") +
 		"\t" + namespaces.length + " namespace(s):\n " + mkString(namespaces) +
 		"\t" + nssets.length + " namespaceSet(s):\n " + mkString(nssets) +
 		"\t" + names.length + " multiname(s):\n " + mkString(names)

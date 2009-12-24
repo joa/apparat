@@ -26,7 +26,7 @@ import apparat.utils.IO._
 import scala.collection.immutable._
 import scala.annotation.tailrec
 import java.io._
-import apparat.swf.DoABC
+import apparat.swf.{DoABC, SwfTag}
 
 object Abc {
 	val MINOR = 16
@@ -40,11 +40,17 @@ object Abc {
 		abc
 	}
 
+	def fromTag(tag: SwfTag) = {
+		tag match {
+			case doABC : DoABC => Some(fromDoABC(doABC))
+			case _ => None
+		}
+	}
 }
 
 class Abc {
 	var cpool = new AbcConstantPool(new Array[Int](0),
-		new Array[Long](0), new Array[Double](0), new Array[String](0),
+		new Array[Long](0), new Array[Double](0), new Array[Symbol](0),
 		new Array[AbcNamespace](0), new Array[AbcNSSet](0), new Array[AbcName](0))
 	var methods = new Array[AbcMethod](0)
 	var metadata = new Array[AbcMetadata](0)
@@ -109,7 +115,7 @@ class Abc {
 		val ints = readTable(new Array[Int](Math.max(1, input.readU30())), 0) { input.readS32() }
 		val uints = readTable(new Array[Long](Math.max(1, input.readU30())), 0L) { input.readU32() }
 		val doubles = readTable(new Array[Double](Math.max(1, input.readU30())), Double.NaN) { input.readD64() }
-		val strings = readTable(new Array[String](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) { input.readString() }
+		val strings = readTable(new Array[Symbol](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) { Symbol(input.readString()) }
 		val namespaces = readTable(new Array[AbcNamespace](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) { AbcNamespace(input.readU08(), strings(input.readU30())) }
 		val nssets = readTable(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet((for (i <- 0 until input.readU08()) yield namespaces(input.readU30())).toArray) }
 		val tmp = new Array[AbcName](Math.max(1, input.readU30()))
@@ -158,7 +164,7 @@ class Abc {
 		writeTable(cpool.ints)(output writeS32 _)
 		writeTable(cpool.uints)(output writeU32 _)
 		writeTable(cpool.doubles)(output writeD64 _)
-		writeTable(cpool.strings)(output writeString _)
+		writeTable(cpool.strings)(output writeString _.name)
 		writeTable(cpool.namespaces)(x => {
 			output writeU08 x.kind
 			output writeU30 (cpool indexOf x.name)
@@ -281,17 +287,17 @@ class Abc {
 		for (i <- 0 until result.length) {
 			val name = cpoolString()
 			val n = input.readU30()
-			val keys = new Array[String](n)
+			val keys = new Array[Symbol](n)
 
 			for (i <- 0 until n)
 				keys(i) = cpoolString()
 
-			@tailrec def traverse(index: Int, map: Map[String, String]): Map[String, String] = index match {
+			@tailrec def traverse(index: Int, map: Map[Symbol, Symbol]): Map[Symbol, Symbol] = index match {
 				case x if x == n => map
 				case y => {traverse(y + 1, map + (keys(y) -> cpoolString()))}
 			}
 
-			result(i) = new AbcMetadata(name, traverse(0, new TreeMap[String, String]))
+			result(i) = new AbcMetadata(name, traverse(0, new HashMap[Symbol, Symbol]))
 		}
 
 		result
@@ -570,7 +576,7 @@ class Abc {
 
 	private def cpoolDouble()(implicit input: AbcInputStream) = cpool.doubles(input.readU30())
 
-	private def cpoolString()(implicit input: AbcInputStream): String = cpool.strings(input.readU30())
+	private def cpoolString()(implicit input: AbcInputStream): Symbol = cpool.strings(input.readU30())
 
 	private def cpoolName()(implicit input: AbcInputStream) = cpool.names(input.readU30())
 
