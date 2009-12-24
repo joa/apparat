@@ -31,6 +31,15 @@ import apparat.swf.DoABC
 object Abc {
 	val MINOR = 16
 	val MAJOR = 46
+
+	def fromDoABC(doABC: DoABC) = fromByteArray(doABC.abcData)
+
+	def fromByteArray(byteArray: Array[Byte]) = {
+		val abc = new Abc
+		abc read byteArray
+		abc
+	}
+
 }
 
 class Abc {
@@ -162,12 +171,12 @@ class Abc {
 			output writeU08 x.kind
 			x match {
 				case AbcQName(name, namespace) => {
-					output writeU30 (cpool indexOf name)
 					output writeU30 (cpool indexOf namespace)
+					output writeU30 (cpool indexOf name)
 				}
 				case AbcQNameA(name, namespace) => {
-					output writeU30 (cpool indexOf name)
 					output writeU30 (cpool indexOf namespace)
+					output writeU30 (cpool indexOf name)
 				}
 				case AbcRTQName(name) => output writeU30 (cpool indexOf name)
 				case AbcRTQNameA(name) => output writeU30 (cpool indexOf name)
@@ -379,7 +388,7 @@ class Abc {
 	private def writeScripts(implicit output: AbcOutputStream) = {
 		output writeU30 scripts.length
 		for(script <- scripts) {
-			output writeU30 (methods indexOf script)
+			output writeU30 (methods indexOf script.init)
 			writeTraits(script.traits)
 		}
 	}

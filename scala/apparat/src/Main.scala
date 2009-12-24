@@ -42,8 +42,9 @@ object Main {
 			val doABC = x.asInstanceOf[DoABC]
 			val abc = new Abc
 
-			println("rewrite: " + doABC.name)
+			println("Rewrite: " + doABC.name)
 
+			IO dump doABC
 			abc read doABC
 			abc write doABC
 		}

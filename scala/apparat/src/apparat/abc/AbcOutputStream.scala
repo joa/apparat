@@ -77,16 +77,17 @@ class AbcOutputStream(val output: OutputStream) extends OutputStream {
 		write(bytes)
 	}
 
-	def writeU08(value: Int) = write(value & 0xff)
+	def writeU08(value: Int) = { assert(value >= 0 && value <= 0xff); write(value & 0xff) }
 
 	def writeU16(value: Int) = {
+		assert(value >= 0 && value <= 0xffff)
 		write(value & 0xff)
 		write((value & 0xff00) >> 0x08)
 	}
 
-	def writeU30(value: Int) = encodeInt(value & 0x3fffffff)
+	def writeU30(value: Int) = { assert(value >= 0 && value <= 0x3fffffff); encodeInt(value & 0x3fffffff) }
 
-	def writeU32(value: Long) = encodeInt(value & 0xffffffffL)
+	def writeU32(value: Long) = { assert(value >= 0L && value <= 0xffffffffL); encodeInt(value & 0xffffffffL) }
 
 	override def close() = output.close()
 
