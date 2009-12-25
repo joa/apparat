@@ -76,8 +76,6 @@ class Abc {
 		types = readTypes(input)
 		scripts = readScripts(input)
 		readBodies(input)
-
-		println(cpool.toString)
 	}
 
 	def write(file: File): Unit = using(new FileOutputStream(file))(write _)
@@ -454,7 +452,7 @@ class Abc {
 			output writeU30 (cpool indexOf t.name)
 			output writeU08 (t.kind | (((t match {
 				case x: AbcTraitAnyMethod => ((if(x.isFinal) 0x01 else 0x00) | (if(x.isOverride) 0x02 else 0x00))
-				case _ => 0
+				case _ => 0x00
 			}) | (t.metadata match {
 				case Some(x) => 0x04
 				case None => 0x00
@@ -531,6 +529,7 @@ class Abc {
 	}
 
 	private def writeBodies(implicit output: AbcOutputStream) = {
+		output writeU30 (methods count (method => method.body.isDefined))
 		for(i <- 0 until methods.length) {
 			val method = methods(i)
 			method.body match {
@@ -540,6 +539,7 @@ class Abc {
 					output writeU30 body.localCount
 					output writeU30 body.initScopeDepth
 					output writeU30 body.maxScopeDepth
+					output writeU30 body.code.length
 					output write body.code
 
 					writeExceptions(body.exceptions)
