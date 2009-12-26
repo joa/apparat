@@ -36,25 +36,19 @@ object Main {
 			}
 		}*/
 
-		val swf = Swf fromFile "assets/Test00.swf"
+		val swf = Swf fromFile "assets/Test15.swf"
 
 		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 			val doABC = x.asInstanceOf[DoABC]
-			val abc = new Abc
-
-			println("Rewrite: " + doABC.name)
-
-			abc read doABC
-			abc write doABC
+			(Abc fromDoABC doABC) write doABC
 		}
 
-		swf write "assets/Test00.output.swf"
+		swf write "assets/Test15.output.swf"
 
-		val check = Swf fromFile "assets/Test00.output.swf"
+		val check = Swf fromFile "assets/Test15.output.swf"
 
-		for(x <- check.tags if x.kind == SwfTags.DoABC) {
-			val abc = new Abc
-			abc read x.asInstanceOf[DoABC]
+		for(tag <- check.tags) {
+			Abc fromTag tag
 		}
 
 		/*measure {

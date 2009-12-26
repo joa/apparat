@@ -40,11 +40,9 @@ object Abc {
 		abc
 	}
 
-	def fromTag(tag: SwfTag) = {
-		tag match {
-			case doABC : DoABC => Some(fromDoABC(doABC))
-			case _ => None
-		}
+	def fromTag(tag: SwfTag) = tag match {
+		case doABC : DoABC => Some(fromDoABC(doABC))
+		case _ => None
 	}
 }
 
@@ -265,9 +263,6 @@ class Abc {
 			if(method.hasOptionalParameters) {
 				output writeU30 (method.parameters count (_.optional == true))
 
-				//TODO could assert that only non-optional, optional is the seq
-				//instead of maybe a cluster with and without req/opt parameters
-				
 				for(parameter <- method.parameters if parameter.optional) {
 					output writeU30 (cpool indexOf (parameter.optionalType.get, parameter.optionalVal.get))
 					output writeU08 parameter.optionalType.get

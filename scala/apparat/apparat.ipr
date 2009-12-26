@@ -104,12 +104,15 @@
       <words>
         <w>apparat</w>
         <w>cpool</w>
+        <w>indegree</w>
         <w>ints</w>
         <w>metadata</w>
         <w>namespaces</w>
         <w>nssets</w>
+        <w>outdegree</w>
         <w>pathname</w>
         <w>uints</w>
+        <w>vertices</w>
       </words>
     </dictionary>
   </component>
