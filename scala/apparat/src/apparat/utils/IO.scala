@@ -23,7 +23,7 @@ package apparat.utils
 import java.io.{PrintStream, InputStream, ByteArrayOutputStream}
 
 object IO {
-	def dump(bytes: Array[Byte]): Unit = dump(bytes, System.out)
+	def dump(bytes: Array[Byte]): Unit = dump(bytes, Console.out)
 	def dump(bytes: Array[Byte], printStream: PrintStream): Unit = {
 		printStream println "Hex dump:"
 		printStream println (if(null == bytes) {

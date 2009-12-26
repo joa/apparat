@@ -18,7 +18,16 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.graph
+package apparat.utils
 
-case class ~>[V <: VertexLike](override val startVertex: V, override val endVertex: V)
-	extends Edge[V](startVertex, endVertex)
+import java.io.{PrintWriter}
+
+trait Dumpable {
+	def dump(): Unit = dump(new PrintWriter(Console.out))
+	def dump(writer: PrintWriter): Unit = {
+		val indentingPrintWriter = new IndentingPrintWriter(writer)
+		dump(indentingPrintWriter)
+		indentingPrintWriter.flush()
+	}
+	def dump(writer: IndentingPrintWriter)
+}

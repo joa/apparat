@@ -20,6 +20,8 @@
  */
 package apparat.abc
 
+import apparat.utils.{Dumpable, IndentingPrintWriter}
+
 object AbcConstantPool {
 	val EMPTY_STRING = Symbol(null)
 	val EMPTY_NAMESPACE = AbcNamespace(0, EMPTY_STRING)
@@ -34,7 +36,7 @@ class AbcConstantPool(
 		val strings: Array[Symbol],
 		val namespaces: Array[AbcNamespace],
 		val nssets: Array[AbcNSSet],
-		val names: Array[AbcName]) {
+		val names: Array[AbcName]) extends Dumpable {
 	def constant(kind: Some[Int], index: Int): Any = constant(kind.get, index)
 
 	def constant(kind: Int, index: Int): Any = kind match {
@@ -72,28 +74,25 @@ class AbcConstantPool(
 
 	def indexOf(kind: Int, value: Any): Int = error("TODO")
 
-	override def toString = {
-		"AbcConstantPool\n" +
-		"\t" + ints.length + " integer(s):\n " + mkString(ints) +
-		"\t" + uints.length + " uint(s):\n " + mkString(uints) +
-		"\t" + doubles.length + " double(s):\n " + mkString(doubles) +
-		"\t" + strings.length + " string(s):\n " + mkString2(strings)("\"" + _.name + "\"") +
-		"\t" + namespaces.length + " namespace(s):\n " + mkString(namespaces) +
-		"\t" + nssets.length + " namespaceSet(s):\n " + mkString(nssets) +
-		"\t" + names.length + " multiname(s):\n " + mkString(names)
-	}
+	override def toString = "[AbcConstantPool]"
 
-	private def mkString[T](array: Array[T]) = mkString2(array)(_.toString)
-	private def mkString2[T](array: Array[T])(stringOf: T => String) = {
-		val buffer = new StringBuilder(array.length << 2);
-
-		for(x <- array) {
-			buffer append '\t'
-			buffer append '\t'
-			buffer append stringOf(x)
-			buffer append '\n'
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= "ConstantPool:"
+		writer withIndent {
+			writer <= ints.length + " integer(s):"
+			writer <<< ints
+			writer <= uints.length + " uint(s):"
+			writer <<< uints
+			writer <= doubles.length + " double(s):"
+			writer <<< doubles
+			writer <= strings.length + " string(s):"
+			writer withIndent writer.println(strings)("\"" + _.name + "\"")
+			writer <= namespaces.length + " namespace(s):"
+			writer <<< namespaces
+			writer <= nssets.length + " namespaceset(s):"
+			writer <<< nssets
+			writer <= names.length + " multiname(s):"
+			writer <<< names
 		}
-
-		buffer.toString
 	}
 }

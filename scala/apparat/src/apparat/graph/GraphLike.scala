@@ -28,6 +28,11 @@ trait GraphLike[V <: VertexLike] {
 		if(!contains(that._2)) add(that._2)
 		add(new Edge[V](that._1, that._2))
 	}
+
+	def -=(that: (V, V)) = {
+		if(contains(that._1) && contains(that._2))
+			outgoingOf(that._1) filter (_.endVertex == that._2) foreach remove _
+	}
 	
 	def +=(that: E) = add(that)
 

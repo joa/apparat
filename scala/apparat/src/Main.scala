@@ -22,6 +22,7 @@ import apparat.abc.Abc
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
 import apparat.utils._
+import java.io.PrintWriter
 
 object Main {
 	def main(args: Array[String]): Unit = {
@@ -40,16 +41,16 @@ object Main {
 
 		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 			val doABC = x.asInstanceOf[DoABC]
-			(Abc fromDoABC doABC) write doABC
+			(Abc fromDoABC doABC).cpool.dump()
 		}
 
-		swf write "assets/Test15.output.swf"
+		/*swf write "assets/Test15.output.swf"
 
 		val check = Swf fromFile "assets/Test15.output.swf"
 
 		for(tag <- check.tags) {
 			Abc fromTag tag
-		}
+		}*/
 
 		/*measure {
 				val container = TagContainer fromFile "assets/Test15.swf"

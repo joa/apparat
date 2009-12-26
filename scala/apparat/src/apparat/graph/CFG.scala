@@ -20,6 +20,11 @@
  */
 package apparat.graph
 
-final class CFG extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex] {
+import apparat.utils.{IndentingPrintWriter, Dumpable}
+
+final class CFG extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex] with Dumpable {
 	override def toString = "[CFG]"
+	override def dump(writer: IndentingPrintWriter) = {
+		
+	}
 }
