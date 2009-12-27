@@ -19,6 +19,7 @@
  * 
  */
 import apparat.abc.Abc
+import apparat.graph.{Vertex, Graph}
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
 import apparat.utils._
@@ -37,11 +38,17 @@ object Main {
 			}
 		}*/
 
+		val g = new Graph[Vertex]()
+		g += Vertex("a") -> Vertex("b")
+		g.dump()
+
+		g.dotExport to Console.out
+		
 		val swf = Swf fromFile "assets/Test15.swf"
 
 		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 			val doABC = x.asInstanceOf[DoABC]
-			(Abc fromDoABC doABC).cpool.dump()
+			//(Abc fromDoABC doABC).cpool.dump()
 		}
 
 		/*swf write "assets/Test15.output.swf"

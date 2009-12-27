@@ -25,4 +25,13 @@ object EdgeKind extends Enumeration {
 	val Default, Jump, True, False, DefaultCase, Case, Throw, Return = Value
 }
 
-class Edge[V <: VertexLike](val startVertex: V, val endVertex: V, val kind: EdgeKind.EdgeKind = EdgeKind.Default)
+sealed abstract class Edge[V <: VertexLike](val startVertex: V, val endVertex: V, val kind: EdgeKind.EdgeKind)
+
+case class DefaultEdge[V <: VertexLike](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Default)
+case class JumpEdge[V <: VertexLike](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Jump)
+case class TrueEdge[V <: VertexLike](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.True)
+case class FalseEdge[V <: VertexLike](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.False)
+case class DefaultCaseEdge[V <: VertexLike](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.DefaultCase)
+case class CaseEdge[V <: VertexLike](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Case)
+case class ThrowEdge[V <: VertexLike](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Throw)
+case class ReturnEdge[V <: VertexLike](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Return)

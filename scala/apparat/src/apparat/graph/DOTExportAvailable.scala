@@ -20,26 +20,6 @@
  */
 package apparat.graph
 
-class CFG extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex] with DOTExportAvailable[BasicBlockVertex] {
-	override def add(edge: E) = {
-		assert(edge.kind != EdgeKind.Default)
-		super.add(edge)
-	}
-
-	override def toString = "[CFG]"
-
-	override def dotExport = {
-		def vertexToString(vertex: BasicBlockVertex) = ""
-		def edgeToString(edge: E) = edge match {
-			case DefaultEdge(x, y) => error("CFG may not contain default edges.")
-			case JumpEdge(x, y) => "jump"
-			case TrueEdge(x, y) => "true"
-			case FalseEdge(x, y) => "false"
-			case DefaultCaseEdge(x, y) => "default"
-			case CaseEdge(x, y) => "case"
-			case ThrowEdge(x, y) => "throw"
-			case ReturnEdge(x, y) => "return"
-		}
-		new DOTExport(this, vertexToString, edgeToString)
-	}
+trait DOTExportAvailable[V <: VertexLike] {
+	def dotExport: DOTExport[V]
 }

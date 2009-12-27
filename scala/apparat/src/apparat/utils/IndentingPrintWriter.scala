@@ -55,9 +55,25 @@ class IndentingPrintWriter(val writer: Writer, useTabs: Boolean = true)
 		updateIndent()
 	}
 
-	def <==[T](value: Array[T]) = println(value)(_.toString)
+	def <==[T](value: Iterator[T]): Unit = println(value)(_.toString)
 
-	def <<<[T](value: Array[T]) = withIndent {
+	def <<<[T](value: Iterator[T]): Unit = withIndent {
+		println(value)(_.toString)
+	}
+
+	def println[T](value: Iterator[T])(stringOf: T => String): Unit = value foreach (x => println(stringOf(x)))
+
+	def <==[T](value: Iterable[T]): Unit = println(value)(_.toString)
+
+	def <<<[T](value: Iterable[T]): Unit = withIndent {
+		println(value)(_.toString)
+	}
+
+	def println[T](value: Iterable[T])(stringOf: T => String): Unit = value foreach (x => println(stringOf(x)))
+
+	def <==[T](value: Array[T]): Unit = println(value)(_.toString)
+
+	def <<<[T](value: Array[T]): Unit = withIndent {
 		println(value)(_.toString)
 	}
 

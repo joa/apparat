@@ -20,18 +20,26 @@
  */
 package apparat.graph
 
-class CFG extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex] with DOTExportAvailable[BasicBlockVertex] {
-	override def add(edge: E) = {
-		assert(edge.kind != EdgeKind.Default)
-		super.add(edge)
+import apparat.utils.{IndentingPrintWriter, Dumpable}
+
+class Graph[V <: VertexLike] extends GraphLikeWithAdjacencyMatrix[V] with Dumpable with DOTExportAvailable[V] {
+	override def toString = "[Graph]"
+	
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= "Graph:"
+		writer withIndent {
+			for(vertex <- verticesIterator) {
+				writer <= vertex.toString
+				writer withIndent {
+					writer.println(outgoingOf(vertex))(edge => (if(edge.kind != EdgeKind.Default) edge.kind.toString else "") + " -> " + edge.endVertex.toString)
+				}
+			}
+		}
 	}
-
-	override def toString = "[CFG]"
-
+	
 	override def dotExport = {
-		def vertexToString(vertex: BasicBlockVertex) = ""
 		def edgeToString(edge: E) = edge match {
-			case DefaultEdge(x, y) => error("CFG may not contain default edges.")
+			case DefaultEdge(x, y) => ""
 			case JumpEdge(x, y) => "jump"
 			case TrueEdge(x, y) => "true"
 			case FalseEdge(x, y) => "false"
@@ -40,6 +48,6 @@ class CFG extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex] with DOTExportA
 			case ThrowEdge(x, y) => "throw"
 			case ReturnEdge(x, y) => "return"
 		}
-		new DOTExport(this, vertexToString, edgeToString)
+		new DOTExport(this, (vertex: V) => vertex.toString, edgeToString)
 	}
 }

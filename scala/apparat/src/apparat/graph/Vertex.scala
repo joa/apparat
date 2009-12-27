@@ -20,4 +20,10 @@
  */
 package apparat.graph
 
-class LabeledVertex(val label: String) extends VertexLike
+object Vertex {
+	def apply(label: String) = new Vertex(label)
+}
+
+class Vertex(val label: String) extends VertexLike {
+	override def toString = "Vertex(" + label + ")"
+}

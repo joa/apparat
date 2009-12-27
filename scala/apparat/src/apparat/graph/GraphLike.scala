@@ -26,7 +26,7 @@ trait GraphLike[V <: VertexLike] {
 	def +=(that: (V, V)) = {
 		if(!contains(that._1)) add(that._1)
 		if(!contains(that._2)) add(that._2)
-		add(new Edge[V](that._1, that._2))
+		add(new DefaultEdge[V](that._1, that._2))
 	}
 
 	def -=(that: (V, V)) = {
