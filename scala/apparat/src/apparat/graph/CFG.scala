@@ -29,7 +29,6 @@ class CFG extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex] with DOTExportA
 	override def toString = "[CFG]"
 
 	override def dotExport = {
-		def vertexToString(vertex: BasicBlockVertex) = ""
 		def edgeToString(edge: E) = edge match {
 			case DefaultEdge(x, y) => error("CFG may not contain default edges.")
 			case JumpEdge(x, y) => "jump"
@@ -40,6 +39,6 @@ class CFG extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex] with DOTExportA
 			case ThrowEdge(x, y) => "throw"
 			case ReturnEdge(x, y) => "return"
 		}
-		new DOTExport(this, vertexToString, edgeToString)
+		new DOTExport(this, (_: BasicBlockVertex).toString, edgeToString)
 	}
 }

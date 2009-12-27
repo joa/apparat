@@ -37,27 +37,23 @@ object Main {
 				//IO dump abc.toByteArray
 			}
 		}*/
-
-		val g = new Graph[Vertex]()
-		g += Vertex("a") -> Vertex("b")
-		g.dump()
-
-		g.dotExport to Console.out
-		
 		val swf = Swf fromFile "assets/Test15.swf"
 
 		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 			val doABC = x.asInstanceOf[DoABC]
-			//(Abc fromDoABC doABC).cpool.dump()
+			(Abc fromDoABC doABC) write doABC
 		}
 
-		/*swf write "assets/Test15.output.swf"
+		swf write "assets/Test15.output.swf"
 
 		val check = Swf fromFile "assets/Test15.output.swf"
 
 		for(tag <- check.tags) {
-			Abc fromTag tag
-		}*/
+			(Abc fromTag tag) match {
+				case Some(abc) => abc.cpool.dump()
+				case None => {}
+			}
+		}
 
 		/*measure {
 				val container = TagContainer fromFile "assets/Test15.swf"

@@ -113,7 +113,7 @@ class Abc {
 		val doubles = readTable(new Array[Double](Math.max(1, input.readU30())), Double.NaN) { input.readD64() }
 		val strings = readTable(new Array[Symbol](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) { Symbol(input.readString()) }
 		val namespaces = readTable(new Array[AbcNamespace](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) { AbcNamespace(input.readU08(), strings(input.readU30())) }
-		val nssets = readTable(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet((for (i <- 0 until input.readU08()) yield namespaces(input.readU30())).toArray) }
+		val nssets = readTable(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet(Array.fill(input.readU08()) { namespaces(input.readU30()) }) }
 		val tmp = new Array[AbcName](Math.max(1, input.readU30()))
 		val names = readTable(tmp, AbcConstantPool.EMPTY_NAME) {
 			input.readU08() match {
@@ -136,7 +136,7 @@ class Abc {
 				case AbcNameKind.MultinameL => AbcMultinameL(nssets(input.readU30()))
 				case AbcNameKind.MultinameLA => AbcMultinameLA(nssets(input.readU30()))
 				case AbcNameKind.Typename => {
-					AbcTypename((tmp(input.readU30())).asInstanceOf[AbcQName], (for (i <- 0 until input.readU30()) yield tmp(input.readU30())).toArray)
+					AbcTypename((tmp(input.readU30())).asInstanceOf[AbcQName], Array.fill(input.readU30()) { tmp(input.readU30()) })
 				}
 				case _ => error("Unknown multiname kind.")
 			}
@@ -161,83 +161,83 @@ class Abc {
 		writeTable(cpool.uints)(output writeU32 _)
 		writeTable(cpool.doubles)(output writeD64 _)
 		writeTable(cpool.strings)(output writeString _.name)
-		writeTable(cpool.namespaces)(x => {
-			output writeU08 x.kind
-			output writeU30 (cpool indexOf x.name)
-		})
-		writeTable(cpool.nssets)(x => {
-			output writeU08 x.set.length
-			x.set foreach (y => output writeU30 (cpool indexOf y))
-		})
-		writeTable(cpool.names)(x => {
-			output writeU08 x.kind
-			x match {
-				case AbcQName(name, namespace) => {
-					output writeU30 (cpool indexOf namespace)
-					output writeU30 (cpool indexOf name)
-				}
-				case AbcQNameA(name, namespace) => {
-					output writeU30 (cpool indexOf namespace)
-					output writeU30 (cpool indexOf name)
-				}
-				case AbcRTQName(name) => output writeU30 (cpool indexOf name)
-				case AbcRTQNameA(name) => output writeU30 (cpool indexOf name)
-				case AbcRTQNameL | AbcRTQNameLA => {}
-				case AbcMultiname(name, nsset) => {
-					output writeU30 (cpool indexOf  name)
-					output writeU30 (cpool indexOf nsset)
-				}
-				case AbcMultinameA(name, nsset) => {
-					output writeU30 (cpool indexOf  name)
-					output writeU30 (cpool indexOf nsset)
-				}
-				case AbcMultinameL(nsset) => output writeU30 (cpool indexOf nsset)
-				case AbcMultinameLA(nsset) => output writeU30 (cpool indexOf nsset)
-				case AbcTypename(name, parameters) => {
-					output writeU30 (cpool indexOf name)
-					output writeU30 parameters.length
-					parameters foreach (p => output writeU30 (cpool indexOf p))
+
+		writeTable(cpool.namespaces) {
+			namespace => {
+				output writeU08 namespace.kind
+				output writeU30 (cpool indexOf namespace.name)
+			}
+		}
+
+		writeTable(cpool.nssets) {
+			nsset => {
+				output writeU08 nsset.set.length
+				nsset.set foreach ((cpool indexOf (_: AbcNamespace)) andThen output.writeU30)
+			}
+		}
+
+		writeTable(cpool.names) {
+			name => {
+				output writeU08 name.kind
+				name match {
+					case AbcQName(name, namespace) => {
+						output writeU30 (cpool indexOf namespace)
+						output writeU30 (cpool indexOf name)
+					}
+					case AbcQNameA(name, namespace) => {
+						output writeU30 (cpool indexOf namespace)
+						output writeU30 (cpool indexOf name)
+					}
+					case AbcRTQName(name) => output writeU30 (cpool indexOf name)
+					case AbcRTQNameA(name) => output writeU30 (cpool indexOf name)
+					case AbcRTQNameL | AbcRTQNameLA => {}
+					case AbcMultiname(name, nsset) => {
+						output writeU30 (cpool indexOf  name)
+						output writeU30 (cpool indexOf nsset)
+					}
+					case AbcMultinameA(name, nsset) => {
+						output writeU30 (cpool indexOf  name)
+						output writeU30 (cpool indexOf nsset)
+					}
+					case AbcMultinameL(nsset) => output writeU30 (cpool indexOf nsset)
+					case AbcMultinameLA(nsset) => output writeU30 (cpool indexOf nsset)
+					case AbcTypename(name, parameters) => {
+						output writeU30 (cpool indexOf name)
+						output writeU30 parameters.length
+						parameters foreach ((cpool indexOf (_: AbcName)) andThen output.writeU30)
+					}
 				}
 			}
-		})
+		}
 	}
 
-	private def readMethods(implicit input: AbcInputStream) = {
-		val result = new Array[AbcMethod](input.readU30())
-		
-		for (i <- 0 until result.length) {
-			val numParameters = input.readU30()
-			val returnType = cpoolName()
-			val parameters = new Array[AbcMethodParameter](numParameters)
+	private def readMethods(implicit input: AbcInputStream) = Array.fill(input.readU30()) {
+		val numParameters = input.readU30()
+		val returnType = cpoolName()
+		val parameters = Array.fill(numParameters) { new AbcMethodParameter(cpoolName()) }
+		val name = cpoolString()
+		val flags = input.readU08()
 
-			for (j <- 0 until numParameters)
-				parameters(j) = new AbcMethodParameter(cpoolName())
+		if (0 != (flags & 0x08)) {
+			val numOptional = input.readU30()
+			assert(numOptional <= numParameters)
 
-			val name = cpoolString()
-			val flags = input.readU08()
-
-			if (0 != (flags & 0x08)) {
-				val numOptional = input.readU30()
-				assert(numOptional <= numParameters)
-
-				for (j <- (numParameters - numOptional) until numParameters) {
-					val parameter = parameters(j)
+			parameters takeRight numOptional foreach {
+				parameter => {
 					val index = input.readU30()
 					parameter.optional = true;
 					parameter.optionalType = Some(input.readU08())
 					parameter.optionalVal = Some(cpool.constant(parameter.optionalType.get, index))
 				}
 			}
-
-			if (0 != (flags & 0x80))
-				parameters foreach (_.name = Some(cpoolString()))
-
-			result(i) = new AbcMethod(parameters, returnType, name,
-				0 != (flags & 0x01), 0 != (flags & 0x02), 0 != (flags & 0x04),
-				0 != (flags & 0x08), 0 != (flags & 0x40), 0 != (flags & 0x80))
 		}
 
-		result
+		if (0 != (flags & 0x80))
+			parameters foreach (_.name = Some(cpoolString()))
+
+		new AbcMethod(parameters, returnType, name,
+			0 != (flags & 0x01), 0 != (flags & 0x02), 0 != (flags & 0x04),
+			0 != (flags & 0x08), 0 != (flags & 0x40), 0 != (flags & 0x80))
 	}
 
 	private def writeMethods(implicit output: AbcOutputStream) = {
@@ -274,26 +274,17 @@ class Abc {
 		}
 	}
 
-	private def readMetadata(implicit input: AbcInputStream) = {
-		val result = new Array[AbcMetadata](input.readU30())
+	private def readMetadata(implicit input: AbcInputStream) = Array.fill(input.readU30()) {
+		val name = cpoolString()
+		val n = input.readU30()
+		val keys = Array.fill(n)(cpoolString)
 
-		for (i <- 0 until result.length) {
-			val name = cpoolString()
-			val n = input.readU30()
-			val keys = new Array[Symbol](n)
-
-			for (i <- 0 until n)
-				keys(i) = cpoolString()
-
-			@tailrec def traverse(index: Int, map: Map[Symbol, Symbol]): Map[Symbol, Symbol] = index match {
-				case x if x == n => map
-				case y => {traverse(y + 1, map + (keys(y) -> cpoolString()))}
-			}
-
-			result(i) = new AbcMetadata(name, traverse(0, new HashMap[Symbol, Symbol]))
+		@tailrec def traverse(index: Int, map: Map[Symbol, Symbol]): Map[Symbol, Symbol] = index match {
+			case x if x == n => map
+			case y => {traverse(y + 1, map + (keys(y) -> cpoolString()))}
 		}
 
-		result
+		new AbcMetadata(name, traverse(0, new HashMap[Symbol, Symbol]))
 	}
 
 	private def writeMetadata(implicit output: AbcOutputStream) = {
@@ -308,9 +299,7 @@ class Abc {
 	}
 
 	private def readTypes(implicit input: AbcInputStream) = {
-		val result = new Array[AbcNominalType](input.readU30())
-
-		for (i <- 0 until result.length) {
+		val result = Array.fill(input.readU30()) {
 			val name = cpoolNameNZ().asInstanceOf[AbcQName]
 			val base = input.readU30() match {
 				case 0 => None
@@ -318,20 +307,14 @@ class Abc {
 			}
 			val flags = input.readU08()
 			val protectedNs = if (0 != (flags & 0x08)) Some(cpoolNs()) else None
-			val interfaces = new Array[AbcName](input.readU30())
+			val interfaces = Array.fill(input.readU30())(cpoolName)
 
-			for (j <- 0 until interfaces.length)
-				interfaces(j) = cpoolName()
-
-			val init = methods(input.readU30())
-
-			result(i) = new AbcNominalType(new AbcInstance(name, base, 0 != (flags & 0x01),
+			new AbcNominalType(new AbcInstance(name, base, 0 != (flags & 0x01),
 				0 != (flags & 0x02), 0 != (flags & 0x04), protectedNs,
-				interfaces, init, readTraits()))
+				interfaces, methods(input.readU30()), readTraits()))
 		}
 
-		for (i <- 0 until result.length)
-			result(i).klass = new AbcClass(methods(input.readU30()), readTraits())
+		result foreach (_.klass = new AbcClass(methods(input.readU30()), readTraits()))
 
 		result
 	}
@@ -375,14 +358,7 @@ class Abc {
 		}
 	}
 	
-	private def readScripts(implicit input: AbcInputStream) = {
-		val result = new Array[AbcScript](input.readU30())
-
-		for (i <- 0 until result.length)
-			result(i) = new AbcScript(methods(input.readU30()), readTraits())
-
-		result
-	}
+	private def readScripts(implicit input: AbcInputStream) = Array.fill(input.readU30()) { new AbcScript(methods(input.readU30()), readTraits()) }
 
 	private def writeScripts(implicit output: AbcOutputStream) = {
 		output writeU30 scripts.length
@@ -392,52 +368,44 @@ class Abc {
 		}
 	}
 
-	private def readTraits()(implicit input: AbcInputStream) = {
-		val result = new Array[AbcTrait](input.readU30())
+	private def readTraits()(implicit input: AbcInputStream): Array[AbcTrait] = Array.fill(input.readU30()) { //why is the type annotation needed?
+		val name = cpoolNameNZ().asInstanceOf[AbcQName]
 
-		for (i <- 0 until result.length) {
-			val name = cpoolNameNZ().asInstanceOf[AbcQName]
+		val pack = input.readU08()
+		val kind = pack & 0x0f
+		val attr = (pack & 0xf0) >> 4
 
-			val pack = input.readU08()
-			val kind = pack & 0x0f
-			val attr = (pack & 0xf0) >> 4
-
-			def meta(a: Int) = if (0 != (a & 0x04)) {
-				val mr = new Array[AbcMetadata](input.readU30())
-				for (j <- 0 until mr.length) mr(j) = metadata(input.readU30())
-				Some(mr)
-			} else {
-				None
-			}
-
-			result(i) = kind match {
-				case AbcTraitKind.Slot => {
-					val index = input.readU30()
-					val typeName = cpoolName()
-					val value = input.readU30()
-					if (0 != value) {
-						val kind = input.readU08()
-						new AbcTraitSlot(name, index, typeName, Some(kind), Some(cpool.constant(kind, value)), meta(attr))
-					} else { new AbcTraitSlot(name, index, typeName, None, None, meta(attr)) }
-				}
-				case AbcTraitKind.Const => {
-					val index = input.readU30()
-					val typeName = cpoolName()
-					val value = input.readU30()
-					if (0 != value) {
-						val kind = input.readU08()
-						new AbcTraitConst(name, index, typeName, Some(kind), Some(cpool.constant(kind, value)), meta(attr))
-					} else { new AbcTraitConst(name, index, typeName, None, None, meta(attr)) }
-				}
-				case AbcTraitKind.Method => new AbcTraitMethod(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
-				case AbcTraitKind.Getter => new AbcTraitGetter(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
-				case AbcTraitKind.Setter => new AbcTraitSetter(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
-				case AbcTraitKind.Class => new AbcTraitClass(name, input.readU30(), types(input.readU30()), meta(attr))
-				case AbcTraitKind.Function => new AbcTraitFunction(name, input.readU30(), methods(input.readU30()), meta(attr))
-			}
+		def meta(a: Int) = if (0 != (a & 0x04)) {
+			Some(Array.fill(input.readU30()) { metadata(input.readU30()) })
+		} else {
+			None
 		}
 
-		result
+		kind match {
+			case AbcTraitKind.Slot => {
+				val index = input.readU30()
+				val typeName = cpoolName()
+				val value = input.readU30()
+				if (0 != value) {
+					val kind = input.readU08()
+					new AbcTraitSlot(name, index, typeName, Some(kind), Some(cpool.constant(kind, value)), meta(attr))
+				} else { new AbcTraitSlot(name, index, typeName, None, None, meta(attr)) }
+			}
+			case AbcTraitKind.Const => {
+				val index = input.readU30()
+				val typeName = cpoolName()
+				val value = input.readU30()
+				if (0 != value) {
+					val kind = input.readU08()
+					new AbcTraitConst(name, index, typeName, Some(kind), Some(cpool.constant(kind, value)), meta(attr))
+				} else { new AbcTraitConst(name, index, typeName, None, None, meta(attr)) }
+			}
+			case AbcTraitKind.Method => new AbcTraitMethod(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
+			case AbcTraitKind.Getter => new AbcTraitGetter(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
+			case AbcTraitKind.Setter => new AbcTraitSetter(name, input.readU30(), methods(input.readU30()), 0 != (attr & 0x01), 0 != (attr & 0x02), meta(attr))
+			case AbcTraitKind.Class => new AbcTraitClass(name, input.readU30(), types(input.readU30()), meta(attr))
+			case AbcTraitKind.Function => new AbcTraitFunction(name, input.readU30(), methods(input.readU30()), meta(attr))
+		}
 	}
 
 	private def writeTraits(traits: Array[AbcTrait])(implicit output: AbcOutputStream) = {
@@ -501,26 +469,24 @@ class Abc {
 			t.metadata match {
 				case Some(meta) => {
 					output writeU30 meta.length
-					meta foreach (x => output writeU30 (metadata indexOf x))
+					meta foreach (x => output writeU30 (metadata indexOf x))//TODO chain with andThen?
 				}
 				case None => {}
 			}
 		}
 	}
 
-	private def readBodies(implicit input: AbcInputStream) = {
-		for (i <- 0 until input.readU30()) {
-			val methodId = input.readU30()
-			val maxStack = input.readU30()
-			val localCount = input.readU30()
-			val initScopeDepth = input.readU30()
-			val maxScopeDepth = input.readU30()
-			val code = IO read input.readU30()
+	private def readBodies(implicit input: AbcInputStream) = for(i <- 0 until input.readU30()) {
+		val methodId = input.readU30()
+		val maxStack = input.readU30()
+		val localCount = input.readU30()
+		val initScopeDepth = input.readU30()
+		val maxScopeDepth = input.readU30()
+		val code = IO read input.readU30()
 
-			methods(methodId).body = Some(new AbcMethodBody(maxStack, localCount,
-				initScopeDepth, maxScopeDepth, code, readExceptions(),
-				readTraits()))
-		}
+		methods(methodId).body = Some(new AbcMethodBody(maxStack, localCount,
+			initScopeDepth, maxScopeDepth, code, readExceptions(),
+			readTraits()))
 	}
 
 	private def writeBodies(implicit output: AbcOutputStream) = {
@@ -544,15 +510,7 @@ class Abc {
 			}
 		}
 	}
-	private def readExceptions()(implicit input: AbcInputStream) = {
-		val result = new Array[AbcExceptionHandler](input.readU30())
-
-		for (i <- 0 until result.length)
-			result(i) = new AbcExceptionHandler(input.readU30(),
-				input.readU30(), input.readU30(), cpoolName(), cpoolName())
-
-		result
-	}
+	private def readExceptions()(implicit input: AbcInputStream) = Array.fill(input.readU30()) { new AbcExceptionHandler(input.readU30(), input.readU30(), input.readU30(), cpoolName(), cpoolName()) }
 
 	private def writeExceptions(exceptions: Array[AbcExceptionHandler])(implicit output: AbcOutputStream) = {
 		output writeU30 exceptions.length

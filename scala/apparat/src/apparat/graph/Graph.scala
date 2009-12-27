@@ -31,7 +31,9 @@ class Graph[V <: VertexLike] extends GraphLikeWithAdjacencyMatrix[V] with Dumpab
 			for(vertex <- verticesIterator) {
 				writer <= vertex.toString
 				writer withIndent {
-					writer.println(outgoingOf(vertex))(edge => (if(edge.kind != EdgeKind.Default) edge.kind.toString else "") + " -> " + edge.endVertex.toString)
+					writer.println(outgoingOf(vertex)) {
+						edge => (if(edge.kind != EdgeKind.Default) edge.kind.toString else "") + " -> " + edge.endVertex.toString
+					}
 				}
 			}
 		}
@@ -48,6 +50,6 @@ class Graph[V <: VertexLike] extends GraphLikeWithAdjacencyMatrix[V] with Dumpab
 			case ThrowEdge(x, y) => "throw"
 			case ReturnEdge(x, y) => "return"
 		}
-		new DOTExport(this, (vertex: V) => vertex.toString, edgeToString)
+		new DOTExport(this, (_: V).toString, edgeToString)
 	}
 }

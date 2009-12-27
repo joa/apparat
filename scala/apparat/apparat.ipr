@@ -103,17 +103,20 @@
     <dictionary name="joa">
       <words>
         <w>apparat</w>
+        <w>attr</w>
         <w>cpool</w>
         <w>dumpable</w>
         <w>indegree</w>
         <w>ints</w>
         <w>metadata</w>
         <w>namespaces</w>
+        <w>nsset</w>
         <w>nssets</w>
         <w>outdegree</w>
         <w>pathname</w>
         <w>println</w>
         <w>uints</w>
+        <w>unapply</w>
         <w>vertices</w>
       </words>
     </dictionary>
@@ -125,9 +128,6 @@
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.6" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/classes" />
-  </component>
-  <component name="ScalacSettings">
-    <option name="OPTIMISE" value="true" />
   </component>
   <component name="SvnBranchConfigurationManager">
     <option name="myConfigurationMap">

@@ -22,7 +22,7 @@ package apparat.graph
 
 import apparat.utils.{IndentingPrintWriter}
 import apparat.utils.IO._
-import java.io.{PrintStream, File, FileOutputStream, PrintWriter}
+import java.io._
 
 class DOTExport[V <: VertexLike](val graph: GraphLike[V],
 								 val vertexToString: V => String,
@@ -30,7 +30,9 @@ class DOTExport[V <: VertexLike](val graph: GraphLike[V],
 {
 	def to(pathname: String): Unit = to(new File(pathname))
 
-	def to(file: File): Unit = using(new FileOutputStream(file))(stream => to(new IndentingPrintWriter(new PrintWriter(stream))))
+	def to(file: File): Unit = using(new FileOutputStream(file)){
+		stream => to(new IndentingPrintWriter(new PrintWriter(stream)))
+	}
 
 	def to(stream: PrintStream): Unit = to(new PrintWriter(stream))
 
@@ -75,8 +77,13 @@ class DOTExport[V <: VertexLike](val graph: GraphLike[V],
 			}
 			writer <= "];"
 
-			writer.println(vertices)(vertex => (vertices indexOf vertex) + " [label=\"" + vertexToString(vertex) + "\"];")
-			writer.println(graph.edgesIterator)(edge => (vertices indexOf edge.startVertex) + " -> " + (vertices indexOf edge.endVertex) + " [label=\"" + edgeToString(edge) + "\"];")
+			writer.println(vertices) {
+				vertex => (vertices indexOf vertex) + " [label=\"" + vertexToString(vertex) + "\"];"
+			}
+
+			writer.println(graph.edgesIterator) {
+				edge => (vertices indexOf edge.startVertex) + " -> " + (vertices indexOf edge.endVertex) + " [label=\"" + edgeToString(edge) + "\"];"
+			}
 		}
 		writer <= "}"
 	}
