@@ -57,6 +57,12 @@ class AbcConstantPool(
 				AbcConstantType.PrivateNamespace => namespaces(index)
 	}
 
+	def indexOf(value: Int): Int = ints indexOf value
+
+	def indexOf(value: Long): Int = uints indexOf value
+
+	def indexOf(value: Double): Int = doubles indexOf value
+	
 	def indexOf(value: Symbol): Int = strings indexOf value
 
 	def indexOf(value: AbcNamespace) = namespaces indexOf value

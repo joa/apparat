@@ -165,14 +165,14 @@ class Abc {
 		writeTable(cpool.namespaces) {
 			namespace => {
 				output writeU08 namespace.kind
-				output writeU30 (cpool indexOf namespace.name)
+				writePooledString(namespace.name)
 			}
 		}
 
 		writeTable(cpool.nssets) {
 			nsset => {
 				output writeU08 nsset.set.length
-				nsset.set foreach ((cpool indexOf (_: AbcNamespace)) andThen output.writeU30)
+				nsset.set foreach writePooledNamespace
 			}
 		}
 
@@ -181,30 +181,30 @@ class Abc {
 				output writeU08 name.kind
 				name match {
 					case AbcQName(name, namespace) => {
-						output writeU30 (cpool indexOf namespace)
-						output writeU30 (cpool indexOf name)
+						writePooledNamespace(namespace)
+						writePooledString(name)
 					}
 					case AbcQNameA(name, namespace) => {
-						output writeU30 (cpool indexOf namespace)
-						output writeU30 (cpool indexOf name)
+						writePooledNamespace(namespace)
+						writePooledString(name)
 					}
-					case AbcRTQName(name) => output writeU30 (cpool indexOf name)
-					case AbcRTQNameA(name) => output writeU30 (cpool indexOf name)
+					case AbcRTQName(name) => writePooledString(name)
+					case AbcRTQNameA(name) => writePooledString(name)
 					case AbcRTQNameL | AbcRTQNameLA => {}
 					case AbcMultiname(name, nsset) => {
-						output writeU30 (cpool indexOf  name)
-						output writeU30 (cpool indexOf nsset)
+						writePooledString(name)
+						writePooledNSSet(nsset)
 					}
 					case AbcMultinameA(name, nsset) => {
-						output writeU30 (cpool indexOf  name)
-						output writeU30 (cpool indexOf nsset)
+						writePooledString(name)
+						writePooledNSSet(nsset)
 					}
-					case AbcMultinameL(nsset) => output writeU30 (cpool indexOf nsset)
-					case AbcMultinameLA(nsset) => output writeU30 (cpool indexOf nsset)
+					case AbcMultinameL(nsset) => writePooledNSSet(nsset)
+					case AbcMultinameLA(nsset) => writePooledNSSet(nsset)
 					case AbcTypename(name, parameters) => {
-						output writeU30 (cpool indexOf name)
+						writePooledName(name)
 						output writeU30 parameters.length
-						parameters foreach ((cpool indexOf (_: AbcName)) andThen output.writeU30)
+						parameters foreach writePooledName
 					}
 				}
 			}
@@ -213,9 +213,9 @@ class Abc {
 
 	private def readMethods(implicit input: AbcInputStream) = Array.fill(input.readU30()) {
 		val numParameters = input.readU30()
-		val returnType = cpoolName()
-		val parameters = Array.fill(numParameters) { new AbcMethodParameter(cpoolName()) }
-		val name = cpoolString()
+		val returnType = readPooledName()
+		val parameters = Array.fill(numParameters) { new AbcMethodParameter(readPooledName()) }
+		val name = readPooledString()
 		val flags = input.readU08()
 
 		if (0 != (flags & 0x08)) {
@@ -233,7 +233,7 @@ class Abc {
 		}
 
 		if (0 != (flags & 0x80))
-			parameters foreach (_.name = Some(cpoolString()))
+			parameters foreach (_.name = Some(readPooledString()))
 
 		new AbcMethod(parameters, returnType, name,
 			0 != (flags & 0x01), 0 != (flags & 0x02), 0 != (flags & 0x04),
@@ -243,12 +243,11 @@ class Abc {
 	private def writeMethods(implicit output: AbcOutputStream) = writeAll(methods) {
 		method => {
 			output writeU30 method.parameters.length
-			output writeU30 (cpool indexOf method.returnType)
+			writePooledName(method.returnType)
 
-			for(parameter <- method.parameters)
-				output writeU30 (cpool indexOf parameter.typeName)
-
-			output writeU30 (cpool indexOf method.name)
+			method.parameters foreach (((_: AbcMethodParameter).typeName) andThen writePooledName)
+			
+			writePooledString(method.name)
 
 			output writeU08 (
 				  (if(method.needsArguments) 0x01 else 0x00)
@@ -268,18 +267,18 @@ class Abc {
 			}
 
 			if(method.hasParameterNames)
-				method.parameters foreach (x => output writeU30 (cpool indexOf x.name.get))
+				method.parameters foreach (((_: AbcMethodParameter).name.get) andThen writePooledString)
 		}
 	}
 
 	private def readMetadata(implicit input: AbcInputStream) = Array.fill(input.readU30()) {
-		val name = cpoolString()
+		val name = readPooledString()
 		val n = input.readU30()
-		val keys = Array.fill(n)(cpoolString)
+		val keys = Array.fill(n)(readPooledString)
 
 		@tailrec def traverse(index: Int, map: Map[Symbol, Symbol]): Map[Symbol, Symbol] = index match {
 			case x if x == n => map
-			case y => {traverse(y + 1, map + (keys(y) -> cpoolString()))}
+			case y => {traverse(y + 1, map + (keys(y) -> readPooledString()))}
 		}
 
 		new AbcMetadata(name, traverse(0, new HashMap[Symbol, Symbol]))
@@ -289,21 +288,21 @@ class Abc {
 		meta => {
 			output writeU30 (cpool indexOf meta.name)
 			output writeU30 meta.attributes.size
-			meta.attributes.keysIterator foreach (x => output writeU30 (cpool indexOf x))//TODO andThen or write def
-			meta.attributes.valuesIterator foreach (x => output writeU30 (cpool indexOf x))
+			meta.attributes.keysIterator foreach writePooledString
+			meta.attributes.valuesIterator foreach writePooledString
 		}
 	}
 
 	private def readTypes(implicit input: AbcInputStream) = {
 		val result = Array.fill(input.readU30()) {
-			val name = cpoolNameNZ().asInstanceOf[AbcQName]
+			val name = readPooledNonZeroName().asInstanceOf[AbcQName]
 			val base = input.readU30() match {
 				case 0 => None
 				case x => Some(cpool.names(x))
 			}
 			val flags = input.readU08()
-			val protectedNs = if (0 != (flags & 0x08)) Some(cpoolNs()) else None
-			val interfaces = Array.fill(input.readU30())(cpoolName)
+			val protectedNs = if (0 != (flags & 0x08)) Some(readPooledNamespace()) else None
+			val interfaces = Array.fill(input.readU30())(readPooledName)
 
 			new AbcNominalType(new AbcInstance(name, base, 0 != (flags & 0x01),
 				0 != (flags & 0x02), 0 != (flags & 0x04), protectedNs,
@@ -320,7 +319,8 @@ class Abc {
 			nominalType => {
 				val inst = nominalType.inst
 
-				output writeU30 (cpool indexOf inst.name)
+				writePooledName(inst.name)
+
 				output writeU30 (inst.base match {
 					case Some(x) => cpool indexOf x
 					case None => 0
@@ -333,12 +333,12 @@ class Abc {
 					| (if(inst.protectedNs.isDefined) 0x08 else 0x00))
 
 				inst.protectedNs match {
-					case Some(x) => output writeU30 (cpool indexOf x)
+					case Some(x) => writePooledNamespace(x)
 					case None => {}
 				}
 
 				output writeU30 inst.interfaces.length
-				inst.interfaces foreach (x => output writeU30 (cpool indexOf x))
+				inst.interfaces foreach writePooledName
 
 				output writeU30 (methods indexOf inst.init)
 
@@ -364,7 +364,7 @@ class Abc {
 	}
 
 	private def readTraits()(implicit input: AbcInputStream): Array[AbcTrait] = Array.fill(input.readU30()) { //why is the type annotation needed?
-		val name = cpoolNameNZ().asInstanceOf[AbcQName]
+		val name = readPooledNonZeroName().asInstanceOf[AbcQName]
 
 		val pack = input.readU08()
 		val kind = pack & 0x0f
@@ -379,7 +379,7 @@ class Abc {
 		kind match {
 			case AbcTraitKind.Slot => {
 				val index = input.readU30()
-				val typeName = cpoolName()
+				val typeName = readPooledName()
 				val value = input.readU30()
 				if (0 != value) {
 					val kind = input.readU08()
@@ -388,7 +388,7 @@ class Abc {
 			}
 			case AbcTraitKind.Const => {
 				val index = input.readU30()
-				val typeName = cpoolName()
+				val typeName = readPooledName()
 				val value = input.readU30()
 				if (0 != value) {
 					val kind = input.readU08()
@@ -405,7 +405,8 @@ class Abc {
 
 	private def writeTraits(traits: Array[AbcTrait])(implicit output: AbcOutputStream) = writeAll(traits) {
 		t => {
-			output writeU30 (cpool indexOf t.name)
+			writePooledName(t.name)
+
 			output writeU08 (t.kind | (((t match {
 				case x: AbcTraitAnyMethod => ((if(x.isFinal) 0x01 else 0x00) | (if(x.isOverride) 0x02 else 0x00))
 				case _ => 0x00
@@ -417,7 +418,7 @@ class Abc {
 			t match {
 				case AbcTraitSlot(name, index, typeName, valueType, value, metadata) => {
 					output writeU30 index
-					output writeU30 (cpool indexOf typeName)
+					writePooledName(typeName)
 					value match {
 						case Some(x) => {
 							output writeU30 (cpool indexOf (valueType.get, value.get))
@@ -428,7 +429,7 @@ class Abc {
 				}
 				case AbcTraitConst(name, index, typeName, valueType, value, metadata) => {
 					output writeU30 index
-					output writeU30 (cpool indexOf typeName)
+					writePooledName(typeName)
 					value match {
 						case Some(x) => {
 							output writeU30 (cpool indexOf (valueType.get, value.get))
@@ -504,35 +505,59 @@ class Abc {
 			}
 		}
 	}
-	private def readExceptions()(implicit input: AbcInputStream) = Array.fill(input.readU30()) { new AbcExceptionHandler(input.readU30(), input.readU30(), input.readU30(), cpoolName(), cpoolName()) }
+	private def readExceptions()(implicit input: AbcInputStream) = Array.fill(input.readU30()) { new AbcExceptionHandler(input.readU30(), input.readU30(), input.readU30(), readPooledName(), readPooledName()) }
 
 	private def writeExceptions(exceptions: Array[AbcExceptionHandler])(implicit output: AbcOutputStream) = writeAll(exceptions) {
 		handler => {
 			output writeU30 handler.from
 			output writeU30 handler.to
 			output writeU30 handler.target
-			output writeU30 (cpool indexOf handler.typeName)
-			output writeU30 (cpool indexOf handler.varName)
+			writePooledName(handler.typeName)
+			writePooledName(handler.varName)
 		}
 	}
 
-	private def cpoolInt()(implicit input: AbcInputStream) = cpool.ints(input.readU30())
+	/*
+	private def readPooledInt()(implicit input: AbcInputStream) = cpool.ints(input.readU30())
 
-	private def cpoolUInt()(implicit input: AbcInputStream) = cpool.uints(input.readU30())
+	private def writePooledInt(value: Int)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
 
-	private def cpoolDouble()(implicit input: AbcInputStream) = cpool.doubles(input.readU30())
+	private def readPooledUInt()(implicit input: AbcInputStream) = cpool.uints(input.readU30())
 
-	private def cpoolString()(implicit input: AbcInputStream): Symbol = cpool.strings(input.readU30())
+	private def writePooledUInt(value: Long)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
 
-	private def cpoolName()(implicit input: AbcInputStream) = cpool.names(input.readU30())
+	private def readPooledDouble()(implicit input: AbcInputStream) = cpool.doubles(input.readU30())
 
-	private def cpoolNameNZ()(implicit input: AbcInputStream) = {
+	private def writePooledDouble(value: Double)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
+	*/
+
+	private def readPooledString()(implicit input: AbcInputStream): Symbol = cpool.strings(input.readU30())
+
+	private def writePooledString(value: Symbol)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
+
+	private def readPooledNamespace()(implicit input: AbcInputStream) = cpool.namespaces(input.readU30())
+
+	private def writePooledNamespace(value: AbcNamespace)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
+
+	private def readPooledNSSet()(implicit input: AbcInputStream) = cpool.nssets(input.readU30())
+
+	private def writePooledNSSet(value: AbcNSSet)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
+
+	private def readPooledName()(implicit input: AbcInputStream) = cpool.names(input.readU30())
+
+	private def writePooledName(value: AbcName)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
+
+	private def readPooledNonZeroName()(implicit input: AbcInputStream) = {
 		val index = input.readU30()
 		if (0 == index) error("Constant pool index may not be zero.")
 		cpool.names(index)
 	}
 
-	private def cpoolNs()(implicit input: AbcInputStream) = cpool.namespaces(input.readU30())
+	private def writePooledNonZeroName(value: AbcName)(implicit output: AbcOutputStream) = {
+		val index = cpool indexOf value
+		if(0 == index) error("Constant pool index may not be zero.")
+		output writeU30 index
+	}
 
 	private def writeAll[T](array: Array[T])(write: T => Unit)(implicit output: AbcOutputStream) = {
 		output writeU30 array.length
