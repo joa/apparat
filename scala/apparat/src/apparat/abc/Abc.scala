@@ -240,10 +240,8 @@ class Abc {
 			0 != (flags & 0x08), 0 != (flags & 0x40), 0 != (flags & 0x80))
 	}
 
-	private def writeMethods(implicit output: AbcOutputStream) = {
-		output writeU30 methods.length
-
-		for(method <- methods) {
+	private def writeMethods(implicit output: AbcOutputStream) = writeAll(methods) {
+		method => {
 			output writeU30 method.parameters.length
 			output writeU30 (cpool indexOf method.returnType)
 
@@ -287,13 +285,11 @@ class Abc {
 		new AbcMetadata(name, traverse(0, new HashMap[Symbol, Symbol]))
 	}
 
-	private def writeMetadata(implicit output: AbcOutputStream) = {
-		output writeU30 metadata.length
-
-		for(meta <- metadata) {
+	private def writeMetadata(implicit output: AbcOutputStream) = writeAll(metadata) {
+		meta => {
 			output writeU30 (cpool indexOf meta.name)
 			output writeU30 meta.attributes.size
-			meta.attributes.keysIterator foreach (x => output writeU30 (cpool indexOf x))
+			meta.attributes.keysIterator foreach (x => output writeU30 (cpool indexOf x))//TODO andThen or write def
 			meta.attributes.valuesIterator foreach (x => output writeU30 (cpool indexOf x))
 		}
 	}
@@ -320,34 +316,34 @@ class Abc {
 	}
 
 	private def writeTypes(implicit output: AbcOutputStream) = {
-		output writeU30 types.length
+		writeAll(types) {
+			nominalType => {
+				val inst = nominalType.inst
 
-		for(nominalType <- types) {
-			val inst = nominalType.inst
+				output writeU30 (cpool indexOf inst.name)
+				output writeU30 (inst.base match {
+					case Some(x) => cpool indexOf x
+					case None => 0
+				})
 
-			output writeU30 (cpool indexOf inst.name)
-			output writeU30 (inst.base match {
-				case Some(x) => cpool indexOf x
-				case None => 0
-			})
+				output writeU08 (
+					  (if(inst.isSealed) 0x01 else 0x00)
+					| (if(inst.isFinal) 0x02 else 0x00)
+					| (if(inst.isInterface) 0x04 else 0x00)
+					| (if(inst.protectedNs.isDefined) 0x08 else 0x00))
 
-			output writeU08 (
-				  (if(inst.isSealed) 0x01 else 0x00)
-				| (if(inst.isFinal) 0x02 else 0x00)
-				| (if(inst.isInterface) 0x04 else 0x00)
-				| (if(inst.protectedNs.isDefined) 0x08 else 0x00))
+				inst.protectedNs match {
+					case Some(x) => output writeU30 (cpool indexOf x)
+					case None => {}
+				}
 
-			inst.protectedNs match {
-				case Some(x) => output writeU30 (cpool indexOf x)
-				case None => {}
+				output writeU30 inst.interfaces.length
+				inst.interfaces foreach (x => output writeU30 (cpool indexOf x))
+
+				output writeU30 (methods indexOf inst.init)
+
+				writeTraits(inst.traits)
 			}
-
-			output writeU30 inst.interfaces.length
-			inst.interfaces foreach (x => output writeU30 (cpool indexOf x))
-
-			output writeU30 (methods indexOf inst.init)
-
-			writeTraits(inst.traits)
 		}
 
 		for(nominalType <- types) {
@@ -360,9 +356,8 @@ class Abc {
 	
 	private def readScripts(implicit input: AbcInputStream) = Array.fill(input.readU30()) { new AbcScript(methods(input.readU30()), readTraits()) }
 
-	private def writeScripts(implicit output: AbcOutputStream) = {
-		output writeU30 scripts.length
-		for(script <- scripts) {
+	private def writeScripts(implicit output: AbcOutputStream) = writeAll(scripts) {
+		script => {
 			output writeU30 (methods indexOf script.init)
 			writeTraits(script.traits)
 		}
@@ -408,10 +403,8 @@ class Abc {
 		}
 	}
 
-	private def writeTraits(traits: Array[AbcTrait])(implicit output: AbcOutputStream) = {
-		output writeU30 traits.length
-
-		for(t <- traits) {
+	private def writeTraits(traits: Array[AbcTrait])(implicit output: AbcOutputStream) = writeAll(traits) {
+		t => {
 			output writeU30 (cpool indexOf t.name)
 			output writeU08 (t.kind | (((t match {
 				case x: AbcTraitAnyMethod => ((if(x.isFinal) 0x01 else 0x00) | (if(x.isOverride) 0x02 else 0x00))
@@ -493,6 +486,7 @@ class Abc {
 		output writeU30 (methods count (method => method.body.isDefined))
 		for(i <- 0 until methods.length) {
 			val method = methods(i)
+			
 			method.body match {
 				case Some(body) => {
 					output writeU30 i
@@ -512,9 +506,8 @@ class Abc {
 	}
 	private def readExceptions()(implicit input: AbcInputStream) = Array.fill(input.readU30()) { new AbcExceptionHandler(input.readU30(), input.readU30(), input.readU30(), cpoolName(), cpoolName()) }
 
-	private def writeExceptions(exceptions: Array[AbcExceptionHandler])(implicit output: AbcOutputStream) = {
-		output writeU30 exceptions.length
-		for(handler <- exceptions) {
+	private def writeExceptions(exceptions: Array[AbcExceptionHandler])(implicit output: AbcOutputStream) = writeAll(exceptions) {
+		handler => {
 			output writeU30 handler.from
 			output writeU30 handler.to
 			output writeU30 handler.target
@@ -540,4 +533,9 @@ class Abc {
 	}
 
 	private def cpoolNs()(implicit input: AbcInputStream) = cpool.namespaces(input.readU30())
+
+	private def writeAll[T](array: Array[T])(write: T => Unit)(implicit output: AbcOutputStream) = {
+		output writeU30 array.length
+		array foreach write
+	}
 }
