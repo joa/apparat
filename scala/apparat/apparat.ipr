@@ -104,6 +104,7 @@
       <words>
         <w>apparat</w>
         <w>attr</w>
+        <w>breakpoint</w>
         <w>cpool</w>
         <w>dumpable</w>
         <w>indegree</w>
@@ -117,6 +118,7 @@
         <w>println</w>
         <w>uints</w>
         <w>unapply</w>
+        <w>unary</w>
         <w>vertices</w>
       </words>
     </dictionary>

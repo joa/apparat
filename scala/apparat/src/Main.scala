@@ -19,11 +19,13 @@
  * 
  */
 import apparat.abc.Abc
+import apparat.bytecode.operations.{AddDouble, Add}
 import apparat.graph.{Vertex, Graph}
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
 import apparat.utils._
 import java.io.PrintWriter
+import apparat.bytecode.operations._
 
 object Main {
 	def main(args: Array[String]): Unit = {
@@ -50,11 +52,14 @@ object Main {
 
 		for(tag <- check.tags) {
 			(Abc fromTag tag) match {
-				case Some(abc) => abc.cpool.dump()
+				case Some(abc) => {}//abc.cpool.dump()
 				case None => {}
 			}
 		}
 
+		val ops = List(Add(), AddDouble(), Add())
+		
+		println(ops)
 		/*measure {
 				val container = TagContainer fromFile "assets/Test15.swf"
 				(container.tags) foreach (println _)
