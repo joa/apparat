@@ -45,6 +45,8 @@ sealed abstract class AbstractOp {
 
 trait DebugOp
 
+trait AlchemyOp
+
 trait OpThatCanThrow extends AbstractOp { final override def canThrow = true }
 
 trait OpThatControlsFlow extends AbstractOp { final override def controlsFlow = true }
@@ -87,6 +89,8 @@ sealed abstract class AbstractConditionalOp(numPush: Int, numPop: Int) extends A
 sealed abstract class AbstractConditionalBinaryOp extends AbstractConditionalOp( 0, 2)
 sealed abstract class AbstractConditionalUnaryOp extends AbstractConditionalOp(0, 1)
 sealed abstract class AbstractPushOp extends AbstractOpWithOperands(1, 0)
+sealed abstract class AbstractAlchemySetOp extends AbstractOpWithOperands(0, 2) with AlchemyOp
+sealed abstract class AbstractAlchemyGetOp extends AbstractOpWithOperands(1, 1) with AlchemyOp
 
 final case class Add() extends AbstractBinaryOp
 final case class AddDouble() extends AbstractBinaryOp
@@ -227,3 +231,16 @@ final case class Swap() extends AbstractOpWithOperands(2, 2)
 final case class Throw() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatControlsFlow
 final case class TypeOf() extends AbstractOpWithOperands(1, 1)
 final case class ShiftRightUnsigned() extends AbstractBinaryOp
+final case class SetByte() extends AbstractAlchemySetOp
+final case class SetShort() extends AbstractAlchemySetOp
+final case class SetInt() extends AbstractAlchemySetOp
+final case class SetFloat() extends AbstractAlchemySetOp
+final case class SetDouble() extends AbstractAlchemySetOp
+final case class GetByte() extends AbstractAlchemyGetOp
+final case class GetShort() extends AbstractAlchemyGetOp
+final case class GetInt() extends AbstractAlchemyGetOp
+final case class GetFloat() extends AbstractAlchemyGetOp
+final case class GetDouble() extends AbstractAlchemyGetOp
+final case class Sign1() extends AbstractUnaryOp with AlchemyOp
+final case class Sign8() extends AbstractUnaryOp with AlchemyOp
+final case class Sign16() extends AbstractUnaryOp with AlchemyOp
