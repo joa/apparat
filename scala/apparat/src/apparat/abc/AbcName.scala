@@ -45,14 +45,15 @@ sealed abstract class AbcName(val kind: Int){
 		}
 	}
 }
-case class AbcQName(val name: Symbol, val namespace: AbcNamespace) extends AbcName(AbcNameKind.QName)
-case class AbcQNameA(val name: Symbol, val namespace: AbcNamespace) extends AbcName(AbcNameKind.QNameA)
-case class AbcRTQName(val name: Symbol) extends AbcName(AbcNameKind.RTQName)
-case class AbcRTQNameA(val name: Symbol) extends AbcName(AbcNameKind.RTQNameA)
+
+case class AbcQName(name: Symbol, namespace: AbcNamespace) extends AbcName(AbcNameKind.QName)
+case class AbcQNameA(name: Symbol, namespace: AbcNamespace) extends AbcName(AbcNameKind.QNameA)
+case class AbcRTQName(name: Symbol) extends AbcName(AbcNameKind.RTQName)
+case class AbcRTQNameA(name: Symbol) extends AbcName(AbcNameKind.RTQNameA)
 case object AbcRTQNameL extends AbcName(AbcNameKind.RTQNameL)
 case object AbcRTQNameLA extends AbcName(AbcNameKind.RTQNameL)
-case class AbcMultiname(val name: Symbol, val nsset: AbcNSSet) extends AbcName(AbcNameKind.Multiname)
-case class AbcMultinameA(val name: Symbol, val nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameA)
-case class AbcMultinameL(val nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameL)
-case class AbcMultinameLA(val nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameLA)
-case class AbcTypename(val name: AbcQName, val parameters: Array[AbcName]) extends AbcName(AbcNameKind.Typename) 
+case class AbcMultiname(name: Symbol, nsset: AbcNSSet) extends AbcName(AbcNameKind.Multiname)
+case class AbcMultinameA(name: Symbol, nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameA)
+case class AbcMultinameL(nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameL)
+case class AbcMultinameLA(nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameLA)
+case class AbcTypename(name: AbcQName, parameters: Array[AbcName]) extends AbcName(AbcNameKind.Typename) 

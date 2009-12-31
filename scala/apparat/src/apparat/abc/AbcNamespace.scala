@@ -30,7 +30,7 @@ object AbcNamespaceKind {
 	val Private = 0x05
 }
 
-sealed case class AbcNamespace(val kind: Int, val name: Symbol) {
+sealed case class AbcNamespace(kind: Int, name: Symbol) {
 	override def equals(that: Any) = {
 		that match {
 			case AbcNamespace(AbcNamespaceKind.Private, thatName) => false

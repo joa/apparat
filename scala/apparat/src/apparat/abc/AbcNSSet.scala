@@ -20,6 +20,6 @@
  */
 package apparat.abc
 
-case class AbcNSSet(val set: Array[AbcNamespace]) {
+case class AbcNSSet(set: Array[AbcNamespace]) {
 	override def toString = "AbcNSSet([" + (set mkString ",") + "])"
 }
