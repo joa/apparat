@@ -104,6 +104,7 @@ sealed abstract class AbstractUnaryOp extends AbstractOpWithOperands(1, 1)
 sealed abstract class AbstractConditionalOp(numPush: Int, numPop: Int) extends AbstractOpWithOperands(numPush, numPop) with OpWithMarker with OpThatControlsFlow
 sealed abstract class AbstractConditionalBinaryOp extends AbstractConditionalOp( 0, 2)
 sealed abstract class AbstractConditionalUnaryOp extends AbstractConditionalOp(0, 1)
+sealed abstract class AbstractPushOp extends AbstractOpWithOperands(1, 0)
 
 case class Add extends AbstractBinaryOp
 case class AddDouble extends AbstractBinaryOp
@@ -214,4 +215,33 @@ case class NextValue() extends AbstractOpWithOperands(1, 2)
 case class Nop() extends AbstractOp
 case class Not() extends AbstractUnaryOp
 case class Pop() extends AbstractOpWithOperands(0, 1)
-
+case class PopScope() extends AbstractOpWithScopes(0, 1)
+case class PushByte(val value: Int) extends AbstractPushOp
+case class PushDouble(val value: Double) extends AbstractPushOp
+case class PushFalse() extends AbstractPushOp
+case class PushInt(val value: Int) extends AbstractPushOp
+case class PushNamespace(val value: AbcNamespace) extends AbstractPushOp
+case class PushNaN() extends AbstractPushOp
+case class PushNull() extends AbstractPushOp
+case class PushScope() extends AbstractOpWithScopes(1, 0) with OpThatCanThrow { override def popOperands = 1 }
+case class PushShort(val value: Int) extends AbstractPushOp
+case class PushString(val value: Symbol) extends AbstractPushOp
+case class PushTrue() extends AbstractPushOp
+case class PushUInt(val value: Long) extends AbstractPushOp
+case class PushUndefined() extends AbstractPushOp
+case class PushWith() extends AbstractOpWithScopes(1, 0) with OpThatCanThrow { override def popOperands = 1 }
+case class ReturnValue() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatControlsFlow
+case class ReturnVoid() extends AbstractOp with OpThatControlsFlow
+case class ShiftRight() extends AbstractBinaryOp
+case class SetLocal(val register: Int) extends AbstractOpWithOperands(0, 1) with OpWithRegister
+case class SetGlobalSlot(val slot: Int) extends AbstractOpWithOperands(0, 1) with OpWithSlot
+case class SetProperty(val property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow
+case class SetSlot(val slot: Int) extends AbstractOpWithOperands(0, 2) with OpWithSlot with OpThatCanThrow
+case class SetSuper(val property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow
+case class StrictEquals() extends AbstractBinaryOp
+case class Subtract() extends AbstractBinaryOp
+case class SubtractInt() extends AbstractBinaryOp
+case class Swap() extends AbstractOpWithOperands(2, 2)
+case class Throw() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatControlsFlow
+case class TypeOf() extends AbstractOpWithOperands(1, 1)
+case class ShiftRightUnsigned() extends AbstractBinaryOp
