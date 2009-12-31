@@ -23,11 +23,7 @@ package apparat.bytecode.operations
 import apparat.abc._
 import apparat.bytecode.Marker
 
-object Op {
-	def byteOf(op: AbstractOp): Byte = op match {
-		case _ => error("Unknown operation " + op)
-	}
-}
+object Op
 
 sealed abstract class AbstractOp {
 	def canThrow = false
@@ -47,33 +43,19 @@ sealed abstract class AbstractOp {
 	}
 }
 
+trait DebugOp
+
 trait OpThatCanThrow extends AbstractOp { final override def canThrow = true }
 
 trait OpThatControlsFlow extends AbstractOp { final override def controlsFlow = true }
 
-trait OpWithRegister {
-	self: AbstractOp =>
-	def register: Int
-}
+trait OpWithRegister { def register: Int }
 
-trait OpWithSlot {
-	self: AbstractOp =>
-	def slot: Int
-}
+trait OpWithSlot { def slot: Int }
 
-trait DebugOp {
-	self: AbstractOp =>
-}
+trait OpWithMethod { def method: AbcMethod }
 
-trait OpWithMethod {
-	self: AbstractOp =>
-	def method: AbcMethod
-}
-
-trait OpWithMarker {
-	self: AbstractOp =>
-	def marker: Marker
-}
+trait OpWithMarker { def marker: Marker }
 
 trait OpWithArguments extends AbstractOp {
 	def numArguments: Int
