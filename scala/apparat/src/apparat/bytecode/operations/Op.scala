@@ -92,3 +92,9 @@ case class BreakpointLine() extends AbstractOp
 case class Call(val numArguments: Int) extends AbstractOpWithOperands(1, 2) with OpWithArguments with OpThatCanThrow
 case class CallMethod(val numArguments: Int, val method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
 case class CallProperty(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CallPropLex(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CallPropVoid(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CallStatic(val numArguments: Int, val method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
+case class CallSuper(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CallSuperVoid(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+

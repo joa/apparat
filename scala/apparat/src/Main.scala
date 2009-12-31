@@ -18,7 +18,7 @@
  * http://www.joa-ebert.com/
  * 
  */
-import apparat.abc.Abc
+import apparat.abc.{AbcNamespace, AbcQName, Abc}
 import apparat.bytecode.operations.{AddDouble, Add}
 import apparat.graph.{Vertex, Graph}
 import apparat.swc.Swc
@@ -57,8 +57,10 @@ object Main {
 			}
 		}
 
-		val ops = List(Add(), AddDouble(), Add())
-		
+		val cp = CallProperty(1, AbcQName('test, AbcNamespace(0, 'public)))
+		val ops = List()
+
+		println(cp.popOperands + " " + cp.pushOperands)
 		println(ops)
 		/*measure {
 				val container = TagContainer fromFile "assets/Test15.swf"
