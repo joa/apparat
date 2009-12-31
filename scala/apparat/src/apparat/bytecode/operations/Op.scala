@@ -40,6 +40,10 @@ trait OpWithSlot {
 	def slot: Int
 }
 
+trait DebugOp {
+	self: AbstractOp =>
+}
+
 trait OpWithMethod {
 	self: AbstractOp =>
 	def method: AbcMethod
@@ -76,19 +80,14 @@ case class Add extends AbstractBinaryOp
 case class AddDouble extends AbstractBinaryOp
 case class AddInt extends AbstractBinaryOp
 case class ApplyType(val numArguments: Int) extends AbstractUnaryOp with OpWithArguments with OpThatCanThrow
-case class AsType(typeName: AbcName) extends AbstractUnaryOp {
-	typeName match {
-		case AbcRTQName(_) | AbcRTQNameA(_) | AbcRTQNameL | AbcRTQNameLA => error("Type must not be a runtime name.")
-		case _ => {}
-	}
-}
+case class AsType(typeName: AbcName) extends AbstractUnaryOp { require(!typeName.isRuntimeName)}
 case class AsTypeLate() extends AbstractOpWithOperands(1, 2)
 case class BitAnd() extends AbstractBinaryOp
 case class BitNot() extends AbstractUnaryOp
 case class BitOr() extends AbstractBinaryOp
 case class BitXor() extends AbstractBinaryOp
-case class Breakpoint() extends AbstractOp
-case class BreakpointLine() extends AbstractOp
+case class Breakpoint() extends AbstractOp with DebugOp
+case class BreakpointLine() extends AbstractOp with DebugOp
 case class Call(val numArguments: Int) extends AbstractOpWithOperands(1, 2) with OpWithArguments with OpThatCanThrow
 case class CallMethod(val numArguments: Int, val method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
 case class CallProperty(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
@@ -97,4 +96,24 @@ case class CallPropVoid(val numArguments: Int, val property: AbcName) extends Ab
 case class CallStatic(val numArguments: Int, val method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
 case class CallSuper(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
 case class CallSuperVoid(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CheckFilter() extends AbstractOpWithOperands(1, 1) with OpThatCanThrow
+case class Coerce(typeName: AbcName) extends AbstractUnaryOp with OpThatCanThrow { require(!typeName.isRuntimeName) }
+case class CoerceAny() extends AbstractUnaryOp
+case class CoerceString() extends AbstractUnaryOp
+case class Construct(val numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow
+case class ConstructProp(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class ConstructSuper(val numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpThatCanThrow
+case class ConvertBoolean() extends AbstractUnaryOp
+case class ConvertInt() extends AbstractUnaryOp
+case class ConvertDouble() extends AbstractUnaryOp
+case class ConvertObject() extends AbstractUnaryOp with OpThatCanThrow
+case class ConvertUInt() extends AbstractUnaryOp
+case class ConvertString() extends AbstractUnaryOp
+case class Debug(val kind: Int, val name: Symbol, val register: Int, val extra: Int) extends AbstractOp with OpWithRegister with DebugOp
+case class DebugFile(val file: Symbol) extends AbstractOp with DebugOp
+case class DebugLine(val line: Int) extends AbstractOp with DebugOp
+
+
+
+
 

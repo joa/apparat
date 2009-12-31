@@ -34,7 +34,17 @@ object AbcNameKind {
 	val Typename = 0x1d
 }
 
-sealed abstract class AbcName(val kind: Int)
+sealed abstract class AbcName(val kind: Int){
+	def isRuntimeName = {
+		import AbcNameKind._
+		
+		kind match {
+			case RTQName | RTQNameA => true
+			case RTQNameL | RTQNameLA => true
+			case _ => false
+		}
+	}
+}
 case class AbcQName(val name: Symbol, val namespace: AbcNamespace) extends AbcName(AbcNameKind.QName)
 case class AbcQNameA(val name: Symbol, val namespace: AbcNamespace) extends AbcName(AbcNameKind.QNameA)
 case class AbcRTQName(val name: Symbol) extends AbcName(AbcNameKind.RTQName)
