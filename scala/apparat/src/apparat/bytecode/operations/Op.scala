@@ -109,8 +109,8 @@ sealed abstract class AbstractPushOp extends AbstractOpWithOperands(1, 0)
 final case class Add() extends AbstractBinaryOp
 final case class AddDouble() extends AbstractBinaryOp
 final case class AddInt() extends AbstractBinaryOp
-final case class ApplyType(val numArguments: Int) extends AbstractUnaryOp with OpWithArguments with OpThatCanThrow
-final case class AsType(val typeName: AbcName) extends AbstractUnaryOp { require(!typeName.isRuntimeName) }
+final case class ApplyType(numArguments: Int) extends AbstractUnaryOp with OpWithArguments with OpThatCanThrow
+final case class AsType(typeName: AbcName) extends AbstractUnaryOp { require(!typeName.isRuntimeName) }
 final case class AsTypeLate() extends AbstractOpWithOperands(1, 2)
 final case class BitAnd() extends AbstractBinaryOp
 final case class BitNot() extends AbstractUnaryOp
@@ -118,35 +118,35 @@ final case class BitOr() extends AbstractBinaryOp
 final case class BitXor() extends AbstractBinaryOp
 final case class Breakpoint() extends AbstractOp with DebugOp
 final case class BreakpointLine() extends AbstractOp with DebugOp
-final case class Call(val numArguments: Int) extends AbstractOpWithOperands(1, 2) with OpWithArguments with OpThatCanThrow
-final case class CallMethod(val numArguments: Int, val method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
-final case class CallProperty(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
-final case class CallPropLex(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
-final case class CallPropVoid(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
-final case class CallStatic(val numArguments: Int, val method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
-final case class CallSuper(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
-final case class CallSuperVoid(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+final case class Call(numArguments: Int) extends AbstractOpWithOperands(1, 2) with OpWithArguments with OpThatCanThrow
+final case class CallMethod(numArguments: Int, method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
+final case class CallProperty(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+final case class CallPropLex(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+final case class CallPropVoid(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+final case class CallStatic(numArguments: Int, method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
+final case class CallSuper(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+final case class CallSuperVoid(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
 final case class CheckFilter() extends AbstractOpWithOperands(1, 1) with OpThatCanThrow
-final case class Coerce(val typeName: AbcName) extends AbstractUnaryOp with OpThatCanThrow { require(!typeName.isRuntimeName) }
+final case class Coerce(typeName: AbcName) extends AbstractUnaryOp with OpThatCanThrow { require(!typeName.isRuntimeName) }
 final case class CoerceAny() extends AbstractUnaryOp
 final case class CoerceString() extends AbstractUnaryOp
-final case class Construct(val numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow
-final case class ConstructProp(val numArguments: Int, val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
-final case class ConstructSuper(val numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpThatCanThrow
+final case class Construct(numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow
+final case class ConstructProp(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+final case class ConstructSuper(numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpThatCanThrow
 final case class ConvertBoolean() extends AbstractUnaryOp
 final case class ConvertInt() extends AbstractUnaryOp
 final case class ConvertDouble() extends AbstractUnaryOp
 final case class ConvertObject() extends AbstractUnaryOp with OpThatCanThrow
 final case class ConvertUInt() extends AbstractUnaryOp
 final case class ConvertString() extends AbstractUnaryOp
-final case class Debug(val kind: Int, val name: Symbol, val register: Int, val extra: Int) extends AbstractOp with OpWithRegister with DebugOp
-final case class DebugFile(val file: Symbol) extends AbstractOp with DebugOp
-final case class DebugLine(val line: Int) extends AbstractOp with DebugOp
-final case class DecLocal(val register: Int) extends AbstractOp with OpWithRegister
-final case class DecLocalInt(val register: Int) extends AbstractOp with OpWithRegister
+final case class Debug(kind: Int, name: Symbol, register: Int, extra: Int) extends AbstractOp with OpWithRegister with DebugOp
+final case class DebugFile(file: Symbol) extends AbstractOp with DebugOp
+final case class DebugLine(line: Int) extends AbstractOp with DebugOp
+final case class DecLocal(register: Int) extends AbstractOp with OpWithRegister
+final case class DecLocalInt(register: Int) extends AbstractOp with OpWithRegister
 final case class Decrement() extends AbstractUnaryOp
 final case class DecrementInt() extends AbstractUnaryOp
-final case class DeleteProperty(val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow
+final case class DeleteProperty(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow
 final case class Divide() extends AbstractBinaryOp
 final case class Dup() extends AbstractOpWithOperands(2, 1)
 final case class DefaultXMLNamespace() extends AbstractOp with OpThatCanThrow
@@ -154,50 +154,50 @@ final case class DefaultXMLNamespaceLate() extends AbstractOpWithOperands(0, 1) 
 final case class Equals() extends AbstractBinaryOp
 final case class EscapeXMLAttribute() extends AbstractOpWithOperands(1, 1)
 final case class EscapeXMLElement() extends AbstractOpWithOperands(1, 1)
-final case class FindProperty(val property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty
-final case class FindPropStrict(val property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty with OpThatCanThrow
-final case class GetDescendants(val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow
+final case class FindProperty(property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty
+final case class FindPropStrict(property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty with OpThatCanThrow
+final case class GetDescendants(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow
 final case class GetGlobalScope() extends AbstractOpWithOperands(1, 0)
-final case class GetGlobalSlot(val slot: Int) extends AbstractOpWithOperands(1, 0) with OpWithSlot
-final case class GetLex(val typeName: AbcName) extends AbstractOpWithOperands(1, 0) with OpThatCanThrow { require(!typeName.isRuntimeName) }
-final case class GetLocal(val register: Int) extends AbstractOpWithOperands(1, 0) with OpWithRegister
-final case class GetProperty(val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty
-final case class GetScopeObject(val index: Int) extends AbstractOpWithOperands(1, 0)
-final case class GetSlot(val slot: Int) extends AbstractOpWithOperands(1, 1) with OpWithSlot with OpThatCanThrow
-final case class GetSuper(val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow
+final case class GetGlobalSlot(slot: Int) extends AbstractOpWithOperands(1, 0) with OpWithSlot
+final case class GetLex(typeName: AbcName) extends AbstractOpWithOperands(1, 0) with OpThatCanThrow { require(!typeName.isRuntimeName) }
+final case class GetLocal(register: Int) extends AbstractOpWithOperands(1, 0) with OpWithRegister
+final case class GetProperty(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty
+final case class GetScopeObject(index: Int) extends AbstractOpWithOperands(1, 0)
+final case class GetSlot(slot: Int) extends AbstractOpWithOperands(1, 1) with OpWithSlot with OpThatCanThrow
+final case class GetSuper(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow
 final case class GreaterEquals() extends AbstractBinaryOp
 final case class GreaterThan() extends AbstractBinaryOp
 final case class HasNext() extends AbstractOpWithOperands(1, 2)
-final case class HasNext2(val objectRegister: Int, val indexRegister: Int) extends AbstractOpWithOperands(1, 0)//TODO uses two local registers?!!
-final case class IfEqual(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfFalse(val marker: Marker) extends AbstractConditionalUnaryOp
-final case class IfGreaterEqual(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfGreaterThan(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfLessEqual(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfLessThan(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfNotGreaterEqual(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfNotGreaterThan(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfNotLessEqual(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfNotLessThan(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfNotEqual(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfStrictEqual(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfStrictNotEqual(val marker: Marker) extends AbstractConditionalBinaryOp
-final case class IfTrue(val marker: Marker) extends AbstractConditionalUnaryOp
+final case class HasNext2(objectRegister: Int, indexRegister: Int) extends AbstractOpWithOperands(1, 0)//TODO uses two local registers?!!
+final case class IfEqual(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfFalse(marker: Marker) extends AbstractConditionalUnaryOp
+final case class IfGreaterEqual(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfGreaterThan(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfLessEqual(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfLessThan(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfNotGreaterEqual(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfNotGreaterThan(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfNotLessEqual(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfNotLessThan(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfNotEqual(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfStrictEqual(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfStrictNotEqual(marker: Marker) extends AbstractConditionalBinaryOp
+final case class IfTrue(marker: Marker) extends AbstractConditionalUnaryOp
 final case class In() extends AbstractOpWithOperands(1, 2)
-final case class IncLocal(val register: Int) extends AbstractOp with OpWithRegister
-final case class IncLocalInt(val register: Int) extends AbstractOp with OpWithRegister
+final case class IncLocal(register: Int) extends AbstractOp with OpWithRegister
+final case class IncLocalInt(register: Int) extends AbstractOp with OpWithRegister
 final case class Increment() extends AbstractUnaryOp
 final case class IncrementInt() extends AbstractUnaryOp
-final case class InitProperty(val property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow
+final case class InitProperty(property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow
 final case class InstanceOf() extends AbstractBinaryOp with OpThatCanThrow
-final case class IsType(val typeName: AbcName) extends AbstractOpWithOperands(1, 1) { require(!typeName.isRuntimeName) }
+final case class IsType(typeName: AbcName) extends AbstractOpWithOperands(1, 1) { require(!typeName.isRuntimeName) }
 final case class IsTypeLate() extends AbstractOpWithOperands(1, 2) with OpThatCanThrow
-final case class Jump(val marker: Marker) extends AbstractOp with OpWithMarker with OpThatControlsFlow
-final case class Kill(val register: Int) extends AbstractOp with OpWithRegister
+final case class Jump(marker: Marker) extends AbstractOp with OpWithMarker with OpThatControlsFlow
+final case class Kill(register: Int) extends AbstractOp with OpWithRegister
 final case class Label() extends AbstractOp
 final case class LessEquals() extends AbstractBinaryOp
 final case class LessThan() extends AbstractBinaryOp
-final case class LookupSwitch(val defaultCase: Marker, val cases: Array[Marker]) extends AbstractOpWithOperands(0, 1) with OpThatControlsFlow
+final case class LookupSwitch(defaultCase: Marker, cases: Array[Marker]) extends AbstractOpWithOperands(0, 1) with OpThatControlsFlow
 final case class ShiftLeft() extends AbstractBinaryOp
 final case class Modulo() extends AbstractBinaryOp
 final case class Multiply() extends AbstractBinaryOp
@@ -205,39 +205,39 @@ final case class MultiplyInt() extends AbstractBinaryOp
 final case class Negate() extends AbstractUnaryOp
 final case class NegateInt() extends AbstractUnaryOp
 final case class NewActivation() extends AbstractOpWithOperands(1, 0)
-final case class NewArray(val numArguments: Int) extends AbstractOpWithOperands(1, 0) with OpWithArguments
-final case class NewCatch(val exceptionHandler: AbcExceptionHandler) extends AbstractOpWithOperands(1, 0)
-final case class NewClass(val nominalType: AbcNominalType) extends AbstractOpWithOperands(1, 1)
-final case class NewFunction(val function: AbcMethod) extends AbstractOpWithOperands(1, 0)
-final case class NewObject(val numArguments: Int) extends AbstractOpWithOperands(1, numArguments * 2)
+final case class NewArray(numArguments: Int) extends AbstractOpWithOperands(1, 0) with OpWithArguments
+final case class NewCatch(exceptionHandler: AbcExceptionHandler) extends AbstractOpWithOperands(1, 0)
+final case class NewClass(nominalType: AbcNominalType) extends AbstractOpWithOperands(1, 1)
+final case class NewFunction(function: AbcMethod) extends AbstractOpWithOperands(1, 0)
+final case class NewObject(numArguments: Int) extends AbstractOpWithOperands(1, numArguments * 2)
 final case class NextName() extends AbstractOpWithOperands(1, 2)
 final case class NextValue() extends AbstractOpWithOperands(1, 2)
 final case class Nop() extends AbstractOp
 final case class Not() extends AbstractUnaryOp
 final case class Pop() extends AbstractOpWithOperands(0, 1)
 final case class PopScope() extends AbstractOpWithScopes(0, 1)
-final case class PushByte(val value: Int) extends AbstractPushOp
-final case class PushDouble(val value: Double) extends AbstractPushOp
+final case class PushByte(value: Int) extends AbstractPushOp
+final case class PushDouble(value: Double) extends AbstractPushOp
 final case class PushFalse() extends AbstractPushOp
-final case class PushInt(val value: Int) extends AbstractPushOp
-final case class PushNamespace(val value: AbcNamespace) extends AbstractPushOp
+final case class PushInt(value: Int) extends AbstractPushOp
+final case class PushNamespace(value: AbcNamespace) extends AbstractPushOp
 final case class PushNaN() extends AbstractPushOp
 final case class PushNull() extends AbstractPushOp
 final case class PushScope() extends AbstractOpWithScopes(1, 0) with OpThatCanThrow { override def popOperands = 1 }
-final case class PushShort(val value: Int) extends AbstractPushOp
-final case class PushString(val value: Symbol) extends AbstractPushOp
+final case class PushShort(value: Int) extends AbstractPushOp
+final case class PushString(value: Symbol) extends AbstractPushOp
 final case class PushTrue() extends AbstractPushOp
-final case class PushUInt(val value: Long) extends AbstractPushOp
+final case class PushUInt(value: Long) extends AbstractPushOp
 final case class PushUndefined() extends AbstractPushOp
 final case class PushWith() extends AbstractOpWithScopes(1, 0) with OpThatCanThrow { override def popOperands = 1 }
 final case class ReturnValue() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatControlsFlow
 final case class ReturnVoid() extends AbstractOp with OpThatControlsFlow
 final case class ShiftRight() extends AbstractBinaryOp
-final case class SetLocal(val register: Int) extends AbstractOpWithOperands(0, 1) with OpWithRegister
-final case class SetGlobalSlot(val slot: Int) extends AbstractOpWithOperands(0, 1) with OpWithSlot
-final case class SetProperty(val property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow
-final case class SetSlot(val slot: Int) extends AbstractOpWithOperands(0, 2) with OpWithSlot with OpThatCanThrow
-final case class SetSuper(val property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow
+final case class SetLocal(register: Int) extends AbstractOpWithOperands(0, 1) with OpWithRegister
+final case class SetGlobalSlot(slot: Int) extends AbstractOpWithOperands(0, 1) with OpWithSlot
+final case class SetProperty(property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow
+final case class SetSlot(slot: Int) extends AbstractOpWithOperands(0, 2) with OpWithSlot with OpThatCanThrow
+final case class SetSuper(property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow
 final case class StrictEquals() extends AbstractBinaryOp
 final case class Subtract() extends AbstractBinaryOp
 final case class SubtractInt() extends AbstractBinaryOp
