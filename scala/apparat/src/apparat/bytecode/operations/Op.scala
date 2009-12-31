@@ -106,9 +106,9 @@ sealed abstract class AbstractConditionalBinaryOp extends AbstractConditionalOp(
 sealed abstract class AbstractConditionalUnaryOp extends AbstractConditionalOp(0, 1)
 sealed abstract class AbstractPushOp extends AbstractOpWithOperands(1, 0)
 
-case class Add extends AbstractBinaryOp
-case class AddDouble extends AbstractBinaryOp
-case class AddInt extends AbstractBinaryOp
+case class Add() extends AbstractBinaryOp
+case class AddDouble() extends AbstractBinaryOp
+case class AddInt() extends AbstractBinaryOp
 case class ApplyType(val numArguments: Int) extends AbstractUnaryOp with OpWithArguments with OpThatCanThrow
 case class AsType(val typeName: AbcName) extends AbstractUnaryOp { require(!typeName.isRuntimeName) }
 case class AsTypeLate() extends AbstractOpWithOperands(1, 2)
@@ -157,7 +157,7 @@ case class EscapeXMLElement() extends AbstractOpWithOperands(1, 1)
 case class FindProperty(val property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty
 case class FindPropStrict(val property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty with OpThatCanThrow
 case class GetDescendants(val property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow
-case class GetGlobalScope extends AbstractOpWithOperands(1, 0)
+case class GetGlobalScope() extends AbstractOpWithOperands(1, 0)
 case class GetGlobalSlot(val slot: Int) extends AbstractOpWithOperands(1, 0) with OpWithSlot
 case class GetLex(val typeName: AbcName) extends AbstractOpWithOperands(1, 0) with OpThatCanThrow { require(!typeName.isRuntimeName) }
 case class GetLocal(val register: Int) extends AbstractOpWithOperands(1, 0) with OpWithRegister
