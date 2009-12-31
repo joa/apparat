@@ -135,7 +135,7 @@ case class DecrementInt() extends AbstractUnaryOp
 case class DeleteProperty(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow
 case class Divide() extends AbstractBinaryOp
 case class Dup() extends AbstractOpWithOperands(2, 1)
-case class DefaultXMLNamespace() extends AbstractOp with OpThatCanThrow
+case class DefaultXMLNamespace(uri: Symbol) extends AbstractOp with OpThatCanThrow
 case class DefaultXMLNamespaceLate() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow
 case class Equals() extends AbstractBinaryOp
 case class EscapeXMLAttribute() extends AbstractOpWithOperands(1, 1)
