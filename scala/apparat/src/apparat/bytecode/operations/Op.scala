@@ -328,7 +328,12 @@ case class CallSuperVoid(numArguments: Int, property: AbcName) extends AbstractO
 case class CheckFilter() extends AbstractOpWithOperands(1, 1) with OpThatCanThrow
 case class Coerce(typeName: AbcName) extends AbstractUnaryOp with OpThatCanThrow { require(!typeName.isRuntimeName) }
 case class CoerceAny() extends AbstractUnaryOp
+case class CoerceBoolean() extends AbstractUnaryOp
+case class CoerceDouble() extends AbstractUnaryOp
+case class CoerceInt() extends AbstractUnaryOp
+case class CoerceObject() extends AbstractUnaryOp
 case class CoerceString() extends AbstractUnaryOp
+case class CoerceUInt() extends AbstractUnaryOp
 case class Construct(numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow
 case class ConstructProp(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
 case class ConstructSuper(numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpThatCanThrow
