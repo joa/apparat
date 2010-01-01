@@ -23,7 +23,220 @@ package apparat.bytecode.operations
 import apparat.abc._
 import apparat.bytecode.Marker
 
-object Op
+object Op {
+	val bkpt = 0x01
+    val nop = 0x02
+    val `throw` = 0x03
+    val getsuper = 0x04
+    val setsuper = 0x05
+    val dxns = 0x06
+    val dxnslate = 0x07
+    val kill = 0x08
+    val label = 0x09
+
+    val ifnlt = 0x0c
+    val ifnle = 0x0d
+    val ifngt = 0x0e
+    val ifnge = 0x0f
+    val jump = 0x10
+    val iftrue = 0x11
+    val iffalse = 0x12
+    val ifeq = 0x13
+    val ifne = 0x14
+    val iflt = 0x15
+    val ifle = 0x16
+    val ifgt = 0x17
+    val ifge = 0x18
+    val ifstricteq = 0x19
+    val ifstrictne = 0x1a
+    val lookupswitch = 0x1b
+    val pushwith = 0x1c
+    val popscope = 0x1d
+    val nextname = 0x1e
+    val hasnext = 0x1f
+
+    val pushnull = 0x20
+    val pushundefined = 0x21
+    val pushuninitialized = 0x22
+    val nextvalue = 0x23
+    val pushbyte = 0x24
+    val pushshort = 0x25
+    val pushtrue = 0x26
+    val pushfalse = 0x27
+    val pushnan = 0x28
+    val pop = 0x29
+    val dup = 0x2a
+    val swap = 0x2b
+    val pushstring = 0x2c
+    val pushint = 0x2d
+    val pushuint = 0x2e
+    val pushdouble = 0x2f
+    val pushscope = 0x30
+    val pushnamespace = 0x31
+    val hasnext2 = 0x32
+    val pushdecimal = 0x33
+ 	val pushdnan = 0x34
+ 	
+ 	val li8 = 0x35
+	val li16 = 0x36
+	val li32 = 0x37
+	val lf32 = 0x38
+	val lf64 = 0x39
+	val si8 = 0x3A
+	val si16 = 0x3B
+	val si32 = 0x3C
+	val sf32 = 0x3D
+	val sf64 = 0x3E
+
+    val newfunction = 0x40
+    val call = 0x41
+    val construct = 0x42
+    val callmethod = 0x43
+    val callstatic = 0x44
+    val callsuper = 0x45
+    val callproperty = 0x46
+    val returnvoid = 0x47
+    val returnvalue = 0x48
+    val constructsuper = 0x49
+    val constructprop = 0x4A
+    val callproplex = 0x4C
+    val callsupervoid = 0x4E
+    val callpropvoid = 0x4F
+    val sxi1 = 0x50
+    val sxi8 = 0x51
+    val sxi16 = 0x52
+    val applytype = 0x53
+
+    val newobject = 0x55
+    val newarray = 0x56
+    val newactivation = 0x57
+
+    val newclass = 0x58
+    val getdescendants = 0x59
+    val newcatch = 0x5a
+    val deldescendants = 0x5b
+
+    val findpropstrict = 0x5d
+    val findproperty   = 0x5e
+    val finddef        = 0x5f
+    val getlex          = 0x60
+
+    val setproperty = 0x61
+    val getlocal = 0x62
+    val setlocal = 0x63
+
+    val getglobalscope = 0x64
+    val getscopeobject = 0x65
+    val getproperty = 0x66
+    val initproperty = 0x68
+    val deleteproperty = 0x6a
+    val getslot = 0x6c
+    val setslot = 0x6d
+    
+    /** @deprecated use getglobalscope+getslot */
+    val getglobalslot = 0x6e
+
+    /** @deprecated use getglobalscope+setslot */
+    val setglobalslot = 0x6f
+
+
+    val convert_s = 0x70
+    val esc_xelem = 0x71
+    val esc_xattr = 0x72
+    val convert_i = 0x73
+    val convert_u = 0x74
+    val convert_d = 0x75
+    val convert_b = 0x76
+    val convert_o = 0x77
+    val checkfilter = 0x78
+    val convert_m = 0x79
+ 	val convert_m_p = 0x7a
+
+    val coerce = 0x80
+    
+    /** @deprecated use OP_convert_b */
+    val coerce_b        = 0x81
+    val coerce_a        = 0x82
+    /** @deprecated use OP_convert_i */
+    val coerce_i        = 0x83
+    /** @deprecated use OP_convert_d */
+    val coerce_d        = 0x84
+    val coerce_s        = 0x85
+    val astype          = 0x86
+    val astypelate      = 0x87
+    /** @deprecated use OP_convert_u */
+    val coerce_u        = 0x88
+	val coerce_o		   = 0x89
+
+ 	val negate_p = 0x8f
+    val negate = 0x90
+    val increment = 0x91
+    val inclocal = 0x92
+    val decrement = 0x93
+    val declocal = 0x94
+    val typeof = 0x95
+    val not = 0x96
+    val bitnot = 0x97
+
+	val increment_p = 0x9c
+	val inclocal_p = 0x9d
+	val decrement_p = 0x9e
+	val declocal_p = 0x9f
+ 
+    val add = 0xa0
+    val subtract = 0xa1
+    val multiply = 0xa2
+    val divide = 0xa3
+    val modulo = 0xa4
+    val lshift = 0xa5
+    val rshift = 0xa6
+    val urshift = 0xa7
+    val bitand = 0xa8
+    val bitor = 0xa9
+    val bitxor = 0xaa
+    val equals = 0xab
+    val strictequals = 0xac
+    val lessthan = 0xad
+    val lessequals = 0xae
+    val greaterthan = 0xaf
+
+    val greaterequals = 0xb0
+    val instanceof = 0xb1
+    val istype = 0xb2
+    val istypelate = 0xb3
+    val in = 0xb4
+    // arithmetic with decimal parameters
+    val add_p = 0xb5
+    val subtract_p = 0xb6
+    val multiply_p = 0xb7
+    val divide_p = 0xb8
+    val modulo_p = 0xb9
+
+    val increment_i = 0xc0
+    val decrement_i = 0xc1
+    val inclocal_i = 0xc2
+    val declocal_i = 0xc3
+    val negate_i = 0xc4
+    val add_i = 0xc5
+    val subtract_i = 0xc6
+    val multiply_i = 0xc7
+
+    val getlocal0 = 0xd0
+    val getlocal1 = 0xd1
+    val getlocal2 = 0xd2
+    val getlocal3 = 0xd3    
+    val setlocal0 = 0xd4
+    val setlocal1 = 0xd5
+    val setlocal2 = 0xd6
+    val setlocal3 = 0xd7    
+    
+    val debug = 0xef
+
+    val debugline = 0xf0
+    val debugfile = 0xf1
+    val bkptline  = 0xf2
+    val timestamp = 0xf3
+}
 
 sealed abstract class AbstractOp {
 	def canThrow = false
@@ -105,7 +318,7 @@ case class BitXor() extends AbstractBinaryOp
 case class Breakpoint() extends AbstractOp with DebugOp
 case class BreakpointLine() extends AbstractOp with DebugOp
 case class Call(numArguments: Int) extends AbstractOpWithOperands(1, 2) with OpWithArguments with OpThatCanThrow
-case class CallMethod(numArguments: Int, method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
+case class CallMethod(numArguments: Int, methodIndex: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow
 case class CallProperty(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
 case class CallPropLex(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
 case class CallPropVoid(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
