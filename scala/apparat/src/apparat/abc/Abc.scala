@@ -111,6 +111,7 @@ class Abc {
 		val ints = readTable(new Array[Int](Math.max(1, input.readU30())), 0) { input.readS32() }
 		val uints = readTable(new Array[Long](Math.max(1, input.readU30())), 0L) { input.readU32() }
 		val doubles = readTable(new Array[Double](Math.max(1, input.readU30())), Double.NaN) { input.readD64() }
+		//val decimals = ...
 		val strings = readTable(new Array[Symbol](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) { Symbol(input.readString()) }
 		val namespaces = readTable(new Array[AbcNamespace](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) { AbcNamespace(input.readU08(), strings(input.readU30())) }
 		val nssets = readTable(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet(Array.fill(input.readU08()) { namespaces(input.readU30()) }) }
@@ -237,7 +238,8 @@ class Abc {
 
 		new AbcMethod(parameters, returnType, name,
 			0 != (flags & 0x01), 0 != (flags & 0x02), 0 != (flags & 0x04),
-			0 != (flags & 0x08), 0 != (flags & 0x40), 0 != (flags & 0x80))
+			0 != (flags & 0x08), 0 != (flags & 0x10), 0 != (flags & 0x20),
+			0 != (flags & 0x40), 0 != (flags & 0x80))
 	}
 
 	private def writeMethods(implicit output: AbcOutputStream) = writeAll(methods) {
@@ -254,6 +256,8 @@ class Abc {
 				| (if(method.needsActivation) 0x02 else 0x00)
 				| (if(method.needsRest) 0x04 else 0x00)
 				| (if(method.hasOptionalParameters) 0x08 else 0x00)
+			    | (if(method.ignoreRest) 0x10 else 0x00)
+				| (if(method.isNative) 0x20 else 0x00)
 				| (if(method.setsDXNS) 0x40 else 0x00)
 				| (if(method.hasParameterNames) 0x80 else 0x00))
 
@@ -305,7 +309,7 @@ class Abc {
 			val interfaces = Array.fill(input.readU30())(readPooledName)
 
 			new AbcNominalType(new AbcInstance(name, base, 0 != (flags & 0x01),
-				0 != (flags & 0x02), 0 != (flags & 0x04), protectedNs,
+				0 != (flags & 0x02), 0 != (flags & 0x04), 0 != (flags & 0x10), protectedNs,
 				interfaces, methods(input.readU30()), readTraits()))
 		}
 
@@ -330,7 +334,8 @@ class Abc {
 					  (if(inst.isSealed) 0x01 else 0x00)
 					| (if(inst.isFinal) 0x02 else 0x00)
 					| (if(inst.isInterface) 0x04 else 0x00)
-					| (if(inst.protectedNs.isDefined) 0x08 else 0x00))
+					| (if(inst.protectedNs.isDefined) 0x08 else 0x00)
+					| (if(inst.nonNullable) 0x10 else 0x00))
 
 				inst.protectedNs match {
 					case Some(x) => writePooledNamespace(x)

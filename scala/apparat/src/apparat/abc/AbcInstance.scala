@@ -6,6 +6,7 @@ class AbcInstance(
 		val isSealed: Boolean,
 		val isFinal: Boolean,
 		val isInterface: Boolean,
+		val nonNullable: Boolean,
 		val protectedNs: Option[AbcNamespace],
 		val interfaces: Array[AbcName],
 		val init: AbcMethod,

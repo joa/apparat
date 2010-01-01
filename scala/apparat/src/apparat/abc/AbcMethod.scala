@@ -9,7 +9,8 @@ class AbcMethodParameter(val typeName: AbcName) {
 
 class AbcMethod(val parameters: Array[AbcMethodParameter], val returnType: AbcName,
 				val name: Symbol, val needsArguments: Boolean, val needsActivation: Boolean, val needsRest: Boolean,
-				val hasOptionalParameters: Boolean, val setsDXNS: Boolean, val hasParameterNames: Boolean) {
+				val hasOptionalParameters: Boolean, val ignoreRest: Boolean, val isNative: Boolean,
+				val setsDXNS: Boolean, val hasParameterNames: Boolean) {
 	var body: Option[AbcMethodBody] = None
 
 	override def toString = "[AbcMethod name: " + name.toString() + "]"
