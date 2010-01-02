@@ -39,7 +39,7 @@ object Main {
 				//IO dump abc.toByteArray
 			}
 		}*/
-		val swf = Swf fromFile "assets/Test01.swf"
+		val swf = Swf fromFile "assets/TryCatch.swf"
 
 		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 			val doABC = x.asInstanceOf[DoABC]

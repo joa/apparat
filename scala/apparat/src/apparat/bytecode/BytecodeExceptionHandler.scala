@@ -22,4 +22,6 @@ package apparat.bytecode
 
 import apparat.abc.AbcName
 
-class BytecodeExceptionHandler(val from: Marker, val to: Marker, val target: Marker, val typeName: AbcName, val varName: AbcName)
+class BytecodeExceptionHandler(val from: Marker, val to: Marker, val target: Marker, val typeName: AbcName, val varName: AbcName) {
+	override def toString = "(" + from.toString + ", " + to.toString + ") -> " + target + ", " + typeName.toString + ", " + varName.toString
+}
