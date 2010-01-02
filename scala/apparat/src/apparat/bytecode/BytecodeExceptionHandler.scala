@@ -20,10 +20,6 @@
  */
 package apparat.bytecode
 
-import operations.AbstractOp
+import apparat.abc.AbcName
 
-class Marker(private val index: Int) {
-	var position = 0
-	var op: Option[AbstractOp] = None
-	override def toString = "L" + index
-}
+class BytecodeExceptionHandler(val from: Marker, val to: Marker, val target: Marker, val typeName: AbcName, val varName: AbcName)

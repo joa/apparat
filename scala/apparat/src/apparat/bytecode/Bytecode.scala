@@ -230,7 +230,8 @@ object Bytecode {
 
 		try {
 			val (ops, map) = build(new ListBuffer[AbstractOp](), new TreeMap[Int, AbstractOp]())
-			new Bytecode(ops, markers solve map)
+			val exceptions = body.exceptions map { handler => new BytecodeExceptionHandler(markers.putMarkerAt(handler.from), markers.putMarkerAt(handler.to), markers.putMarkerAt(handler.target), handler.typeName, handler.varName) }
+			new Bytecode(ops, markers solve map, exceptions)
 		}
 		finally {
 			try { input.close() } catch { case _ => {} }
@@ -238,24 +239,30 @@ object Bytecode {
 	}
 }
 
-class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager) extends Dumpable {
+class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager, val exceptions: Array[BytecodeExceptionHandler]) extends Dumpable {
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Bytecode:"
 		writer withIndent {
-			writer.println(ops)(op => {
-				val opString = op.toString
-				val builder = new StringBuilder(opString.length + 6)
-				markers getMarkerFor op match {
-					case Some(marker) => {
-						builder append marker.toString
-						builder append ':'
+			writer <= exceptions.length + " exception(s):"
+			writer <<< exceptions
+
+			writer <= ops.length + " operation(s):"
+			writer withIndent {
+				writer.println(ops)(op => {
+					val opString = op.toString
+					val builder = new StringBuilder(opString.length + 6)
+					markers getMarkerFor op match {
+						case Some(marker) => {
+							builder append marker.toString
+							builder append ':'
+						}
+						case None => {}
 					}
-					case None => {}
-				}
-				builder append new String(Array.fill(6 - builder.length)(' '))
-				builder append opString
-				builder.toString
-			})
+					builder append new String(Array.fill(6 - builder.length)(' '))
+					builder append opString
+					builder.toString
+				})
+			}
 		}
 	}
 }
