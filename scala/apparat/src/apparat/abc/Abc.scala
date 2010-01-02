@@ -22,10 +22,12 @@ package apparat.abc
 
 import apparat.utils.IO
 import apparat.utils.IO._
+import apparat.utils.Performance._
 import apparat.bytecode._
 
 import scala.collection.immutable._
 import scala.annotation.tailrec
+import scala.actors.Futures._
 import java.io._
 import apparat.swf.{DoABC, SwfTag}
 
@@ -58,8 +60,9 @@ class Abc {
 	var scripts = new Array[AbcScript](0)
 
 	def loadBytecode() = {
-		for(method <- methods if method.body.isDefined) {
-			Bytecode.fromMethod(method)(this)
+		measure {
+			//methods filter (_.body.isDefined) map { method => future { Bytecode.fromMethod(method)(this) } } map { _() }
+			for(method <- methods if method.body.isDefined) Bytecode.fromMethod(method)(this)
 		}
 	}
 	

@@ -64,5 +64,6 @@ class MarkerManager {
 		}
 
 		unresolved = TreeMap[Int, Marker]()
+		this
 	}
 }
