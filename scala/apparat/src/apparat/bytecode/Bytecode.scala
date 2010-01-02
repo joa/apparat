@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream
 import annotation.tailrec
 import apparat.abc._
 import collection.immutable.{SortedMap, TreeMap}
+import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 object Bytecode {
 	def fromMethod(method: AbcMethod)(implicit abc: Abc) = method.body match {
@@ -237,4 +238,23 @@ object Bytecode {
 	}
 }
 
-class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager)
+class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager) extends Dumpable {
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= "Bytecode:"
+		writer withIndent {
+			writer.println(ops)(op => {
+				val sb = new StringBuilder(0x20)
+				markers getMarkerFor op match {
+					case Some(marker) => {
+						sb append marker.toString
+						sb append ':'
+					}
+					case None => {}
+				}
+				sb append new String(Array.fill(5 - sb.length)(' '))
+				sb append op.toString
+				sb.toString
+			})
+		}
+	}
+}

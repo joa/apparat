@@ -29,6 +29,21 @@ class MarkerManager {
 	private var markers = HashMap[AbstractOp, Marker]()
 	private var unresolved = TreeMap[Int, Marker]()
 
+	def hasMarkerFor(op: AbstractOp) = markers get op match {
+		case Some(_) => true
+		case None => false
+	}
+
+	def getMarkerFor(op: AbstractOp) = markers get op
+
+	def mark(op: AbstractOp) = markers get op getOrElse {
+		val marker = new Marker(numMarkers)
+		marker.op = Some(op)
+		markers += op -> marker
+		numMarkers += 1
+		marker
+	}
+	
 	def hasMarkerAt(position: Int) = unresolved get position match {
 		case Some(_) => true
 		case None => false

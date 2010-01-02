@@ -62,7 +62,10 @@ class Abc {
 	def loadBytecode() = {
 		measure {
 			//methods filter (_.body.isDefined) map { method => future { Bytecode.fromMethod(method)(this) } } map { _() }
-			for(method <- methods if method.body.isDefined) Bytecode.fromMethod(method)(this)
+			for(method <- methods if method.body.isDefined) {
+				val b = Bytecode.fromBody(method.body.get)(this)
+				b.dump()
+			}
 		}
 	}
 	
