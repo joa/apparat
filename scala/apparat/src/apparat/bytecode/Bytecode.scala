@@ -5,18 +5,20 @@ import operations._
 import java.io.ByteArrayInputStream
 import annotation.tailrec
 import apparat.abc._
+import collection.immutable.{SortedMap, TreeMap}
 
 object Bytecode {
-	def fromMethod(method: AbcMethod) = method.body match {
+	def fromMethod(method: AbcMethod)(implicit abc: Abc) = method.body match {
 		case Some(body) => fromBody(body)
 		case None => None
 	}
 
-	def fromBody(body: AbcMethodBody) = {
+	def fromBody(body: AbcMethodBody)(implicit abc: Abc) = {
 		val input = new AbcInputStream(new ByteArrayInputStream(body.code))
-		val cpool = null.asInstanceOf[AbcConstantPool]
-		val abc = null.asInstanceOf[Abc]
+		val cpool = abc.cpool
+		val markers = new MarkerManager()
 		@inline def u08 = input.readU08()
+		@inline def s24 = input.readS24()
 		@inline def u30 = input.readU30()
 		@inline def name = cpool.names(u30)
 		@inline def string = cpool.strings(u30)
@@ -24,7 +26,8 @@ object Bytecode {
 		@inline def register = u30
 		@inline def slot = u30
 		@inline def property = name
-		@inline def nextOp: AbstractOp = input.readU08() match {
+		@inline def marker(implicit position: Int) = markers putMarkerAt (position + 0x04 + s24)
+		@inline def nextOp(implicit position: Int): AbstractOp = input.readU08() match {
 			case Op.add => Add()
 			case Op.add_i => AddInt()
 			case Op.add_p => error("add_p")
@@ -103,20 +106,20 @@ object Bytecode {
 			case Op.greaterthan => GreaterThan()
 			case Op.hasnext => HasNext()
 			case Op.hasnext2 => HasNext2(register, register)
-			/*case Op.ifeq =>
-			case Op.iffalse =>
-			case Op.ifge =>
-			case Op.ifgt =>
-			case Op.ifle =>
-			case Op.iflt =>
-			case Op.ifne =>
-			case Op.ifnge =>
-			case Op.ifngt =>
-			case Op.ifnle =>
-			case Op.ifnlt =>
-			case Op.ifstricteq =>
-			case Op.ifstrictne =>
-			case Op.iftrue =>*/
+			case Op.ifeq => IfEqual(marker)
+			case Op.iffalse => IfFalse(marker)
+			case Op.ifge => IfGreaterEqual(marker)
+			case Op.ifgt => IfGreaterThan(marker)
+			case Op.ifle => IfLessEqual(marker)
+			case Op.iflt => IfLessThan(marker)
+			case Op.ifne => IfNotEqual(marker)
+			case Op.ifnge => IfNotGreaterEqual(marker)
+			case Op.ifngt => IfNotGreaterThan(marker)
+			case Op.ifnle => IfNotLessEqual(marker)
+			case Op.ifnlt => IfNotLessThan(marker)
+			case Op.ifstricteq => IfStrictEqual(marker)
+			case Op.ifstrictne => IfStrictNotEqual(marker)
+			case Op.iftrue => IfTrue(marker)
 			case Op.in => In()
 			case Op.inclocal => IncLocal(register)
 			case Op.inclocal_i => IncLocalInt(register)
@@ -128,7 +131,7 @@ object Bytecode {
 			case Op.instanceof => InstanceOf()
 			case Op.istype => IsType(name)
 			case Op.istypelate => IsTypeLate()
-			//case Op.jump =>
+			case Op.jump => Jump(marker)
 			case Op.kill => Kill(register)
 			case Op.label => Label()
 			case Op.lessequals => LessEquals()
@@ -138,7 +141,7 @@ object Bytecode {
 			case Op.li16 => GetShort()
 			case Op.li32 => GetInt()
 			case Op.li8 => GetByte()
-			//case Op.lookupswitch =>
+			case Op.lookupswitch => LookupSwitch(markers putMarkerAt (position + s24), Array.fill(u30 + 1) { markers putMarkerAt (position + s24) })
 			case Op.lshift => ShiftLeft()
 			case Op.modulo => Modulo()
 			case Op.modulo_p => error("modulo_p")
@@ -215,15 +218,18 @@ object Bytecode {
 			case x => error("Unknown opcode " + x + ".")
 		}
 
-		@tailrec def build(list: ListBuffer[AbstractOp]): ListBuffer[AbstractOp] = {
-			input.available match {
-				case 0 => list
-				case _ => build(list += nextOp)
+		@tailrec def build(list: ListBuffer[AbstractOp], map: SortedMap[Int, AbstractOp]): (ListBuffer[AbstractOp], SortedMap[Int, AbstractOp]) = input.available match {
+			case 0 => (list, map)
+			case _ => {
+				val pos = input.position
+				val op = nextOp(pos)
+				build(list += op, map + (pos -> op))
 			}
 		}
 
 		try {
-			build(new ListBuffer[AbstractOp]())
+			val (ops, map) = build(new ListBuffer[AbstractOp](), new TreeMap[Int, AbstractOp]())
+			markers solve map
 		}
 		finally {
 			try { input.close() } catch { case _ => {} }

@@ -20,4 +20,11 @@
  */
 package apparat.bytecode
 
-class Marker
+import operations.AbstractOp
+
+class Marker(private val index: Int) {
+	var position = 0
+	var op: Option[AbstractOp] = None
+	
+	override def toString = "L" + index
+}

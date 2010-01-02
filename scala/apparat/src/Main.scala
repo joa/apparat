@@ -39,29 +39,27 @@ object Main {
 				//IO dump abc.toByteArray
 			}
 		}*/
-		val swf = Swf fromFile "assets/Test15.swf"
+		val swf = Swf fromFile "assets/Test01.swf"
 
 		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 			val doABC = x.asInstanceOf[DoABC]
-			(Abc fromDoABC doABC) write doABC
+			val abc = Abc fromDoABC doABC
+			abc.loadBytecode()
+			//write doABC
 		}
 
-		swf write "assets/Test15.output.swf"
+		/*
+		swf write "assets/Test00.output.swf"
 
-		val check = Swf fromFile "assets/Test15.output.swf"
+		val check = Swf fromFile "assets/Test00.output.swf"
 
 		for(tag <- check.tags) {
 			(Abc fromTag tag) match {
 				case Some(abc) => {}//abc.cpool.dump()
 				case None => {}
 			}
-		}
+		}*/
 
-		val cp = CallProperty(1, AbcQName('test, AbcNamespace(0, 'public)))
-		val ops = List()
-
-		println(cp.popOperands + " " + cp.pushOperands)
-		println(ops)
 		/*measure {
 				val container = TagContainer fromFile "assets/Test15.swf"
 				(container.tags) foreach (println _)

@@ -22,6 +22,7 @@ package apparat.abc
 
 import apparat.utils.IO
 import apparat.utils.IO._
+import apparat.bytecode._
 
 import scala.collection.immutable._
 import scala.annotation.tailrec
@@ -30,6 +31,7 @@ import apparat.swf.{DoABC, SwfTag}
 
 object Abc {
 	val MINOR = 16
+	//val MINOR = 17//with decimals!
 	val MAJOR = 46
 
 	def fromDoABC(doABC: DoABC) = fromByteArray(doABC.abcData)
@@ -55,6 +57,12 @@ class Abc {
 	var types = new Array[AbcNominalType](0)
 	var scripts = new Array[AbcScript](0)
 
+	def loadBytecode() = {
+		for(method <- methods if method.body.isDefined) {
+			Bytecode.fromMethod(method)(this)
+		}
+	}
+	
 	def read(file: File): Unit = using(new FileInputStream(file))(read _)
 
 	def read(pathname: String): Unit = read(new File(pathname))

@@ -319,6 +319,7 @@ case class Breakpoint() extends AbstractOp with DebugOp
 case class BreakpointLine() extends AbstractOp with DebugOp
 case class Call(numArguments: Int) extends AbstractOpWithOperands(1, 2) with OpWithArguments with OpThatCanThrow
 case class CallMethod(numArguments: Int, methodIndex: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow
+//TODO order is wrong!!!
 case class CallProperty(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
 case class CallPropLex(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
 case class CallPropVoid(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
