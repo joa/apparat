@@ -229,7 +229,7 @@ object Bytecode {
 
 		try {
 			val (ops, map) = build(new ListBuffer[AbstractOp](), new TreeMap[Int, AbstractOp]())
-			markers solve map
+			new Bytecode(ops, markers solve map)
 		}
 		finally {
 			try { input.close() } catch { case _ => {} }
@@ -237,6 +237,4 @@ object Bytecode {
 	}
 }
 
-class Bytecode {
-	private val code = new ListBuffer[AbstractOp]()
-}
+class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager)
