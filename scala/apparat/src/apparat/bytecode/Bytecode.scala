@@ -243,17 +243,18 @@ class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager) extends Dum
 		writer <= "Bytecode:"
 		writer withIndent {
 			writer.println(ops)(op => {
-				val sb = new StringBuilder(0x20)
+				val opString = op.toString
+				val builder = new StringBuilder(opString.length + 6)
 				markers getMarkerFor op match {
 					case Some(marker) => {
-						sb append marker.toString
-						sb append ':'
+						builder append marker.toString
+						builder append ':'
 					}
 					case None => {}
 				}
-				sb append new String(Array.fill(5 - sb.length)(' '))
-				sb append op.toString
-				sb.toString
+				builder append new String(Array.fill(6 - builder.length)(' '))
+				builder append opString
+				builder.toString
 			})
 		}
 	}
