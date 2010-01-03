@@ -18,6 +18,7 @@ object Bytecode {
 		val input = new AbcInputStream(new ByteArrayInputStream(body.code))
 		val cpool = abc.cpool
 		val markers = new MarkerManager()
+		val exceptions = body.exceptions map { handler => new BytecodeExceptionHandler(markers.putMarkerAt(handler.from), markers.putMarkerAt(handler.to), markers.putMarkerAt(handler.target), handler.typeName, handler.varName) }
 		@inline def u08 = input.readU08()
 		@inline def s24 = input.readS24()
 		@inline def u30 = input.readU30()
@@ -42,13 +43,13 @@ object Bytecode {
 			case Op.bkpt => Breakpoint()
 			case Op.bkptline => BreakpointLine()
 			case Op.call => Call(numArguments)
-			case Op.callmethod => CallMethod(numArguments,u30)
-			case Op.callproperty => CallProperty(numArguments, property)
-			case Op.callproplex => CallPropLex(numArguments, property)
-			case Op.callpropvoid => CallPropVoid(numArguments, property)
-			case Op.callstatic => CallStatic(numArguments, abc methods u30)
-			case Op.callsuper => CallSuper(numArguments, property)
-			case Op.callsupervoid => CallSuperVoid(numArguments, property)
+			case Op.callmethod => CallMethod(u30, numArguments)
+			case Op.callproperty => CallProperty(property, numArguments)
+			case Op.callproplex => CallPropLex(property, numArguments)
+			case Op.callpropvoid => CallPropVoid(property, numArguments)
+			case Op.callstatic => CallStatic(abc methods u30, numArguments)
+			case Op.callsuper => CallSuper(property, numArguments)
+			case Op.callsupervoid => CallSuperVoid(property, numArguments)
 			case Op.checkfilter => CheckFilter()
 			case Op.coerce => Coerce(name)
 			case Op.coerce_a => CoerceAny()
@@ -59,7 +60,7 @@ object Bytecode {
 			case Op.coerce_s => CoerceString()
 			case Op.coerce_u => CoerceUInt()
 			case Op.construct => Construct(numArguments)
-			case Op.constructprop => ConstructProp(numArguments, property)
+			case Op.constructprop => ConstructProp(property, numArguments)
 			case Op.constructsuper => ConstructSuper(numArguments)
 			case Op.convert_b => ConvertBoolean()
 			case Op.convert_d => ConvertDouble()
@@ -154,7 +155,7 @@ object Bytecode {
 			case Op.negate_p => error("negate_p")
 			case Op.newactivation => NewActivation()
 			case Op.newarray => NewArray(numArguments)
-			case Op.newcatch => NewCatch(body exceptions u30)
+			case Op.newcatch => NewCatch(exceptions(u30))
 			case Op.newclass => NewClass(abc types u30)
 			case Op.newfunction => NewFunction(abc methods u30)
 			case Op.newobject => NewObject(numArguments)
@@ -230,7 +231,6 @@ object Bytecode {
 
 		try {
 			val (ops, map) = build(new ListBuffer[AbstractOp](), new TreeMap[Int, AbstractOp]())
-			val exceptions = body.exceptions map { handler => new BytecodeExceptionHandler(markers.putMarkerAt(handler.from), markers.putMarkerAt(handler.to), markers.putMarkerAt(handler.target), handler.typeName, handler.varName) }
 			new Bytecode(ops, markers solve map, exceptions)
 		}
 		finally {

@@ -21,7 +21,7 @@
 package apparat.bytecode.operations
 
 import apparat.abc._
-import apparat.bytecode.Marker
+import apparat.bytecode.{BytecodeExceptionHandler, Marker}
 
 object Op {
 	val bkpt = 0x01
@@ -318,14 +318,13 @@ case class BitXor() extends AbstractBinaryOp
 case class Breakpoint() extends AbstractOp with DebugOp
 case class BreakpointLine() extends AbstractOp with DebugOp
 case class Call(numArguments: Int) extends AbstractOpWithOperands(1, 2) with OpWithArguments with OpThatCanThrow
-case class CallMethod(numArguments: Int, methodIndex: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow
-//TODO order is wrong!!!
-case class CallProperty(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
-case class CallPropLex(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
-case class CallPropVoid(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
-case class CallStatic(numArguments: Int, method: AbcMethod) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
-case class CallSuper(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
-case class CallSuperVoid(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CallMethod(methodIndex: Int, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow
+case class CallProperty(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CallPropLex(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CallPropVoid(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CallStatic(method: AbcMethod, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow
+case class CallSuper(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class CallSuperVoid(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
 case class CheckFilter() extends AbstractOpWithOperands(1, 1) with OpThatCanThrow
 case class Coerce(typeName: AbcName) extends AbstractUnaryOp with OpThatCanThrow { require(!typeName.isRuntimeName) }
 case class CoerceAny() extends AbstractUnaryOp
@@ -336,7 +335,7 @@ case class CoerceObject() extends AbstractUnaryOp
 case class CoerceString() extends AbstractUnaryOp
 case class CoerceUInt() extends AbstractUnaryOp
 case class Construct(numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow
-case class ConstructProp(numArguments: Int, property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
+case class ConstructProp(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow
 case class ConstructSuper(numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpThatCanThrow
 case class ConvertBoolean() extends AbstractUnaryOp
 case class ConvertInt() extends AbstractUnaryOp
@@ -411,7 +410,7 @@ case class Negate() extends AbstractUnaryOp
 case class NegateInt() extends AbstractUnaryOp
 case class NewActivation() extends AbstractOpWithOperands(1, 0)
 case class NewArray(numArguments: Int) extends AbstractOpWithOperands(1, 0) with OpWithArguments
-case class NewCatch(exceptionHandler: AbcExceptionHandler) extends AbstractOpWithOperands(1, 0)
+case class NewCatch(exceptionHandler: BytecodeExceptionHandler) extends AbstractOpWithOperands(1, 0)
 case class NewClass(nominalType: AbcNominalType) extends AbstractOpWithOperands(1, 1)
 case class NewFunction(function: AbcMethod) extends AbstractOpWithOperands(1, 0)
 case class NewObject(numArguments: Int) extends AbstractOpWithOperands(1, numArguments * 2)
