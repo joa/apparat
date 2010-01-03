@@ -253,8 +253,18 @@ class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager, val excepti
 					val builder = new StringBuilder(opString.length + 6)
 					markers getMarkerFor op match {
 						case Some(marker) => {
-							builder append marker.toString
-							builder append ':'
+							if(exceptions exists (_.from == marker)) {
+								writer <= "      try {"
+								writer ++ 1
+							} else if(exceptions exists (_.to == marker)) {
+								val exception = exceptions filter (_.to == marker)
+								assume(exception.length == 1)
+								writer -- 1
+								writer <= "      } catch(" + exception(0).varName + " : " + exception(0).typeName + ") => " + exception(0).target
+							} else {
+								builder append marker.toString
+								builder append ':'
+							}
 						}
 						case None => {}
 					}
