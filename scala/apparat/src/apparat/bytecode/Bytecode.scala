@@ -254,21 +254,31 @@ class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager, val excepti
 					markers getMarkerFor op match {
 						case Some(marker) => {
 							if(exceptions exists (_.from == marker)) {
-								writer <= "      try {"
+								writer <= "try {"
 								writer ++ 1
 							} else if(exceptions exists (_.to == marker)) {
-								val exception = exceptions filter (_.to == marker)
-								assume(exception.length == 1)
+								val exceptionEnds = exceptions filter (_.to == marker)
 								writer -- 1
-								writer <= "      } catch(" + exception(0).varName + " : " + exception(0).typeName + ") => " + exception(0).target
-							} else {
-								builder append marker.toString
-								builder append ':'
+								writer <= "} catch {"
+								writer withIndent {
+									for(exception <- exceptionEnds) {
+										writer <= "(" + exception.varName + ", " + exception.typeName + ") => " + exception.target
+									}
+								}
+								writer <= "}"
 							}
+
+							builder append marker.toString
+							builder append ':'
 						}
 						case None => {}
 					}
-					builder append new String(Array.fill(6 - builder.length)(' '))
+
+					(8 - builder.length) match {
+						case x if x > 0 => builder append new String(Array.fill(x)(' '))
+						case _ => {}
+					}
+
 					builder append opString
 					builder.toString
 				})
