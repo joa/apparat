@@ -29,6 +29,8 @@ class MarkerManager {
 	private var markers = HashMap[AbstractOp, Marker]()
 	private var unresolved = TreeMap[Int, Marker]()
 
+	def apply(op: AbstractOp) = getMarkerFor(op)
+
 	def hasMarkerFor(op: AbstractOp) = markers get op match {
 		case Some(_) => true
 		case None => false
@@ -44,14 +46,14 @@ class MarkerManager {
 		marker
 	}
 	
-	def hasMarkerAt(position: Int) = unresolved get position match {
+	protected[bytecode] def hasMarkerAt(position: Int) = unresolved get position match {
 		case Some(_) => true
 		case None => false
 	}
 
-	def getMarkerAt(position: Int) = unresolved get position
+	protected[bytecode] def getMarkerAt(position: Int) = unresolved get position
 
-	def putMarkerAt(position: Int) = {
+	protected[bytecode] def putMarkerAt(position: Int) = {
 		if(hasMarkerAt(position)) {
 			getMarkerAt(position).getOrElse(error("Internal error."))
 		} else {
@@ -63,7 +65,7 @@ class MarkerManager {
 		}
 	}
 
-	def solve(map: SortedMap[Int, AbstractOp]) = {
+	protected[bytecode] def solve(map: SortedMap[Int, AbstractOp]) = {
 		var previous: Option[Int] = None
 		for((position, op) <- map) {
 			unresolved range (0, position + 1) lastOption match {

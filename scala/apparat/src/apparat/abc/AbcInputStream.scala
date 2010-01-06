@@ -25,7 +25,7 @@ import java.io.InputStream
 
 
 class AbcInputStream(input: InputStream) extends InputStream {
-	var pos: Int = 0
+	private var pos: Int = 0
 
 	def position = pos
 

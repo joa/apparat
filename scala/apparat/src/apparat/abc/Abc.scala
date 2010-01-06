@@ -60,13 +60,10 @@ class Abc {
 	var scripts = new Array[AbcScript](0)
 
 	def loadBytecode() = {
-		measure {
-			//methods filter (_.body.isDefined) map { method => future { Bytecode.fromMethod(method)(this) } } map { _() }
-			for(method <- methods if method.body.isDefined) {
-				val b = Bytecode.fromBody(method.body.get)(this)
-				b.dump()
-			}
-		}
+		methods filter (_.body.isDefined) map { method => future { Bytecode.fromMethod(method)(this) } } map { _() }
+		//for(method <- methods if method.body.isDefined) {
+		//	Bytecode.fromBody(method.body.get)(this)
+		//}
 	}
 	
 	def read(file: File): Unit = using(new FileInputStream(file))(read _)

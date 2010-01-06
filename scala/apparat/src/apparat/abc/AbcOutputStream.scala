@@ -23,6 +23,10 @@ package apparat.abc
 import java.io.OutputStream
 
 class AbcOutputStream(val output: OutputStream) extends OutputStream {
+	private var pos: Int = 0
+
+	def position = pos
+
 	private def encodeInt(value: Long) = {
 		value match {
 			case x if (x < 0 || x > 268435455) => {
@@ -93,9 +97,18 @@ class AbcOutputStream(val output: OutputStream) extends OutputStream {
 
 	override def flush() = output.flush()
 
-	override def write(value: Array[Byte]) = output write value
+	override def write(value: Array[Byte]) = {
+		pos += value.length
+		output write value
+	}
 
-	override def write(value: Array[Byte], offset: Int, length: Int) = output write (value, offset, length)
+	override def write(value: Array[Byte], offset: Int, length: Int) = {
+		pos += length	
+		output write (value, offset, length)
+	}
 
-	override def write(value: Int) = output write value
+	override def write(value: Int) = {
+		pos += 1
+		output write value
+	}
 }

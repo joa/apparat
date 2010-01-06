@@ -19,11 +19,10 @@
  * 
  */
 import apparat.abc.{AbcNamespace, AbcQName, Abc}
-import apparat.bytecode.operations.{AddDouble, Add}
 import apparat.graph.{Vertex, Graph}
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
-import apparat.utils._
+import apparat.utils.Performance._
 import java.io.PrintWriter
 import apparat.bytecode.operations._
 
@@ -39,13 +38,15 @@ object Main {
 				//IO dump abc.toByteArray
 			}
 		}*/
-		val swf = Swf fromFile "assets/TryCatch.swf"
+		val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
-		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
-			val doABC = x.asInstanceOf[DoABC]
-			val abc = Abc fromDoABC doABC
-			abc.loadBytecode()
-			//write doABC
+		measure {
+			for(x <- swf.tags if x.kind == SwfTags.DoABC) {
+				val doABC = x.asInstanceOf[DoABC]
+				val abc = Abc fromDoABC doABC
+				abc.loadBytecode()
+				//write doABC
+			}
 		}
 
 		/*
