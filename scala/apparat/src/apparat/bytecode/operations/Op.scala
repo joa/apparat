@@ -76,7 +76,7 @@ object Op {
     val hasnext2 = 0x32
     val pushdecimal = 0x33
  	val pushdnan = 0x34
- 	
+
  	val li8 = 0x35
 	val li16 = 0x36
 	val li32 = 0x37
@@ -132,7 +132,7 @@ object Op {
     val deleteproperty = 0x6a
     val getslot = 0x6c
     val setslot = 0x6d
-    
+
     /** @deprecated use getglobalscope+getslot */
     val getglobalslot = 0x6e
 
@@ -153,7 +153,7 @@ object Op {
  	val convert_m_p = 0x7a
 
     val coerce = 0x80
-    
+
     /** @deprecated use OP_convert_b */
     val coerce_b        = 0x81
     val coerce_a        = 0x82
@@ -182,7 +182,7 @@ object Op {
 	val inclocal_p = 0x9d
 	val decrement_p = 0x9e
 	val declocal_p = 0x9f
- 
+
     val add = 0xa0
     val subtract = 0xa1
     val multiply = 0xa2
@@ -224,12 +224,12 @@ object Op {
     val getlocal0 = 0xd0
     val getlocal1 = 0xd1
     val getlocal2 = 0xd2
-    val getlocal3 = 0xd3    
+    val getlocal3 = 0xd3
     val setlocal0 = 0xd4
     val setlocal1 = 0xd5
     val setlocal2 = 0xd6
-    val setlocal3 = 0xd7    
-    
+    val setlocal3 = 0xd7
+
     val debug = 0xef
 
     val debugline = 0xf0
@@ -267,6 +267,8 @@ trait AlchemyOp
 trait OpThatCanThrow extends AbstractOp { final override def canThrow = true }
 
 trait OpThatControlsFlow extends AbstractOp { final override def controlsFlow = true }
+
+trait OpThatReturn extends OpThatControlsFlow
 
 trait OpWithRegister { def register: Int }
 
@@ -463,8 +465,8 @@ case class PushWith() extends AbstractOpWithScopes(1, 0) with OpThatCanThrow {
 	override def popOperands = 1
 	final override def opCode = Op.pushwith
 }
-case class ReturnValue() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatControlsFlow { final override def opCode = Op.returnvalue }
-case class ReturnVoid() extends AbstractOp with OpThatControlsFlow { final override def opCode = Op.returnvoid }
+case class ReturnValue() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatReturn { final override def opCode = Op.returnvalue }
+case class ReturnVoid() extends AbstractOp with OpThatReturn { final override def opCode = Op.returnvoid }
 case class ShiftRight() extends AbstractBinaryOp { final override def opCode = Op.rshift }
 case class SetLocal(register: Int) extends AbstractOpWithOperands(0, 1) with OpWithRegister {
 	final override def opCode = register match {
