@@ -268,7 +268,7 @@ trait OpThatCanThrow extends AbstractOp { final override def canThrow = true }
 
 trait OpThatControlsFlow extends AbstractOp { final override def controlsFlow = true }
 
-trait OpThatReturn extends OpThatControlsFlow
+trait OpThatReturns extends OpThatControlsFlow
 
 trait OpWithRegister { def register: Int }
 
@@ -465,8 +465,8 @@ case class PushWith() extends AbstractOpWithScopes(1, 0) with OpThatCanThrow {
 	override def popOperands = 1
 	final override def opCode = Op.pushwith
 }
-case class ReturnValue() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatReturn { final override def opCode = Op.returnvalue }
-case class ReturnVoid() extends AbstractOp with OpThatReturn { final override def opCode = Op.returnvoid }
+case class ReturnValue() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatReturns { final override def opCode = Op.returnvalue }
+case class ReturnVoid() extends AbstractOp with OpThatReturns { final override def opCode = Op.returnvoid }
 case class ShiftRight() extends AbstractBinaryOp { final override def opCode = Op.rshift }
 case class SetLocal(register: Int) extends AbstractOpWithOperands(0, 1) with OpWithRegister {
 	final override def opCode = register match {
