@@ -35,5 +35,13 @@ object Bytecode {
 
 class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager, val exceptions: Array[BytecodeExceptionHandler]) extends Dumpable {
 	override def dump(writer: IndentingPrintWriter) = new BytecodeDump(ops, markers, exceptions) dump writer
+
+	def storeIn(body: AbcMethodBody)(implicit abc: Abc) = {
+		val (code, exceptions) = BytecodeEncoder(this)
+
+		body.code = code
+		body.exceptions = exceptions
+	}
+
 	def toByteArray(implicit abc: Abc) = BytecodeEncoder(this)._1
 }

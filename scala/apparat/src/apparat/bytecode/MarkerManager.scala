@@ -80,7 +80,7 @@ class MarkerManager {
 			previous = Some(position)
 		}
 
-		unresolved = TreeMap[Int, Marker]()
+		unresolved = TreeMap.empty
 		this
 	}
 }

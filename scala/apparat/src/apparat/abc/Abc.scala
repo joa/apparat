@@ -60,12 +60,36 @@ class Abc {
 	var scripts = new Array[AbcScript](0)
 
 	def loadBytecode() = {
-		//methods filter (_.body.isDefined) map { method => future { Bytecode.fromMethod(method)(this) } } map { _() }
-		for(method <- methods if method.body.isDefined) {
-			method.body.get.code = Bytecode.fromBody(method.body.get)(this).toByteArray(this)
+		implicit val abc = this
+
+		//
+		// Solution using futures:
+		//
+
+		// methods filter (_.body.isDefined) map { method => future { Bytecode.fromMethod(method)(this) } } map { _() }
+
+		methods foreach {
+			_.body match {
+				case Some(body) => body.bytecode = Some(Bytecode fromBody body)
+				case None => {}
+			}
 		}
 	}
-	
+
+	def saveBytecode() = {
+		implicit val abc = this
+		
+		methods foreach {
+			_.body match {
+				case Some(body) => body.bytecode match {
+					case Some(bytecode) => bytecode storeIn body
+					case None => {}
+				}
+				case None => {}
+			}
+		}
+	}
+
 	def read(file: File): Unit = using(new FileInputStream(file))(read _)
 
 	def read(pathname: String): Unit = read(new File(pathname))

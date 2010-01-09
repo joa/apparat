@@ -1,5 +1,7 @@
 package apparat.abc
 
+import apparat.bytecode.Bytecode
+
 class AbcMethodParameter(val typeName: AbcName) {
 	var name: Option[Symbol] = None
 	var optional = false
@@ -18,6 +20,6 @@ class AbcMethod(val parameters: Array[AbcMethodParameter], val returnType: AbcNa
 
 class AbcMethodBody(val maxStack: Int, val localCount: Int, val initScopeDepth: Int,
 					val maxScopeDepth: Int, var code: Array[Byte], var exceptions: Array[AbcExceptionHandler],
-					val traits: Array[AbcTrait])
+					val traits: Array[AbcTrait], var bytecode: Option[Bytecode] = None)
 
 class AbcExceptionHandler(val from: Int, val to: Int, val target: Int, val typeName: AbcName, val varName: AbcName)
