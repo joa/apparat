@@ -17,7 +17,7 @@ class AbcMethod(val parameters: Array[AbcMethodParameter], val returnType: AbcNa
 }
 
 class AbcMethodBody(val maxStack: Int, val localCount: Int, val initScopeDepth: Int,
-					val maxScopeDepth: Int, val code: Array[Byte], val exceptions: Array[AbcExceptionHandler],
+					val maxScopeDepth: Int, var code: Array[Byte], var exceptions: Array[AbcExceptionHandler],
 					val traits: Array[AbcTrait])
 
 class AbcExceptionHandler(val from: Int, val to: Int, val target: Int, val typeName: AbcName, val varName: AbcName)

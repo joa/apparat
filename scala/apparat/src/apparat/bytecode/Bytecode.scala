@@ -394,7 +394,6 @@ class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager, val excepti
 				case LessEquals() | LessThan() => {}
 				case LookupSwitch(defaultCase, cases) => {
 					patch(op)
-					s24(0)
 					u30(cases.length - 1)
 					(0 until cases.length) foreach { i => s24(0) }
 				}
@@ -433,11 +432,29 @@ class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager, val excepti
 		}
 		try {
 			ops foreach writeOp
+
+			output.close()
+
+			val buffer = byteArrayOutputStream.toByteArray
+
+			for((position, op) <- patches) {
+				op match {
+					case LookupSwitch(defaultCase, cases) => {
+						val offset = position + 4 + AbcOutputUtil.lengthOf(cases.length - 1)
+
+						AbcOutputUtil.writeS24(buffer, position + 1, defaultCase.position - position)
+						for(i <- 0 until cases.length)
+							AbcOutputUtil.writeS24(buffer, offset + i * 3, cases(i).position - position );
+					}
+					case opWithMarker: OpWithMarker => AbcOutputUtil.writeS24(buffer, position + 1, opWithMarker.marker.position - (position + 4))
+					case other => error("Unexpected operation " + other)
+				}
+			}
+
+			buffer
 		}
 		finally {
 			try { output.close() } catch { case _ => {} }
 		}
-
-		byteArrayOutputStream.toByteArray
 	}
 }
