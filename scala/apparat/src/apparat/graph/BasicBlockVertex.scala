@@ -20,4 +20,28 @@
  */
 package apparat.graph
 
-class BasicBlockVertex extends VertexLike
+class BasicBlockVertex[T](var block: Seq[T]) extends VertexLike {
+	def this() = this (Nil)
+
+	def ++(elms: Seq[T]) = {
+		block = block ++ elms
+		this
+	}
+
+	def contains(elm: T): Boolean = block contains elm
+
+	def indexOf(elm: T): Int = block indexOf elm
+
+	def length: Int = block.length
+
+	def apply(index: Int): T = block(index)
+
+	def clear() {block = Nil}
+
+	def isEmpty() = block.isEmpty
+
+	// FIXME tmp for the dot graph export
+	override def toString() = {
+		block.mkString("", "\\n", "")
+	}
+}

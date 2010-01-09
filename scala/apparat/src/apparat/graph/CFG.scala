@@ -20,7 +20,57 @@
  */
 package apparat.graph
 
-class CFG extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex] with DOTExportAvailable[BasicBlockVertex] {
+// FIXME is it ok to manage entry and exit vertex like that ?
+
+trait EntryVertex {
+	override def toString() = "Entry"
+}
+trait ExitVertex {
+	override def toString() = "Exit"
+}
+
+class CFG[T] extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex[T]] with DOTExportAvailable[BasicBlockVertex[T]] {
+	type BlockVertex = BasicBlockVertex[T]
+
+	protected[graph] var _entryVertex: BlockVertex = null
+
+	def entryVertex = _entryVertex
+
+	protected[graph] var _exitVertex: BlockVertex = null
+
+	def exitVertex = _exitVertex
+
+	protected[graph] def newEntryVertex() = new BlockVertex() with EntryVertex
+
+	protected[graph] def newExitVertex() = new BlockVertex() with ExitVertex
+
+	protected[graph] def setEntryVertex() {
+		if (entryVertex != null) {
+			entryVertex.clear()
+			remove(entryVertex)
+		}
+		_entryVertex = newEntryVertex()
+		add(entryVertex)
+	}
+
+	protected[graph] def setExitVertex() {
+		if (exitVertex != null) {
+			exitVertex.clear()
+			remove(exitVertex)
+		}
+		_exitVertex = newExitVertex()
+		add(exitVertex)
+	}
+
+	setEntryVertex()
+	setExitVertex()
+
+	protected[graph] def addBlock(block: Seq[T]): BlockVertex = {
+		val bv = new BlockVertex(block)
+		add(bv)
+		bv
+	}
+
 	override def add(edge: E) = {
 		assert(edge.kind != EdgeKind.Default)
 		super.add(edge)
@@ -28,17 +78,20 @@ class CFG extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex] with DOTExportA
 
 	override def toString = "[CFG]"
 
+	def edgeToString(edge: E) = edge match {
+		case DefaultEdge(x, y) => error("CFG may not contain default edges.")
+		case JumpEdge(x, y) => "jump"
+		case TrueEdge(x, y) => "true"
+		case FalseEdge(x, y) => "false"
+		case DefaultCaseEdge(x, y) => "default"
+		case CaseEdge(x, y) => "case"
+		case ThrowEdge(x, y) => "throw"
+		case ReturnEdge(x, y) => "return"
+	}
+
+	def vertexToString(vertex: BlockVertex) = vertex.toString()
+
 	override def dotExport = {
-		def edgeToString(edge: E) = edge match {
-			case DefaultEdge(x, y) => error("CFG may not contain default edges.")
-			case JumpEdge(x, y) => "jump"
-			case TrueEdge(x, y) => "true"
-			case FalseEdge(x, y) => "false"
-			case DefaultCaseEdge(x, y) => "default"
-			case CaseEdge(x, y) => "case"
-			case ThrowEdge(x, y) => "throw"
-			case ReturnEdge(x, y) => "return"
-		}
-		new DOTExport(this, (_: BasicBlockVertex).toString, edgeToString)
+		new DOTExport(this, vertexToString, edgeToString)
 	}
 }
