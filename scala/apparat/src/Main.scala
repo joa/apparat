@@ -30,11 +30,11 @@ import apparat.bytecode.combinator._
 import apparat.bytecode.Bytecode._
 object Main {
 	def main(args: Array[String]): Unit = {
-		val parser = PushInt(0) ~ Pop()
+		val chain = PushInt(0) ~ Pop()
 		val b = bytecode {
 			GetLocal(0) :: PushScope() :: PushInt(0) :: Pop() :: ReturnVoid() :: Nil
 		}
-		println(b contains parser)
+		println(b contains chain)
 		/*val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 		Performance.measure("Total") {
 			val abc = new Abc
