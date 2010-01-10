@@ -25,7 +25,7 @@ import apparat.swf.{DoABC, SwfTags, Swf}
 import apparat.utils.Performance._
 import java.io.PrintWriter
 import apparat.bytecode.operations._
-import apparat.bytecode.combinator.BytecodeParsers._
+import apparat.bytecode.combinator.BytecodeChains._
 import apparat.bytecode.combinator._
 import apparat.bytecode.Bytecode._
 object Main {

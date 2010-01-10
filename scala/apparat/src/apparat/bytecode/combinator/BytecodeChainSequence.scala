@@ -2,8 +2,8 @@ package apparat.bytecode.combinator
 
 import apparat.bytecode.operations.AbstractOp
 
-class SequenceParser[+A, +B](l: => Parser[A],
-							 r: => Parser[B]) extends Parser[(A, B)] {
+class BytecodeChainSequence[+A, +B](l: => BytecodeChain[A],
+							 r: => BytecodeChain[B]) extends BytecodeChain[(A, B)] {
 	lazy val left = l
 	lazy val right = r
 

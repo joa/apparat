@@ -22,7 +22,7 @@ package apparat.bytecode
 
 import apparat.abc.{Abc, AbcMethod, AbcMethodBody}
 import apparat.utils.{Dumpable, IndentingPrintWriter}
-import combinator.{Failure, Success, Parser}
+import combinator.{Failure, Success, BytecodeChain}
 import operations.AbstractOp
 
 object Bytecode {
@@ -45,9 +45,9 @@ class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager, val excepti
 		body.exceptions = exceptions
 	}
 
-	def contains[A](parser: Parser[A]) = {
+	def contains[A](chain: BytecodeChain[A]) = {
 		def loop(stream: Stream[AbstractOp]): Boolean = {
-			parser(stream) match {
+			chain(stream) match {
 				case Success(_, _) => true
 				case Failure(_, remaining) => if(remaining.isEmpty) false else loop(remaining)
 			}
