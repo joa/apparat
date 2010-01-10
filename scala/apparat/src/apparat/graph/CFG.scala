@@ -76,6 +76,11 @@ class CFG[T] extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex[T]] with DOTE
 		super.add(edge)
 	}
 
+	def find(elm: T) = verticesIterator.find(_ contains elm)
+
+	def contains(elm: T) = verticesIterator.exists(_ contains elm)
+
+
 	override def toString = "[CFG]"
 
 	def edgeToString(edge: E) = edge match {
