@@ -20,16 +20,21 @@
  */
 package apparat.abc
 
+import annotation.tailrec
+import apparat.bytecode._
 import apparat.utils.IO
 import apparat.utils.IO._
-import apparat.utils.Performance._
-import apparat.bytecode._
-
-import scala.collection.immutable._
-import scala.annotation.tailrec
-import scala.actors.Futures._
-import java.io._
 import apparat.swf.{DoABC, SwfTag}
+import collection.immutable._
+import java.io.{
+	ByteArrayInputStream => JByteArrayInputStream,
+	ByteArrayOutputStream => JByteArrayOutputStream,
+	InputStream => JInputStream,
+	File => JFile,
+	FileInputStream => JFileInputStream,
+	FileOutputStream => JFileOutputStream,
+	OutputStream => JOutputStream
+}
 
 object Abc {
 	val MINOR = 16
@@ -90,13 +95,13 @@ class Abc {
 		}
 	}
 
-	def read(file: File): Unit = using(new FileInputStream(file))(read _)
+	def read(file: JFile): Unit = using(new JFileInputStream(file))(read _)
 
-	def read(pathname: String): Unit = read(new File(pathname))
+	def read(pathname: String): Unit = read(new JFile(pathname))
 
-	def read(input: InputStream): Unit = using(new AbcInputStream(input))(read _)
+	def read(input: JInputStream): Unit = using(new AbcInputStream(input))(read _)
 
-	def read(data: Array[Byte]): Unit = using(new ByteArrayInputStream(data))(read _)
+	def read(data: Array[Byte]): Unit = using(new JByteArrayInputStream(data))(read _)
 
 	def read(doABC: DoABC): Unit = read(doABC.abcData)
 
@@ -111,11 +116,11 @@ class Abc {
 		readBodies(input)
 	}
 
-	def write(file: File): Unit = using(new FileOutputStream(file))(write _)
+	def write(file: JFile): Unit = using(new JFileOutputStream(file))(write _)
 
-	def write(pathname: String): Unit = write(new File(pathname))
+	def write(pathname: String): Unit = write(new JFile(pathname))
 
-	def write(output: OutputStream): Unit = using(new AbcOutputStream(output))(write _)
+	def write(output: JOutputStream): Unit = using(new AbcOutputStream(output))(write _)
 
 	def write(doABC: DoABC): Unit = doABC.abcData = toByteArray
 
@@ -131,9 +136,9 @@ class Abc {
 	}
 
 	def toByteArray = {
-		val baos = new ByteArrayOutputStream()
-		using(baos)(write _)
-		baos.toByteArray()
+		val byteArrayOutputStream = new JByteArrayOutputStream()
+		using(byteArrayOutputStream)(write _)
+		byteArrayOutputStream.toByteArray
 	}
 
 	private def readPool(implicit input: AbcInputStream) = {

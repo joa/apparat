@@ -20,21 +20,33 @@
  */
 package apparat.swc
 
-import java.io.{File, FileInputStream, FileOutputStream, ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
-import java.util.zip.{Deflater, ZipInputStream, ZipOutputStream, ZipEntry}
+import java.io.{
+	File => JFile,
+	FileInputStream => JFileInputStream,
+	FileOutputStream => JFileOutputStream,
+	ByteArrayInputStream => JByteArrayInputStream,
+	InputStream => JInputStream,
+	OutputStream => JOutputStream
+}
+import java.util.zip.{
+	Deflater => JDeflater,
+	ZipInputStream => JZipInputStream,
+	ZipOutputStream => JZipOutputStream,
+	ZipEntry => JZipEntry
+}
 import apparat.utils.IO._
 import apparat.utils.IO
 
 object Swc {
-	def fromFile(file: File): Swc = {
+	def fromFile(file: JFile): Swc = {
 		val swc = new Swc
 		swc read file
 		swc
 	}
 
-	def fromFile(pathname: String): Swc = fromFile(new File(pathname))
+	def fromFile(pathname: String): Swc = fromFile(new JFile(pathname))
 
-	def fromInputStream(input: InputStream) = {
+	def fromInputStream(input: JInputStream) = {
 		val swc = new Swc
 		swc read input
 		swc
@@ -45,25 +57,25 @@ class Swc {
 	var catalog: Option[Array[Byte]] = None
 	var library: Option[Array[Byte]] = None
 
-	def read(file: File): Unit = using(new FileInputStream(file))(read _)
+	def read(file: JFile): Unit = using(new JFileInputStream(file))(read _)
 
-	def read(pathname: String): Unit = read(new File(pathname))
+	def read(pathname: String): Unit = read(new JFile(pathname))
 
-	def read(input: InputStream): Unit = using(new ZipInputStream(input))(read _)
+	def read(input: JInputStream): Unit = using(new JZipInputStream(input))(read _)
 
-	def read(data: Array[Byte]): Unit = using(new ByteArrayInputStream(data))(read _)
+	def read(data: Array[Byte]): Unit = using(new JByteArrayInputStream(data))(read _)
 
-	def read(input: ZipInputStream): Unit = extract(input)
+	def read(input: JZipInputStream): Unit = extract(input)
 
-	def write(file: File): Unit = using(new FileOutputStream(file))(write _)
+	def write(file: JFile): Unit = using(new JFileOutputStream(file))(write _)
 
-	def write(pathname: String): Unit = write(new File(pathname))
+	def write(pathname: String): Unit = write(new JFile(pathname))
 
-	def write(output: OutputStream): Unit = {
-		val zipOutput = new ZipOutputStream(output)
+	def write(output: JOutputStream): Unit = {
+		val zipOutput = new JZipOutputStream(output)
 		try {
-			zipOutput setMethod ZipOutputStream.DEFLATED
-			zipOutput setLevel Deflater.BEST_COMPRESSION
+			zipOutput setMethod JZipOutputStream.DEFLATED
+			zipOutput setLevel JDeflater.BEST_COMPRESSION
 
 			write(zipOutput)
 
@@ -74,24 +86,24 @@ class Swc {
 		}
 	}
 
-	def write(output: ZipOutputStream): Unit = {
+	def write(output: JZipOutputStream): Unit = {
 		write(output, catalog, "catalog.xml")
 		write(output, library, "library.swf")
 		output flush ()
 	}
 
-	private def write(output: ZipOutputStream, target: Option[Array[Byte]], name: String): Unit = target match {
+	private def write(output: JZipOutputStream, target: Option[Array[Byte]], name: String): Unit = target match {
 		case Some(data) => {
-			output putNextEntry new ZipEntry(name)
+			output putNextEntry new JZipEntry(name)
 			output write data
 			output closeEntry
 		}
 		case None => error(name + " is missing.")
 	}
 
-	private def extract(implicit input: ZipInputStream): Unit = input getNextEntry match {
+	private def extract(implicit input: JZipInputStream): Unit = input getNextEntry match {
 		case null => {}
-		case _@entry => {
+		case entry => {
 			val name = entry.getName()
 			val size = entry.getSize()
 
@@ -106,7 +118,7 @@ class Swc {
 		}
 	}
 
-	private def extractBytes(length: Int)(implicit input: ZipInputStream) = length match {
+	private def extractBytes(length: Int)(implicit input: JZipInputStream) = length match {
 		case -1 => byteArrayOf(input)
 		case _ => IO read length
 	}

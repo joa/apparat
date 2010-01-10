@@ -21,10 +21,10 @@
 package apparat.abc
 
 import apparat.utils.IO
-import java.io.InputStream
+import java.io.{InputStream => JInputStream}
 
 
-class AbcInputStream(input: InputStream) extends InputStream {
+class AbcInputStream(input: JInputStream) extends JInputStream {
 	private var pos: Int = 0
 
 	def position = pos

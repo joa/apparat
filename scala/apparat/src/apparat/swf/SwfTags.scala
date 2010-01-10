@@ -21,6 +21,7 @@
 package apparat.swf
 
 import apparat.utils._
+
 object SwfTags {
 	val End = 0
 	val ShowFrame = 1

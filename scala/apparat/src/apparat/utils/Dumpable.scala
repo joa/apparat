@@ -20,11 +20,11 @@
  */
 package apparat.utils
 
-import java.io.{PrintWriter}
+import java.io.{PrintWriter => JPrintWriter}
 
 trait Dumpable {
-	def dump(): Unit = dump(new PrintWriter(Console.out))
-	def dump(writer: PrintWriter): Unit = {
+	def dump(): Unit = dump(new JPrintWriter(Console.out))
+	def dump(writer: JPrintWriter): Unit = {
 		val indentingPrintWriter = new IndentingPrintWriter(writer)
 		dump(indentingPrintWriter)
 		indentingPrintWriter.flush()

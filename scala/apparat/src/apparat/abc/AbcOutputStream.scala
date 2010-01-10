@@ -20,9 +20,9 @@
  */
 package apparat.abc
 
-import java.io.OutputStream
+import java.io.{OutputStream => JOutputStream}
 
-class AbcOutputStream(val output: OutputStream) extends OutputStream {
+class AbcOutputStream(val output: JOutputStream) extends JOutputStream {
 	private var pos: Int = 0
 
 	def position = pos

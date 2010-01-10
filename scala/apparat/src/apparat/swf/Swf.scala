@@ -22,13 +22,21 @@ package apparat.swf
 
 import apparat.swc.Swc
 import apparat.utils.IO._
-import java.io.{File, FileInputStream, FileOutputStream, ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
-import java.util.zip.{Inflater, Deflater}
+import java.io.{
+	File => JFile,
+	FileInputStream => JFileInputStream,
+	FileOutputStream => JFileOutputStream,
+	ByteArrayInputStream => JByteArrayInputStream,
+	ByteArrayOutputStream => JByteArrayOutputStream,
+	InputStream => JInputStream,
+	OutputStream => JOutputStream
+}
+import java.util.zip.{Inflater => JInflater, Deflater => JDeflater}
 import scala.annotation.tailrec
 
 
 object Swf {
-	def fromFile(file: File): Swf = {
+	def fromFile(file: JFile): Swf = {
 		if (file.getName() endsWith "swc") {
 			fromSwc(Swc fromFile file)
 		} else {
@@ -38,7 +46,7 @@ object Swf {
 		}
 	}
 
-	def fromFile(pathname: String): Swf = fromFile(new File(pathname))
+	def fromFile(pathname: String): Swf = fromFile(new JFile(pathname))
 
 	def fromSwc(swc: Swc) = {
 		val swf = new Swf
@@ -46,7 +54,7 @@ object Swf {
 		swf
 	}
 
-	def fromInputStream(input: InputStream, length: Long) = {
+	def fromInputStream(input: JInputStream, length: Long) = {
 		val swf = new Swf
 		swf.read(input, length)
 		swf
@@ -61,13 +69,13 @@ final class Swf {
 	var frameCount: Int = 1
 	var tags: List[SwfTag] = Nil
 
-	def read(file: File): Unit = using(new FileInputStream(file))(read(_, file length))
+	def read(file: JFile): Unit = using(new JFileInputStream(file))(read(_, file length))
 
-	def read(pathname: String): Unit = read(new File(pathname))
+	def read(pathname: String): Unit = read(new JFile(pathname))
 
-	def read(input: InputStream, inputLength: Long): Unit = using(new SwfInputStream(input))(read(_, inputLength))
+	def read(input: JInputStream, inputLength: Long): Unit = using(new SwfInputStream(input))(read(_, inputLength))
 
-	def read(data: Array[Byte]): Unit = using(new ByteArrayInputStream(data))(read(_, data length))
+	def read(data: Array[Byte]): Unit = using(new JByteArrayInputStream(data))(read(_, data length))
 
 	def read(swc: Swc): Unit = {
 		swc.library match {
@@ -78,7 +86,7 @@ final class Swf {
 
 	def read(input: SwfInputStream, inputLength: Long): Unit = {
 		(input readUI08, input readUI08, input readUI08) match {
-			case (_ @ x, 'W', 'S') => compressed = x match {
+			case (x, 'W', 'S') => compressed = x match {
 				case 'C' => true
 				case 'F' => false
 				case _ => error("Not a SWF file.")
@@ -124,15 +132,14 @@ final class Swf {
 		loop(input.readTAG(), List())
 	}
 
+	def write(file: JFile): Unit = using(new JFileOutputStream(file))(write _)
 
-	def write(file: File): Unit = using(new FileOutputStream(file))(write _)
+	def write(pathname: String): Unit = write(new JFile(pathname))
 
-	def write(pathname: String): Unit = write(new File(pathname))
-
-	def write(output: OutputStream): Unit = using(new SwfOutputStream(output))(write _)
+	def write(output: JOutputStream): Unit = using(new SwfOutputStream(output))(write _)
 
 	def write(swc: Swc): Unit = {
-		val baos = new ByteArrayOutputStream()
+		val baos = new JByteArrayOutputStream()
 		try {
 			write(baos)
 			swc.library = Some(baos toByteArray)
@@ -142,7 +149,7 @@ final class Swf {
 	}
 
 	def write(output: SwfOutputStream): Unit = {
-		val baos = new ByteArrayOutputStream(0x08 + (tags.length << 0x03));
+		val baos = new JByteArrayOutputStream(0x08 + (tags.length << 0x03));
 		val buffer = new SwfOutputStream(baos)
 		try {
 			buffer writeRECT (frameSize)
@@ -160,7 +167,7 @@ final class Swf {
 			output writeUI32 (8 + bytes.length)
 
 			if (compressed) {
-				val deflater = new Deflater(Deflater.BEST_COMPRESSION)
+				val deflater = new JDeflater(JDeflater.BEST_COMPRESSION)
 				val buffer2 = new Array[Byte](0x8000); //assume we have 32kb of ram spare ...
 				var numBytesCompressed = 0;
 				deflater setInput bytes
@@ -184,9 +191,9 @@ final class Swf {
 		}
 	}
 
-	def uncompress(inputLength: Long, uncompressedLength: Long)(implicit input: InputStream) = {
+	def uncompress(inputLength: Long, uncompressedLength: Long)(implicit input: JInputStream) = {
 		val totalBytes = (inputLength - 8).asInstanceOf[Int]
-		val inflater = new Inflater()
+		val inflater = new JInflater()
 		val bufferIn = new Array[Byte](totalBytes)
 		val bufferOut = new Array[Byte]((uncompressedLength - 8).asInstanceOf[Int])
 
@@ -202,6 +209,6 @@ final class Swf {
 			}
 		}
 
-		new SwfInputStream(new ByteArrayInputStream(bufferOut));
+		new SwfInputStream(new JByteArrayInputStream(bufferOut));
 	}
 }

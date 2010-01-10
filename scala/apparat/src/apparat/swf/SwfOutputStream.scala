@@ -20,9 +20,12 @@
  */
 package apparat.swf
 
-import java.io.{OutputStream, ByteArrayOutputStream}
+import java.io.{
+	OutputStream => JOutputStream,
+	ByteArrayOutputStream => JByteArrayOutputStream
+}
 
-class SwfOutputStream(val output: OutputStream) extends OutputStream {
+class SwfOutputStream(val output: JOutputStream) extends JOutputStream {
 	private var bitBuffer: Int = 0
 	private var bitIndex: Int = 0
 
@@ -104,7 +107,7 @@ class SwfOutputStream(val output: OutputStream) extends OutputStream {
 				value write this
 			}
 			case _ => {
-				val baos = new ByteArrayOutputStream()
+				val baos = new JByteArrayOutputStream()
 				val buffer = new SwfOutputStream(baos)
 
 				try {

@@ -4,13 +4,14 @@ import apparat.tools._
 import apparat.utils._
 import apparat.swf._
 
-import java.awt.image.BufferedImage
-import java.io._
-import java.util.zip._
-import javax.imageio.IIOImage
-import javax.imageio.ImageIO
-import javax.imageio.ImageWriteParam
+import java.awt.image.{BufferedImage => JBufferedImage}
+import javax.imageio.{IIOImage => JIIOImage}
+import javax.imageio.{ImageIO => JImageIO}
+import javax.imageio.{ImageWriteParam => JImageWriteParam}
+import java.util.zip.{Inflater => JInflater}
+import java.util.zip.{Deflater => JDeflater}
 import scala.actors.Futures._
+import java.io.{File => JFile, ByteArrayOutputStream => JByteArrayOutputStream, ByteArrayInputStream => JByteArrayInputStream}
 
 object Reducer {
 	def main(args: Array[String]): Unit = ApparatApplication(new ReducerTool, args)
@@ -33,7 +34,7 @@ object Reducer {
 			quality = java.lang.Float parseFloat config("-q").getOrElse("0.99")
 			input = config("-i") getOrElse error("Input is required.")
 			output = config("-o") getOrElse input
-			assert(new File(input) exists, "Input has to exist.")
+			assert(new JFile(input) exists, "Input has to exist.")
 		}
 
 		override def run() = {
@@ -44,8 +45,8 @@ object Reducer {
 				case SwfTags.DefineBitsLossless2 => Some(new DefineBitsLossless2)
 				case _ => None
 			}
-			val source = new File(input)
-			val target = new File(output)
+			val source = new JFile(input)
+			val target = new JFile(output)
 			val l0 = source length
 			val cont = TagContainer fromFile source
 			cont.tags = cont.tags map {x => future {reduce(x)}} map {_()}
@@ -70,7 +71,7 @@ object Reducer {
 		private def lossless2jpg(tag: DefineBitsLossless2) = {
 			val width = tag.bitmapWidth
 			val height = tag.bitmapHeight
-			val inflater = new Inflater();
+			val inflater = new JInflater();
 			val lossless = new Array[Byte]((width * height) << 2)
 			val alphaData = new Array[Byte](width * height)
 			var needsAlpha = false
@@ -90,7 +91,7 @@ object Reducer {
 			// create buffered image
 			// fill alpha data
 
-			val buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+			val buffer = new JBufferedImage(width, height, JBufferedImage.TYPE_INT_ARGB)
 
 			for (y <- 0 until height; x <- 0 until width) {
 				val index = (x << 2) + (y << 2) * width
@@ -118,13 +119,13 @@ object Reducer {
 
 			// compress alpha data
 
-			val deflater = new Deflater(Deflater.BEST_COMPRESSION)
+			val deflater = new JDeflater(JDeflater.BEST_COMPRESSION)
 			deflater setInput alphaData
 			deflater.finish()
 
 			val compressBuffer = new Array[Byte](0x400)
 			var numBytesCompressed = 0
-			val alphaOutput = new ByteArrayOutputStream()
+			val alphaOutput = new JByteArrayOutputStream()
 
 			do {
 				numBytesCompressed = deflater deflate compressBuffer
@@ -136,15 +137,15 @@ object Reducer {
 
 			// create jpg
 
-			val writer = ImageIO getImageWritersByFormatName ("jpg") next ()
-			val imageOutput = new ByteArrayOutputStream()
+			val writer = JImageIO getImageWritersByFormatName ("jpg") next ()
+			val imageOutput = new JByteArrayOutputStream()
 
-			writer setOutput ImageIO.createImageOutputStream(imageOutput)
+			writer setOutput JImageIO.createImageOutputStream(imageOutput)
 
 			val writeParam = writer.getDefaultWriteParam()
-			writeParam setCompressionMode ImageWriteParam.MODE_EXPLICIT
+			writeParam setCompressionMode JImageWriteParam.MODE_EXPLICIT
 			writeParam setCompressionQuality quality
-			writer write (null, new IIOImage(buffer.getData(), null, null), writeParam)
+			writer write (null, new JIIOImage(buffer.getData(), null, null), writeParam)
 			imageOutput.flush()
 			imageOutput.close()
 			writer.dispose()

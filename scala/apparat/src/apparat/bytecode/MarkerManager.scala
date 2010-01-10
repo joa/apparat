@@ -22,7 +22,7 @@ package apparat.bytecode
 
 import collection.mutable.HashMap
 import operations.AbstractOp
-import collection.immutable.{SortedMap, IntMap, TreeMap}
+import collection.immutable.{SortedMap, TreeMap}
 
 class MarkerManager {
 	private var numMarkers = 0

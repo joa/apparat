@@ -20,10 +20,10 @@
  */
 package apparat.swf
 
-import java.io.InputStream
+import java.io.{InputStream => JInputStream}
 import scala.annotation.tailrec
 
-class SwfInputStream(val input: InputStream) extends InputStream {
+class SwfInputStream(val input: JInputStream) extends JInputStream {
 	private var bitBuffer: Int = 0
 	private var bitIndex: Int = 0
 

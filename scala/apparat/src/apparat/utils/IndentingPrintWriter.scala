@@ -20,10 +20,10 @@
  */
 package apparat.utils
 
-import java.io.{Writer, PrintWriter}
+import java.io.{Writer => JWriter, PrintWriter => JPrintWriter}
 
-class IndentingPrintWriter(val writer: Writer, useTabs: Boolean = true)
-		extends PrintWriter(writer)
+class IndentingPrintWriter(val writer: JWriter, useTabs: Boolean = true)
+		extends JPrintWriter(writer)
 {
 	private val hasParent = writer.isInstanceOf[IndentingPrintWriter]
 	private val parent = if (hasParent) Some(writer.asInstanceOf[IndentingPrintWriter]) else None

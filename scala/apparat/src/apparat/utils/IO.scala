@@ -20,11 +20,15 @@
  */
 package apparat.utils
 
-import java.io.{PrintStream, InputStream, ByteArrayOutputStream}
+import java.io.{
+	PrintStream => JPrintStream,
+	InputStream => JInputStream,
+	ByteArrayOutputStream => JByteArrayOutputStream
+}
 
 object IO {
 	def dump(bytes: Array[Byte]): Unit = dump(bytes, Console.out)
-	def dump(bytes: Array[Byte], printStream: PrintStream): Unit = {
+	def dump(bytes: Array[Byte], printStream: JPrintStream): Unit = {
 		printStream println "Hex dump:"
 		printStream println (if(null == bytes) {
 			"(null)"
@@ -74,17 +78,17 @@ object IO {
 		printStream.flush()
 	}
 
-	def read(length: Int)(implicit input: InputStream): Array[Byte] = readBytes(length, new Array[Byte](length))
+	def read(length: Int)(implicit input: JInputStream): Array[Byte] = readBytes(length, new Array[Byte](length))
 
-	def readBytes(length: Int, bytes: Array[Byte])(implicit input: InputStream): Array[Byte] = {
+	def readBytes(length: Int, bytes: Array[Byte])(implicit input: JInputStream): Array[Byte] = {
 		var offset = 0
 		while (offset < length)
 			offset += input.read(bytes, offset, length - offset)
 		bytes
 	}
 
-	def byteArrayOf(implicit input: InputStream) = {
-		val output = new ByteArrayOutputStream
+	def byteArrayOf(implicit input: JInputStream) = {
+		val output = new JByteArrayOutputStream
 		val buffer = new Array[Byte](0x2000)
 		var bytesRead = 0
 
