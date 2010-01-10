@@ -24,7 +24,7 @@ import apparat.bytecode.operations.AbstractOp
 
 object BytecodeChains {
 	implicit def operation(op: AbstractOp) = new BytecodeChain[AbstractOp] {
-		def apply(stream: Stream[AbstractOp]) = {
+		override def apply(stream: Stream[AbstractOp]) = {
 			val head = stream.head
 			lazy val errorMessage = "Expected '%s' got '%s'".format(op, head)
 			lazy val tail = stream drop 1
@@ -33,6 +33,28 @@ object BytecodeChains {
 			} else {
 				Failure(errorMessage, tail)
 			}
+		}
+	}
+
+	def opt[A](chain: BytecodeChain[A]) = new BytecodeChain[Option[A]] {
+		override def apply(stream: Stream[AbstractOp]) = {
+			chain(stream) match {
+				case Success(value, remaining) => Success(Some(value), remaining)
+				case f: Failure => Success(None, stream)
+			}
+		}
+	}
+
+	def rep[A](chain: BytecodeChain[A]) = new BytecodeChain[List[A]] {
+		override def apply(stream: Stream[AbstractOp]) = {
+			def repeat(list: List[A], stream: Stream[AbstractOp]): Success[List[A]] = {
+				chain(stream) match {
+					case Success(value, remaining) => repeat(value :: list, remaining)
+					case f: Failure => Success(list, stream)
+				}
+			}
+
+			repeat(Nil, stream)
 		}
 	}
 }

@@ -22,7 +22,29 @@ package apparat.bytecode.combinator
 
 import apparat.bytecode.operations.AbstractOp
 
-trait BytecodeChain[+A] extends (Stream[AbstractOp] => Result[A]) {
+import BytecodeChains._
+
+trait BytecodeChain[+A] extends (Stream[AbstractOp] => Result[A]) { outer =>
+
+	def ? = opt(this)
+
+	def * = rep(this)
+	
 	def ~[B](that: => BytecodeChain[B]) = new BytecodeChainSequence(this, that)
+
 	def |[B >: A](that: BytecodeChain[B]) = new DisjunctiveBytecodeChain(this, that)
+
+	def ^^[B](f: A => B) = new BytecodeChain[B] {
+		override def apply(stream: Stream[AbstractOp]) = outer(stream) match {
+			case Success(value, remaining) => Success(f(value), remaining)
+			case f: Failure => f
+		}
+	}
+
+	def ^^^[B](value: => B) = new BytecodeChain[B] {
+		override def apply(stream: Stream[AbstractOp]) = outer(stream) match {
+			case Success(_, remaining) => Success(value, remaining)
+			case f: Failure => f
+		}
+	}
 }
