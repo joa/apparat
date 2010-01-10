@@ -238,7 +238,7 @@ object Op {
     val timestamp = 0xf3
 }
 
-sealed abstract class AbstractOp extends OpCode {
+sealed abstract class AbstractOp extends OpCode with Product {
 	def canThrow = false
 	def controlsFlow = false
 
@@ -253,6 +253,16 @@ sealed abstract class AbstractOp extends OpCode {
 	override def equals(that: Any) = that match {
 		case abstractOp: AbstractOp => abstractOp eq this
 		case _ => false
+	}
+
+	def =~=(that: AbstractOp) = {
+		if(productArity == that.productArity) {
+			productIterator zip that.productIterator forall {
+				case (a, b) => a == b
+			}
+		} else {
+			false
+		}
 	}
 }
 

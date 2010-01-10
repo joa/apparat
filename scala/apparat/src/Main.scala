@@ -25,9 +25,17 @@ import apparat.swf.{DoABC, SwfTags, Swf}
 import apparat.utils.Performance._
 import java.io.PrintWriter
 import apparat.bytecode.operations._
-
+import apparat.bytecode.combinator.BytecodeParsers._
+import apparat.bytecode.combinator._
 object Main {
 	def main(args: Array[String]): Unit = {
+		val test = List(PushInt(0), Pop())
+		val s = Stream(test:_*)
+		val parser = PushInt(0) ~ Pop()
+		parser(s) match {
+			case Success(value, _) => { println("Success: " + value); true }
+			case Failure(message) => { println("Failure: " + message); false }
+		}
 		/*val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 		Performance.measure("Total") {
 			val abc = new Abc
@@ -39,7 +47,8 @@ object Main {
 			}
 		}*/
 		//val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
-		val swf = Swf fromFile "assets/Test15.swf"
+
+		/*val swf = Swf fromFile "assets/Test15.swf"
 		measure {
 			for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 				val doABC = x.asInstanceOf[DoABC]
@@ -51,7 +60,7 @@ object Main {
 			}
 		}
 
-		swf write "assets/Test15.output.swf"
+		swf write "assets/Test15.output.swf"*/
 
 		/*val check = Swf fromFile "assets/Test00.output.swf"
 
