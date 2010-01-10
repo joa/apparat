@@ -255,8 +255,8 @@ sealed abstract class AbstractOp extends OpCode with Product {
 		case _ => false
 	}
 
-	def =~=(that: AbstractOp) = {
-		if(productArity == that.productArity) {
+	def ~==(that: AbstractOp) = {
+		if(opCode == that.opCode && productArity == that.productArity) {
 			productIterator zip that.productIterator forall {
 				case (a, b) => a == b
 			}

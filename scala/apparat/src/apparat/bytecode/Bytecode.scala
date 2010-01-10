@@ -22,6 +22,7 @@ package apparat.bytecode
 
 import apparat.abc.{Abc, AbcMethod, AbcMethodBody}
 import apparat.utils.{Dumpable, IndentingPrintWriter}
+import combinator.{Failure, Success, Parser}
 import operations.AbstractOp
 
 object Bytecode {
@@ -31,6 +32,7 @@ object Bytecode {
 	}
 
 	def fromBody(body: AbcMethodBody)(implicit abc: Abc) = BytecodeDecoder(body.code, body.exceptions)
+	def bytecode(operations: => Seq[AbstractOp]) = new Bytecode(operations, new MarkerManager(), new Array(0))
 }
 
 class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager, val exceptions: Array[BytecodeExceptionHandler]) extends Dumpable {
@@ -41,6 +43,17 @@ class Bytecode(val ops: Seq[AbstractOp], val markers: MarkerManager, val excepti
 
 		body.code = code
 		body.exceptions = exceptions
+	}
+
+	def contains[A](parser: Parser[A]) = {
+		def loop(stream: Stream[AbstractOp]): Boolean = {
+			parser(stream) match {
+				case Success(_, _) => true
+				case Failure(_, remaining) => if(remaining.isEmpty) false else loop(remaining)
+			}
+		}
+		
+		loop(ops.toStream)
 	}
 
 	def toByteArray(implicit abc: Abc) = BytecodeEncoder(this)._1
