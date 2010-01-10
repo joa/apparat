@@ -1,0 +1,55 @@
+package apparat.graph
+
+import apparat.bytecode.operations.{Label, AbstractOp}
+import apparat.bytecode.{MarkerManager, Bytecode}
+/*
+ * This file is part of Apparat.
+ * 
+ * Apparat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Apparat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * Copyright (C) 2009 Joa Ebert
+ * http://www.joa-ebert.com/
+ * 
+ * User: Patrick Le Clec'h
+ * Date: 10 janv. 2010
+ * Time: 22:40:18
+ */
+
+class AbstractOpBasicBlockVisitor(elms: Seq[AbstractOp], val markers: MarkerManager) extends BasicBlockVisitor[AbstractOp](elms) {
+	implicit def f(s: Seq[AbstractOp]) = new BasicBlockVertex(s)
+
+	def this(elms: Seq[AbstractOp]) = this (elms, null)
+
+	def this(bytecode: Bytecode) = this (bytecode.ops, bytecode.markers)
+
+	def isBeginningOfBlock(elm: AbstractOp) = {
+		elm.isInstanceOf[Label] || {if (markers == null) false else markers.hasMarkerFor(elm)}
+	}
+
+	def isEndingOfBlock(elm: AbstractOp) = elm.controlsFlow
+}
+
+object AbstractOpBasicBlockVisitor {
+	def apply(seq: Seq[AbstractOp]) = {
+		new AbstractOpBasicBlockVisitor(seq)
+	}
+
+	def apply(seq: Seq[AbstractOp], markers: MarkerManager) = {
+		new AbstractOpBasicBlockVisitor(seq, markers)
+	}
+
+	def apply(bytecode: Bytecode) = {
+		new AbstractOpBasicBlockVisitor(bytecode)
+	}
+}
