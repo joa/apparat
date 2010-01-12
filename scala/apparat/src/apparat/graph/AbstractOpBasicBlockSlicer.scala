@@ -27,8 +27,6 @@ import apparat.bytecode.{MarkerManager, Bytecode}
  */
 
 class AbstractOpBasicBlockSlicer(elms: Seq[AbstractOp], val markers: Option[MarkerManager]) extends AbstractBlockSlicer[AbstractOp](elms) {
-	implicit def f(s: Seq[AbstractOp]) = new BasicBlockVertex(s)
-
 	def this(elms: Seq[AbstractOp]) = this (elms, None)
 
 	def this(bytecode: Bytecode) = this (bytecode.ops, Some(bytecode.markers))
