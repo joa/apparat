@@ -25,7 +25,7 @@ import annotation.tailrec
  * Date: 10 janv. 2010
  * Time: 21:58:59
  */
-abstract class BasicBlockVisitor[T](val elms: Seq[T]) {
+abstract class AbstractBlockSlicer[T](val elms: Seq[T]) {
 	// function that return true if we are starting a block
 	def isBeginningOfBlock(elm: T): Boolean
 
@@ -50,7 +50,7 @@ abstract class BasicBlockVisitor[T](val elms: Seq[T]) {
 		!_isBeginningOfBlock(elm) && !_isEndingOfBlock(elm)
 	}
 
-	def each(fn: Seq[T] => Unit) {
+	def foreach(body: Seq[T] => Unit) = {
 		implicit def bool2int(b: Boolean): Int = if (b) 1 else 0
 
 		var startIdx = 0
@@ -65,7 +65,7 @@ abstract class BasicBlockVisitor[T](val elms: Seq[T]) {
 
 		@tailrec def loop() {
 			if (startIdx < elms.length) {
-				fn(nextBlock)
+				body(nextBlock)
 				loop()
 			}
 		}

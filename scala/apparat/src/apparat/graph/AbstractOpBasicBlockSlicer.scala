@@ -26,7 +26,7 @@ import apparat.bytecode.{MarkerManager, Bytecode}
  * Time: 22:40:18
  */
 
-class AbstractOpBasicBlockVisitor(elms: Seq[AbstractOp], val markers: Option[MarkerManager]) extends BasicBlockVisitor[AbstractOp](elms) {
+class AbstractOpBasicBlockSlicer(elms: Seq[AbstractOp], val markers: Option[MarkerManager]) extends AbstractBlockSlicer[AbstractOp](elms) {
 	implicit def f(s: Seq[AbstractOp]) = new BasicBlockVertex(s)
 
 	def this(elms: Seq[AbstractOp]) = this (elms, None)
@@ -40,16 +40,16 @@ class AbstractOpBasicBlockVisitor(elms: Seq[AbstractOp], val markers: Option[Mar
 	def isEndingOfBlock(elm: AbstractOp) = elm.controlsFlow
 }
 
-object AbstractOpBasicBlockVisitor {
+object AbstractOpBasicBlockSlicer {
 	def apply(seq: Seq[AbstractOp]) = {
-		new AbstractOpBasicBlockVisitor(seq)
+		new AbstractOpBasicBlockSlicer(seq)
 	}
 
 	def apply(seq: Seq[AbstractOp], markers: MarkerManager) = {
-		new AbstractOpBasicBlockVisitor(seq, Some(markers))
+		new AbstractOpBasicBlockSlicer(seq, Some(markers))
 	}
 
 	def apply(bytecode: Bytecode) = {
-		new AbstractOpBasicBlockVisitor(bytecode)
+		new AbstractOpBasicBlockSlicer(bytecode)
 	}
 }
