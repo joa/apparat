@@ -20,9 +20,7 @@
  */
 package apparat.graph
 
-class BasicBlockVertex[T](var block: Seq[T]) extends VertexLike {
-	def this() = this (Nil)
-
+class BasicBlockVertex[T](var block: Seq[T] = Nil) extends VertexLike {
 	def ++(elms: Seq[T]) = {
 		block = block ++ elms
 		this
@@ -38,10 +36,10 @@ class BasicBlockVertex[T](var block: Seq[T]) extends VertexLike {
 
 	def clear() {block = Nil}
 
-	def isEmpty() = block.isEmpty
+	def isEmpty = block.isEmpty
 
 	// FIXME tmp for the dot graph export
-	override def toString() = {
+	override def toString = {
 		block.mkString("", "\\n", "")
 	}
 }

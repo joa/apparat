@@ -29,46 +29,23 @@ trait ExitVertex {
 	override def toString() = "Exit"
 }
 
-class CFG[T] extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex[T]] with DOTExportAvailable[BasicBlockVertex[T]] {
-	type BlockVertex = BasicBlockVertex[T]
+abstract class CFG[T, V <: BasicBlockVertex[T]] extends GraphLikeWithAdjacencyMatrix[V] with DOTExportAvailable[V] {
+	type Block = Seq[T]
 
-	protected[graph] var _entryVertex: BlockVertex = null
+	protected[graph] def newEntryVertex: V
 
-	def entryVertex = _entryVertex
+	protected[graph] def newExitVertex(): V
 
-	protected[graph] var _exitVertex: BlockVertex = null
+	val entryVertex = newEntryVertex
+	val exitVertex = newExitVertex
 
-	def exitVertex = _exitVertex
+	add(entryVertex)
+	add(exitVertex)
 
-	protected[graph] def newEntryVertex() = new BlockVertex() with EntryVertex
-
-	protected[graph] def newExitVertex() = new BlockVertex() with ExitVertex
-
-	protected[graph] def setEntryVertex() {
-		if (entryVertex != null) {
-			entryVertex.clear()
-			remove(entryVertex)
-		}
-		_entryVertex = newEntryVertex()
-		add(entryVertex)
-	}
-
-	protected[graph] def setExitVertex() {
-		if (exitVertex != null) {
-			exitVertex.clear()
-			remove(exitVertex)
-		}
-		_exitVertex = newExitVertex()
-		add(exitVertex)
-	}
-
-	setEntryVertex()
-	setExitVertex()
-
-	protected[graph] def addBlock(block: Seq[T]): BlockVertex = {
-		val bv = new BlockVertex(block)
-		add(bv)
-		bv
+	protected[graph] def add(block: Block)(implicit b2v: Block => V): V = {
+		val blockAsV: V = block
+		add(blockAsV)
+		blockAsV
 	}
 
 	override def add(edge: E) = {
@@ -79,7 +56,6 @@ class CFG[T] extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex[T]] with DOTE
 	def find(elm: T) = verticesIterator.find(_ contains elm)
 
 	def contains(elm: T) = verticesIterator.exists(_ contains elm)
-
 
 	override def toString = "[CFG]"
 
@@ -94,7 +70,7 @@ class CFG[T] extends GraphLikeWithAdjacencyMatrix[BasicBlockVertex[T]] with DOTE
 		case ReturnEdge(x, y) => "return"
 	}
 
-	def vertexToString(vertex: BlockVertex) = vertex.toString()
+	def vertexToString(vertex: V) = vertex.toString()
 
 	override def dotExport = {
 		new DOTExport(this, vertexToString, edgeToString)
