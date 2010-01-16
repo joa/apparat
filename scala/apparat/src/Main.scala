@@ -19,6 +19,7 @@
  * 
  */
 import apparat.abc.{AbcNamespace, AbcQName, Abc}
+import apparat.bytecode.PeepholeOptimizations
 import apparat.graph.{Vertex, Graph}
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
@@ -30,19 +31,21 @@ import apparat.bytecode.combinator._
 import apparat.bytecode.Bytecode._
 object Main {
 	def main(args: Array[String]): Unit = {
-		val chain = partial { case op: AbstractPushOp => op } ~ rep(Nop()) ~ Pop()
 		val b = bytecode {
 			GetLocal(0)		::
 			PushScope()		::
-			PushDouble(0)	::
-			PushInt(0)		::
-			Pop()			::
-			Pop()			::
-			ReturnVoid()	:: Nil
+			FindPropStrict(AbcQName('Math, AbcNamespace(22, Symbol("")))) ::
+			GetProperty(AbcQName('Math, AbcNamespace(22, Symbol("")))) ::
+			GetLocal(0)		::
+			DecrementInt()	::
+			Dup()			::
+			ConvertInt()	::
+			SetLocal(0)		::
+			ReturnValue()	:: Nil
 		}
 		b.dump()
 		println("")
-		b.replace(chain) { occurrence => List.empty } dump()
+		b.rewrite(PeepholeOptimizations.fastWhile) dump()
 		/*val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 		Performance.measure("Total") {
 			val abc = new Abc
@@ -55,7 +58,7 @@ object Main {
 		}*/
 		//val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
-		val swf = Swf fromFile "assets/Test01.swf"
+		/*val swf = Swf fromFile "assets/Test01.swf"
 		measure {
 			for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 				val doABC = x.asInstanceOf[DoABC]
@@ -74,7 +77,7 @@ object Main {
 			}
 		}
 
-		//swf write "assets/Test15.output.swf"*/
+		swf write "assets/Test15.output.swf"*/
 
 		/*val check = Swf fromFile "assets/Test00.output.swf"
 

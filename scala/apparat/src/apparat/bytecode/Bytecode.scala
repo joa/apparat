@@ -63,6 +63,8 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 		loop(ops, 0)
 	}
 
+	def rewrite[A <: AbstractOp](rule: BytecodeChain[List[A]]) = replace(rule) { a => a }
+	
 	def replace[A](chain: BytecodeChain[A])(replace: A => List[AbstractOp]) = {
 		var processed: List[AbstractOp] = ops.toList
 		var modified = false
