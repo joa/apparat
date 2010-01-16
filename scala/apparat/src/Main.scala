@@ -35,13 +35,14 @@ object Main {
 			GetLocal(0)		::
 			PushScope()		::
 			PushInt(0)		::
-			Nop()			::
-			Nop()			::
-			Nop()			::
+			PushInt(0)		::
+			Pop()			::
 			Pop()			::
 			ReturnVoid()	:: Nil
 		}
-		println(b contains chain)
+		b.dump()
+		println("")
+		b.replace(chain) { occurrence => List.empty } dump()
 		/*val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 		Performance.measure("Total") {
 			val abc = new Abc

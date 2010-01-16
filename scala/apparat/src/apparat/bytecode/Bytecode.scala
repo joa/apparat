@@ -22,8 +22,10 @@ package apparat.bytecode
 
 import apparat.abc.{Abc, AbcMethod, AbcMethodBody}
 import apparat.utils.{Dumpable, IndentingPrintWriter}
-import combinator.{Failure, Success, BytecodeChain}
+import combinator.{~, Failure, Success, BytecodeChain}
 import operations.AbstractOp
+import concurrent._
+import annotation.tailrec
 
 object Bytecode {
 	def fromMethod(method: AbcMethod)(implicit abc: Abc) = method.body match {
@@ -46,15 +48,52 @@ class Bytecode(var ops: Seq[AbstractOp], val markers: MarkerManager, var excepti
 		body.exceptions = exceptions
 	}
 
-	def contains[A](chain: BytecodeChain[A]) = {
-		def loop(stream: Stream[AbstractOp]): Boolean = {
-			chain(stream) match {
-				case Success(_, _) => true
-				case Failure(_, remaining) => if(remaining.isEmpty) false else loop(remaining)
+	def contains[A](chain: BytecodeChain[A]) = indexOf(chain) != -1
+
+	def indexOf[A](chain: BytecodeChain[A]) = {
+		@tailrec def loop(stream: Seq[AbstractOp], index: Int): Int = {
+			if(stream.isEmpty) -1
+			else {
+				chain(stream) match {
+					case Success(_, remaining) => index
+					case Failure(_) => loop(stream drop 1, index + 1)
+				}
 			}
 		}
-		
-		loop(ops.toStream)
+
+		loop(ops, 0)
+	}
+
+	def replace[A](chain: BytecodeChain[A])(replace: A => List[AbstractOp]) = {
+		var unprocessed: Seq[AbstractOp] = Nil
+		var processed: List[AbstractOp] = ops.toList
+		var modified = false
+
+		do {
+			unprocessed = processed
+			processed = Nil
+			modified = false
+
+			while(unprocessed.nonEmpty) {
+				chain(unprocessed) match {
+					case Success(value, remaining) => {
+						processed :::= replace(value).reverse
+						unprocessed = remaining
+						modified = true
+					}
+					case Failure(_) => {
+						processed ::= unprocessed.head
+						unprocessed = unprocessed.tail
+					}
+
+				}
+			}
+
+			processed = processed.reverse
+		} while(modified)
+
+		ops = processed
+		this
 	}
 
 	def toByteArray(implicit abc: Abc) = BytecodeEncoder(this)._1
