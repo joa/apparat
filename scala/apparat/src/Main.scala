@@ -55,19 +55,26 @@ object Main {
 		}*/
 		//val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
-		/*val swf = Swf fromFile "assets/Test15.swf"
+		val swf = Swf fromFile "assets/Test01.swf"
 		measure {
 			for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 				val doABC = x.asInstanceOf[DoABC]
 				val abc = Abc fromDoABC doABC
 				abc.loadBytecode()
-				abc.saveBytecode()
-				abc write doABC
+
+				abc.methods foreach {
+					method => method.body match {
+						case Some(body) => body.bytecode.get.dump()
+						case None => {}
+					}
+				}
+				//abc.saveBytecode()
+				//abc write doABC
 				//write doABC
 			}
 		}
 
-		swf write "assets/Test15.output.swf"*/
+		//swf write "assets/Test15.output.swf"*/
 
 		/*val check = Swf fromFile "assets/Test00.output.swf"
 

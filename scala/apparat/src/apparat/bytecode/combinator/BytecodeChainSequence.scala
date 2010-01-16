@@ -29,7 +29,7 @@ class BytecodeChainSequence[+A, +B](l: => BytecodeChain[A],
 	lazy val left = l
 	lazy val right = r
 
-	def apply(s: Seq[AbstractOp]) = left(s) match {
+	def apply(s: List[AbstractOp]) = left(s) match {
 		case Success(a, rem) => right(rem) match {
 			case Success(b, rem) => Success(new ~(a, b), rem)
 			case f: Failure => f

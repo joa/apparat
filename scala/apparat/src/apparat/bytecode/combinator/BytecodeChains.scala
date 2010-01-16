@@ -24,11 +24,11 @@ import apparat.bytecode.operations.AbstractOp
 
 object BytecodeChains {
 	implicit def operation(op: AbstractOp) = new BytecodeChain[AbstractOp] {
-		override def apply(stream: Seq[AbstractOp]) = {
-			val head = stream.head
+		override def apply(list: List[AbstractOp]) = {
+			val head = list.head
 			lazy val errorMessage = "Expected '%s' got '%s'.".format(op, head)
 			if(head ~== op) {
-				Success(head, stream drop 1)
+				Success(head, list drop 1)
 			} else {
 				Failure(errorMessage)
 			}
@@ -36,24 +36,24 @@ object BytecodeChains {
 	}
 
 	def opt[A](chain: BytecodeChain[A]) = new BytecodeChain[Option[A]] {
-		override def apply(stream: Seq[AbstractOp]) = {
-			chain(stream) match {
+		override def apply(list: List[AbstractOp]) = {
+			chain(list) match {
 				case Success(value, remaining) => Success(Some(value), remaining)
-				case f: Failure => Success(None, stream)
+				case f: Failure => Success(None, list)
 			}
 		}
 	}
 
 	def rep[A](chain: BytecodeChain[A]) = new BytecodeChain[List[A]] {
-		override def apply(stream: Seq[AbstractOp]) = {
-			def repeat(list: List[A], stream: Seq[AbstractOp]): Success[List[A]] = {
-				chain(stream) match {
-					case Success(value, remaining) => repeat(value :: list, remaining)
-					case f: Failure => Success(list, stream)
+		override def apply(list: List[AbstractOp]) = {
+			def repeat(result: List[A], list: List[AbstractOp]): Success[List[A]] = {
+				chain(list) match {
+					case Success(value, remaining) => repeat(value :: result, remaining)
+					case f: Failure => Success(result.reverse, list)
 				}
 			}
 
-			repeat(Nil, stream)
+			repeat(Nil, list)
 		}
 	}
 }

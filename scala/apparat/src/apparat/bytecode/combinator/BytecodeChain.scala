@@ -24,7 +24,7 @@ import apparat.bytecode.operations.AbstractOp
 
 import BytecodeChains._
 
-trait BytecodeChain[+A] extends (Seq[AbstractOp] => Result[A]) { outer =>
+trait BytecodeChain[+A] extends (List[AbstractOp] => Result[A]) { outer =>
 
 	def ? = opt(this)
 
@@ -35,14 +35,14 @@ trait BytecodeChain[+A] extends (Seq[AbstractOp] => Result[A]) { outer =>
 	def |[B >: A](that: BytecodeChain[B]) = new DisjunctiveBytecodeChain(this, that)
 
 	def ^^[B](f: A => B) = new BytecodeChain[B] {
-		override def apply(stream: Seq[AbstractOp]) = outer(stream) match {
+		override def apply(list: List[AbstractOp]) = outer(list) match {
 			case Success(value, remaining) => Success(f(value), remaining)
 			case f: Failure => f
 		}
 	}
 
 	def ^^^[B](value: => B) = new BytecodeChain[B] {
-		override def apply(stream: Seq[AbstractOp]) = outer(stream) match {
+		override def apply(list: List[AbstractOp]) = outer(list) match {
 			case Success(_, remaining) => Success(value, remaining)
 			case f: Failure => f
 		}

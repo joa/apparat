@@ -24,7 +24,6 @@ import apparat.abc.{Abc, AbcMethod, AbcMethodBody}
 import apparat.utils.{Dumpable, IndentingPrintWriter}
 import combinator.{~, Failure, Success, BytecodeChain}
 import operations.AbstractOp
-import concurrent._
 import annotation.tailrec
 
 object Bytecode {
@@ -35,10 +34,10 @@ object Bytecode {
 
 	def fromBody(body: AbcMethodBody)(implicit abc: Abc) = BytecodeDecoder(body.code, body.exceptions)
 
-	def bytecode(body: => Seq[AbstractOp]) = new Bytecode(body, new MarkerManager(), new Array(0))
+	def bytecode(body: => List[AbstractOp]) = new Bytecode(body, new MarkerManager(), new Array(0))
 }
 
-class Bytecode(var ops: Seq[AbstractOp], val markers: MarkerManager, var exceptions: Array[BytecodeExceptionHandler]) extends Dumpable {
+class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var exceptions: Array[BytecodeExceptionHandler]) extends Dumpable {
 	override def dump(writer: IndentingPrintWriter) = new BytecodeDump(ops, markers, exceptions) dump writer
 
 	def storeIn(body: AbcMethodBody)(implicit abc: Abc) = {
@@ -51,12 +50,12 @@ class Bytecode(var ops: Seq[AbstractOp], val markers: MarkerManager, var excepti
 	def contains[A](chain: BytecodeChain[A]) = indexOf(chain) != -1
 
 	def indexOf[A](chain: BytecodeChain[A]) = {
-		@tailrec def loop(stream: Seq[AbstractOp], index: Int): Int = {
-			if(stream.isEmpty) -1
+		@tailrec def loop(list: List[AbstractOp], index: Int): Int = {
+			if(list.isEmpty) -1
 			else {
-				chain(stream) match {
+				chain(list) match {
 					case Success(_, remaining) => index
-					case Failure(_) => loop(stream drop 1, index + 1)
+					case Failure(_) => loop(list drop 1, index + 1)
 				}
 			}
 		}
@@ -65,12 +64,12 @@ class Bytecode(var ops: Seq[AbstractOp], val markers: MarkerManager, var excepti
 	}
 
 	def replace[A](chain: BytecodeChain[A])(replace: A => List[AbstractOp]) = {
-		var unprocessed: Seq[AbstractOp] = Nil
 		var processed: List[AbstractOp] = ops.toList
 		var modified = false
 
 		do {
-			unprocessed = processed
+			var unprocessed: List[AbstractOp] = processed
+
 			processed = Nil
 			modified = false
 

@@ -241,19 +241,19 @@ object BytecodeDecoder {
 			case x => error("Unknown opcode " + x + ".")
 		}
 
-		@tailrec def build(list: ListBuffer[AbstractOp], map: SortedMap[Int, AbstractOp]): (ListBuffer[AbstractOp], SortedMap[Int, AbstractOp]) = input.available match {
+		@tailrec def build(list: List[AbstractOp], map: SortedMap[Int, AbstractOp]): (List[AbstractOp], SortedMap[Int, AbstractOp]) = input.available match {
 			case 0 => (list, map)
 			case _ => {
 				val pos = input.position
 				val op = readOp(pos)
 
-				build(list += op, map + (pos -> op))
+				build(op :: list, map + (pos -> op))
 			}
 		}
 
 		try {
-			val (ops, map) = build(new ListBuffer[AbstractOp](), new TreeMap[Int, AbstractOp]())
-			new Bytecode(ops, markers solve map, exceptions)
+			val (ops, map) = build(Nil, TreeMap())
+			new Bytecode(ops.reverse, markers solve map, exceptions)
 		}
 		finally {
 			try { input.close() } catch { case _ => {} }
