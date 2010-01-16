@@ -22,7 +22,7 @@ package apparat.bytecode
 
 import apparat.abc.{Abc, AbcMethod, AbcMethodBody}
 import apparat.utils.{Dumpable, IndentingPrintWriter}
-import combinator.{~, Failure, Success, BytecodeChain}
+import combinator.{Failure, Success, BytecodeChain}
 import operations.AbstractOp
 import annotation.tailrec
 

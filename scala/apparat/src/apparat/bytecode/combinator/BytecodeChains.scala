@@ -27,11 +27,17 @@ object BytecodeChains {
 		override def apply(list: List[AbstractOp]) = {
 			val head = list.head
 			lazy val errorMessage = "Expected '%s' got '%s'.".format(op, head)
-			if(head ~== op) {
-				Success(head, list drop 1)
-			} else {
-				Failure(errorMessage)
-			}
+			if(head ~== op) Success(head, list drop 1)
+			else Failure(errorMessage)
+		}
+	}
+
+	implicit def partial[A](f: PartialFunction[AbstractOp, A]) = new BytecodeChain[A] {
+		override def apply(list: List[AbstractOp]) = {
+			val head = list.head
+			lazy val errorMessage = "Expected '%s' got '%s'.".format(f, head)
+			if(f.isDefinedAt(head)) Success(f(head), list drop 1)
+			else Failure(errorMessage)
 		}
 	}
 

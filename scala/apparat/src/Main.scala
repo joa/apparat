@@ -30,11 +30,11 @@ import apparat.bytecode.combinator._
 import apparat.bytecode.Bytecode._
 object Main {
 	def main(args: Array[String]): Unit = {
-		val chain = PushInt(0) ~ rep(Nop()) ~ Pop()
+		val chain = partial { case op: AbstractPushOp => op } ~ rep(Nop()) ~ Pop()
 		val b = bytecode {
 			GetLocal(0)		::
 			PushScope()		::
-			PushInt(0)		::
+			PushDouble(0)	::
 			PushInt(0)		::
 			Pop()			::
 			Pop()			::
