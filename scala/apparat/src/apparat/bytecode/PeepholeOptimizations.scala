@@ -5,7 +5,14 @@ import combinator._
 import operations._
 
 object PeepholeOptimizations {
-	lazy val fastWhile = (
+	def apply(bytecode: Bytecode) = {
+		bytecode rewrite whileLoop
+		bytecode rewrite getLex
+		bytecode rewrite unnecessaryIntCast
+		bytecode
+	}
+	
+	lazy val whileLoop = (
 		partial { case getLocal: GetLocal => getLocal } ~
 		(IncrementInt() | DecrementInt()) ~
 		Dup() ~
@@ -31,6 +38,11 @@ object PeepholeOptimizations {
 	) ^^ {
 		case FindPropStrict(x) ~ GetProperty(y) if x == y => GetLex(x) :: Nil
 		case FindPropStrict(x) ~ GetProperty(y) => FindPropStrict(x) :: GetProperty(y) :: Nil
+		case _ => error("Unreachable code.")
+	}
+
+	lazy val unnecessaryIntCast = ((AddInt() | SubtractInt() | MultiplyInt()) ~ ConvertInt()) ^^ {
+		case x ~ ConvertInt() => x :: Nil
 		case _ => error("Unreachable code.")
 	}
 }

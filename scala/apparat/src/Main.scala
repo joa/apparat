@@ -45,7 +45,8 @@ object Main {
 		}
 		b.dump()
 		println("")
-		b.rewrite(PeepholeOptimizations.fastWhile) dump()
+		PeepholeOptimizations(b)
+		b.dump()
 		/*val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 		Performance.measure("Total") {
 			val abc = new Abc

@@ -64,37 +64,36 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 	}
 
 	def rewrite[A <: AbstractOp](rule: BytecodeChain[List[A]]) = replace(rule) { a => a }
-	
-	def replace[A](chain: BytecodeChain[A])(replace: A => List[AbstractOp]) = {
-		var processed: List[AbstractOp] = ops.toList
+
+	def replace[A](chain: BytecodeChain[A])(body: A => List[AbstractOp]) = {
 		var modified = false
+		var processed: List[AbstractOp] = Nil
+		var unprocessed: List[AbstractOp] = ops
 
-		do {
-			var unprocessed: List[AbstractOp] = processed
-
-			processed = Nil
-			modified = false
-
-			while(unprocessed.nonEmpty) {
-				chain(unprocessed) match {
-					case Success(value, remaining) => {
-						processed :::= replace(value).reverse
-						unprocessed = remaining
-						modified = true
-					}
-					case Failure(_) => {
-						processed ::= unprocessed.head
-						unprocessed = unprocessed.tail
-					}
-
+		while(unprocessed.nonEmpty) {
+			chain(unprocessed) match {
+				case Success(value, remaining) => {
+					processed :::= body(value).reverse
+					unprocessed = remaining
+					modified = true
 				}
+				case Failure(_) => {
+					processed ::= unprocessed.head
+					unprocessed = unprocessed.tail
+				}
+
 			}
+		}
 
-			processed = processed.reverse
-		} while(modified)
+		ops = processed.reverse
+		modified
+	}
 
-		ops = processed
-		this
+	def replaceAll[A](chain: BytecodeChain[A])(rule: A => List[AbstractOp]): Boolean = {
+		replace(chain)(rule) match {
+			case true => replaceAll(chain)(rule) || true
+			case false => false
+		}
 	}
 
 	def toByteArray(implicit abc: Abc) = BytecodeEncoder(this)._1
