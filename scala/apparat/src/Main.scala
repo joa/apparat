@@ -19,7 +19,7 @@
  * 
  */
 import apparat.abc.{AbcNamespace, AbcQName, Abc}
-import apparat.bytecode.analysis.FrequencyDistribution
+import apparat.bytecode.analysis.{LocalCount, FrequencyDistribution}
 import apparat.bytecode.PeepholeOptimizations
 import apparat.graph.{Vertex, Graph}
 import apparat.swc.Swc
@@ -38,17 +38,18 @@ object Main {
 			PushScope()		::
 			FindPropStrict(AbcQName('Math, AbcNamespace(22, Symbol("")))) ::
 			GetProperty(AbcQName('Math, AbcNamespace(22, Symbol("")))) ::
-			GetLocal(0)		::
+			GetLocal(1)		::
 			DecrementInt()	::
 			Dup()			::
 			ConvertInt()	::
-			SetLocal(0)		::
+			SetLocal(1)		::
 			ReturnValue()	:: Nil
 		}
 		b.dump()
 		println("")
 		PeepholeOptimizations(b)
 		b.dump()
+		println(LocalCount(b))
 
 		/*val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 		val frequencyDistribution = new FrequencyDistribution()
