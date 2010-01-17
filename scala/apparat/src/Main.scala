@@ -19,10 +19,12 @@
  * 
  */
 import apparat.abc.{AbcNamespace, AbcQName, Abc}
+import apparat.bytecode.analysis.FrequencyDistribution
 import apparat.bytecode.PeepholeOptimizations
 import apparat.graph.{Vertex, Graph}
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
+import apparat.utils.Performance
 import apparat.utils.Performance._
 import java.io.PrintWriter
 import apparat.bytecode.operations._
@@ -47,16 +49,30 @@ object Main {
 		println("")
 		PeepholeOptimizations(b)
 		b.dump()
+
 		/*val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
+		val frequencyDistribution = new FrequencyDistribution()
+
 		Performance.measure("Total") {
-			val abc = new Abc
 			for (x <- swf.tags if x.kind == SwfTags.DoABC) {
 				val doABC = x.asInstanceOf[DoABC];
-				Performance.measure("Read") { abc read doABC.abcData }
-				Performance.measure("Write") { abc.toByteArray }
-				//IO dump abc.toByteArray
+				val abc = Abc fromDoABC doABC
+
+				abc.loadBytecode()
+				abc.methods foreach {
+					method => method.body match {
+						case Some(body) => {
+							frequencyDistribution.analyze(body.bytecode.get)
+						}
+						case None => {}
+					}
+				}
 			}
-		}*/
+		}
+
+		frequencyDistribution.dump()
+		println(frequencyDistribution.toCSV)*/
+		
 		//val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
 		/*val swf = Swf fromFile "assets/Test01.swf"
