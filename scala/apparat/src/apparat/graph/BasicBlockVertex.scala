@@ -26,6 +26,8 @@ class BasicBlockVertex[T](var block: Seq[T] = Nil) extends VertexLike {
 		this
 	}
 
+	def removeLast() = {block = block take block.length - 1}
+
 	def contains(elm: T): Boolean = block contains elm
 
 	def indexOf(elm: T): Int = block indexOf elm

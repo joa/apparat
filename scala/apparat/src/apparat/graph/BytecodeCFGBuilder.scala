@@ -67,7 +67,11 @@ object BytecodeCFGBuilder {
 						// the marker is a TrueEdge
 						createVertexFromMarker(condOp.marker, TrueEdge[graph.BasicBlockVertex] _)
 					}
-					case jumpOp: Jump => createVertexFromMarker(jumpOp.marker, JumpEdge[graph.BasicBlockVertex] _)
+					case jumpOp: Jump => {
+						createVertexFromMarker(jumpOp.marker, JumpEdge[graph.BasicBlockVertex] _)
+						//remove the last op from the block
+						currentBlock.removeLast()
+					}
 					case throwOp: Throw => {
 						val indexOfThrow = ops indexOf throwOp
 

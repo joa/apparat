@@ -38,8 +38,6 @@ object MainPL {
 		for {
 			body<-abc.methods(3).body
 			bc<-body.bytecode
-		
-
 		}{
 			bc.dump()
 			val g = BytecodeCFGBuilder(bc)
