@@ -64,6 +64,15 @@ class Abc {
 	var types = new Array[AbcNominalType](0)
 	var scripts = new Array[AbcScript](0)
 
+	def accept(visitor: AbcVisitor) = {
+		visitor visit this
+		cpool accept visitor
+		methods foreach (_ accept visitor)
+		metadata foreach (_ accept visitor)
+		types foreach (_ accept visitor)
+		scripts foreach (_ accept visitor)
+	}
+	
 	def loadBytecode() = {
 		implicit val abc = this
 

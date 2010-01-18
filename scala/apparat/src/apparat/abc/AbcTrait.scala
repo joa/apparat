@@ -11,7 +11,9 @@ object AbcTraitKind {
 }
 
 sealed abstract class AbcTrait(val kind: Int, val name: AbcQName,
-							   val metadata: Option[Array[AbcMetadata]])
+							   val metadata: Option[Array[AbcMetadata]]) {
+	def accept(visitor: AbcVisitor) = visitor visit this
+}
 
 sealed abstract class AbcTraitAnyMethod(override val kind: Int, override val name: AbcQName,
 										override val metadata: Option[Array[AbcMetadata]], val dispId: Int,

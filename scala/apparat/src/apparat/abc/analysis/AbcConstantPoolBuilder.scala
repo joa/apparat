@@ -1,0 +1,216 @@
+package apparat.abc.analysis
+
+import apparat.abc._
+import apparat.bytecode.operations._
+
+class AbcConstantPoolBuilder extends AbcVisitor {
+	var ints: List[Int] = Nil
+	var uints: List[Long] = Nil
+	var doubles: List[Double] = Nil
+	var strings: List[Symbol] = Nil
+	var namespaces: List[AbcNamespace] = Nil
+	var nssets: List[AbcNSSet] = Nil
+	var names: List[AbcName] = Nil
+
+	var abc: Option[Abc] = None
+
+	def add(value: Int) = ints = value :: ints
+
+	def add(value: Long) = uints = value :: uints
+
+	//TODO got compile error when using Double.isNaN -- why? idea/scala bug?
+	def add(value: Double) = if(!java.lang.Double.isNaN(value)) doubles = value :: doubles
+
+	def add(value: Symbol) = if(value != AbcConstantPool.EMPTY_STRING) strings = value :: strings
+
+	def add(value: AbcNamespace) = if(value != AbcConstantPool.EMPTY_NAMESPACE) namespaces = value :: namespaces
+
+	def add(value: AbcNSSet) = if(value != AbcConstantPool.EMPTY_NSSET) nssets = value :: nssets
+
+	def add(value: AbcName) = if(value != AbcConstantPool.EMPTY_NAME) names = value :: names
+
+	override def visit(value: Abc): Unit = abc = Some(value)
+
+	override def visit(value: AbcConstantPool): Unit = {}
+
+	override def visit(value: AbcExceptionHandler): Unit = {
+		add(value.typeName)
+		add(value.varName)
+	}
+
+	override def visit(value: AbcInstance): Unit = {
+		add(value.name)
+
+		value.base match {
+			case Some(base) => add(base)
+			case None =>
+		}
+
+		value.protectedNs match {
+			case Some(namespace) => add(namespace)
+			case None =>
+		}
+
+		value.interfaces foreach add
+	}
+
+	override def visit(value: AbcMetadata): Unit = {
+		add(value.name)
+
+		for((key, value) <- value.attributes) {
+			add(key)
+			add(value)
+		}
+	}
+
+	override def visit(value: AbcMethod): Unit = {
+		add(value.returnType)
+		add(value.name)
+	}
+
+	override def visit(value: AbcMethodBody): Unit = {
+		value.bytecode match {
+			case Some(bytecode) => {
+				bytecode.ops foreach {
+					case Add() | AddInt() => {}
+					case ApplyType(_) => {}
+					case AsType(typeName) => add(typeName)
+					case AsTypeLate() => {}
+					case BitAnd() | BitNot() | BitOr() | BitXor() => {}
+					case Breakpoint() | BreakpointLine() => {}
+					case Call(_) => {}
+					case CallMethod(_, _) => {}
+					case CallProperty(property, _) => add(property)
+					case CallPropLex(property, _) => add(property)
+					case CallPropVoid(property, _) => add(property)
+					case CallStatic(_, _) => {}
+					case CallSuper(property, _) => add(property)
+					case CallSuperVoid(property, _) => add(property)
+					case CheckFilter() => {}
+					case Coerce(typeName) => add(typeName)
+					case CoerceAny() | CoerceBoolean() | CoerceDouble() | CoerceInt() | CoerceObject() | CoerceString() | CoerceUInt() => {}
+					case Construct(_) => {}
+					case ConstructProp(property, _) => add(property)
+					case ConstructSuper(_) => {}
+					case ConvertBoolean() | ConvertDouble() | ConvertInt() | ConvertObject() | ConvertString() | ConvertUInt() => {}
+					case Debug(_, name, _, _) => add(name)
+					case DebugFile(file) => add(file)
+					case DebugLine(_) => {}
+					case DecLocal(_) => {}
+					case DecLocalInt(_) => {}
+					case Decrement() | DecrementInt() => {}
+					case DeleteProperty(property) => add(property)
+					case Divide() => {}
+					case Dup() => {}
+					case DefaultXMLNamespace(uri) => add(uri)
+					case DefaultXMLNamespaceLate() => {}
+					case Equals() => {}
+					case EscapeXMLAttribute() => {}
+					case EscapeXMLElement() => {}
+					case FindProperty(property) => add(property)
+					case FindPropStrict(property) => add(property)
+					case GetDescendants(property) => add(property)
+					case GetGlobalScope() => {}
+					case GetGlobalSlot(_) => {}
+					case GetLex(typeName) => add(typeName)
+					case GetLocal(_) => {}
+					case GetProperty(property) => add(property)
+					case GetScopeObject(_) => {}
+					case GetSlot(_) => {}
+					case GetSuper(property) => add(property)
+					case GreaterEquals() | GreaterThan() => {}
+					case HasNext() => {}
+					case HasNext2(_, _) => {}
+					case IfEqual(_) => {}
+					case IfFalse(_) => {}
+					case IfGreaterEqual(_) => {}
+					case IfGreaterThan(_) => {}
+					case IfLessEqual(_) => {}
+					case IfLessThan(_) => {}
+					case IfNotEqual(_) => {}
+					case IfNotGreaterEqual(_) => {}
+					case IfNotGreaterThan(_) => {}
+					case IfNotLessEqual(_) => {}
+					case IfNotLessThan(_) => {}
+					case IfStrictEqual(_) => {}
+					case IfStrictNotEqual(_) => {}
+					case IfTrue(_) => {}
+					case In() => {}
+					case IncLocal(_) => {}
+					case IncLocalInt(_) => {}
+					case Increment() | IncrementInt() => {}
+					case InitProperty(property) => add(property)
+					case InstanceOf() => {}
+					case IsType(typeName) => add(typeName)
+					case IsTypeLate() => {}
+					case Jump(_) => {}
+					case Kill(_) => {}
+					case Label() => {}
+					case LessEquals() | LessThan() => {}
+					case LookupSwitch(_, _) => {}
+					case ShiftLeft() | Modulo() | Multiply() | MultiplyInt() | Negate() | NegateInt() => {}
+					case NewActivation() => {}
+					case NewArray(_) => {}
+					case NewCatch(_) => {}
+					case NewClass(_) => {}
+					case NewFunction(_) => {}
+					case NewObject(_) => {}
+					case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() => {}
+					case PushByte(_) => {}
+					case PushDouble(value) => add(value)
+					case PushFalse() => {}
+					case PushInt(value) => add(value)
+					case PushNamespace(value) => add(value)
+					case PushNaN() | PushNull() | PushScope() => {}
+					case PushShort(_) => {}
+					case PushString(value) => add(value)
+					case PushTrue() => {}
+					case PushUInt(value) => add(value)
+					case PushUndefined() | PushWith() => {}
+					case ReturnValue() | ReturnVoid() => {}
+					case ShiftRight() => {}
+					case SetLocal(_) => {}
+					case SetGlobalSlot(_) => {}
+					case SetProperty(property) => add(property)
+					case SetSlot(_) => {}
+					case SetSuper(property) => add(property)
+					case StrictEquals() | Subtract() | SubtractInt() | Swap() => {}
+					case Throw() | TypeOf() | ShiftRightUnsigned() => {}
+					case SetByte() | SetShort() | SetInt() | SetFloat() | SetDouble() => {}
+					case GetByte() | GetShort() | GetInt() | GetFloat() | GetDouble() => {}
+					case Sign1() | Sign8() | Sign16() => {}
+				}
+			}
+			case None =>
+		}
+	}
+
+	override def visit(value: AbcMethodParameter): Unit = {
+		add(value.typeName)
+
+		value.name match {
+			case Some(name) => add(name)
+			case None =>
+		}
+
+		if(value.optional) {
+			error("TODO")
+			//TODO add optional
+		}
+	}
+
+	override def visit(value: AbcTrait): Unit = {
+		add(value.name)
+
+		value match {
+			case slot: AbcTraitAnySlot => {
+				add(slot.typeName)
+				slot.value match {
+					case Some(value) => error("TODO")//TODO add optional
+					case None =>
+				}
+			}
+			case _ => {}
+		}
+	}
+}

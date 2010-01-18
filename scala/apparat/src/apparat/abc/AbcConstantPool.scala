@@ -37,6 +37,8 @@ class AbcConstantPool(
 		val namespaces: Array[AbcNamespace],
 		val nssets: Array[AbcNSSet],
 		val names: Array[AbcName]) extends Dumpable {
+	def accept(visitor: AbcVisitor) = visitor visit this
+	
 	def constant(kind: Some[Int], index: Int): Any = constant(kind.get, index)
 
 	def constant(kind: Int, index: Int): Any = kind match {
@@ -78,7 +80,7 @@ class AbcConstantPool(
 		}
 	}
 
-	def indexOf(kind: Int, value: Any): Int = error("TODO")
+	def indexOf(kind: Int, value: Any): Int = error("TODO")//TODO needs to write type
 
 	override def toString = "[AbcConstantPool]"
 
