@@ -2,10 +2,8 @@ package apparat.graph
 
 import apparat.bytecode.operations._
 import apparat.bytecode.Bytecode
-import annotation.tailrec
 import collection.Seq
-import collection.mutable.Map
-
+import annotation.tailrec
 /*
  * This file is part of Apparat.
  * 
@@ -44,11 +42,26 @@ class BytecodeCFG extends CFG[AbstractOp, AbstractOpBasicBlockVertex] {
 	override def toString = "[BytecodeCFG]"
 
 	override def vertexToString(vertex: BasicBlockVertex) = {
-				"(>)".r.replaceAllIn("(\")".r
-				.replaceAllIn( vertex.toString(), """\\"""" ), "&gt;")
+		val str = vertex.toString
+		val len = str.length
+		@tailrec def loop(sb: StringBuilder, strIndex: Int): StringBuilder = {
+			if (strIndex >= len)
+				sb
+			else {
+				str(strIndex) match {
+					case '"' => sb append "\\\""
+					case '>' => sb append "&gt;"
+					case '<' => sb append "&lt;"
+					case c => sb append c
+				}
+				loop(sb, strIndex + 1)
+			}
+		}
+
+		loop(new StringBuilder("{"), 0).append("}") toString
 	}
 
-    override def dotExport = {
+	override def dotExport = {
 		new DOTExport(this, vertexToString, edgeToString)
 	}
 }

@@ -58,18 +58,18 @@ object BytecodeCFGBuilder {
 					}
 				}
 
-				// check the kind of the last intruction of block
+				// check the kind of the last instruction of block
 				currentBlock(currentBlock.length - 1) match {
-					case aco: AbstractConditionalOp => {
+					case condOp: AbstractConditionalOp => {
 						// the next block into the queue is a false edge
 						graph += FalseEdge(currentBlock, basicBlockQueue(0))
 
 						// the marker is a TrueEdge
-						createVertexFromMarker(aco.marker, TrueEdge[graph.BasicBlockVertex] _)
+						createVertexFromMarker(condOp.marker, TrueEdge[graph.BasicBlockVertex] _)
 					}
-					case jmp: Jump => createVertexFromMarker(jmp.marker, JumpEdge[graph.BasicBlockVertex] _)
-					case _throw: Throw => {
-						val indexOfThrow = ops indexOf _throw
+					case jumpOp: Jump => createVertexFromMarker(jumpOp.marker, JumpEdge[graph.BasicBlockVertex] _)
+					case throwOp: Throw => {
+						val indexOfThrow = ops indexOf throwOp
 
 						for (exc <- exceptions) {
 							// FIXME do not use get directly
@@ -79,12 +79,12 @@ object BytecodeCFGBuilder {
 
 						graph += ThrowEdge(currentBlock, graph.exitVertex)
 					}
-					case lookup: LookupSwitch => {
-						createVertexFromMarker(lookup.defaultCase, DefaultCaseEdge[graph.BasicBlockVertex] _)
-						for (caseMarker <- lookup.cases)
+					case lookupOp: LookupSwitch => {
+						createVertexFromMarker(lookupOp.defaultCase, DefaultCaseEdge[graph.BasicBlockVertex] _)
+						for (caseMarker <- lookupOp.cases)
 							createVertexFromMarker(caseMarker, CaseEdge[graph.BasicBlockVertex] _)
 					}
-					case ret: OpThatReturns => {
+					case returnOp: OpThatReturns => {
 						graph += ReturnEdge(currentBlock, graph.exitVertex)
 					}
 					case _ => {
