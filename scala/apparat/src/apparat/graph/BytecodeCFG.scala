@@ -61,6 +61,16 @@ class BytecodeCFG extends CFG[AbstractOp, AbstractOpBasicBlockVertex] {
 		loop(new StringBuilder("{"), 0).append("}") toString
 	}
 
+	def removeLabelAndJump() = {
+		for (vertex <- verticesIterator if (!(isEntry(vertex) || isExit(vertex)))) {
+			if (vertex(0).isInstanceOf[Label])
+				vertex removeFirst ()
+			if (vertex(vertex.length - 1).isInstanceOf[Jump])
+				vertex removeLast ()
+		}
+		this
+	}
+
 	override def dotExport = {
 		new DOTExport(this, vertexToString, edgeToString)
 	}

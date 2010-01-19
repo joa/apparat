@@ -53,6 +53,10 @@ abstract class CFG[T, V <: BasicBlockVertex[T]] extends GraphLikeWithAdjacencyMa
 		super.add(edge)
 	}
 
+	def isEntry(vertex: V) = entryVertex == vertex
+
+	def isExit(vertex: V) = exitVertex == vertex
+
 	def find(elm: T) = verticesIterator.find(_ contains elm)
 
 	def contains(elm: T) = verticesIterator.exists(_ contains elm)
