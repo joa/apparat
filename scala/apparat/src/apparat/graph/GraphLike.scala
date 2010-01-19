@@ -20,20 +20,22 @@
  */
 package apparat.graph
 
+import collection.mutable.{HashSet, ListBuffer}
+
 trait GraphLike[V <: VertexLike] {
 	protected type E = Edge[V]
 
 	def +=(that: (V, V)) = {
-		if(!contains(that._1)) add(that._1)
-		if(!contains(that._2)) add(that._2)
+		if (!contains(that._1)) add(that._1)
+		if (!contains(that._2)) add(that._2)
 		add(new DefaultEdge[V](that._1, that._2))
 	}
 
 	def -=(that: (V, V)) = {
-		if(contains(that._1) && contains(that._2))
+		if (contains(that._1) && contains(that._2))
 			outgoingOf(that._1) filter (_.endVertex == that._2) foreach remove _
 	}
-	
+
 	def +=(that: E) = add(that)
 
 	def +=(that: V) = add(that)
@@ -69,4 +71,21 @@ trait GraphLike[V <: VertexLike] {
 	def edgesIterator: Iterator[E]
 
 	def verticesIterator: Iterator[V]
+
+	//use a depth first search so sort are in reverse order
+	def reverseTopologicalSort: Seq[V] = {
+		val visited: HashSet[V] = new HashSet()
+		val list: ListBuffer[V] = new ListBuffer()
+		def visit(vertex: V): Unit = {
+			if (!visited.contains(vertex)) {
+				visited += vertex
+				for (edge <- outgoingOf(vertex)) visit(edge.endVertex)
+				list += vertex
+			}
+		}
+		for (block <- verticesIterator) visit(block)
+		list.toSeq
+	}
+
+	def topologicalSort = reverseTopologicalSort reverse
 }

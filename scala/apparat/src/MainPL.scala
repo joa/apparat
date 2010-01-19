@@ -1,8 +1,10 @@
+import annotation.tailrec
 import apparat.abc.{Abc}
 import apparat.graph._
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
 import apparat.test.{BCode}
+import collection.mutable.{ListBuffer, HashSet}
 /*
 * This file is part of Apparat.
 *
@@ -35,13 +37,15 @@ object MainPL {
 		val abc = Abc fromDoABC swf.tags(idx).asInstanceOf[DoABC]
 		abc.loadBytecode()
 
-		for {
-			body<-abc.methods(3).body
-			bc<-body.bytecode
-		}{
+		for{
+			body <- abc.methods(3).body
+			bc <- body.bytecode
+		} {
 			bc.dump()
 			val g = BytecodeCFGBuilder(bc)
-			g.dotExport to Console.out			
+			g.dotExport to Console.out
+
+			println(g.topologicalSort)
 		}
 	}
 }

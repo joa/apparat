@@ -42,6 +42,6 @@ class BasicBlockVertex[T](var block: Seq[T] = Nil) extends VertexLike {
 
 	// FIXME tmp for the dot graph export
 	override def toString = {
-		block.mkString("", "\\n", "")
+		block.mkString("[[", "\\n", "]]")
 	}
 }
