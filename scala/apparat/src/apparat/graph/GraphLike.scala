@@ -73,7 +73,7 @@ trait GraphLike[V <: VertexLike] {
 	def verticesIterator: Iterator[V]
 
 	//use a depth first search so sort are in reverse order
-	def reverseTopologicalSort: Seq[V] = {
+	def reverseTopologicalSort: List[V] = {
 		val visited: HashSet[V] = new HashSet()
 		val list: ListBuffer[V] = new ListBuffer()
 		def visit(vertex: V): Unit = {
@@ -84,7 +84,7 @@ trait GraphLike[V <: VertexLike] {
 			}
 		}
 		for (block <- verticesIterator) visit(block)
-		list.toSeq
+		list.toList
 	}
 
 	def topologicalSort = reverseTopologicalSort reverse
