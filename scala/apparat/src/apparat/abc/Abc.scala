@@ -331,7 +331,7 @@ class Abc {
 
 		@tailrec def traverse(index: Int, map: Map[Symbol, Symbol]): Map[Symbol, Symbol] = index match {
 			case x if x == n => map
-			case y => {traverse(y + 1, map + (keys(y) -> readPooledString()))}
+			case y => traverse(y + 1, map + (keys(y) -> readPooledString()))
 		}
 
 		new AbcMetadata(name, traverse(0, new HashMap[Symbol, Symbol]))

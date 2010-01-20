@@ -3,6 +3,13 @@ package apparat.abc.analysis
 import apparat.abc._
 import apparat.bytecode.operations._
 
+object AbcConstantPoolBuilder {
+	def using(abc: Abc) = {
+		val builder = new AbcConstantPoolBuilder()
+		builder add abc
+		builder.createPool
+	}
+}
 class AbcConstantPoolBuilder extends AbcVisitor {
 	var ints: List[Int] = Nil
 	var uints: List[Long] = Nil
@@ -12,24 +19,90 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 	var nssets: List[AbcNSSet] = Nil
 	var names: List[AbcName] = Nil
 
-	var abc: Option[Abc] = None
+	def reset = {
+		ints = Nil
+		uints = Nil
+		doubles = Nil
+		strings = Nil
+		namespaces = Nil
+		nssets = Nil
+		names = Nil
+	}
 
-	def add(value: Int) = ints = value :: ints
+	def comparator[B](list: List[B])(a: B, b: B) = (list count (_ == a)) > (list count (_ == b))
 
-	def add(value: Long) = uints = value :: uints
+	//def optimize[B](list: List[B]) = list.removeDuplicates
+
+	def optimize[B](list: List[B]) = list sortWith (comparator(list) _) removeDuplicates
+
+	def createPool = new AbcConstantPool(
+		(0 :: optimize(ints)).toArray,
+		(0L :: optimize(uints)).toArray,
+		(Double.NaN :: optimize(doubles)).toArray,
+		(AbcConstantPool.EMPTY_STRING :: optimize(strings)).toArray,
+		(AbcConstantPool.EMPTY_NAMESPACE :: optimize(namespaces)).toArray,
+		(AbcConstantPool.EMPTY_NSSET :: optimize(nssets)).toArray,
+		(AbcConstantPool.EMPTY_NAME :: names.sortWith((a, b) => a match {
+			case AbcTypename(_, _) => false
+			case other => b match {
+				case AbcTypename(_, _) => true
+				case _ => (names count (_ == a)) > (names count (_ == b))
+			}
+		}).removeDuplicates).toArray
+	)
+
+	def add(abc: Abc): Unit = abc accept this
+
+	def add(value: Int): Unit  = ints = value :: ints
+
+	def add(value: Long): Unit  = uints = value :: uints
 
 	//TODO got compile error when using Double.isNaN -- why? idea/scala bug?
-	def add(value: Double) = if(!java.lang.Double.isNaN(value)) doubles = value :: doubles
+	def add(value: Double): Unit  = if(!java.lang.Double.isNaN(value)) doubles = value :: doubles
 
-	def add(value: Symbol) = if(value != AbcConstantPool.EMPTY_STRING) strings = value :: strings
+	def add(value: Symbol): Unit  = if(value != AbcConstantPool.EMPTY_STRING) strings = value :: strings
 
-	def add(value: AbcNamespace) = if(value != AbcConstantPool.EMPTY_NAMESPACE) namespaces = value :: namespaces
+	def add(value: AbcNamespace): Unit  = {
+		add(value.name)
+		if(value != AbcConstantPool.EMPTY_NAMESPACE) namespaces = value :: namespaces
+	}
 
-	def add(value: AbcNSSet) = if(value != AbcConstantPool.EMPTY_NSSET) nssets = value :: nssets
+	def add(value: AbcNSSet): Unit  = {
+		value.set foreach add
+		if(value != AbcConstantPool.EMPTY_NSSET) nssets = value :: nssets
+	}
 
-	def add(value: AbcName) = if(value != AbcConstantPool.EMPTY_NAME) names = value :: names
+	def add(value: AbcName): Unit = {
+		if(value != AbcConstantPool.EMPTY_NAME) names = value :: names
 
-	override def visit(value: Abc): Unit = abc = Some(value)
+		value match {
+			case AbcQName(name, namespace) => {
+				add(name)
+				add(namespace)
+			}
+			case AbcQNameA(name, namespace) => {
+				add(name)
+				add(namespace)
+			}
+			case AbcRTQName(name) => add(name)
+			case AbcRTQNameA(name) => add(name)
+			case AbcRTQNameL | AbcRTQNameLA =>
+			case AbcMultiname(name, nsset) => {
+				add(name)
+				add(nsset)
+			}
+			case AbcMultinameA(name, nsset) => {
+				add(name)
+				add(nsset)
+			}
+			case AbcMultinameL(nsset) => add(nsset)
+			case AbcMultinameLA(nsset) => add(nsset)
+			case AbcTypename(name, parameters) => {
+				add(name)
+				parameters foreach add
+			}
+		}
+	}
 
 	override def visit(value: AbcConstantPool): Unit = {}
 
@@ -72,113 +145,113 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 		value.bytecode match {
 			case Some(bytecode) => {
 				bytecode.ops foreach {
-					case Add() | AddInt() => {}
-					case ApplyType(_) => {}
+					case Add() | AddInt() => 
+					case ApplyType(_) => 
 					case AsType(typeName) => add(typeName)
-					case AsTypeLate() => {}
-					case BitAnd() | BitNot() | BitOr() | BitXor() => {}
-					case Breakpoint() | BreakpointLine() => {}
-					case Call(_) => {}
-					case CallMethod(_, _) => {}
+					case AsTypeLate() => 
+					case BitAnd() | BitNot() | BitOr() | BitXor() => 
+					case Breakpoint() | BreakpointLine() => 
+					case Call(_) => 
+					case CallMethod(_, _) => 
 					case CallProperty(property, _) => add(property)
 					case CallPropLex(property, _) => add(property)
 					case CallPropVoid(property, _) => add(property)
-					case CallStatic(_, _) => {}
+					case CallStatic(_, _) => 
 					case CallSuper(property, _) => add(property)
 					case CallSuperVoid(property, _) => add(property)
-					case CheckFilter() => {}
+					case CheckFilter() => 
 					case Coerce(typeName) => add(typeName)
-					case CoerceAny() | CoerceBoolean() | CoerceDouble() | CoerceInt() | CoerceObject() | CoerceString() | CoerceUInt() => {}
-					case Construct(_) => {}
+					case CoerceAny() | CoerceBoolean() | CoerceDouble() | CoerceInt() | CoerceObject() | CoerceString() | CoerceUInt() => 
+					case Construct(_) => 
 					case ConstructProp(property, _) => add(property)
-					case ConstructSuper(_) => {}
-					case ConvertBoolean() | ConvertDouble() | ConvertInt() | ConvertObject() | ConvertString() | ConvertUInt() => {}
+					case ConstructSuper(_) => 
+					case ConvertBoolean() | ConvertDouble() | ConvertInt() | ConvertObject() | ConvertString() | ConvertUInt() => 
 					case Debug(_, name, _, _) => add(name)
 					case DebugFile(file) => add(file)
-					case DebugLine(_) => {}
-					case DecLocal(_) => {}
-					case DecLocalInt(_) => {}
-					case Decrement() | DecrementInt() => {}
+					case DebugLine(_) => 
+					case DecLocal(_) => 
+					case DecLocalInt(_) => 
+					case Decrement() | DecrementInt() => 
 					case DeleteProperty(property) => add(property)
-					case Divide() => {}
-					case Dup() => {}
+					case Divide() => 
+					case Dup() => 
 					case DefaultXMLNamespace(uri) => add(uri)
-					case DefaultXMLNamespaceLate() => {}
-					case Equals() => {}
-					case EscapeXMLAttribute() => {}
-					case EscapeXMLElement() => {}
+					case DefaultXMLNamespaceLate() => 
+					case Equals() => 
+					case EscapeXMLAttribute() => 
+					case EscapeXMLElement() => 
 					case FindProperty(property) => add(property)
 					case FindPropStrict(property) => add(property)
 					case GetDescendants(property) => add(property)
-					case GetGlobalScope() => {}
-					case GetGlobalSlot(_) => {}
+					case GetGlobalScope() => 
+					case GetGlobalSlot(_) => 
 					case GetLex(typeName) => add(typeName)
-					case GetLocal(_) => {}
+					case GetLocal(_) => 
 					case GetProperty(property) => add(property)
-					case GetScopeObject(_) => {}
-					case GetSlot(_) => {}
+					case GetScopeObject(_) => 
+					case GetSlot(_) => 
 					case GetSuper(property) => add(property)
-					case GreaterEquals() | GreaterThan() => {}
-					case HasNext() => {}
-					case HasNext2(_, _) => {}
-					case IfEqual(_) => {}
-					case IfFalse(_) => {}
-					case IfGreaterEqual(_) => {}
-					case IfGreaterThan(_) => {}
-					case IfLessEqual(_) => {}
-					case IfLessThan(_) => {}
-					case IfNotEqual(_) => {}
-					case IfNotGreaterEqual(_) => {}
-					case IfNotGreaterThan(_) => {}
-					case IfNotLessEqual(_) => {}
-					case IfNotLessThan(_) => {}
-					case IfStrictEqual(_) => {}
-					case IfStrictNotEqual(_) => {}
-					case IfTrue(_) => {}
-					case In() => {}
-					case IncLocal(_) => {}
-					case IncLocalInt(_) => {}
-					case Increment() | IncrementInt() => {}
+					case GreaterEquals() | GreaterThan() => 
+					case HasNext() => 
+					case HasNext2(_, _) => 
+					case IfEqual(_) => 
+					case IfFalse(_) => 
+					case IfGreaterEqual(_) => 
+					case IfGreaterThan(_) => 
+					case IfLessEqual(_) => 
+					case IfLessThan(_) => 
+					case IfNotEqual(_) => 
+					case IfNotGreaterEqual(_) => 
+					case IfNotGreaterThan(_) => 
+					case IfNotLessEqual(_) => 
+					case IfNotLessThan(_) => 
+					case IfStrictEqual(_) => 
+					case IfStrictNotEqual(_) => 
+					case IfTrue(_) => 
+					case In() => 
+					case IncLocal(_) => 
+					case IncLocalInt(_) => 
+					case Increment() | IncrementInt() => 
 					case InitProperty(property) => add(property)
-					case InstanceOf() => {}
+					case InstanceOf() => 
 					case IsType(typeName) => add(typeName)
-					case IsTypeLate() => {}
-					case Jump(_) => {}
-					case Kill(_) => {}
-					case Label() => {}
-					case LessEquals() | LessThan() => {}
-					case LookupSwitch(_, _) => {}
-					case ShiftLeft() | Modulo() | Multiply() | MultiplyInt() | Negate() | NegateInt() => {}
-					case NewActivation() => {}
-					case NewArray(_) => {}
-					case NewCatch(_) => {}
-					case NewClass(_) => {}
-					case NewFunction(_) => {}
-					case NewObject(_) => {}
-					case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() => {}
-					case PushByte(_) => {}
+					case IsTypeLate() => 
+					case Jump(_) => 
+					case Kill(_) => 
+					case Label() => 
+					case LessEquals() | LessThan() => 
+					case LookupSwitch(_, _) => 
+					case ShiftLeft() | Modulo() | Multiply() | MultiplyInt() | Negate() | NegateInt() => 
+					case NewActivation() => 
+					case NewArray(_) => 
+					case NewCatch(_) => 
+					case NewClass(_) => 
+					case NewFunction(_) => 
+					case NewObject(_) => 
+					case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() => 
+					case PushByte(_) => 
 					case PushDouble(value) => add(value)
-					case PushFalse() => {}
+					case PushFalse() => 
 					case PushInt(value) => add(value)
 					case PushNamespace(value) => add(value)
-					case PushNaN() | PushNull() | PushScope() => {}
-					case PushShort(_) => {}
+					case PushNaN() | PushNull() | PushScope() => 
+					case PushShort(_) => 
 					case PushString(value) => add(value)
-					case PushTrue() => {}
+					case PushTrue() => 
 					case PushUInt(value) => add(value)
-					case PushUndefined() | PushWith() => {}
-					case ReturnValue() | ReturnVoid() => {}
-					case ShiftRight() => {}
-					case SetLocal(_) => {}
-					case SetGlobalSlot(_) => {}
+					case PushUndefined() | PushWith() => 
+					case ReturnValue() | ReturnVoid() => 
+					case ShiftRight() => 
+					case SetLocal(_) => 
+					case SetGlobalSlot(_) => 
 					case SetProperty(property) => add(property)
-					case SetSlot(_) => {}
+					case SetSlot(_) => 
 					case SetSuper(property) => add(property)
-					case StrictEquals() | Subtract() | SubtractInt() | Swap() => {}
-					case Throw() | TypeOf() | ShiftRightUnsigned() => {}
-					case SetByte() | SetShort() | SetInt() | SetFloat() | SetDouble() => {}
-					case GetByte() | GetShort() | GetInt() | GetFloat() | GetDouble() => {}
-					case Sign1() | Sign8() | Sign16() => {}
+					case StrictEquals() | Subtract() | SubtractInt() | Swap() => 
+					case Throw() | TypeOf() | ShiftRightUnsigned() => 
+					case SetByte() | SetShort() | SetInt() | SetFloat() | SetDouble() => 
+					case GetByte() | GetShort() | GetInt() | GetFloat() | GetDouble() => 
+					case Sign1() | Sign8() | Sign16() => 
 				}
 			}
 			case None =>
@@ -210,7 +283,7 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 					case None =>
 				}
 			}
-			case _ => {}
+			case _ => 
 		}
 	}
 }

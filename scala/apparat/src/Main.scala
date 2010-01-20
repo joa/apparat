@@ -18,6 +18,7 @@
  * http://www.joa-ebert.com/
  * 
  */
+import apparat.abc.analysis.AbcConstantPoolBuilder
 import apparat.abc.{AbcNamespace, AbcQName, Abc}
 import apparat.bytecode.analysis.{LocalCount, FrequencyDistribution}
 import apparat.bytecode.PeepholeOptimizations
@@ -76,26 +77,31 @@ object Main {
 		
 		//val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
-		/*val swf = Swf fromFile "assets/Test01.swf"
 		measure {
+			val swf = Swf fromFile "assets/Test15.swf"
+
 			for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 				val doABC = x.asInstanceOf[DoABC]
 				val abc = Abc fromDoABC doABC
 				abc.loadBytecode()
 
-				abc.methods foreach {
+				/*abc.methods foreach {
 					method => method.body match {
 						case Some(body) => body.bytecode.get.dump()
 						case None => {}
 					}
-				}
-				//abc.saveBytecode()
-				//abc write doABC
+				}*/
+
+				abc.cpool = AbcConstantPoolBuilder using abc
+				//abc.cpool.dump()
+				abc.saveBytecode()
+				abc write doABC
 				//write doABC
 			}
+
+			swf write "assets/Test15.output.swf"
 		}
 
-		swf write "assets/Test15.output.swf"*/
 
 		/*val check = Swf fromFile "assets/Test00.output.swf"
 
