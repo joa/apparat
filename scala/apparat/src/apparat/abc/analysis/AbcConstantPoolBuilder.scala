@@ -29,27 +29,32 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 		names = Nil
 	}
 
-	def comparator[B](list: List[B])(a: B, b: B) = (list count (_ == a)) > (list count (_ == b))
+	def optimize[@specialized B](list: List[B]) = {
+		val noDuplicates = list.removeDuplicates
+		val count = Map(noDuplicates zip (noDuplicates map { x => list count (_ == x) }): _*)
+		noDuplicates sortWith { (a, b) => count(a) > count(b) }
+	}
 
-	//def optimize[B](list: List[B]) = list.removeDuplicates
-
-	def optimize[B](list: List[B]) = list sortWith (comparator(list) _) removeDuplicates
-
-	def createPool = new AbcConstantPool(
-		(0 :: optimize(ints)).toArray,
-		(0L :: optimize(uints)).toArray,
-		(Double.NaN :: optimize(doubles)).toArray,
-		(AbcConstantPool.EMPTY_STRING :: optimize(strings)).toArray,
-		(AbcConstantPool.EMPTY_NAMESPACE :: optimize(namespaces)).toArray,
-		(AbcConstantPool.EMPTY_NSSET :: optimize(nssets)).toArray,
-		(AbcConstantPool.EMPTY_NAME :: names.sortWith((a, b) => a match {
-			case AbcTypename(_, _) => false
-			case other => b match {
-				case AbcTypename(_, _) => true
-				case _ => (names count (_ == a)) > (names count (_ == b))
-			}
-		}).removeDuplicates).toArray
-	)
+	def createPool = {
+		import scala.actors.Futures._
+		val intFuture = future { (0 :: optimize(ints)).toArray }
+		val uintFuture = future { (0L :: optimize(uints)).toArray }
+		val doubleFuture = future { (Double.NaN :: optimize(doubles)).toArray }
+		val stringFuture = future { (AbcConstantPool.EMPTY_STRING :: optimize(strings)).toArray }
+		val namespaceFuture = future { (AbcConstantPool.EMPTY_NAMESPACE :: optimize(namespaces)).toArray }
+		val nssetFuture = future { (AbcConstantPool.EMPTY_NSSET :: optimize(nssets)).toArray }
+		val nameFuture = future {
+			(AbcConstantPool.EMPTY_NAME :: names.sortWith((a, b) => a match {
+				case AbcTypename(_, _) => false
+				case other => b match {
+					case AbcTypename(_, _) => true
+					case _ => (names count (_ == a)) > (names count (_ == b))
+				}
+			}).removeDuplicates).toArray
+		}
+		new AbcConstantPool(intFuture(), uintFuture(), doubleFuture(), stringFuture(),
+			namespaceFuture(), nssetFuture(), nameFuture())
+	}
 
 	def add(abc: Abc): Unit = abc accept this
 
