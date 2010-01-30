@@ -20,7 +20,7 @@
  */
 package apparat.graph
 
-trait GraphTraversal[V <: VertexLike] {
+trait GraphTraversal[V] {
 	def foreach(body: V => Unit): Unit
 
 	def map[T](f: V => T): List[T]

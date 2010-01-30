@@ -20,26 +20,24 @@
  */
 package apparat.graph.immutable
 
-import apparat.graph.{VertexLike, Edge}
+import apparat.graph.{Edge, GraphLike}
 
-class Graph[V <: VertexLike](val adjacency: Map[V,List[Edge[V]]]) {
+class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
 	def this() = this(Map.empty[V, List[Edge[V]]])
 
 	type G = Graph[V]
-	type E = Edge[V]
 
 	private def newGraph(adjacency: Map[V,List[E]]) = new Graph(adjacency)
 
 	def dft(vertex: V) = new DepthFirstTraversal(this, vertex)
 
 	lazy val topsort = {
-		//broken
 		var visited = adjacency map { _._1 -> false }
 		var result = List.empty[V]
 
 		def visit(vertex: V): Unit = {
 			if(!visited(vertex)) {
-				visited = visited updated (vertex, true)//not working?
+				visited = visited updated (vertex, true)
 				for(edge <- outgoingOf(vertex)) {
 					visit(edge.endVertex)
 				}
@@ -49,13 +47,6 @@ class Graph[V <: VertexLike](val adjacency: Map[V,List[Edge[V]]]) {
 
 		adjacency foreach (kv => visit(kv._1))
 		result.reverse
-	}
-
-	def contains(vertex: V) = adjacency contains vertex
-
-	def contains(edge: E) = (adjacency get edge.startVertex) match {
-		case Some(list) => list exists (_ == edge)
-		case None => false
 	}
 
 	def +(vertex: V) = {
@@ -70,12 +61,12 @@ class Graph[V <: VertexLike](val adjacency: Map[V,List[Edge[V]]]) {
 		newGraph(adjacency updated (edge.startVertex, edge :: adjacency(edge.startVertex)))
 	}
 
-	def +(edge: (V, V))(implicit factory: (V, V) => Edge[V]): G = ((contains(edge._1), contains(edge._2)) match {
+	def +(edge: (V, V))(implicit f: (V, V) => Edge[V]): G = ((contains(edge._1), contains(edge._2)) match {
 		case (true, true) => this
 		case (false, true) => this + edge._1
 		case (true, false) => this + edge._2
 		case (false, false) => this + edge._1 + edge._2
-	}) + factory(edge._1, edge._2)
+	}) + f(edge._1, edge._2)
 
 	def -(vertex: V) = {
 		assert(contains(vertex))
@@ -93,24 +84,35 @@ class Graph[V <: VertexLike](val adjacency: Map[V,List[Edge[V]]]) {
 		newGraph(adjacency updated (edge._1, adjacency(edge._1) filterNot (_.endVertex == edge._2)))
 	} else { this }
 
-	def outgoingOf(vertex: V) = {
-		assert(contains(vertex))
-		adjacency(vertex)
+	override def contains(vertex: V) = adjacency contains vertex
+
+	override def contains(edge: E) = (adjacency get edge.startVertex) match {
+		case Some(list) => list exists (_ == edge)
+		case None => false
 	}
 
-	def incomingOf(vertex: V) = {
+	override def incomingOf(vertex: V) = {
 		assert(contains(vertex))
 		adjacency flatMap (_._2) filter (_.endVertex == vertex)
 	}
 
-	def outdegreeOf(vertex: V) = outgoingOf(vertex).length
+	override def outgoingOf(vertex: V) = {
+		assert(contains(vertex))
+		adjacency(vertex)
+	}
 
-	def indegreeOf(vertex: V) = {
+	override def outdegreeOf(vertex: V) = outgoingOf(vertex).length
+
+	override def indegreeOf(vertex: V) = {
 		assert(contains(vertex))
 		adjacency flatMap (_._2) count (_.endVertex == vertex)
 	}
 
-	def predecessorsOf(vertex: V) = incomingOf(vertex) map (_.startVertex)
+	override def predecessorsOf(vertex: V) = incomingOf(vertex) map (_.startVertex)
 
-	def successorsOf(vertex: V) = outgoingOf(vertex) map (_.endVertex)
+	override def successorsOf(vertex: V) = outgoingOf(vertex) map (_.endVertex)
+
+	override def verticesIterator = adjacency.keysIterator
+
+	override def edgesIterator = adjacency.valuesIterator flatMap (_.iterator)
 }

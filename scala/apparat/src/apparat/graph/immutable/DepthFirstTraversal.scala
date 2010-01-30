@@ -21,9 +21,9 @@
 
 package apparat.graph.immutable
 
-import apparat.graph.{GraphTraversal, VertexLike}
+import apparat.graph.{GraphTraversal}
 
-class DepthFirstTraversal[V <: VertexLike](graph: Graph[V], startVertex: V) extends GraphTraversal[V] {
+class DepthFirstTraversal[V](graph: Graph[V], startVertex: V) extends GraphTraversal[V] {
 	private lazy val vertexList = {
 		var list: List[V] = Nil
 		var visited = graph.adjacency map { _._1 -> false } updated (startVertex, true)

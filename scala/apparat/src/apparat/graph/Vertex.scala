@@ -20,4 +20,4 @@
  */
 package apparat.graph
 
-case class Vertex(val label: String) extends VertexLike
+case class Vertex(val label: String)

@@ -25,7 +25,7 @@ import apparat.utils.IO._
 import apparat.graph.mutable._
 import java.io._
 
-class DOTExport[V <: VertexLike](val graph: GraphLike[V],
+class DOTExport[V](val graph: MutableGraphLike[V],
 								 val vertexToString: V => String,
 								 val edgeToString: Edge[V] => String)
 {

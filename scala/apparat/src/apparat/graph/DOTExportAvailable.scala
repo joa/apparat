@@ -20,6 +20,6 @@
  */
 package apparat.graph
 
-trait DOTExportAvailable[V <: VertexLike] {
+trait DOTExportAvailable[V] {
 	def dotExport: DOTExport[V]
 }

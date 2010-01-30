@@ -61,7 +61,8 @@ abstract class CFG[T, V <: BasicBlockVertex[T]] extends GraphLikeWithAdjacencyMa
 
 	def find(elm: T) = verticesIterator.find(_ contains elm)
 
-	def contains(elm: T) = verticesIterator.exists(_ contains elm)
+	//error: name clash
+	//def contains(elm: T) = verticesIterator.exists(_ contains elm)
 
 	override def toString = "[CFG]"
 

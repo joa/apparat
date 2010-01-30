@@ -20,9 +20,7 @@
  */
 package apparat.graph.mutable
 
-import apparat.graph.VertexLike
-
-class BasicBlockVertex[T](var block: Seq[T] = Nil) extends VertexLike {
+class BasicBlockVertex[T](var block: Seq[T] = Nil) {
 	def ++(elms: Seq[T]) = {
 		block = block ++ elms
 		this

@@ -20,16 +20,14 @@
  */
 package apparat.graph.mutable
 
-import collection.mutable.{HashSet, ListBuffer}
 import apparat.graph._
 
-trait GraphLike[V <: VertexLike] {
-	protected type E = Edge[V]
+trait MutableGraphLike[V] extends GraphLike[V] {
 
-	def +=(that: (V, V)) = {
+	def +=(that: (V, V))(implicit f: (V, V) => E) = {
 		if (!contains(that._1)) add(that._1)
 		if (!contains(that._2)) add(that._2)
-		add(new DefaultEdge[V](that._1, that._2))
+		add(f(that._1, that._2))
 	}
 
 	def -=(that: (V, V)) = {
@@ -45,48 +43,19 @@ trait GraphLike[V <: VertexLike] {
 
 	def -=(that: V) = remove(that)
 
-	def indegreeOf(vertex: V) = incomingOf(vertex).length
+	override def indegreeOf(vertex: V) = incomingOf(vertex).iterator.length
 
-	def outdegreeOf(vertex: V) = outgoingOf(vertex).length
+	override def outdegreeOf(vertex: V) = outgoingOf(vertex).iterator.length
 
-	def predecessorsOf(vertex: V) = incomingOf(vertex) map (_.startVertex)
+	override def predecessorsOf(vertex: V) = incomingOf(vertex) map (_.startVertex)
 
-	def successorsOf(vertex: V) = outgoingOf(vertex) map (_.endVertex)
+	override def successorsOf(vertex: V) = outgoingOf(vertex) map (_.endVertex)
 
 	def add(edge: E): Unit
-
-	def contains(edge: E): Boolean
 
 	def remove(edge: E): Unit
 
 	def add(vertex: V): Unit
 
-	def contains(vertex: V): Boolean
-
 	def remove(vertex: V): Unit
-
-	def incomingOf(vertex: V): List[E]
-
-	def outgoingOf(vertex: V): List[E]
-
-	def edgesIterator: Iterator[E]
-
-	def verticesIterator: Iterator[V]
-
-	//use a depth first search so sort are in reverse order
-	def reverseTopologicalSort: List[V] = {
-		val visited: HashSet[V] = new HashSet()
-		val list: ListBuffer[V] = new ListBuffer()
-		def visit(vertex: V): Unit = {
-			if (!visited.contains(vertex)) {
-				visited += vertex
-				for (edge <- outgoingOf(vertex)) visit(edge.endVertex)
-				list += vertex
-			}
-		}
-		for (block <- verticesIterator) visit(block)
-		list.toList
-	}
-
-	def topologicalSort = reverseTopologicalSort reverse
 }

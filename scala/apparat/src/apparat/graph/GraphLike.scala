@@ -20,4 +20,29 @@
  */
 package apparat.graph
 
-trait VertexLike 
+/**
+ * @author Joa Ebert
+ */
+trait GraphLike[V] {
+	type E = Edge[V]
+
+	def contains(vertex: V): Boolean
+
+	def contains(edge: E): Boolean
+
+	def outgoingOf(vertex: V): Iterable[E]
+
+	def incomingOf(vertex: V): Iterable[E]
+
+	def predecessorsOf(vertex: V): Iterable[V]
+
+	def successorsOf(vertex: V): Iterable[V]
+	
+	def outdegreeOf(vertex: V): Int
+
+	def indegreeOf(vertex: V): Int
+
+	def verticesIterator: Iterator[V]
+
+	def edgesIterator: Iterator[E]
+}

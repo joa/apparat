@@ -21,14 +21,17 @@
 package apparat.graph.mutable
 
 import collection.mutable.HashMap
-import apparat.graph._
 
-trait GraphLikeWithAdjacencyMatrix[V <: VertexLike] extends GraphLike[V]
+trait GraphLikeWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 {
 	private val adjacencyMatrix = new HashMap[V, List[E]]()
 	private var edges: List[E] = Nil
 	private var vertices: List[V] = Nil
 
+	override def verticesIterator = vertices.iterator
+
+	override def edgesIterator = edges.iterator
+	
 	override def add(edge: E): Unit = {
 		assert(!contains(edge))
 		assert(contains(edge.startVertex))
@@ -65,8 +68,4 @@ trait GraphLikeWithAdjacencyMatrix[V <: VertexLike] extends GraphLike[V]
 	override def incomingOf(vertex: V) = edges filter (_.endVertex == vertex)
 
 	override def outgoingOf(vertex: V) = adjacencyMatrix(vertex)
-
-	override def edgesIterator = edges.iterator
-
-	override def verticesIterator = vertices.iterator
 }
