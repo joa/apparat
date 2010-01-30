@@ -26,7 +26,10 @@ object Graph {
 	def apply[V](edges: Edge[V]*): Graph[V] = {
 		def loop(edges: Seq[Edge[V]], graph: Graph[V]): Graph[V] = {
 			if(edges.isEmpty) graph else {
-				loop(edges drop 1, graph + edges.head)
+				val edge = edges.head
+				val remaining = edges drop 1
+				val g = if(graph contains edge.startVertex) { graph } else { graph + edge.startVertex }
+				loop(remaining, (if(g contains edge.endVertex) { g } else { g + edge.endVertex }) + edge)
 			}
 		}
 
@@ -48,14 +51,14 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
 	private def newGraph(adjacency: Map[V,List[E]]) = new Graph(adjacency)
 
 	def +(vertex: V) = {
-		assert(!contains(vertex))
+		assert(!contains(vertex), "Graph must not contain vertex.")
 		newGraph(adjacency + (vertex -> Nil))
 	}
 
 	def +(edge: E) = {
-		assert(contains(edge.startVertex))
-		assert(contains(edge.endVertex))
-		assert(!contains(edge))
+		assert(contains(edge.startVertex), "Graph must contain start vertex.")
+		assert(contains(edge.endVertex), "Graph must contain end vertex.")
+		assert(!contains(edge), "Graph must not contain edge object already.")
 		newGraph(adjacency updated (edge.startVertex, edge :: adjacency(edge.startVertex)))
 	}
 
@@ -72,9 +75,9 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
 	}
 
 	def -(edge: E) = {
-		assert(contains(edge.startVertex))
-		assert(contains(edge.endVertex))
-		assert(contains(edge))
+		assert(contains(edge.startVertex), "Graph must contain start vertex.")
+		assert(contains(edge.endVertex), "Graph must contain end vertex.")
+		assert(contains(edge), "Graph must contain edge.")
 		newGraph(adjacency updated (edge.startVertex, adjacency(edge.startVertex) filterNot (_ == edge)))
 	}
 
@@ -90,19 +93,19 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
 	}
 
 	override def incomingOf(vertex: V) = {
-		assert(contains(vertex))
+		assert(contains(vertex), "Graph must contain vertex.")
 		adjacency flatMap (_._2) filter (_.endVertex == vertex)
 	}
 
 	override def outgoingOf(vertex: V) = {
-		assert(contains(vertex))
+		assert(contains(vertex), "Graph must contain vertex.")
 		adjacency(vertex)
 	}
 
 	override def outdegreeOf(vertex: V) = outgoingOf(vertex).length
 
 	override def indegreeOf(vertex: V) = {
-		assert(contains(vertex))
+		assert(contains(vertex), "Graph must contain vertex.")
 		adjacency flatMap (_._2) count (_.endVertex == vertex)
 	}
 
