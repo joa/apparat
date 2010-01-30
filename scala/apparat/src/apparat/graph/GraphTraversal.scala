@@ -25,7 +25,7 @@ trait GraphTraversal[V <: VertexLike] {
 
 	def map[T](f: V => T): List[T]
 
-	def flatMap[T](f: V => T): List[T]
+	def flatMap[T](f: V => Traversable[T]): List[T]
 	
 	def toList: List[V]
 }

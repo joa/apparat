@@ -22,6 +22,7 @@ package apparat.graph
 
 import apparat.utils.{IndentingPrintWriter}
 import apparat.utils.IO._
+import apparat.graph.mutable._
 import java.io._
 
 class DOTExport[V <: VertexLike](val graph: GraphLike[V],
