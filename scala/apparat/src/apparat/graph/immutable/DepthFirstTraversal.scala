@@ -18,15 +18,30 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.bytecode.analysis
 
-import apparat.bytecode.Bytecode
-import apparat.bytecode.operations.{DefaultXMLNamespace, DefaultXMLNamespaceLate}
+package apparat.graph.immutable
 
-object SetsDXNS extends (Bytecode => Boolean) {
-	def apply(bytecode: Bytecode) = bytecode.ops exists {
-		case DefaultXMLNamespace(uri) => true
-		case DefaultXMLNamespaceLate() => true
-		case _ => false
+import apparat.graph.{GraphTraversal, VertexLike}
+
+class DepthFirstTraversal[V <: VertexLike](graph: Graph[V], startVertex: V) extends GraphTraversal[V] {
+	private lazy val vertexList = {
+		// stateful (local) but no recursion
+		var list: List[V] = Nil
+		var visited = graph.adjacency map { _._1 -> false } updated (startVertex, true)
+		var S = List(startVertex)
+
+		while(S.nonEmpty) {
+			val v = S.head
+			S = S.tail
+			list = v :: list
+			for(e <- graph.outgoingOf(v) if !visited(e.endVertex)) {
+				visited = visited updated (e.endVertex, true)
+				S = e.endVertex :: S
+			}
+		}
+
+		list
 	}
+
+	def foreach(body: V => Unit) = vertexList foreach body
 }

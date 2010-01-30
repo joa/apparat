@@ -18,15 +18,8 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.bytecode.analysis
+package apparat.graph
 
-import apparat.bytecode.Bytecode
-import apparat.bytecode.operations.{DefaultXMLNamespace, DefaultXMLNamespaceLate}
-
-object SetsDXNS extends (Bytecode => Boolean) {
-	def apply(bytecode: Bytecode) = bytecode.ops exists {
-		case DefaultXMLNamespace(uri) => true
-		case DefaultXMLNamespaceLate() => true
-		case _ => false
-	}
+trait GraphTraversal[V <: VertexLike] {
+	def foreach(body: V => Unit): Unit
 }

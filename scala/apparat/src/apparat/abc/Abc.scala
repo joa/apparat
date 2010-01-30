@@ -25,6 +25,7 @@ import apparat.bytecode._
 import apparat.utils.IO
 import apparat.utils.IO._
 import apparat.swf.{DoABC, SwfTag}
+import apparat.abc.analysis._
 import collection.immutable._
 import java.io.{
 	ByteArrayInputStream => JByteArrayInputStream,
@@ -72,6 +73,8 @@ class Abc {
 		types foreach (_ accept visitor)
 		scripts foreach (_ accept visitor)
 	}
+
+	def rebuildPool() = cpool = AbcConstantPoolBuilder using this
 	
 	def loadBytecode() = {
 		implicit val abc = this

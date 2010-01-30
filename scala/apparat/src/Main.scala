@@ -22,7 +22,8 @@ import apparat.abc.analysis.AbcConstantPoolBuilder
 import apparat.abc.{AbcNamespace, AbcQName, Abc}
 import apparat.bytecode.analysis.{LocalCount, FrequencyDistribution}
 import apparat.bytecode.PeepholeOptimizations
-import apparat.graph.{Vertex, Graph}
+import apparat.graph.{DefaultEdge, Vertex}
+import apparat.graph.immutable.Graph
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
 import apparat.utils.Performance
@@ -34,6 +35,10 @@ import apparat.bytecode.combinator._
 import apparat.bytecode.Bytecode._
 object Main {
 	def main(args: Array[String]): Unit = {
+		implicit val factory = DefaultEdge[Vertex](_, _)
+		val G = new Graph[Vertex]()
+		println(G + (Vertex("A") -> Vertex("B")) + (Vertex("B") -> Vertex("C")) + (Vertex("B") -> Vertex("D")) topsort)
+
 		val b = bytecode {
 			GetLocal(0)		::
 			PushScope()		::

@@ -30,32 +30,16 @@ class Graph[V <: VertexLike](val adjacency: Map[V,List[Edge[V]]]) {
 
 	private def newGraph(adjacency: Map[V,List[E]]) = new Graph(adjacency)
 
-	def dft(vertex: V) = {
-		// stateful (local) but no recursion
-		var list: List[V] = Nil
-		var visited = adjacency map { _._1 -> false } updated (vertex, true)
-		var S = List(vertex)
-
-		while(S.nonEmpty) {
-			val v = S.head
-			S = S.tail
-			list = v :: list
-			for(e <- outgoingOf(v) if !visited(e.endVertex)) {
-				visited = visited updated (vertex, true)
-				S = e.endVertex :: S
-			}
-		}
-
-		list
-	}
+	def dft(vertex: V) = new DepthFirstTraversal(this, vertex)
 
 	lazy val topsort = {
+		//broken
 		var visited = adjacency map { _._1 -> false }
 		var result = List.empty[V]
 
 		def visit(vertex: V): Unit = {
 			if(!visited(vertex)) {
-				visited = visited updated (vertex, true)
+				visited = visited updated (vertex, true)//not working?
 				for(edge <- outgoingOf(vertex)) {
 					visit(edge.endVertex)
 				}

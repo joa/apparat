@@ -44,11 +44,13 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 		val namespaceFuture = future { (AbcConstantPool.EMPTY_NAMESPACE :: optimize(namespaces)).toArray }
 		val nssetFuture = future { (AbcConstantPool.EMPTY_NSSET :: optimize(nssets)).toArray }
 		val nameFuture = future {
-			(AbcConstantPool.EMPTY_NAME :: names.sortWith((a, b) => a match {
+			val noDuplicates = names.removeDuplicates
+			val count = Map(noDuplicates zip (noDuplicates map { x => names count (_ == x) }): _*)
+			(AbcConstantPool.EMPTY_NAME :: noDuplicates.sortWith((a, b) => a match {
 				case AbcTypename(_, _) => false
 				case other => b match {
 					case AbcTypename(_, _) => true
-					case _ => (names count (_ == a)) > (names count (_ == b))
+					case _ => count(a) > count(b)
 				}
 			}).removeDuplicates).toArray
 		}
