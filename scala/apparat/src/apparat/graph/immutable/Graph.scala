@@ -118,7 +118,7 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
 	override def edgesIterator = adjacency.valuesIterator flatMap (_.iterator)
 }
 
-final class EmptyGraph[V] extends Graph[V] {
+private[immutable] final class EmptyGraph[V] extends Graph[V] {
 	override def contains(vertex: V) = false
 	override def contains(edge: E) = false
 	override def incomingOf(vertex: V) = Nil
