@@ -18,9 +18,10 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.graph
+package apparat.graph.mutable
 
 import collection.mutable.HashMap
+import apparat.graph._
 
 trait GraphLikeWithAdjacencyMatrix[V <: VertexLike] extends GraphLike[V]
 {

@@ -18,7 +18,9 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.graph
+package apparat.graph.mutable
+
+import apparat.graph._
 
 // FIXME is it ok to manage entry and exit vertex like that ?
 

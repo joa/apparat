@@ -1,4 +1,4 @@
-import annotation.tailrec
+/*import annotation.tailrec
 import apparat.abc.{Abc}
 import apparat.graph._
 import apparat.swc.Swc
@@ -48,4 +48,4 @@ object MainPL {
 			println(g.topologicalSort)
 		}
 	}
-}
+}*/

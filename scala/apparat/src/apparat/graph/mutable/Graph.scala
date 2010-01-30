@@ -18,9 +18,10 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.graph
+package apparat.graph.mutable
 
 import apparat.utils.{IndentingPrintWriter, Dumpable}
+import apparat.graph._
 
 class Graph[V <: VertexLike] extends GraphLikeWithAdjacencyMatrix[V] with Dumpable with DOTExportAvailable[V] {
 	override def toString = "[Graph]"

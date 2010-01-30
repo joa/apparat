@@ -18,9 +18,10 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.graph
+package apparat.graph.mutable
 
 import collection.mutable.{HashSet, ListBuffer}
+import apparat.graph._
 
 trait GraphLike[V <: VertexLike] {
 	protected type E = Edge[V]

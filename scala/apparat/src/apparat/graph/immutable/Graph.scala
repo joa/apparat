@@ -20,7 +20,7 @@
  */
 package apparat.graph.immutable
 
-import apparat.graph.{DefaultEdge, VertexLike, Edge}
+import apparat.graph.{VertexLike, Edge}
 
 class Graph[V <: VertexLike](val adjacency: Map[V,List[Edge[V]]]) {
 	def this() = this(Map.empty[V, List[Edge[V]]])

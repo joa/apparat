@@ -18,7 +18,9 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.graph
+package apparat.graph.mutable
+
+import apparat.graph.VertexLike
 
 class BasicBlockVertex[T](var block: Seq[T] = Nil) extends VertexLike {
 	def ++(elms: Seq[T]) = {
