@@ -25,15 +25,17 @@ import apparat.graph.{GraphTraversal, VertexLike}
 
 class DepthFirstTraversal[V <: VertexLike](graph: Graph[V], startVertex: V) extends GraphTraversal[V] {
 	private lazy val vertexList = {
-		// stateful (local) but no recursion
 		var list: List[V] = Nil
 		var visited = graph.adjacency map { _._1 -> false } updated (startVertex, true)
 		var S = List(startVertex)
 
 		while(S.nonEmpty) {
 			val v = S.head
+			
 			S = S.tail
+
 			list = v :: list
+
 			for(e <- graph.outgoingOf(v) if !visited(e.endVertex)) {
 				visited = visited updated (e.endVertex, true)
 				S = e.endVertex :: S
@@ -47,7 +49,7 @@ class DepthFirstTraversal[V <: VertexLike](graph: Graph[V], startVertex: V) exte
 
 	def map[T](f: V => T) = vertexList map f
 
-	def flatMap[T](f: V => T) = vertexList flatMap f
+	def flatMap[T](f: V => Traversable[T]) = vertexList flatMap f
 
 	def toList = vertexList
 }
