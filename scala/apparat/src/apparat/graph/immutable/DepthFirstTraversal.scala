@@ -44,4 +44,10 @@ class DepthFirstTraversal[V <: VertexLike](graph: Graph[V], startVertex: V) exte
 	}
 
 	def foreach(body: V => Unit) = vertexList foreach body
+
+	def map[T](f: V => T) = vertexList map f
+
+	def flatMap[T](f: V => T) = vertexList flatMap f
+
+	def toList = vertexList
 }

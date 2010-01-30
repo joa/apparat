@@ -48,7 +48,7 @@ class Graph[V <: VertexLike](val adjacency: Map[V,List[Edge[V]]]) {
 		}
 
 		adjacency foreach (kv => visit(kv._1))
-		result
+		result.reverse
 	}
 
 	def contains(vertex: V) = adjacency contains vertex

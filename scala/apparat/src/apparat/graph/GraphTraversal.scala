@@ -22,4 +22,10 @@ package apparat.graph
 
 trait GraphTraversal[V <: VertexLike] {
 	def foreach(body: V => Unit): Unit
+
+	def map[T](f: V => T): List[T]
+
+	def flatMap[T](f: V => T): List[T]
+	
+	def toList: List[V]
 }
