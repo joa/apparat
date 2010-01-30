@@ -22,6 +22,24 @@ package apparat.graph.immutable
 
 import apparat.graph.{Edge, GraphLike}
 
+object Graph {
+	def apply[V](edges: Edge[V]*): Graph[V] = {
+		def loop(edges: Seq[Edge[V]], graph: Graph[V]): Graph[V] = {
+			if(edges.isEmpty) graph else {
+				loop(edges drop 1, graph + edges.head)
+			}
+		}
+
+		loop(edges, empty[V])
+	}
+
+	def apply[V](edges: Tuple2[V,V]*)(implicit f: (V, V) => Edge[V]): Graph[V] = {
+		apply(edges map { edge => f(edge._1, edge._2) }: _*)
+	}
+
+	def empty[V]: Graph[V] = new EmptyGraph[V]
+}
+
 class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
 	def this() = this(Map.empty[V, List[Edge[V]]])
 
@@ -95,4 +113,17 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
 	override def verticesIterator = adjacency.keysIterator
 
 	override def edgesIterator = adjacency.valuesIterator flatMap (_.iterator)
+}
+
+final class EmptyGraph[V] extends Graph[V] {
+	override def contains(vertex: V) = false
+	override def contains(edge: E) = false
+	override def incomingOf(vertex: V) = Nil
+	override def outgoingOf(vertex: V) = Nil
+	override def outdegreeOf(vertex: V) = 0
+	override def indegreeOf(vertex: V) = 0
+	override def predecessorsOf(vertex: V) = Nil
+	override def successorsOf(vertex: V) = Nil
+	override def verticesIterator = Iterator.empty
+	override def edgesIterator = Iterator.empty
 }
