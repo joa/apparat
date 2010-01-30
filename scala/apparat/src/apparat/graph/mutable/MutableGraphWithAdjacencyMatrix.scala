@@ -22,7 +22,7 @@ package apparat.graph.mutable
 
 import collection.mutable.HashMap
 
-trait GraphLikeWithAdjacencyMatrix[V] extends MutableGraphLike[V]
+trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 {
 	private val adjacencyMatrix = new HashMap[V, List[E]]()
 	private var edges: List[E] = Nil

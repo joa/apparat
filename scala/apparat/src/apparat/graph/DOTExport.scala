@@ -23,21 +23,22 @@ package apparat.graph
 import apparat.utils.{IndentingPrintWriter}
 import apparat.utils.IO._
 import apparat.graph.mutable._
-import java.io._
+import java.io.{File => JFile, FileOutputStream => JFileOutputStream,
+	PrintWriter => JPrintWriter, PrintStream => JPrintStream}
 
-class DOTExport[V](val graph: MutableGraphLike[V],
-								 val vertexToString: V => String,
-								 val edgeToString: Edge[V] => String)
+final class DOTExport[V](val graph: GraphLike[V],
+				   val vertexToString: V => String,
+				   val edgeToString: Edge[V] => String)
 {
-	def to(pathname: String): Unit = to(new File(pathname))
+	def to(pathname: String): Unit = to(new JFile(pathname))
 
-	def to(file: File): Unit = using(new FileOutputStream(file)){
-		stream => to(new IndentingPrintWriter(new PrintWriter(stream)))
+	def to(file: JFile): Unit = using(new JFileOutputStream(file)){
+		stream => to(new IndentingPrintWriter(new JPrintWriter(stream)))
 	}
 
-	def to(stream: PrintStream): Unit = to(new PrintWriter(stream))
+	def to(stream: JPrintStream): Unit = to(new JPrintWriter(stream))
 
-	def to(writer: PrintWriter): Unit = {
+	def to(writer: JPrintWriter): Unit = {
 		val indentingPrintWriter = new IndentingPrintWriter(writer)
 		to(indentingPrintWriter)
 		indentingPrintWriter.flush()

@@ -117,6 +117,7 @@
         <w>outdegree</w>
         <w>pathname</w>
         <w>println</w>
+        <w>topsort</w>
         <w>tuple</w>
         <w>uints</w>
         <w>unapply</w>

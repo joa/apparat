@@ -19,14 +19,13 @@
  *
  */
 
-package apparat.graph.immutable
+package apparat.graph
 
-import apparat.graph.{GraphTraversal}
-
-class DepthFirstTraversal[V](graph: Graph[V], startVertex: V) extends GraphTraversal[V] {
-	private lazy val vertexList = {
+final protected[graph] class DepthFirstTraversal[V](graph: GraphLike[V], startVertex: V)
+		extends GraphTraversal[V] with ListBasedTraversal[V] {
+	protected lazy val vertexList = {
 		var list: List[V] = Nil
-		var visited = graph.adjacency map { _._1 -> false } updated (startVertex, true)
+		var visited = Map(graph.verticesIterator map { _ -> false } toSeq: _*) updated (startVertex, true)
 		var S = List(startVertex)
 
 		while(S.nonEmpty) {
@@ -44,12 +43,4 @@ class DepthFirstTraversal[V](graph: Graph[V], startVertex: V) extends GraphTrave
 
 		list
 	}
-
-	def foreach(body: V => Unit) = vertexList foreach body
-
-	def map[T](f: V => T) = vertexList map f
-
-	def flatMap[T](f: V => Traversable[T]) = vertexList flatMap f
-
-	def toList = vertexList
 }

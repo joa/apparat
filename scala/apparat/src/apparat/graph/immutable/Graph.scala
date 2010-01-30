@@ -29,26 +29,6 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
 
 	private def newGraph(adjacency: Map[V,List[E]]) = new Graph(adjacency)
 
-	def dft(vertex: V) = new DepthFirstTraversal(this, vertex)
-
-	lazy val topsort = {
-		var visited = adjacency map { _._1 -> false }
-		var result = List.empty[V]
-
-		def visit(vertex: V): Unit = {
-			if(!visited(vertex)) {
-				visited = visited updated (vertex, true)
-				for(edge <- outgoingOf(vertex)) {
-					visit(edge.endVertex)
-				}
-				result = vertex :: result
-			}
-		}
-
-		adjacency foreach (kv => visit(kv._1))
-		result.reverse
-	}
-
 	def +(vertex: V) = {
 		assert(!contains(vertex))
 		newGraph(adjacency + (vertex -> Nil))

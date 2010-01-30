@@ -31,7 +31,7 @@ trait ExitVertex {
 	override def toString() = "Exit"
 }
 
-abstract class CFG[T, V <: BasicBlockVertex[T]] extends GraphLikeWithAdjacencyMatrix[V] with DOTExportAvailable[V] {
+abstract class CFG[T, V <: BasicBlockVertex[T]] extends MutableGraphWithAdjacencyMatrix[V] with DOTExportAvailable[V] {
 	type Block = Seq[T]
 
 	protected[graph] def newEntryVertex: V

@@ -23,7 +23,7 @@ package apparat.graph.mutable
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 import apparat.graph._
 
-class Graph[V] extends GraphLikeWithAdjacencyMatrix[V] with Dumpable with DOTExportAvailable[V] {
+class Graph[V] extends MutableGraphWithAdjacencyMatrix[V] with Dumpable with DOTExportAvailable[V] {
 	override def toString = "[Graph]"
 	
 	override def dump(writer: IndentingPrintWriter) = {
