@@ -20,7 +20,7 @@
  */
 package apparat.graph.immutable
 
-import apparat.graph.{Edge, GraphLike}
+import apparat.graph.{DefaultDOTExport, Edge, GraphLike}
 
 object Graph {
 	def apply[V](edges: Edge[V]*): Graph[V] = {
@@ -43,7 +43,7 @@ object Graph {
 	def empty[V]: Graph[V] = new EmptyGraph[V]
 }
 
-class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
+class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with DefaultDOTExport[V] {
 	def this() = this(Map.empty[V, List[Edge[V]]])
 
 	type G = Graph[V]
@@ -116,9 +116,11 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] {
 	override def verticesIterator = adjacency.keysIterator
 
 	override def edgesIterator = adjacency.valuesIterator flatMap (_.iterator)
+
+	override def toString = "[Graph]"
 }
 
-private[immutable] final class EmptyGraph[V] extends Graph[V] {
+protected[immutable] final class EmptyGraph[V] extends Graph[V] {
 	override def contains(vertex: V) = false
 	override def contains(edge: E) = false
 	override def incomingOf(vertex: V) = Nil

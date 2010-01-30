@@ -18,10 +18,24 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.graph.mutable
+package apparat.graph
 
-import apparat.graph._
+/**
+ * @author Joa Ebert
+ */
+trait DefaultDOTExport[V] extends DOTExportAvailable[V] {
+	self: GraphLike[V] =>
 
-class Graph[V] extends MutableGraphWithAdjacencyMatrix[V] with DefaultDOTExport[V] {
-	override def toString = "[Graph]"
+	override def dotExport = {
+		new DOTExport(this, (_: V).toString, (edge: E) => edge match {
+			case DefaultEdge(x, y) => ""
+			case JumpEdge(x, y) => "jump"
+			case TrueEdge(x, y) => "true"
+			case FalseEdge(x, y) => "false"
+			case DefaultCaseEdge(x, y) => "default"
+			case CaseEdge(x, y) => "case"
+			case ThrowEdge(x, y) => "throw"
+			case ReturnEdge(x, y) => "return"
+		})
+	}
 }

@@ -20,10 +20,12 @@
  */
 package apparat.graph
 
+import apparat.utils.{IndentingPrintWriter, Dumpable}
+
 /**
  * @author Joa Ebert
  */
-trait GraphLike[V] {
+trait GraphLike[V] extends Dumpable {
 	type E = Edge[V]
 
 	lazy val topsort: GraphTraversal[V] = new TopsortTraversal[V](this)
@@ -49,4 +51,18 @@ trait GraphLike[V] {
 	def verticesIterator: Iterator[V]
 
 	def edgesIterator: Iterator[E]
+
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= "Graph:"
+		writer withIndent {
+			for(vertex <- verticesIterator) {
+				writer <= vertex.toString
+				writer withIndent {
+					writer.println(outgoingOf(vertex)) {
+						edge => (if(edge.kind != EdgeKind.Default) edge.kind.toString else "") + " -> " + edge.endVertex.toString
+					}
+				}
+			}
+		}
+	}
 }
