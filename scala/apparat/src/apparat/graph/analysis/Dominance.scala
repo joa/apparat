@@ -27,24 +27,38 @@ import annotation.tailrec
  * @author Joa Ebert
  */
 class Dominance[V](val graph: GraphLike[V]) {
-	lazy val entry: V = {
-		def search(): V = graph match {
-			case controlFlow: ControlFlow[_] => controlFlow.entryVertex.asInstanceOf[V]//ugly :(
-			case _ => {
-				for(vertex <- graph.verticesIterator if (graph indegreeOf vertex) == 0) {
-					return vertex
-				}
-
-				error("No entry vertex found.")
-			}
+	lazy val entry: V = graph match {
+		case controlFlow: ControlFlow[_] => controlFlow.entryVertex.asInstanceOf[V]
+		case _ => graph.verticesIterator find (vertex => (graph indegreeOf vertex) == 0) match {
+			case Some(vertex) => vertex
+			case None => error("No vertex with indegree(v) == 0 found.")
 		}
-		
-		search()
 	}
 
 	private lazy val postorder = graph dft entry toList
 
 	private lazy val reversePostorder = postorder.reverse
+
+	@tailrec private def advanceIntersection(map: Map[V, V], a: V, b: V): V = {
+		if((postorder indexOf a) < (postorder indexOf b)) advanceIntersection(map, map(a), b)
+		else a
+	}
+
+	@tailrec private def intersect(map: Map[V, V], b1: V, b2: V): V = {
+		if(b1 != b2) {
+			val f = advanceIntersection(map, b1, b2)
+			intersect(map, f, advanceIntersection(map, b2, f))
+		} else {
+			b1
+		}
+	}
+
+	private def pickPredecessor(map: Map[V, V], predecessors: Iterable[V]): V = {
+		predecessors.find (map contains _) match {
+			case Some(vertex) => vertex
+			case None => error("Unreachable by definition.")
+		}
+	}
 
 	private lazy val doms = {
 		//
@@ -60,45 +74,18 @@ class Dominance[V](val graph: GraphLike[V]) {
 		var result = Map(entry -> entry)
 		val rp = reversePostorder filterNot (_ == entry)
 
-		def pick(predecessors: Iterable[V]): V = {
-			for(vertex <- predecessors) {
-				if(result contains vertex) {
-					return vertex
-				}
-			}
-
-			error("Unreachable by definition.")
-		}
-
-		@tailrec def advance(a: V, b: V): V = {
-			if(postorder.indexOf(a) < postorder.indexOf(b)) {
-				advance(result(a), b)
-			} else {
-				a
-			}
-		}
-
-		@tailrec def intersect(b1: V, b2: V): V = {
-			if(b1 != b2) {
-				val finger1 = advance(b1, b2)
-				intersect(finger1, advance(b2, finger1))
-			} else {
-				b1
-			}
-		}
-
 		def loop(): Unit = {
 			var changed = false
 
 			for(b <- rp) {
 				val predecessorsTmp = graph predecessorsOf b
-				var newIDom = pick(predecessorsTmp)
+				var newIDom = pickPredecessor(result, predecessorsTmp)
 				val predecessors = predecessorsTmp filterNot (_ == newIDom)
 
 				for(p <- predecessors) {
 					result get p match {
 						case Some(vertex) => {
-							newIDom = intersect(vertex, newIDom)
+							newIDom = intersect(result, vertex, newIDom)
 						}
 						case None =>
 					}
