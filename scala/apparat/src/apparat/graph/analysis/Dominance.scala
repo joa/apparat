@@ -21,6 +21,7 @@
 package apparat.graph.analysis
 
 import apparat.graph.{ControlFlow, GraphLike}
+import annotation.tailrec
 
 /**
  * @author Joa Ebert
@@ -69,19 +70,21 @@ class Dominance[V](val graph: GraphLike[V]) {
 			error("Unreachable by definition.")
 		}
 
-		def intersect(b1: V, b2: V) = {
-			var finger1 = b1
-			var finger2 = b2
-
-			while(finger1 != finger2) {
-				while(postorder.indexOf(finger1) < postorder.indexOf(finger2))
-					finger1 = result(finger1)
-
-				while(postorder.indexOf(finger2) < postorder.indexOf(finger1))
-					finger2 = result(finger2)
+		@tailrec def advance(a: V, b: V): V = {
+			if(postorder.indexOf(a) < postorder.indexOf(b)) {
+				advance(result(a), b)
+			} else {
+				a
 			}
+		}
 
-			finger1
+		@tailrec def intersect(b1: V, b2: V): V = {
+			if(b1 != b2) {
+				val finger1 = advance(b1, b2)
+				intersect(finger1, advance(b2, finger1))
+			} else {
+				b1
+			}
 		}
 
 		def loop(): Unit = {
