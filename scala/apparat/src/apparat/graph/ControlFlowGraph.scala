@@ -24,6 +24,28 @@ package apparat.graph
  * Time: 14:15:41
  */
 
-// TODO for moment abstract since method from GraphLiske are not yet implemented
-abstract class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entryVertex: V, val exitVertex: V) extends GraphLike[V] with ControlFlow[V] {
+class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entryVertex: V, val exitVertex: V) extends GraphLike[V] with ControlFlow[V] {
+	def predecessorsOf(vertex: V) = graph.predecessorsOf(vertex)
+
+	def successorsOf(vertex: V) = graph.successorsOf(vertex)
+
+	def incomingOf(vertex: V) = graph.incomingOf(vertex)
+
+	def verticesIterator = graph.verticesIterator
+
+	def edgesIterator = graph.edgesIterator
+
+	def indegreeOf(vertex: V) = graph.indegreeOf(vertex)
+
+	def outdegreeOf(vertex: V) = graph.outdegreeOf(vertex)
+
+	def contains(edge: Edge[V]) = graph.contains(edge)
+
+	def outgoingOf(vertex: V) = graph.outgoingOf(vertex)
+
+	def contains(vertex: V) = graph.contains(vertex)
+
+	def isEntry(vertex: V) = vertex == entryVertex
+
+	def isExit(vertex: V) = vertex == exitVertex
 }
