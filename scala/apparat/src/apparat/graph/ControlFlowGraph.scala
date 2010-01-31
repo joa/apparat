@@ -44,8 +44,4 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 	def outgoingOf(vertex: V) = graph.outgoingOf(vertex)
 
 	def contains(vertex: V) = graph.contains(vertex)
-
-	def isEntry(vertex: V) = vertex == entryVertex
-
-	def isExit(vertex: V) = vertex == exitVertex
 }
