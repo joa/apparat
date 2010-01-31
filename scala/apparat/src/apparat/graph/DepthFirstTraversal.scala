@@ -25,7 +25,7 @@ final protected[graph] class DepthFirstTraversal[V](graph: GraphLike[V], startVe
 		extends GraphTraversal[V] with ListBasedTraversal[V] {
 	protected lazy val vertexList = {
 		var list: List[V] = Nil
-		var visited = Map(graph.verticesIterator map { _ -> false } toSeq: _*) updated (startVertex, true)
+		var visited = graph vertexMap (v => false) updated (startVertex, true)
 		var S = List(startVertex)
 
 		while(S.nonEmpty) {

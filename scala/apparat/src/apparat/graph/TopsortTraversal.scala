@@ -26,7 +26,7 @@ package apparat.graph
 final protected[graph] class TopsortTraversal[V](graph: GraphLike[V]) extends GraphTraversal[V]
 		with ListBasedTraversal[V] {
 	protected lazy val vertexList = {
-		var visited = Map(graph.verticesIterator map { _ -> false } toSeq: _*)
+		var visited = graph vertexMap (v => false)
 		var result = List.empty[V]
 
 		def visit(vertex: V): Unit = {

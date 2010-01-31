@@ -43,7 +43,7 @@ object Graph {
 	def empty[V]: Graph[V] = new EmptyGraph[V]
 }
 
-class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with DefaultDOTExport[V] {
+class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with DefaultDOTExport[V] with Immutable {
 	def this() = this(Map.empty[V, List[Edge[V]]])
 
 	type G = Graph[V]
