@@ -25,7 +25,7 @@ import apparat.utils.{IndentingPrintWriter, Dumpable}
 /**
  * @author Joa Ebert
  */
-trait GraphLike[V] extends Dumpable {
+trait GraphLike[+V] extends Dumpable {
 	type E = Edge[V]
 
 	lazy val topsort: GraphTraversal[V] = new TopsortTraversal[V](this)

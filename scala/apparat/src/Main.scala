@@ -36,7 +36,9 @@ import apparat.bytecode.Bytecode._
 object Main {
 	def main(args: Array[String]): Unit = {
 		implicit val factory = DefaultEdge[Vertex](_, _)
-		Graph(Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D")).topsort foreach println
+		val g = Graph(Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D"))
+
+		(0 until 100) foreach { i => g.topsort foreach println }
 
 		val b = bytecode {
 			GetLocal(0)		::

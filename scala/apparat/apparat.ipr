@@ -104,10 +104,12 @@
       <words>
         <w>apparat</w>
         <w>attr</w>
+        <w>backend</w>
         <w>breakpoint</w>
         <w>bytecode</w>
         <w>cpool</w>
         <w>dumpable</w>
+        <w>frontend</w>
         <w>indegree</w>
         <w>ints</w>
         <w>metadata</w>
@@ -117,6 +119,7 @@
         <w>outdegree</w>
         <w>pathname</w>
         <w>println</w>
+        <w>taas</w>
         <w>topsort</w>
         <w>tuple</w>
         <w>uints</w>
