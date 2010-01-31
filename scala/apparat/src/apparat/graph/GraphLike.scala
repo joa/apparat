@@ -29,24 +29,10 @@ trait GraphLike[V] extends Dumpable {
 	type E = Edge[V]
 
 	lazy val topsort: GraphTraversal[V] = new TopsortTraversal[V](this)
-	
-	def dft(vertex: V): GraphTraversal[V] = new DepthFirstTraversal(this, vertex)
-	
+
 	def contains(vertex: V): Boolean
 
 	def contains(edge: E): Boolean
-
-	def vertexExists(p: V => Boolean) = verticesIterator exists p
-	
-	def edgeExists(p: E => Boolean) = edgesIterator exists p
-
-	def foreachVertex(f: V => Unit) = verticesIterator foreach f
-
-	def foreachEdge(f: E => Unit) = edgesIterator foreach f
-
-	def vertexMap[T](f: V => T): Map[V, T] = Map(verticesIterator map { v => v -> f(v) } toSeq: _*)
-
-	def edgeMap[T](f: E => T): Map[E, T] = Map(edgesIterator map { e => e -> f(e) } toSeq: _*) 
 
 	def outgoingOf(vertex: V): Iterable[E]
 
@@ -63,6 +49,20 @@ trait GraphLike[V] extends Dumpable {
 	def verticesIterator: Iterator[V]
 
 	def edgesIterator: Iterator[E]
+
+	def dft(vertex: V): GraphTraversal[V] = new DepthFirstTraversal(this, vertex)
+
+	def vertexExists(p: V => Boolean) = verticesIterator exists p
+
+	def edgeExists(p: E => Boolean) = edgesIterator exists p
+
+	def foreachVertex(f: V => Unit) = verticesIterator foreach f
+
+	def foreachEdge(f: E => Unit) = edgesIterator foreach f
+
+	def vertexMap[T](f: V => T): Map[V, T] = Map(verticesIterator map { v => v -> f(v) } toSeq: _*)
+
+	def edgeMap[T](f: E => T): Map[E, T] = Map(edgesIterator map { e => e -> f(e) } toSeq: _*)
 
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Graph:"

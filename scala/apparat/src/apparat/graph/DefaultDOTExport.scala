@@ -27,15 +27,16 @@ trait DefaultDOTExport[V] extends DOTExportAvailable[V] {
 	self: GraphLike[V] =>
 
 	override def dotExport = {
-		new DOTExport(this, (_: V).toString, (edge: E) => edge match {
+		def label(value: String) = "[label=\"" + value + "\"]"
+		new DOTExport(this, (vertex: V) => label(vertex.toString), (edge: E) => edge match {
 			case DefaultEdge(x, y) => ""
-			case JumpEdge(x, y) => "jump"
-			case TrueEdge(x, y) => "true"
-			case FalseEdge(x, y) => "false"
-			case DefaultCaseEdge(x, y) => "default"
-			case CaseEdge(x, y) => "case"
-			case ThrowEdge(x, y) => "throw"
-			case ReturnEdge(x, y) => "return"
+			case JumpEdge(x, y) => label("jump")
+			case TrueEdge(x, y) => label("true")
+			case FalseEdge(x, y) => label("false")
+			case DefaultCaseEdge(x, y) => label("default")
+			case CaseEdge(x, y) => label("case")
+			case ThrowEdge(x, y) => label("throw")
+			case ReturnEdge(x, y) => label("return")
 		})
 	}
 }

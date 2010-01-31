@@ -22,7 +22,6 @@ package apparat.graph
 
 import apparat.utils.{IndentingPrintWriter}
 import apparat.utils.IO._
-import apparat.graph.mutable._
 import java.io.{File => JFile, FileOutputStream => JFileOutputStream,
 	PrintWriter => JPrintWriter, PrintStream => JPrintStream}
 
@@ -80,11 +79,11 @@ final class DOTExport[V](val graph: GraphLike[V],
 			writer <= "];"
 
 			writer.println(vertices) {
-				vertex => (vertices indexOf vertex) + " [label=\"" + vertexToString(vertex) + "\"];"
+				vertex => (vertices indexOf vertex) + " " + vertexToString(vertex) + ";"
 			}
 
 			writer.println(graph.edgesIterator) {
-				edge => (vertices indexOf edge.startVertex) + " -> " + (vertices indexOf edge.endVertex) + " [label=\"" + edgeToString(edge) + "\"];"
+				edge => (vertices indexOf edge.startVertex) + " -> " + (vertices indexOf edge.endVertex) + " " + edgeToString(edge) + ";"
 			}
 		}
 		writer <= "}"
