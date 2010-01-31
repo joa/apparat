@@ -1,10 +1,9 @@
-/*import annotation.tailrec
 import apparat.abc.{Abc}
-import apparat.graph._
+import apparat.graph.immutable.BytecodeControlFlowGraphBuilder
 import apparat.swc.Swc
+import collection.mutable.{HashMap, HashSet, ListBuffer}
+import apparat.bytecode.{Bytecode}
 import apparat.swf.{DoABC, SwfTags, Swf}
-import apparat.test.{BCode}
-import collection.mutable.{ListBuffer, HashSet}
 /*
 * This file is part of Apparat.
 *
@@ -31,21 +30,20 @@ import collection.mutable.{ListBuffer, HashSet}
 
 object MainPL {
 	def main(args: Array[String]): Unit = {
+
 		val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
+		//		val swf = Swf fromFile "assets/_Test1.swf"
 
 		val idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
 		val abc = Abc fromDoABC swf.tags(idx).asInstanceOf[DoABC]
 		abc.loadBytecode()
-
 		for{
-			body <- abc.methods(3).body
+			body <- abc.methods(2).body
 			bc <- body.bytecode
 		} {
 			bc.dump()
-			val g = BytecodeCFGBuilder(bc)
+			val g = BytecodeControlFlowGraphBuilder(bc)
 			g.dotExport to Console.out
-
-			println(g.topologicalSort)
 		}
 	}
-}*/
+}
