@@ -31,7 +31,7 @@ trait ExitVertex {
 	override def toString() = "Exit"
 }
 
-abstract class CFG[T, V <: BasicBlockVertex[T]] extends MutableGraphWithAdjacencyMatrix[V] with DOTExportAvailable[V] {
+abstract class MutableCFG[T, V <: BlockVertex[T]] extends MutableGraphWithAdjacencyMatrix[V] with DOTExportAvailable[V] {
 	type Block = Seq[T]
 
 	protected[graph] def newEntryVertex: V
@@ -64,10 +64,10 @@ abstract class CFG[T, V <: BasicBlockVertex[T]] extends MutableGraphWithAdjacenc
 	//error: name clash
 	//def contains(elm: T) = verticesIterator.exists(_ contains elm)
 
-	override def toString = "[CFG]"
+	override def toString = "[MutableCFG]"
 
 	def edgeToString(edge: E) = edge match {
-		case DefaultEdge(x, y) => error("CFG may not contain default edges.")
+		case DefaultEdge(x, y) => error("MutableCFG may not contain default edges.")
 		case JumpEdge(x, y) => "jump"
 		case TrueEdge(x, y) => "true"
 		case FalseEdge(x, y) => "false"

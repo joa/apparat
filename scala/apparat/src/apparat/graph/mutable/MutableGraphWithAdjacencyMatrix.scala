@@ -24,6 +24,8 @@ import collection.mutable.HashMap
 
 trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 {
+	type Edge = E
+	
 	private val adjacencyMatrix = new HashMap[V, List[E]]()
 	private var edges: List[E] = Nil
 	private var vertices: List[V] = Nil
@@ -31,7 +33,7 @@ trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 	override def verticesIterator = vertices.iterator
 
 	override def edgesIterator = edges.iterator
-	
+
 	override def add(edge: E): Unit = {
 		assert(!contains(edge))
 		assert(contains(edge.startVertex))

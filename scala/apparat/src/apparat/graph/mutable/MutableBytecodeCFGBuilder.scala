@@ -1,10 +1,10 @@
-package apparat.graph
+package apparat.graph.mutable
 
 import collection.mutable.Queue
 import apparat.bytecode.operations._
 import annotation.tailrec
 import apparat.bytecode.{Marker, Bytecode}
-
+import apparat.graph._
 /*
  * This file is part of Apparat.
  * 
@@ -29,9 +29,9 @@ import apparat.bytecode.{Marker, Bytecode}
  * Time: 21:03:59
  */
 
-object BytecodeCFGBuilder {
+object MutableBytecodeCFGBuilder {
 	def apply(bytecode: Bytecode) = {
-		val graph = new BytecodeCFG()
+		val graph = new MutableBytecodeCFG()
 
 		val ops = bytecode.ops
 		val markers = bytecode.markers
@@ -39,7 +39,7 @@ object BytecodeCFGBuilder {
 
 		val basicBlockQueue = new Queue[graph.BasicBlockVertex]()
 
-		import conversions.BytecodeGraphImplicits._
+		import conversions.BytecodeGraphImplicits.aopSeq2MutableBV
 		AbstractOpBasicBlockSlicer(bytecode).foreach(basicBlockQueue += graph add _)
 
 		// add the first block to the entry
@@ -102,6 +102,6 @@ object BytecodeCFGBuilder {
 		buildEdge()
 
 		// remove label and jump from basic block
-		graph removeLabelAndJump()
+		graph removeLabelAndJump ()
 	}
 } 
