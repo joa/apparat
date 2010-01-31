@@ -118,6 +118,7 @@
         <w>nssets</w>
         <w>outdegree</w>
         <w>pathname</w>
+        <w>postorder</w>
         <w>println</w>
         <w>taas</w>
         <w>topsort</w>
