@@ -23,7 +23,7 @@ package apparat.graph.mutable
 import apparat.graph.BlockVertex
 
 class MutableBlockVertex[T](var block: List[T] = Nil) extends BlockVertex[T] {
-	def add(elms: Seq[T]) = {
+	def add(elms: List[T]) = {
 		block = block ++ elms
 		this
 	}
@@ -33,16 +33,16 @@ class MutableBlockVertex[T](var block: List[T] = Nil) extends BlockVertex[T] {
 		this
 	}
 
-	def removeLast() = {
+	def removeLast()= {
 		block = block take block.length - 1
 		this
 	}
 
-	def clear()={
+	def clear() = {
 		block = Nil
 		this
 	}
-	
+
 	// FIXME tmp for the dot graph export
 	override def toString = {
 		block.mkString("[[", "\\n", "]]")

@@ -27,7 +27,7 @@ package apparat.graph
 trait BlockVertex[T] {
 	def block: List[T]
 
-	def add(elms: Seq[T]): BlockVertex[T]
+	def add(elms: List[T]): BlockVertex[T]
 
 	def removeFirst(): BlockVertex[T]
 

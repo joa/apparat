@@ -26,7 +26,7 @@ import apparat.bytecode.{MarkerManager, Bytecode}
  * Time: 22:40:18
  */
 
-class AbstractOpBasicBlockSlicer(elms: Seq[AbstractOp], val markers: Option[MarkerManager] = None) extends AbstractBlockSlicer[AbstractOp](elms) {
+class AbstractOpBasicBlockSlicer(elms: List[AbstractOp], val markers: Option[MarkerManager] = None) extends AbstractBlockSlicer[AbstractOp](elms) {
 	def this(bytecode: Bytecode) = this (bytecode.ops, Some(bytecode.markers))
 
 	def isBeginningOfBlock(elm: AbstractOp) = {
@@ -37,11 +37,11 @@ class AbstractOpBasicBlockSlicer(elms: Seq[AbstractOp], val markers: Option[Mark
 }
 
 object AbstractOpBasicBlockSlicer {
-	def apply(seq: Seq[AbstractOp]) = {
+	def apply(seq: List[AbstractOp]) = {
 		new AbstractOpBasicBlockSlicer(seq)
 	}
 
-	def apply(seq: Seq[AbstractOp], markers: MarkerManager) = {
+	def apply(seq: List[AbstractOp], markers: MarkerManager) = {
 		new AbstractOpBasicBlockSlicer(seq, Some(markers))
 	}
 

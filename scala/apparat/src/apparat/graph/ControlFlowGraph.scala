@@ -1,5 +1,7 @@
 package apparat.graph
 
+import annotation.tailrec
+
 /*
  * This file is part of Apparat.
  * 
@@ -24,7 +26,7 @@ package apparat.graph
  * Time: 14:15:41
  */
 
-class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entryVertex: V, val exitVertex: V) extends GraphLike[V] with ControlFlow[V] {
+class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entryVertex: V, val exitVertex: V) extends GraphLike[V] with ControlFlow[V] with DOTExportAvailable[V] {
 	def predecessorsOf(vertex: V) = graph.predecessorsOf(vertex)
 
 	def successorsOf(vertex: V) = graph.successorsOf(vertex)
@@ -44,4 +46,49 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 	def outgoingOf(vertex: V) = graph.outgoingOf(vertex)
 
 	def contains(vertex: V) = graph.contains(vertex)
+
+	override def toString = "[ControlFlowGraph]"
+
+	def dotExport = {
+		def cleanString(str: String) = {
+			val len = str.length
+			@tailrec def loop(sb: StringBuilder, strIndex: Int): StringBuilder = {
+				if (strIndex >= len)
+					sb
+				else {
+					str(strIndex) match {
+						case '"' => sb append "\\\""
+						case '>' => sb append "&gt;"
+						case '<' => sb append "&lt;"
+						case c => sb append c
+					}
+					loop(sb, strIndex + 1)
+				}
+			}
+
+			loop(new StringBuilder(), 0) toString
+		}
+
+		def vertexToString(vertex: V) = {
+			if (vertex == entryVertex)
+				"Entry"
+			else if (vertex == exitVertex)
+				"Exit"
+			else
+				cleanString(vertex toString)
+		}
+
+		def label(value: String) = "[label=\"" + value + "\"]"
+
+		new DOTExport(this, (vertex: V) => label(vertexToString(vertex)), (edge: E) => edge match {
+			case DefaultEdge(x, y) => ""
+			case JumpEdge(x, y) => label("jump")
+			case TrueEdge(x, y) => label("true")
+			case FalseEdge(x, y) => label("false")
+			case DefaultCaseEdge(x, y) => label("default")
+			case CaseEdge(x, y) => label("case")
+			case ThrowEdge(x, y) => label("throw")
+			case ReturnEdge(x, y) => label("return")
+		})
+	}
 }
