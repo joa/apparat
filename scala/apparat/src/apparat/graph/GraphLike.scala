@@ -20,6 +20,7 @@
  */
 package apparat.graph
 
+import analysis.Dominance
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 /**
@@ -30,6 +31,8 @@ trait GraphLike[V] extends Dumpable {
 
 	lazy val topsort: GraphTraversal[V] = new TopsortTraversal[V](this)
 
+	lazy val dominance = new Dominance(this)
+	
 	def contains(vertex: V): Boolean
 
 	def contains(edge: E): Boolean
