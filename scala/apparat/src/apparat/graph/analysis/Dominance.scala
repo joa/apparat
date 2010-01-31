@@ -59,14 +59,14 @@ class Dominance[V](val graph: GraphLike[V]) {
 		var result = Map(entry -> entry)
 		val rp = reversePostorder filterNot (_ == entry)
 
-		def pick(map: Map[V, V], iterable: Iterable[V]): V = {
-			for(vertex <- iterable) {
-				if(map contains vertex) {
+		def pick(predecessors: Iterable[V]): V = {
+			for(vertex <- predecessors) {
+				if(result contains vertex) {
 					return vertex
 				}
 			}
-			
-			error("Unreachable...")
+
+			error("Unreachable by definition.")
 		}
 
 		def intersect(b1: V, b2: V) = {
@@ -89,7 +89,7 @@ class Dominance[V](val graph: GraphLike[V]) {
 
 			for(b <- rp) {
 				val predecessorsTmp = graph predecessorsOf b
-				var newIDom = pick(result, predecessorsTmp)
+				var newIDom = pick(predecessorsTmp)
 				val predecessors = predecessorsTmp filterNot (_ == newIDom)
 
 				for(p <- predecessors) {
@@ -99,18 +99,16 @@ class Dominance[V](val graph: GraphLike[V]) {
 						}
 						case None =>
 					}
-
-					result get b match {
-						case Some(old) => {
-							if(old != newIDom) {
-								result = result updated (b, newIDom)
-								changed = true
-							}
-						}
-						case None => {
-							result = result + (b -> newIDom)
-							changed = true
-						}
+				}
+				
+				result get b match {
+					case Some(old) => if(old != newIDom) {
+						result = result updated (b, newIDom)
+						changed = true
+					}
+					case None => {
+						result = result + (b -> newIDom)
+						changed = true
 					}
 				}
 			}

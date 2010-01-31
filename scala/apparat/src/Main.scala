@@ -36,11 +36,13 @@ import apparat.bytecode.Bytecode._
 object Main {
 	def main(args: Array[String]): Unit = {
 		implicit val factory = DefaultEdge[Vertex](_, _)
-		val g = Graph(Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D"))
+		val g = Graph(Vertex("Entry") -> Vertex("E"), Vertex("Entry") -> Vertex("A"), Vertex("E") -> Vertex("B"), Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D"), Vertex("D") -> Vertex("Exit"), Vertex("C") -> Vertex("Exit"))
 
-		(0 until 100) foreach { i => g.topsort foreach println }
-
-		val b = bytecode {
+		for(v <- g.verticesIterator) {
+			println(v + " -> " + g.dominance.frontiersOf(v))
+		}
+		
+		/*val b = bytecode {
 			GetLocal(0)		::
 			PushScope()		::
 			FindPropStrict(AbcQName('Math, AbcNamespace(22, Symbol("")))) ::
@@ -56,7 +58,7 @@ object Main {
 		println("")
 		PeepholeOptimizations(b)
 		b.dump()
-		println(LocalCount(b))
+		println(LocalCount(b))*/
 
 		/*val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 		val frequencyDistribution = new FrequencyDistribution()
