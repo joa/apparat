@@ -21,6 +21,7 @@
 package apparat.graph.immutable
 
 import apparat.graph.{DefaultDOTExport, Edge, GraphLike}
+import apparat.graph.analysis.Dominance
 
 object Graph {
 	def apply[V](edges: Edge[V]*): Graph[V] = {
@@ -47,6 +48,8 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with De
 	def this() = this(Map.empty[V, List[Edge[V]]])
 
 	type G = Graph[V]
+
+	lazy val dominance = new Dominance(this)
 
 	private def newGraph(adjacency: Map[V,List[E]]) = new Graph(adjacency)
 

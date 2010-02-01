@@ -31,7 +31,7 @@ trait GraphLike[V] extends Dumpable {
 
 	lazy val topsort: GraphTraversal[V] = new TopsortTraversal[V](this)
 
-	lazy val dominance = new Dominance(this)
+	def dominance: Dominance[V]
 	
 	def contains(vertex: V): Boolean
 

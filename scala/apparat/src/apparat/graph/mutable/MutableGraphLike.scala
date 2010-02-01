@@ -21,6 +21,7 @@
 package apparat.graph.mutable
 
 import apparat.graph._
+import analysis.Dominance
 
 trait MutableGraphLike[V] extends GraphLike[V] {
 
@@ -43,6 +44,8 @@ trait MutableGraphLike[V] extends GraphLike[V] {
 
 	def -=(that: V) = remove(that)
 
+	override def dominance = new Dominance(this)
+	
 	override def indegreeOf(vertex: V) = incomingOf(vertex).iterator.length
 
 	override def outdegreeOf(vertex: V) = outgoingOf(vertex).iterator.length
