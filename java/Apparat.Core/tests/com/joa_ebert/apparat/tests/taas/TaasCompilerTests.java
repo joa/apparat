@@ -241,6 +241,12 @@ public class TaasCompilerTests
 	}
 
 	@Test
+	public void test15() throws Exception
+	{
+		compile( "assets/Test15.swf" );
+	}
+
+	@Test
 	@Ignore
 	public void testLorenz() throws Exception
 	{
