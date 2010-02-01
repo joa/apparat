@@ -44,7 +44,7 @@ package com.joa_ebert.apparat.memory
 		 * @return A MemoryBlock object representing the occupied space.
 		 * 
 		 * @throws flash.errors.MemoryError A MemoryError is thrown if it is 
-		 * 	not possible to allocated the requested amount of memory.
+		 * 	not possible to allocate the requested amount of memory.
 		 */
 		function allocate( length: uint ): MemoryBlock;
 		
