@@ -27,29 +27,31 @@ import annotation.tailrec
  */
 
 class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entryVertex: V, val exitVertex: V) extends GraphLike[V] with ControlFlow[V] with DOTExportAvailable[V] {
-	def predecessorsOf(vertex: V) = graph.predecessorsOf(vertex)
+	override def dominance = graph.dominance
 
-	def successorsOf(vertex: V) = graph.successorsOf(vertex)
+	override def predecessorsOf(vertex: V) = graph.predecessorsOf(vertex)
 
-	def incomingOf(vertex: V) = graph.incomingOf(vertex)
+	override def successorsOf(vertex: V) = graph.successorsOf(vertex)
 
-	def verticesIterator = graph.verticesIterator
+	override def incomingOf(vertex: V) = graph.incomingOf(vertex)
 
-	def edgesIterator = graph.edgesIterator
+	override def verticesIterator = graph.verticesIterator
 
-	def indegreeOf(vertex: V) = graph.indegreeOf(vertex)
+	override def edgesIterator = graph.edgesIterator
 
-	def outdegreeOf(vertex: V) = graph.outdegreeOf(vertex)
+	override def indegreeOf(vertex: V) = graph.indegreeOf(vertex)
 
-	def contains(edge: Edge[V]) = graph.contains(edge)
+	override def outdegreeOf(vertex: V) = graph.outdegreeOf(vertex)
 
-	def outgoingOf(vertex: V) = graph.outgoingOf(vertex)
+	override def contains(edge: Edge[V]) = graph.contains(edge)
 
-	def contains(vertex: V) = graph.contains(vertex)
+	override def outgoingOf(vertex: V) = graph.outgoingOf(vertex)
+
+	override def contains(vertex: V) = graph.contains(vertex)
 
 	override def toString = "[ControlFlowGraph]"
 
-	def dotExport = {
+	override def dotExport = {
 		def cleanString(str: String) = {
 			val len = str.length
 			@tailrec def loop(sb: StringBuilder, strIndex: Int): StringBuilder = {

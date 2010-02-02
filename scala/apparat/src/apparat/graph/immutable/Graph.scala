@@ -20,8 +20,8 @@
  */
 package apparat.graph.immutable
 
-import apparat.graph.{DefaultDOTExport, Edge, GraphLike}
 import apparat.graph.analysis.Dominance
+import apparat.graph._
 
 object Graph {
 	def apply[V](edges: Edge[V]*): Graph[V] = {
@@ -87,6 +87,32 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with De
 	def -(edge: (V, V)) = if(contains(edge._1) && contains(edge._2)) {
 		newGraph(adjacency updated (edge._1, adjacency(edge._1) filterNot (_.endVertex == edge._2)))
 	} else { this }
+
+	def replace(v0: V, v1: V) = {
+		def rebuild(start: V, end: V, edge: E) = edge match {
+			case e: DefaultEdge[_] => DefaultEdge(start, end)
+			case e: JumpEdge[_] => JumpEdge(start, end)
+			case e: TrueEdge[_] => TrueEdge(start, end)
+			case e: FalseEdge[_] => FalseEdge(start, end)
+			case e: DefaultCaseEdge[_] => DefaultCaseEdge(start, end)
+			case e: CaseEdge[_] => CaseEdge(start, end)
+			case e: ThrowEdge[_] => ThrowEdge(start, end)
+			case e: ReturnEdge[_] => ReturnEdge(start, end)
+			case _ => error(edge + " is not and Edge")
+		}
+		
+		assert(contains(v0), "Graph must contain v0.")
+		assert(!contains(v1), "Graph must not contain v1.")
+
+		val oo = outgoingOf(v0)
+		val io = incomingOf(v0)
+		var result = this - v0 + v1
+
+		for(e <- oo) result = result + rebuild(v1, e.endVertex, e)
+		for(e <- io) result = result + rebuild(e.startVertex, v1, e)
+
+		result
+	}
 
 	override def contains(vertex: V) = adjacency contains vertex
 

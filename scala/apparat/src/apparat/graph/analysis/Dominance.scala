@@ -144,5 +144,7 @@ class Dominance[V](val graph: GraphLike[V]) {
 		result
 	}
 
+	def apply(vertex: V) = frontiersOf(vertex)
+	
 	def frontiersOf(vertex: V) = frontiers get vertex
 }
