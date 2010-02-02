@@ -55,7 +55,7 @@ object BytecodeControlFlowGraphBuilder {
 
 				val lastOp = newOpList(newOpList.length - 1)
 				if (lastOp.isInstanceOf[Jump])
-					newOpList = newOpList take newOpList.length - 1
+					newOpList = newOpList dropRight 1
 
 				val vertex = new V(newOpList)
 
