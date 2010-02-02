@@ -26,12 +26,12 @@ import apparat.bytecode.operations.AbstractOp
  * Time: 19:59:02
  */
 
-class ImmutableBlockVertex[T](val block: List[T] = Nil) extends BlockVertex[T] {
+class ImmutableBlockVertex[T](val block: List[T] = Nil) extends BlockVertex[T] with Immutable {
 	def add(elms: List[T]) = new ImmutableBlockVertex(block ::: elms)
 
 	def removeFirst = new ImmutableBlockVertex(block drop 1)
 
-	def removeLast = new ImmutableBlockVertex(block take block.length - 1)
+	def removeLast = new ImmutableBlockVertex(block dropRight 1)
 
 	def clear = new ImmutableBlockVertex()
 }
