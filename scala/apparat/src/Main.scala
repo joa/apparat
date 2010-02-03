@@ -22,10 +22,11 @@ import apparat.abc.analysis.AbcConstantPoolBuilder
 import apparat.abc.{AbcNamespace, AbcQName, Abc}
 import apparat.bytecode.analysis.{LocalCount, FrequencyDistribution}
 import apparat.bytecode.PeepholeOptimizations
+import apparat.graph.immutable.{BytecodeControlFlowGraphBuilder, Graph}
 import apparat.graph.{DefaultEdge, Vertex}
-import apparat.graph.immutable.Graph
 import apparat.swc.Swc
-import apparat.swf.{DoABC, SwfTags, Swf}
+import apparat.swf.Swfs._
+import apparat.swf.{Swfs, DoABC, SwfTags, Swf}
 import apparat.utils.Performance
 import apparat.utils.Performance._
 import java.io.PrintWriter
@@ -35,12 +36,12 @@ import apparat.bytecode.combinator._
 import apparat.bytecode.Bytecode._
 object Main {
 	def main(args: Array[String]): Unit = {
-		implicit val factory = DefaultEdge[Vertex](_, _)
+		/*implicit val factory = DefaultEdge[Vertex](_, _)
 		val g = Graph(Vertex("Entry") -> Vertex("E"), Vertex("Entry") -> Vertex("A"), Vertex("E") -> Vertex("B"), Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D"), Vertex("D") -> Vertex("Exit"), Vertex("C") -> Vertex("Exit"))
 
 		for(v <- g.verticesIterator) {
 			println(v + " -> " + g.dominance.frontiersOf(v))
-		}
+		}*/
 		
 		/*val b = bytecode {
 			GetLocal(0)		::
@@ -85,18 +86,38 @@ object Main {
 		
 		//val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
+		swf(width = 400, height = 400) {
+			Nil
+		} write "assets/new.swf"
+		
 		measure {
 			val swf = Swf fromFile "assets/Test15.swf"
-
+			swf.tags foreach println
 			for(x <- swf.tags if x.kind == SwfTags.DoABC) {
 				val doABC = x.asInstanceOf[DoABC]
 				val abc = Abc fromDoABC doABC
+
+				Swfs.swf(640, 480) {
+					Swfs.doABC("Test15") {
+						abc
+					}
+				} write "assets/Test15.synthesized.swf"
+
 				abc.loadBytecode()
+
+				abc.dump()
 
 				/*abc.methods foreach {
 					method => method.body match {
-						case Some(body) => body.bytecode.get.dump()
-						case None => {}
+						case Some(body) => body.bytecode match {
+							case Some(bytecode) => {
+								bytecode.dump()
+								val g = BytecodeControlFlowGraphBuilder(bytecode)
+								g.dotExport to Console.out
+							}
+							case None =>
+						}
+						case None =>
 					}
 				}*/
 

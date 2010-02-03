@@ -21,14 +21,15 @@
 package apparat.utils
 
 import java.io.{
-	PrintStream => JPrintStream,
 	InputStream => JInputStream,
+	OutputStream => JOutputStream,
+	Writer => JWriter,
 	ByteArrayOutputStream => JByteArrayOutputStream
 }
 
 object IO {
 	def dump(bytes: Array[Byte]): Unit = dump(bytes, Console.out)
-	def dump(bytes: Array[Byte], printStream: JPrintStream): Unit = {
+	def dump(bytes: Array[Byte], printStream: { def println(value: String); def flush(): Unit }): Unit = {
 		printStream println "Hex dump:"
 		printStream println (if(null == bytes) {
 			"(null)"

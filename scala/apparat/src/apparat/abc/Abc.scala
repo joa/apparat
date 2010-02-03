@@ -24,6 +24,8 @@ import annotation.tailrec
 import apparat.bytecode._
 import apparat.utils.IO
 import apparat.utils.IO._
+import apparat.utils.Dumpable
+import apparat.utils.IndentingPrintWriter
 import apparat.swf.{DoABC, SwfTag}
 import apparat.abc.analysis._
 import collection.immutable._
@@ -56,7 +58,7 @@ object Abc {
 	}
 }
 
-class Abc {
+class Abc extends Dumpable {
 	var cpool = new AbcConstantPool(new Array[Int](0),
 		new Array[Long](0), new Array[Double](0), new Array[Symbol](0),
 		new Array[AbcNamespace](0), new Array[AbcNSSet](0), new Array[AbcName](0))
@@ -619,5 +621,26 @@ class Abc {
 	private def writeAll[T](array: Array[T])(write: T => Unit)(implicit output: AbcOutputStream) = {
 		output writeU30 array.length
 		array foreach write
+	}
+
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= "Abc:"
+		writer withIndent {
+			cpool dump writer
+			writer <= "Functions:"
+			writer withIndent {
+				methods filter (_.anonymous) foreach (_ dump writer)
+			}
+			writer <= "Metadata:"
+			writer <<< metadata
+			writer <= "Scripts:"
+			writer withIndent {
+				scripts foreach (_ dump writer)
+			}
+			/*
+	var types = new Array[AbcNominalType](0)
+	var scripts = new Array[AbcScript](0)
+			 */
+		}
 	}
 }

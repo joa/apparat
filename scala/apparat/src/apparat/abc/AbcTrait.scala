@@ -17,7 +17,9 @@ sealed abstract class AbcTrait(val kind: Int, val name: AbcQName,
 
 sealed abstract class AbcTraitAnyMethod(override val kind: Int, override val name: AbcQName,
 										override val metadata: Option[Array[AbcMetadata]], val dispId: Int,
-										val method: AbcMethod, val isFinal: Boolean, val isOverride: Boolean) extends AbcTrait(kind, name, metadata)
+										val method: AbcMethod, val isFinal: Boolean, val isOverride: Boolean) extends AbcTrait(kind, name, metadata) {
+	method.anonymous = false
+}
 
 sealed abstract class AbcTraitAnySlot(override val kind: Int, override val name: AbcQName,
 									  override val metadata: Option[Array[AbcMetadata]], val index: Int, val typeName: AbcName,

@@ -22,13 +22,13 @@ package apparat.utils
 
 import java.io.{Writer => JWriter, PrintWriter => JPrintWriter}
 
-class IndentingPrintWriter(val writer: JWriter, useTabs: Boolean = true)
+class IndentingPrintWriter(val writer: JWriter, useTabs: Boolean = false)
 		extends JPrintWriter(writer)
 {
 	private val hasParent = writer.isInstanceOf[IndentingPrintWriter]
 	private val parent = if (hasParent) Some(writer.asInstanceOf[IndentingPrintWriter]) else None
 	private val indentChar = if (useTabs) '\t' else ' '
-	private val indentShift = if (useTabs) 0 else 2
+	private val indentShift = if (useTabs) 0 else 1
 	private var indentBuffer = new Array[Char](0)
 	private var indentLevel = 0
 

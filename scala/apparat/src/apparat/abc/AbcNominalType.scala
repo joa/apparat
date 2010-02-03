@@ -1,6 +1,8 @@
 package apparat.abc
 
-class AbcNominalType(val inst: AbcInstance) {
+import apparat.utils.{IndentingPrintWriter, Dumpable}
+
+class AbcNominalType(val inst: AbcInstance) extends Dumpable {
 	var klass: AbcClass = _//TODO replace with `class` and Option[AbcClass]
 	
 	def accept(visitor: AbcVisitor) = {
@@ -10,6 +12,14 @@ class AbcNominalType(val inst: AbcInstance) {
 
 		if(null != klass) {
 			klass accept visitor
+		}
+	}
+
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= "Type:"
+		writer withIndent {
+			if(null != klass) klass dump writer
+			inst dump writer
 		}
 	}
 }
