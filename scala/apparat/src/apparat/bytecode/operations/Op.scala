@@ -282,7 +282,7 @@ object Op {
 
 }
 
-abstract class AbstractOp extends OpCode with Product {
+sealed abstract class AbstractOp extends OpCode with Product {
 	def canThrow = false
 
 	def controlsFlow = false
