@@ -313,13 +313,6 @@ abstract class AbstractOp extends OpCode with Product {
 			false
 		}
 	}
-	//	def ~(nextOp:AbstractOp)(implicit f:AbstractOp=>BCode):AbstractOp = {
-	//		nextOp.store(nextOp)
-	//		//owner += nextOp
-	//	 	println("next:"+nextOp)
-	//	 	//nextOp
-	//		nextOp
-	//	}
 }
 
 trait OpCode {
