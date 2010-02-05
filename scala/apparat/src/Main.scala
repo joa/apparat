@@ -25,6 +25,7 @@ import apparat.bytecode.PeepholeOptimizations
 import apparat.graph.immutable.{BytecodeControlFlowGraphBuilder, Graph}
 import apparat.graph.{DefaultEdge, Vertex}
 import apparat.swc.Swc
+import apparat.swc.Swcs._
 import apparat.swf.Swfs._
 import apparat.swf.{Swfs, DoABC, SwfTags, Swf}
 import apparat.utils.Performance
@@ -36,13 +37,32 @@ import apparat.bytecode.combinator._
 import apparat.bytecode.Bytecode._
 object Main {
 	def main(args: Array[String]): Unit = {
+		implicit val factory = DefaultEdge[String](_, _)
+		val G = Graph(
+			"Entry" -> "A",
+			"A" -> "B",
+			"B" -> "C",
+			"B" -> "D",
+			"D" -> "F",
+			"F" -> "E",
+			"E" -> "F",
+			"E" -> "C",
+			"C" -> "A",
+			"C" -> "Exit")
+
+		G.dotExport to Console.out
+
+		G.sccs foreach println
+		G.sccs map { _.entry } foreach println
+		G.sccs filter { _.canSearch } map { _.subcomponents } foreach { _ foreach println }
+		
 		/*implicit val factory = DefaultEdge[Vertex](_, _)
 		val g = Graph(Vertex("Entry") -> Vertex("E"), Vertex("Entry") -> Vertex("A"), Vertex("E") -> Vertex("B"), Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D"), Vertex("D") -> Vertex("Exit"), Vertex("C") -> Vertex("Exit"))
 
 		for(v <- g.verticesIterator) {
 			println(v + " -> " + g.dominance.frontiersOf(v))
 		}*/
-		
+
 		/*val b = bytecode {
 			GetLocal(0)		::
 			PushScope()		::
@@ -86,10 +106,12 @@ object Main {
 		
 		//val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
-		swf(width = 400, height = 400) {
-			Nil
-		} write "assets/new.swf"
-		
+		/*swc {
+			swf(width = 400, height = 400) {
+				Nil
+			}
+		} write "assets/new.swc"
+
 		measure {
 			val swf = Swf fromFile "assets/Test15.swf"
 			swf.tags foreach println
@@ -129,7 +151,7 @@ object Main {
 			}
 
 			swf write "assets/Test15.output.swf"
-		}
+		}*/
 
 
 		/*val check = Swf fromFile "assets/Test00.output.swf"

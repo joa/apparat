@@ -120,6 +120,7 @@
         <w>pathname</w>
         <w>postorder</w>
         <w>println</w>
+        <w>sccs</w>
         <w>taas</w>
         <w>topsort</w>
         <w>tuple</w>

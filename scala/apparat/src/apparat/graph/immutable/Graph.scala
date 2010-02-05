@@ -20,8 +20,8 @@
  */
 package apparat.graph.immutable
 
-import apparat.graph.analysis.Dominance
 import apparat.graph._
+import analysis.{StronglyConnectedComponentFinder, Dominance}
 
 object Graph {
 	def apply[V](edges: Edge[V]*): Graph[V] = {
@@ -49,13 +49,41 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with De
 
 	type G = Graph[V]
 
+	lazy val topsort = new TopsortTraversal(this)
+	
 	lazy val dominance = new Dominance(this)
 
+	lazy val sccs = new StronglyConnectedComponentFinder(this)
+
 	private def newGraph(adjacency: Map[V,List[E]]) = new Graph(adjacency)
+
+	def ++(that: Traversable[V]) = {
+		def loop(that: Traversable[V]): Graph[V] = {
+			if(that.isEmpty) {
+				this
+			} else {
+				loop(that drop 1) + that.head
+			}
+		}
+
+		loop(that)
+	}
 
 	def +(vertex: V) = {
 		assert(!contains(vertex), "Graph must not contain vertex.")
 		newGraph(adjacency + (vertex -> Nil))
+	}
+
+	def +>(that: Traversable[E]) = {
+		def loop(that: Traversable[E]): Graph[V] = {
+			if(that.isEmpty) {
+				this
+			} else {
+				loop(that drop 1) + that.head
+			}
+		}
+
+		loop(that)
 	}
 
 	def +(edge: E) = {

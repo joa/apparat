@@ -27,7 +27,7 @@ import annotation.tailrec
  * @author Joa Ebert
  */
 class Dominance[V](val graph: GraphLike[V]) {
-	lazy val entry: V = graph match {
+	private lazy val entry: V = graph match {
 		case controlFlow: ControlFlow[_] => controlFlow.entryVertex.asInstanceOf[V]
 		case _ => graph.verticesIterator find (vertex => (graph indegreeOf vertex) == 0) match {
 			case Some(vertex) => vertex

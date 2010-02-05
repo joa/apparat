@@ -27,6 +27,10 @@ import annotation.tailrec
  */
 
 class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entryVertex: V, val exitVertex: V) extends GraphLike[V] with ControlFlow[V] with DOTExportAvailable[V] {
+	override def topsort = graph.topsort
+
+	override def sccs = graph.sccs
+
 	override def dominance = graph.dominance
 
 	override def predecessorsOf(vertex: V) = graph.predecessorsOf(vertex)

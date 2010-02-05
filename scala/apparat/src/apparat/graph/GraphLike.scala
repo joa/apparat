@@ -20,7 +20,7 @@
  */
 package apparat.graph
 
-import analysis.Dominance
+import analysis.{StronglyConnectedComponentFinder, Dominance}
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 /**
@@ -29,10 +29,12 @@ import apparat.utils.{IndentingPrintWriter, Dumpable}
 trait GraphLike[V] extends Dumpable {
 	type E = Edge[V]
 
-	lazy val topsort: GraphTraversal[V] = new TopsortTraversal[V](this)
-
-	def dominance: Dominance[V]
+	def topsort: GraphTraversal[V]
 	
+	def dominance: Dominance[V]
+
+	def sccs: StronglyConnectedComponentFinder[V]
+
 	def contains(vertex: V): Boolean
 
 	def contains(edge: E): Boolean
