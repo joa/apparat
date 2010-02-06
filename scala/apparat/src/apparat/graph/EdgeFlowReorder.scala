@@ -40,7 +40,7 @@ class EdgeFlowReorder[V](val graph: GraphLike[V]) {
 
 	def compare(a: Edge[V], b: Edge[V]) = (a.kind == EdgeKind.Return) || (b.kind == EdgeKind.False)
 
-	// body must accept a tuple with an Edge and Map counting backreference to a Vertex
+	// body must accept a tuple with an Edge and Map counting back reference to a Vertex
 	def foreach(body: (Edge[V], Map[V, Int]) => Unit) = {
 		var S = List(graph.outgoingOf(entry).head)
 
@@ -49,17 +49,27 @@ class EdgeFlowReorder[V](val graph: GraphLike[V]) {
 		var list: List[Edge[V]] = Nil
 
 		// counter of back reference to a Vertex
-		var backRefCnt: Map[V, Int] = Map.empty
+		var backRefCnt: Map[V, Int] = Map.empty updated (S(0).startVertex, 0)
 
-		//memoize the last return edge
+		// keep track of the insert order
+		// to see if we have a possible back edge
+		var insertOrderMap: Map[V, Int] = Map.empty updated (S(0).startVertex, 0)
+
+		//memorize the last return edge
 		var returnIndex = -1
 
 		while (S.nonEmpty) {
 			val e = S.head
+			S = S.tail
 
 			list = e :: list
 
-			backRefCnt = backRefCnt.updated(e.endVertex, backRefCnt.getOrElse(e.endVertex, -1) + 1)
+			if (!insertOrderMap.contains(e.endVertex))
+				insertOrderMap = insertOrderMap updated (e.endVertex, list.length)
+
+			// check if we have a back edge
+			val inc = if (insertOrderMap(e.startVertex) < insertOrderMap(e.endVertex)) 0 else 1
+			backRefCnt = backRefCnt.updated(e.endVertex, backRefCnt.getOrElse(e.endVertex, 0) + inc)
 
 			val outgoing = graph.outgoingOf(e.endVertex)
 
@@ -67,8 +77,6 @@ class EdgeFlowReorder[V](val graph: GraphLike[V]) {
 			// so we can later put it at the end
 			if (outgoing.head.kind == EdgeKind.Return)
 				returnIndex = list.length
-
-			S = S.tail
 
 			outgoing match {
 				case outList: List[_] => {
@@ -87,11 +95,13 @@ class EdgeFlowReorder[V](val graph: GraphLike[V]) {
 
 		//put at least a ReturnEdge at the end (in fact since the list is in reverse order we put it at the start)
 		((list.length - returnIndex) match {
-			// return edge is yet at the end so nothing to do
+		// return edge is already at the end so nothing to do
 			case 0 => list
 			// put it at the start
 			case n => {
 				val (head, tail) = list.splitAt(n)
+				//since we move this block at the end it can't have any back edge
+				backRefCnt = backRefCnt updated (tail.head.endVertex, 0)
 				List(tail.head) ::: head ::: (tail drop 1)
 			}
 		}).reverse.foreach(body(_, backRefCnt))
