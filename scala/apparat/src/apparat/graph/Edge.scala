@@ -22,7 +22,7 @@ package apparat.graph
 
 object EdgeKind extends Enumeration {
 	type EdgeKind = Value
-	val Default, Jump, True, False, DefaultCase, Case, Throw, Return = Value
+	val Default, Jump, True, False, DefaultCase, Case, NumberedCase, Throw, Return = Value
 }
 
 sealed abstract class Edge[V](val startVertex: V, val endVertex: V, val kind: EdgeKind.EdgeKind)
@@ -33,7 +33,7 @@ final case class TrueEdge[V](override val startVertex: V, override val endVertex
 final case class FalseEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.False)
 final case class DefaultCaseEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.DefaultCase)
 final case class CaseEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Case)
-final case class NumberedCaseEdge[V](override val startVertex: V, override val endVertex: V, val index: Int) extends Edge[V](startVertex, endVertex, EdgeKind.Case)
+final case class NumberedCaseEdge[V](override val startVertex: V, override val endVertex: V, val index: Int) extends Edge[V](startVertex, endVertex, EdgeKind.NumberedCase)
 final case class ThrowEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Throw)
 final case class ReturnEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Return)
 
