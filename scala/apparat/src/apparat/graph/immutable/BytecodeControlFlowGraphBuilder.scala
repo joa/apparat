@@ -128,8 +128,13 @@ object BytecodeControlFlowGraphBuilder {
 					}
 					case lookupOp: LookupSwitch => {
 						createVertexFromMarker(lookupOp.defaultCase, DefaultCaseEdge[V] _)
-						for (caseMarker <- lookupOp.cases)
-							createVertexFromMarker(caseMarker, CaseEdge[V] _)
+						var index: Int = 0
+						for (caseMarker <- lookupOp.cases) {
+							def factory(a:V, b:V)=NumberedCaseEdge[V](a, b, index)
+							createVertexFromMarker(caseMarker, factory)
+//							createVertexFromMarker(caseMarker, CaseEdge[V] _)
+							index += 1
+						}
 					}
 					case returnOp: OpThatReturns => {
 						edgeMap = edgeMap updated (currentBlock, ReturnEdge(currentBlock, exitVertex) :: edgeMap(currentBlock))

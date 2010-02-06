@@ -56,6 +56,11 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 			target(target.length - 1) match {
 				case op: AbstractConditionalOp => target(target.length - 1) = Op.copyConditionalOp(op, marker)
 				case op: Jump => target(target.length - 1) = Jump(marker)
+				case op: LookupSwitch => {
+					println(op)
+					println(startVertex)
+					println(endVertex)
+				}
 				case _ => target += Jump(marker)
 			}
 		}
@@ -117,5 +122,30 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 		var l: List[ControlFlowElm] = Nil
 		elms.reverse.foreach(n => l = l ++ n)
 		new Bytecode(l, markers, new Array(0))
+	}
+
+	override def edgeToString(edge: E) = {
+		def headLabel(vertex: V) = " headlabel=\"" + ({
+			if (vertex.length == 0)
+				""
+			else {
+				vertex.block.last match {
+					case op: OpWithMarker => op.marker.toString
+					case _ => ""
+				}
+			}
+		}) + "\""
+
+		"[" + (edge match {
+			case DefaultEdge(x, y) => label("")
+			case JumpEdge(x, y) => label("  jump  ")
+			case TrueEdge(x, y) => label("  true  ")
+			case FalseEdge(x, y) => label("  false  ")
+			case DefaultCaseEdge(x, y) => label("  default  ")
+			case CaseEdge(x, y) => label("  case  ")
+			case NumberedCaseEdge(x, y, n) => label("  case " + n)
+			case ThrowEdge(x, y) => label("  throw  ")
+			case ReturnEdge(x, y) => label("  return  ")
+		}) + "]"
 	}
 }

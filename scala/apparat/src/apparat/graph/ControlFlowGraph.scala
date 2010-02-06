@@ -59,46 +59,48 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 
 	override def toString = "[ControlFlowGraph]"
 
-	override def dotExport = {
-		def cleanString(str: String) = {
-			val len = str.length
-			@tailrec def loop(sb: StringBuilder, strIndex: Int): StringBuilder = {
-				if (strIndex >= len)
-					sb
-				else {
-					str(strIndex) match {
-						case '"' => sb append "\\\""
-						case '>' => sb append "&gt;"
-						case '<' => sb append "&lt;"
-						case c => sb append c
-					}
-					loop(sb, strIndex + 1)
+	def cleanString(str: String) = {
+		val len = str.length
+		@tailrec def loop(sb: StringBuilder, strIndex: Int): StringBuilder = {
+			if (strIndex >= len)
+				sb
+			else {
+				str(strIndex) match {
+					case '"' => sb append "\\\""
+					case '>' => sb append "&gt;"
+					case '<' => sb append "&lt;"
+					case c => sb append c
 				}
+				loop(sb, strIndex + 1)
 			}
-
-			loop(new StringBuilder(), 0) toString
 		}
+		loop(new StringBuilder(), 0) toString
+	}
 
-		def vertexToString(vertex: V) = {
-			if (isEntry(vertex))
-				"Entry"
-			else if (isExit(vertex))
-				"Exit"
-			else
-				cleanString(vertex toString)
-		}
+	def label(value: String) = "label=\"" + cleanString(value) + "\""
 
-		def label(value: String) = "[label=\"" + value + "\"]"
+	def vertexToString(vertex: V) = "[" + label({
+		if (isEntry(vertex))
+			"Entry"
+		else if (isExit(vertex))
+			"Exit"
+		else
+			vertex toString
+	}) + "]"
 
-		new DOTExport(this, (vertex: V) => label(vertexToString(vertex)), (edge: E) => edge match {
-			case DefaultEdge(x, y) => ""
-			case JumpEdge(x, y) => label("jump")
-			case TrueEdge(x, y) => label("true")
-			case FalseEdge(x, y) => label("false")
-			case DefaultCaseEdge(x, y) => label("default")
-			case CaseEdge(x, y) => label("case")
-			case ThrowEdge(x, y) => label("throw")
-			case ReturnEdge(x, y) => label("return")
-		})
+	def edgeToString(edge: E) = "[" + label(edge match {
+		case DefaultEdge(x, y) => ""
+		case JumpEdge(x, y) => "jump"
+		case TrueEdge(x, y) => "true"
+		case FalseEdge(x, y) => "false"
+		case DefaultCaseEdge(x, y) => "default"
+		case CaseEdge(x, y) => "case"
+		case NumberedCaseEdge(x, y, n) => "case "+n
+		case ThrowEdge(x, y) => "throw"
+		case ReturnEdge(x, y) => "return"
+	}) + "]"
+
+	override def dotExport = {
+		new DOTExport(this, (vertex: V) => vertexToString(vertex), (edge: E) => edgeToString(edge))
 	}
 }

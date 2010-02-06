@@ -33,17 +33,19 @@ final case class TrueEdge[V](override val startVertex: V, override val endVertex
 final case class FalseEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.False)
 final case class DefaultCaseEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.DefaultCase)
 final case class CaseEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Case)
+final case class NumberedCaseEdge[V](override val startVertex: V, override val endVertex: V, val index: Int) extends Edge[V](startVertex, endVertex, EdgeKind.Case)
 final case class ThrowEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Throw)
 final case class ReturnEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Return)
 
 object Edge {
-	def copy[V](edge: AnyRef, start:Option[V]=None, end:Option[V]=None) = edge match {
+	def copy[V](edge: AnyRef, start: Option[V] = None, end: Option[V] = None) = edge match {
 		case e: DefaultEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case e: JumpEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case e: TrueEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case e: FalseEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case e: DefaultCaseEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case e: CaseEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
+		case e: NumberedCaseEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex), e.index)
 		case e: ThrowEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case e: ReturnEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case _ => error(edge + " is not and Edge")

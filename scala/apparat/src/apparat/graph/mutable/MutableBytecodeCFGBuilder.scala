@@ -83,8 +83,13 @@ object MutableBytecodeCFGBuilder {
 					}
 					case lookupOp: LookupSwitch => {
 						createVertexFromMarker(lookupOp.defaultCase, DefaultCaseEdge[graph.BasicBlockVertex] _)
-						for (caseMarker <- lookupOp.cases)
-							createVertexFromMarker(caseMarker, CaseEdge[graph.BasicBlockVertex] _)
+						var index: Int = 0
+						for (caseMarker <- lookupOp.cases) {
+							def factory(a: graph.BasicBlockVertex, b: graph.BasicBlockVertex) = NumberedCaseEdge[graph.BasicBlockVertex](a, b, index)
+							createVertexFromMarker(caseMarker, factory)
+							//							createVertexFromMarker(caseMarker, CaseEdge[graph.BasicBlockVertex] _)
+							index += 1
+						}
 					}
 					case returnOp: OpThatReturns => {
 						graph += ReturnEdge(currentBlock, graph.exitVertex)
