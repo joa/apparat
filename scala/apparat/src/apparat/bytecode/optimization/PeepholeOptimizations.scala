@@ -29,9 +29,21 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 		bytecode rewrite whileLoop
 		bytecode rewrite getLex
 		bytecode rewrite unnecessaryIntCast
+		bytecode rewrite ifFalse
+		bytecode rewrite ifTrue
 		bytecode
 	}
-	
+
+	lazy val ifFalse = (PushFalse() ~ partial { case ifFalse: IfFalse => ifFalse }) ^^ {
+		case PushFalse() ~ IfFalse(marker) => Jump(marker) :: Nil
+		case _ => error("Unreachable code.")
+	}
+
+	lazy val ifTrue = (PushTrue() ~ partial { case ifTrue: IfTrue  => ifTrue }) ^^ {
+		case PushFalse() ~ IfTrue(marker) => Jump(marker) :: Nil
+		case _ => error("Unreachable code.")
+	}
+
 	lazy val whileLoop = (
 		partial { case getLocal: GetLocal => getLocal } ~
 		(IncrementInt() | DecrementInt()) ~
