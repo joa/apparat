@@ -256,6 +256,7 @@ object Op {
 			case op: IfStrictEqual => op.copy(marker)
 			case op: IfStrictNotEqual => op.copy(marker)
 			case op: IfTrue => op.copy(marker)
+			case op: Jump => op.copy(marker)
 			case _ => error(op + " is not a conditional operation")
 		}
 	}
@@ -276,6 +277,7 @@ object Op {
 			case op: IfStrictEqual => IfStrictNotEqual(marker)
 			case op: IfStrictNotEqual => IfStrictEqual(marker)
 			case op: IfTrue => IfFalse(marker)
+			case op: Jump => op.copy(marker)
 			case _ => error(op + " is not a conditional operation")
 		}
 	}

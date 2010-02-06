@@ -4,8 +4,7 @@ import apparat.bytecode.{Marker, Bytecode}
 import apparat.bytecode.operations._
 import apparat.graph._
 import annotation.tailrec
-import mutable.MutableBytecodeCFG
-import collection.mutable.{ListBuffer, Queue}
+
 /*
  * This file is part of Apparat.
  * 
@@ -32,6 +31,8 @@ import collection.mutable.{ListBuffer, Queue}
 
 object BytecodeControlFlowGraphBuilder {
 	def apply(bytecode: Bytecode) = {
+		import collection.mutable.{ListBuffer, Queue}
+
 		type V = ImmutableAbstractOpBlockVertex
 
 		val ops = bytecode.ops
@@ -68,10 +69,10 @@ object BytecodeControlFlowGraphBuilder {
 		}
 
 
-		val entryVertex = new V()
+		val entryVertex = new V() {override def toString = "[Entry]"}
 		edgeMap = edgeMap updated (entryVertex, Nil)
 
-		val exitVertex = new V()
+		val exitVertex = new V() {override def toString = "[Exit]"}
 		edgeMap = edgeMap updated (exitVertex, Nil)
 
 		// connect the first block to the entry

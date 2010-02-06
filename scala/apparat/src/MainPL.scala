@@ -1,9 +1,10 @@
 import apparat.abc.{Abc}
-import apparat.graph.immutable.BytecodeControlFlowGraphBuilder
-import apparat.swc.Swc
-import collection.mutable.{HashMap, HashSet, ListBuffer}
 import apparat.bytecode.{Bytecode}
+import apparat.graph.immutable.BytecodeControlFlowGraphBuilder
+import apparat.graph.{Edge}
+import apparat.swc.Swc
 import apparat.swf.{DoABC, SwfTags, Swf}
+import collection.mutable.{ListBuffer}
 /*
 * This file is part of Apparat.
 *
@@ -30,9 +31,25 @@ import apparat.swf.{DoABC, SwfTags, Swf}
 
 object MainPL {
 	def main(args: Array[String]): Unit = {
+//				val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
-		val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
-		//		val swf = Swf fromFile "assets/_Test1.swf"
+		//		swf.tags foreach println
+		//		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
+		//			val doABC = x.asInstanceOf[DoABC]
+		//			val abc = Abc fromDoABC doABC
+		//
+		////			Swfs.swf(640, 480) {
+		////				Swfs.doABC("Test15") {
+		////					abc
+		////				}
+		////			} write "assets/Test15.synthesized.swf"
+		//
+		//			abc.loadBytecode()
+		//
+		//			abc.dump()
+		//		}
+
+		val swf = Swf fromFile "assets/_Test1.swf"
 
 		val idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
 		val abc = Abc fromDoABC swf.tags(idx).asInstanceOf[DoABC]
@@ -44,6 +61,11 @@ object MainPL {
 			bc.dump()
 			val g = BytecodeControlFlowGraphBuilder(bc)
 			g.dotExport to Console.out
-		}
+
+			val nbc = g.bytecode
+			nbc.dump()
+			val ng = BytecodeControlFlowGraphBuilder(nbc)
+			ng.dotExport to Console.out
 	}
+}
 }

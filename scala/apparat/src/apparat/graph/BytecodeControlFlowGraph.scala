@@ -24,6 +24,98 @@ package apparat.graph
  * Time: 21:34:43
  */
 
-import apparat.bytecode.operations.AbstractOp
+import apparat.bytecode.operations._
+import apparat.bytecode.{Bytecode, MarkerManager}
 
-class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V], entryVertex: V, exitVertex: V) extends ControlFlowGraph[AbstractOp, V](graph, entryVertex, exitVertex)
+class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V], entryVertex: V, exitVertex: V) extends ControlFlowGraph[AbstractOp, V](graph, entryVertex, exitVertex) {
+	// TODO lookup switch
+	// TODO exception
+	lazy val bytecode = {
+		import collection.mutable.ListBuffer
+
+		val markers: MarkerManager = new MarkerManager()
+
+		var vertexBlockMap: Map[V, ListBuffer[ControlFlowElm]] = Map.empty
+
+		var elms: List[ListBuffer[ControlFlowElm]] = Nil
+
+		var prevVertex: V = entryVertex
+
+		def getMarkerFor(vertex: V) = {
+			markers.mark(
+				if (vertexBlockMap.contains(vertex))
+					vertexBlockMap(vertex).head
+				else
+					vertex.block.head
+				)
+		}
+
+		def patchJump(startVertex: V, endVertex: V) = {
+			val marker = getMarkerFor(endVertex)
+			val target = vertexBlockMap(startVertex)
+			target(target.length - 1) match {
+				case op: AbstractConditionalOp => target(target.length - 1) = Op.copyConditionalOp(op, marker)
+				case op: Jump => target(target.length - 1) = Jump(marker)
+				case _ => target += Jump(marker)
+			}
+		}
+		def addBlockFor(vertex: V) = {
+			val lb: ListBuffer[ControlFlowElm] = new ListBuffer()
+			lb ++= vertex.block
+			elms = lb :: elms
+			vertexBlockMap = vertexBlockMap updated (vertex, lb)
+			lb
+		}
+
+		new EdgeFlowReorder(graph).foreach {
+			case (edge, backRefCnt) => {
+				val end = edge.endVertex
+
+				if (!vertexBlockMap.contains(end)) {
+					val currentBlock = addBlockFor(end)
+
+					// this block have at least a back edge so add a Label as first op
+					if ((backRefCnt(end) > 0) && !currentBlock(0).isInstanceOf[Label])
+						currentBlock.insert(0, Label())
+
+					if (prevVertex == entryVertex)
+						prevVertex = end
+					else {
+						edge.kind match {
+							case EdgeKind.True => {
+								if (prevVertex == edge.startVertex) {
+									// need to invert the condition
+									// so we can avoid a jump
+									// have to found the false edge
+									// and mark the target op
+									graph.outgoingOf(prevVertex).find(_.kind == EdgeKind.False) match {
+										case Some(falseEdge) => {
+											val marker = getMarkerFor(falseEdge.endVertex)
+											val target = vertexBlockMap(edge.startVertex)
+											target(target.length - 1) = Op.invertCopyConditionalOp(target.last, marker)
+										}
+										case _ => error("missing false edge : " + edge)
+									}
+								} else {
+									patchJump(edge.startVertex, end)
+								}
+							}
+							case _ => {
+								if (prevVertex != edge.startVertex) {
+									patchJump(edge.startVertex, end)
+								}
+							}
+						}
+						prevVertex = end
+					}
+				} else {
+					patchJump(edge.startVertex, end)
+				}
+			}
+		}
+
+		var l: List[ControlFlowElm] = Nil
+		elms.reverse.foreach(n => l = l ++ n)
+		new Bytecode(l, markers, new Array(0))
+	}
+}

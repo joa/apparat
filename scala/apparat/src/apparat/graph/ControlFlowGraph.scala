@@ -27,6 +27,10 @@ import annotation.tailrec
  */
 
 class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entryVertex: V, val exitVertex: V) extends GraphLike[V] with ControlFlow[V] with DOTExportAvailable[V] {
+	type ControlFlowVertex = V
+	type ControlFlowEdge = E
+	type ControlFlowElm = T
+
 	override def topsort = graph.topsort
 
 	override def sccs = graph.sccs
@@ -76,9 +80,9 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 		}
 
 		def vertexToString(vertex: V) = {
-			if (vertex == entryVertex)
+			if (isEntry(vertex))
 				"Entry"
-			else if (vertex == exitVertex)
+			else if (isExit(vertex))
 				"Exit"
 			else
 				cleanString(vertex toString)
