@@ -40,7 +40,7 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 	}
 
 	lazy val ifTrue = (PushTrue() ~ partial { case ifTrue: IfTrue  => ifTrue }) ^^ {
-		case PushFalse() ~ IfTrue(marker) => Jump(marker) :: Nil
+		case PushTrue() ~ IfTrue(marker) => Jump(marker) :: Nil
 		case _ => error("Unreachable code.")
 	}
 
