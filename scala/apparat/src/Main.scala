@@ -28,6 +28,7 @@ import apparat.swc.Swc
 import apparat.swc.Swcs._
 import apparat.swf.Swfs._
 import apparat.swf.{Swfs, DoABC, SwfTags, Swf}
+import apparat.taas.ast.{TaasAST, TaasTarget}
 import apparat.utils.Performance
 import apparat.utils.Performance._
 import java.io.PrintWriter
@@ -55,7 +56,9 @@ object Main {
 		G.sccs foreach println
 		G.sccs map { _.entry } foreach println
 		G.sccs filter { _.canSearch } map { _.subcomponents } foreach { _ foreach println }
-		
+
+		val ast = TaasAST(TaasTarget(Nil) :: Nil).init()
+		ast.children foreach println
 		/*implicit val factory = DefaultEdge[Vertex](_, _)
 		val g = Graph(Vertex("Entry") -> Vertex("E"), Vertex("Entry") -> Vertex("A"), Vertex("E") -> Vertex("B"), Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D"), Vertex("D") -> Vertex("Exit"), Vertex("C") -> Vertex("Exit"))
 
