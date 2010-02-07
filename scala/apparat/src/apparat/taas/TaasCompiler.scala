@@ -28,7 +28,7 @@ import frontend.TaasFrontend
  * @author Joa Ebert
  */
 class TaasCompiler(val frontend: TaasFrontend, val backend: TaasBackend) {
-	def compile = backend.emit(transform(frontend.ast))
+	def compile = backend.emit(transform(frontend.getAST))
 
 	def transform(ast: TaasAST) = ast
 }

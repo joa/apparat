@@ -26,5 +26,5 @@ import apparat.taas.ast.TaasAST
  * @author Joa Ebert
  */
 trait TaasFrontend {
-	def ast: TaasAST
+	def getAST: TaasAST
 }

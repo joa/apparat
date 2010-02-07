@@ -21,13 +21,28 @@
 package apparat.taas.ast
 
 import TaasVisibility._
+import collection.mutable.ListBuffer
+import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 /**
  * @author Joa Ebert
  */
-sealed trait TaasTree
+sealed trait TaasTree extends Dumpable {
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= toString
+		this match {
+			case parent: TaasParent => {
+				writer withIndent { parent.children foreach (_ dump writer) }
+			}
+			case _ =>
+		}
+	}
+}
 
-sealed trait TaasParent extends TaasTree
+sealed trait TaasParent extends TaasTree {
+	type T <: TaasElement
+	def children: ListBuffer[T]
+}
 
 sealed trait TaasElement extends TaasTree {
 	private var _parent: Option[TaasParent] = None
@@ -44,8 +59,6 @@ sealed trait TaasElement extends TaasTree {
 }
 
 sealed trait TaasNode extends TaasElement with TaasParent {
-	type T <: TaasElement
-	def children: List[T]
 	override def setParent(parent: TaasParent) = {
 		super.setParent(parent)
 		children foreach (_ setParent this)
@@ -53,7 +66,7 @@ sealed trait TaasNode extends TaasElement with TaasParent {
 }
 
 sealed trait TaasRoot extends TaasTree with TaasParent {
-	def children: List[TaasNode]
+	type T = TaasUnit
 	def init(): this.type = {
 		children foreach (_ setParent this)
 		this
@@ -71,57 +84,78 @@ trait ParentUnit {
 	}
 }
 
-case class TaasAST(units: List[TaasUnit]) extends TaasRoot {
-	type T = TaasUnit
+case class TaasAST(units: ListBuffer[TaasUnit]) extends TaasRoot {
 	def children = units
 }
 
 sealed trait TaasUnit extends TaasNode {
 	type T = TaasNamespace
 	def unit = this
-	def namespaces: List[T]
+	def namespaces: ListBuffer[T]
 	def children = namespaces
 }
 
-case class TaasTarget(namespaces: List[TaasNamespace]) extends TaasUnit
-case class TaasLibrary(namespaces: List[TaasNamespace]) extends TaasUnit
-case class TaasNamespace(name: String, definitions: List[TaasDefinition]) extends TaasNode with ParentUnit {
+case class TaasTarget(namespaces: ListBuffer[TaasNamespace]) extends TaasUnit
+case class TaasLibrary(namespaces: ListBuffer[TaasNamespace]) extends TaasUnit
+case class TaasNamespace(name: Symbol, definitions: ListBuffer[TaasDefinition]) extends TaasNode with ParentUnit {
 	type T = TaasDefinition
 	def children = definitions
 }
 
 sealed trait TaasDefinition extends TaasElement with ParentUnit {
-	def name: String
+	private var _annotations = ListBuffer.empty[TaasAnnotation]
+	def setAnnotations(annotations: ListBuffer[TaasAnnotation]) = _annotations = annotations
+	def name: Symbol
 	def visibility: TaasVisibility
+	def annotations: ListBuffer[TaasAnnotation] = _annotations
 }
 
-case class TaasField(
-		name: String,
-		visibility: TaasVisibility) extends TaasDefinition
+case class TaasAnnotation(name: Symbol, visibility: TaasVisibility, properties: Map[Symbol, Symbol]) extends TaasDefinition
+
+sealed trait TaasField extends TaasDefinition
+
+case class TaasSlot(
+		name: Symbol,
+		visibility: TaasVisibility,
+		isStatic: Boolean) extends TaasDefinition
+
+case class TaasConstant(
+		name: Symbol,
+		visibility: TaasVisibility,
+		isStatic: Boolean) extends TaasDefinition
 
 case class TaasMethod(
-		name: String,
-		visibility: TaasVisibility) extends TaasDefinition
+		name: Symbol,
+		visibility: TaasVisibility,
+		isStatic: Boolean,
+		isFinal: Boolean) extends TaasDefinition
 
 sealed trait TaasNominal extends TaasNode with TaasDefinition {
-	def methods: List[TaasMethod]
+	def methods: ListBuffer[TaasMethod]
 }
 
 case class TaasInterface(
-		name: String,
+		name: Symbol,
 		visibility: TaasVisibility,
-		methods: List[TaasMethod]) extends TaasNode with TaasDefinition {
+		methods: ListBuffer[TaasMethod]) extends TaasNominal {
 	type T = TaasMethod
 	def children = methods
 }
 
 case class TaasClass(
-		name: String,
+		name: Symbol,
 		visibility: TaasVisibility,
 		isFinal: Boolean,
 		isDynamic: Boolean,
-		methods: List[TaasMethod],
-		fields: List[TaasField]) extends TaasNode with TaasDefinition {
+		init: TaasMethod,
+		ctor: TaasMethod,
+		methods: ListBuffer[TaasMethod],
+		fields: ListBuffer[TaasField]) extends TaasNominal {
 	type T = TaasDefinition
-	lazy val children = methods ::: fields
+	lazy val children = {
+		val result: ListBuffer[T] = ListBuffer(init, ctor)
+		result appendAll methods
+		result appendAll fields
+		result
+	}
 }

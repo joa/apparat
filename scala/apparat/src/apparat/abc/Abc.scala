@@ -26,7 +26,7 @@ import apparat.utils.IO
 import apparat.utils.IO._
 import apparat.utils.Dumpable
 import apparat.utils.IndentingPrintWriter
-import apparat.swf.{DoABC, SwfTag}
+import apparat.swf.{DoABC, Swf, SwfTag, SwfTags}
 import apparat.abc.analysis._
 import collection.immutable._
 import java.io.{
@@ -55,6 +55,11 @@ object Abc {
 	def fromTag(tag: SwfTag) = tag match {
 		case doABC : DoABC => Some(fromDoABC(doABC))
 		case _ => None
+	}
+
+	def fromSwf(swf: Swf) = swf.tags find (_.kind == SwfTags.DoABC) match {
+		case Some(doABC) => fromTag(doABC)
+		case None => None
 	}
 }
 

@@ -108,6 +108,7 @@
         <w>breakpoint</w>
         <w>bytecode</w>
         <w>cpool</w>
+        <w>ctor</w>
         <w>dumpable</w>
         <w>frontend</w>
         <w>indegree</w>
