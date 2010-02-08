@@ -75,7 +75,7 @@ class EdgeFlowReorder[V](val graph: GraphLike[V]) {
 
 			// keep the index of the last return
 			// so we can later put it at the end
-			if (outgoing.head.kind == EdgeKind.Return)
+			if (outgoing.nonEmpty && (outgoing.head.kind == EdgeKind.Return))
 				returnIndex = list.length
 
 			outgoing match {

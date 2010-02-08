@@ -57,12 +57,13 @@ abstract class AbstractBlockSlicer[T](val elms: List[T]) {
 
 		def nextBlock() = {
 			val elm = elms(startIdx)
-			val newStartIdx = startIdx + isBeginningOfBlock(elm)
-			val endIdx = {
+			val endIdx= {
 				if (_isEndingOfBlock(elm))
-					newStartIdx
-				else
+					startIdx + 1
+				else {
+					val newStartIdx = startIdx + isBeginningOfBlock(elm)
 					newStartIdx + elms.segmentLength(isSameBlock(_), newStartIdx) + 1 - blockBeginning
+				}
 			}
 			val block = elms.slice(startIdx, endIdx)
 			startIdx = endIdx

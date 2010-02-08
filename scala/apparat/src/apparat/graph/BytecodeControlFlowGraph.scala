@@ -201,7 +201,7 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 			case DefaultCaseEdge(x, y) => label("  default  ")
 			case CaseEdge(x, y) => label("  case  ")
 			case NumberedCaseEdge(x, y, n) => label("  case " + n)
-			case ThrowEdge(x, y) => label("  throw  ")
+			case ThrowEdge(x, y) => label("  throw  ")+" style=\"dashed\""
 			case ReturnEdge(x, y) => label("  return  ")
 		}) + "]"
 	}
