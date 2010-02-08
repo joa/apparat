@@ -1,3 +1,4 @@
+import apparat.abc.analysis.AbcConstantPoolBuilder
 import apparat.abc.{Abc}
 import apparat.bytecode.{Bytecode}
 import apparat.graph.immutable.BytecodeControlFlowGraphBuilder
@@ -34,14 +35,14 @@ object MainPL {
 			a(i) = elm
 			a
 		} else {
-			val b = new Array[T](i+1)
+			val b = new Array[T](i + 1)
 			Array.copy(a, 0, b, 0, a.length)
 			b(i) = elm;
 			b
 		}
 		var a = Array(0)
-		a=insertAt(a, 3, 3)
-		a=insertAt(a, 1, 1)
+		a = insertAt(a, 3, 3)
+		a = insertAt(a, 1, 1)
 		//				var swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
 		//		swf.tags foreach println
@@ -61,10 +62,11 @@ object MainPL {
 		//		}
 
 		//		val swf = Swf fromFile "assets/_Test1.swf"
-		val swf = Swf fromFile "assets/Switch.swf"
+		var swf = Swf fromFile "assets/_Switch.swf"
 
-		val idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
-		val abc = Abc fromDoABC swf.tags(idx).asInstanceOf[DoABC]
+		var idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
+		var doABC = swf.tags(idx).asInstanceOf[DoABC]
+		var abc = Abc fromDoABC doABC
 		abc.loadBytecode()
 		for{
 			body <- abc.methods(1).body
@@ -76,13 +78,35 @@ object MainPL {
 			val g = BytecodeControlFlowGraphBuilder(bc)
 			g.dotExport to Console.out
 
-			g.withNoEmptyJump.dotExport to Console.out
+//			g.withNoEmptyJump.dotExport to Console.out
 
 			val nbc = g.bytecode
 			nbc.dump()
 
 			val ng = BytecodeControlFlowGraphBuilder(nbc)
 			ng.dotExport to Console.out
+
+			body.bytecode = Some(nbc)
+		}
+		abc.cpool = AbcConstantPoolBuilder using abc
+		abc.cpool.dump()
+		abc.saveBytecode()
+		abc write doABC
+		swf write "assets/_Switch.output.swf"
+
+		swf = Swf fromFile "assets/_Switch.output.swf"
+		idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
+		doABC = swf.tags(idx).asInstanceOf[DoABC]
+		abc = Abc fromDoABC doABC
+		abc.loadBytecode()
+		for{
+			body <- abc.methods(1).body
+			bc <- body.bytecode
+		} {
+			bc.dump()
+
+			val g = BytecodeControlFlowGraphBuilder(bc)
+			g.dotExport to Console.out
 		}
 	}
 }

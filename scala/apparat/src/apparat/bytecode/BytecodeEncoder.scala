@@ -34,8 +34,10 @@ object BytecodeEncoder {
 		val markers = bytecode.markers
 
 		@inline def u08(value: Int) = output writeU08 value
+		@inline def s08(value: Int) = output writeS08 value
 		@inline def s24(value: Int) = output writeS24 value
 		@inline def u30(value: Int) = output writeU30 value
+		@inline def s30(value: Int) = output writeS30 value
 		@inline def name(value: AbcName) = u30(cpool indexOf value)
 		@inline def string(value: Symbol) = u30(cpool indexOf value)
 		@inline def position = output.position
@@ -170,13 +172,13 @@ object BytecodeEncoder {
 				case NewFunction(function) => u30(abc.methods indexOf function)
 				case NewObject(numArguments) => u30(numArguments)
 				case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() => {}
-				case PushByte(value) => u08(value)
+				case PushByte(value) => s08(value) // pushbyte is signed
 				case PushDouble(value) => u30(cpool indexOf value)
 				case PushFalse() => {}
 				case PushInt(value) => u30(cpool indexOf value)
 				case PushNamespace(value) => u30(cpool indexOf value)
 				case PushNaN() | PushNull() | PushScope() => {}
-				case PushShort(value) => u30(value)
+				case PushShort(value) => s30(value) // pushshort is signed
 				case PushString(value) => string(value)
 				case PushTrue() => {}
 				case PushUInt(value) => u30(cpool indexOf value)

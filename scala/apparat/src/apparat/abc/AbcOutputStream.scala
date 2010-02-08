@@ -83,6 +83,8 @@ class AbcOutputStream(val output: JOutputStream) extends JOutputStream {
 
 	def writeU08(value: Int) = { assert(value >= 0 && value <= 0xff); write(value & 0xff) }
 
+	def writeS08(value: Int) = { assert(value >= -128 && value <= 127); write(value & 0xff) }
+
 	def writeU16(value: Int) = {
 		assert(value >= 0 && value <= 0xffff)
 		write(value & 0xff)
@@ -90,6 +92,8 @@ class AbcOutputStream(val output: JOutputStream) extends JOutputStream {
 	}
 
 	def writeU30(value: Int) = { assert(value >= 0 && value <= 0x3fffffff); encodeInt(value & 0x3fffffff) }
+
+	def writeS30(value: Int) = { assert(value >= -536870912 && value <= 0x1fffffff); encodeInt(value & 0x3fffffff) }
 
 	def writeU32(value: Long) = { assert(value >= 0L && value <= 0xffffffffL); encodeInt(value & 0xffffffffL) }
 

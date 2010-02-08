@@ -78,12 +78,22 @@ class AbcInputStream(input: JInputStream) extends JInputStream {
 
 	def readU08() = read()
 
+	def readS08() = read() match {
+		case x if (x & 0x80) != 0 => (x & 0x7f) - 0x80
+		case y => y
+	}
+
 	def readU16() = {
 		val b0 = read()
 		(read() << 0x08) | b0
 	}
 
 	def readU30() = (decodeInt() & 0x3fffffffL).asInstanceOf[Int]
+
+	def readS30() = ((decodeInt() & 0x3fffffffL) match {
+		case x if (x & 0x20000000) != 0 => (x & 0x1fffffff) - 0x20000000
+		case y => y
+	}).asInstanceOf[Int]
 
 	def readU32() = decodeInt()
 

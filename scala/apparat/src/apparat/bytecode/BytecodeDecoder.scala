@@ -41,8 +41,10 @@ object BytecodeDecoder {
 		}
 
 		@inline def u08 = input.readU08()
+		@inline def s08 = input.readS08()
 		@inline def s24 = input.readS24()
 		@inline def u30 = input.readU30()
+		@inline def s30 = input.readS30()
 		@inline def name = cpool.names(u30)
 		@inline def string = cpool.strings(u30)
 		@inline def numArguments = u30
@@ -186,10 +188,7 @@ object BytecodeDecoder {
 			case Op.not => Not()
 			case Op.pop => Pop()
 			case Op.popscope => PopScope()
-			case Op.pushbyte => PushByte(u08 match  {
-				case x if (x & 0x80) != 0 => (x & 0x7f) - 0x80
-				case y => y
-			})
+			case Op.pushbyte => PushByte(s08)
 			case Op.pushdecimal => error("pushdecimal")
 			case Op.pushdnan => error("pushdnan")//push decimal nan
 			case Op.pushdouble => PushDouble(cpool doubles u30)
@@ -199,10 +198,7 @@ object BytecodeDecoder {
 			case Op.pushnan => PushNaN()
 			case Op.pushnull => PushNull()
 			case Op.pushscope => PushScope()
-			case Op.pushshort => PushShort(u30 match {
-				case x if (x & 0x20000000) != 0 => (x & 0x1fffffff) - 0x20000000
-				case y => y
-			})
+			case Op.pushshort => PushShort(s30) // pushshort is signed
 			case Op.pushstring => PushString(string)
 			case Op.pushtrue => PushTrue()
 			case Op.pushuint => PushUInt(cpool uints u30)
