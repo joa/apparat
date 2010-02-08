@@ -59,7 +59,7 @@ object Main {
 		G.sccs map { _.entry } foreach println
 		G.sccs filter { _.canSearch } map { _.subcomponents } foreach { _ foreach println }
 
-		val swf = Swf fromFile "assets/Test00.swf"
+		val swf = Swf fromFile "assets/Test04.swf"
 		val frontend = new AbcFrontend(
 			Abc fromSwf swf get, List.empty)
 		frontend.getAST.dump()

@@ -65,29 +65,50 @@ class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
 	private def parseScript(script: AbcScript) = {
 		script.traits foreach {
 			case AbcTraitClass(name, index, nominalType, metadata) => {
-				parseNominal(nominalType)
+				val namespace = getNS(nominalType.inst.name.namespace.name)
+				namespace.definitions += parseNominal(nominalType)
 			}
 		}
 	}
 
 	private def parseNominal(nominal: AbcNominalType) = {
-		val namespace = getNS(nominal.inst.name.namespace.name)
-		val definition = if(nominal.inst.isInterface) {
+		if(nominal.inst.isInterface) {
 			TaasInterface(nominal.inst.name.name, Public, ListBuffer.empty)
 		} else {
+			val instMethods = nominal.inst.traits partialMap {
+				case methodTrait: AbcTraitAnyMethod => {
+					parseMethod(methodTrait, false)
+				}
+			}
+
+			val classMethods = nominal.klass.traits partialMap {
+				case methodTrait: AbcTraitAnyMethod => {
+					parseMethod(methodTrait, true)
+				}
+			}
+
+			var methods = ListBuffer.empty[TaasMethod]
+			methods ++= instMethods
+			methods ++= classMethods
+
 			TaasClass(
 				nominal.inst.name.name,
 				Public,
 				nominal.inst.isFinal,
 				!nominal.inst.isSealed,
-				TaasMethod('ctor$, Public, false, false),
-				TaasMethod('ctor, Public, false, false),
-				ListBuffer.empty,
+				parseMethod(nominal.klass.init, true, true),
+				parseMethod(nominal.inst.init, false, true),
+				methods,
 				ListBuffer.empty)
 		}
+	}
 
-		namespace.definitions += definition
-		definition
+	private def parseMethod(methodTrait: AbcTraitAnyMethod, isStatic: Boolean): TaasMethod = {
+		TaasMethod(methodTrait.name.name, Public, isStatic, methodTrait.isFinal, methodTrait.method.isNative)
+	}
+
+	private def parseMethod(method: AbcMethod, isStatic: Boolean, isFinal: Boolean): TaasMethod = {
+		TaasMethod(method.name, Public, isStatic, isFinal, method.isNative)
 	}
 
 	private def getNS(namespace: Symbol) = {

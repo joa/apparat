@@ -65,14 +65,6 @@ sealed trait TaasNode extends TaasElement with TaasParent {
 	}
 }
 
-sealed trait TaasRoot extends TaasTree with TaasParent {
-	type T = TaasUnit
-	def init(): this.type = {
-		children foreach (_ setParent this)
-		this
-	}
-}
-
 trait ParentUnit {
 	self: TaasElement =>
 	lazy val unit = parent match {
@@ -84,8 +76,13 @@ trait ParentUnit {
 	}
 }
 
-case class TaasAST(units: ListBuffer[TaasUnit]) extends TaasRoot {
+case class TaasAST(units: ListBuffer[TaasUnit]) extends TaasTree with TaasParent {
+	type T = TaasUnit
 	def children = units
+	def init(): this.type = {
+		children foreach (_ setParent this)
+		this
+	}
 }
 
 sealed trait TaasUnit extends TaasNode {
@@ -128,7 +125,8 @@ case class TaasMethod(
 		name: Symbol,
 		visibility: TaasVisibility,
 		isStatic: Boolean,
-		isFinal: Boolean) extends TaasDefinition
+		isFinal: Boolean,
+		isNative: Boolean) extends TaasDefinition
 
 sealed trait TaasNominal extends TaasNode with TaasDefinition {
 	def methods: ListBuffer[TaasMethod]
@@ -154,8 +152,8 @@ case class TaasClass(
 	type T = TaasDefinition
 	lazy val children = {
 		val result: ListBuffer[T] = ListBuffer(init, ctor)
-		result appendAll methods
-		result appendAll fields
+		result ++= methods
+		result ++= fields
 		result
 	}
 }
