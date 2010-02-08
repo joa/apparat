@@ -1,7 +1,6 @@
 package apparat.graph
 
 import annotation.tailrec
-
 /*
  * This file is part of Apparat.
  * 
@@ -80,9 +79,16 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 					false
 			}) {}
 			if (startEdge != endEdge) {
-				g = (g - edge) + JumpEdge(startEdge.startVertex, endEdge.endVertex)
+				g = (g - edge) + (startEdge match {
+					case TrueEdge(a, b) => TrueEdge(startEdge.startVertex, endEdge.endVertex)
+					case FalseEdge(a, b) => TrueEdge(startEdge.startVertex, endEdge.endVertex)
+					case DefaultCaseEdge(a, b) => DefaultCaseEdge(startEdge.startVertex, endEdge.endVertex)
+					case NumberedCaseEdge(a, b, n) => NumberedCaseEdge(startEdge.startVertex, endEdge.endVertex, n)
+					case _ => JumpEdge(startEdge.startVertex, endEdge.endVertex)
+				})
 			}
 		}
+
 		if (g != graph)
 			new G(g, entryVertex, exitVertex)
 		else
