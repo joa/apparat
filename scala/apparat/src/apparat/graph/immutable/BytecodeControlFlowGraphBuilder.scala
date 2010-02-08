@@ -54,7 +54,7 @@ object BytecodeControlFlowGraphBuilder {
 				if (newOpList(0).isInstanceOf[Label])
 					newOpList = newOpList drop 1
 
-				val lastOp = newOpList(newOpList.length - 1)
+				val lastOp = newOpList.last
 				if (lastOp.isInstanceOf[Jump])
 					newOpList = newOpList dropRight 1
 
@@ -67,7 +67,6 @@ object BytecodeControlFlowGraphBuilder {
 				blockQueue += ((vertex, lastOp))
 			}
 		}
-
 
 		val entryVertex = new V() {override def toString = "[Entry]"}
 		edgeMap = edgeMap updated (entryVertex, Nil)
@@ -128,13 +127,12 @@ object BytecodeControlFlowGraphBuilder {
 					}
 					case lookupOp: LookupSwitch => {
 						createVertexFromMarker(lookupOp.defaultCase, DefaultCaseEdge[V] _)
-						var index: Int = 0
-						for (caseMarker <- lookupOp.cases) {
-							def factory(a:V, b:V)=NumberedCaseEdge[V](a, b, index)
-							createVertexFromMarker(caseMarker, factory)
-//							createVertexFromMarker(caseMarker, CaseEdge[V] _)
-							index += 1
-						}
+						lookupOp.cases.zipWithIndex.foreach({
+							case (marker, index)=> {
+								def factory(a: V, b: V) = NumberedCaseEdge[V](a, b, index)
+								createVertexFromMarker(marker, factory)
+							}
+						})
 					}
 					case returnOp: OpThatReturns => {
 						edgeMap = edgeMap updated (currentBlock, ReturnEdge(currentBlock, exitVertex) :: edgeMap(currentBlock))

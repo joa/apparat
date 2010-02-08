@@ -1,8 +1,7 @@
 import apparat.abc.{Abc}
 import apparat.bytecode.{Bytecode}
 import apparat.graph.immutable.BytecodeControlFlowGraphBuilder
-import apparat.graph.{Edge}
-import apparat.swc.Swc
+import apparat.graph.{AbstractOpBasicBlockSlicer, Edge}
 import apparat.swf.{DoABC, SwfTags, Swf}
 import collection.mutable.{ListBuffer}
 /*
@@ -31,7 +30,19 @@ import collection.mutable.{ListBuffer}
 
 object MainPL {
 	def main(args: Array[String]): Unit = {
-//				val swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
+		def insertAt[T: ClassManifest](a: Array[T], i: Int, elm: T) = if (i < a.length) {
+			a(i) = elm
+			a
+		} else {
+			val b = new Array[T](i+1)
+			Array.copy(a, 0, b, 0, a.length)
+			b(i) = elm;
+			b
+		}
+		var a = Array(0)
+		a=insertAt(a, 3, 3)
+		a=insertAt(a, 1, 1)
+		//				var swf = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
 		//		swf.tags foreach println
 		//		for(x <- swf.tags if x.kind == SwfTags.DoABC) {
@@ -49,23 +60,29 @@ object MainPL {
 		//			abc.dump()
 		//		}
 
-		val swf = Swf fromFile "assets/_Test1.swf"
+		//		val swf = Swf fromFile "assets/_Test1.swf"
+		val swf = Swf fromFile "assets/Switch.swf"
 
 		val idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
 		val abc = Abc fromDoABC swf.tags(idx).asInstanceOf[DoABC]
 		abc.loadBytecode()
 		for{
-			body <- abc.methods(2).body
+			body <- abc.methods(1).body
 			bc <- body.bytecode
 		} {
 			bc.dump()
+
+			//			PeepholeOptimizations(bc).dump()
 			val g = BytecodeControlFlowGraphBuilder(bc)
 			g.dotExport to Console.out
 
+			g.withNoEmptyJump.dotExport to Console.out
+
 			val nbc = g.bytecode
 			nbc.dump()
+
 			val ng = BytecodeControlFlowGraphBuilder(nbc)
 			ng.dotExport to Console.out
+		}
 	}
-}
 }

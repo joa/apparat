@@ -25,10 +25,11 @@ package apparat.graph
  */
 
 import apparat.bytecode.operations._
-import apparat.bytecode.{Bytecode, MarkerManager}
+import apparat.bytecode.{Marker, Bytecode, MarkerManager}
 
 class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V], entryVertex: V, exitVertex: V) extends ControlFlowGraph[AbstractOp, V](graph, entryVertex, exitVertex) {
-	// TODO lookup switch
+	override def toString = "[BytecodeControlFlowGraph]"
+
 	// TODO exception
 	lazy val bytecode = {
 		import collection.mutable.ListBuffer
@@ -41,29 +42,59 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 
 		var prevVertex: V = entryVertex
 
+		val emptyVertex = null.asInstanceOf[V]
+
 		def getMarkerFor(vertex: V) = {
 			markers.mark(
 				if (vertexBlockMap.contains(vertex))
 					vertexBlockMap(vertex).head
 				else
-					vertex.block.head
+					vertex.head
 				)
+		}
+		class LookupSwitchContainer(val size: Int) {
+			private val cases: Array[Marker] = new Array(size)
+			private var default: Option[Marker] = None
+			private var caseLeft = size + 1
+
+			def addCase(startVertex: V, endVertex: V, isDefault: Boolean = false, index: Int = -1): Boolean = {
+				if (isDefault) {
+					if (default == None) {
+						caseLeft -= 1
+						default = Some(getMarkerFor(endVertex))
+					} else
+						error("A LookupSwitch can't have multiple default branch")
+				} else {
+					caseLeft -= 1
+					if (caseLeft < 0)
+						error("Too many case into LookupSwitch for " + startVertex)
+					else {
+						if (index < 0)
+							error("Case index can't be < 0")
+						else if (index >= cases.length) {
+							error("Case index out of bounds : " + index)
+						} else
+							cases(index) = getMarkerFor(endVertex)
+					}
+				}
+				isDone
+			}
+
+			def isDone = caseLeft == 0
+
+			def apply(): LookupSwitch = if (!isDone) error("Incomplete LookupSwitch") else LookupSwitch(default.get, cases)
 		}
 
 		def patchJump(startVertex: V, endVertex: V) = {
 			val marker = getMarkerFor(endVertex)
 			val target = vertexBlockMap(startVertex)
-			target(target.length - 1) match {
+			target.last match {
 				case op: AbstractConditionalOp => target(target.length - 1) = Op.copyConditionalOp(op, marker)
 				case op: Jump => target(target.length - 1) = Jump(marker)
-				case op: LookupSwitch => {
-					println(op)
-					println(startVertex)
-					println(endVertex)
-				}
 				case _ => target += Jump(marker)
 			}
 		}
+
 		def addBlockFor(vertex: V) = {
 			val lb: ListBuffer[ControlFlowElm] = new ListBuffer()
 			lb ++= vertex.block
@@ -72,9 +103,28 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 			lb
 		}
 
-		new EdgeFlowReorder(graph).foreach {
+		// hold a LookupSwitchContainer while building it
+		var lookupSwitchBuildMap: Map[V, LookupSwitchContainer] = Map.empty
+
+		def patchLookupSwitch(startVertex: V, endVertex: V, isDefault: Boolean = false, index: Int = -1) = {
+			if (!lookupSwitchBuildMap.contains(startVertex))
+				lookupSwitchBuildMap = lookupSwitchBuildMap updated (startVertex, new LookupSwitchContainer(outdegreeOf(startVertex) - 1))
+
+			val lsContainer = lookupSwitchBuildMap(startVertex)
+
+			if (lsContainer.addCase(startVertex, endVertex, isDefault, index)) {
+				val target = vertexBlockMap(startVertex)
+				target.last match {
+					case op: LookupSwitch => target(target.length - 1) = lsContainer()
+					case _ => target += lsContainer()
+				}
+				lookupSwitchBuildMap = lookupSwitchBuildMap - startVertex
+			}
+		}
+
+		new EdgeFlowReorder(withNoEmptyJump).foreach {
 			case (edge, backRefCnt) => {
-				val end = edge.endVertex
+				val end: V = edge.endVertex
 
 				if (!vertexBlockMap.contains(end)) {
 					val currentBlock = addBlockFor(end)
@@ -86,25 +136,27 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 					if (prevVertex == entryVertex)
 						prevVertex = end
 					else {
-						edge.kind match {
-							case EdgeKind.True => {
-								if (prevVertex == edge.startVertex) {
+						edge match {
+							case TrueEdge(start, end) => {
+								if (prevVertex == start) {
 									// need to invert the condition
 									// so we can avoid a jump
 									// have to found the false edge
 									// and mark the target op
-									graph.outgoingOf(prevVertex).find(_.kind == EdgeKind.False) match {
+									outgoingOf(prevVertex).find(_.kind == EdgeKind.False) match {
 										case Some(falseEdge) => {
 											val marker = getMarkerFor(falseEdge.endVertex)
-											val target = vertexBlockMap(edge.startVertex)
+											val target = vertexBlockMap(start)
 											target(target.length - 1) = Op.invertCopyConditionalOp(target.last, marker)
 										}
 										case _ => error("missing false edge : " + edge)
 									}
 								} else {
-									patchJump(edge.startVertex, end)
+									patchJump(start, end)
 								}
 							}
+							case DefaultCaseEdge(start, end) => patchLookupSwitch(start, end, true)
+							case NumberedCaseEdge(start, end, n) => patchLookupSwitch(start, end, false, n)
 							case _ => {
 								if (prevVertex != edge.startVertex) {
 									patchJump(edge.startVertex, end)
@@ -114,14 +166,19 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 						prevVertex = end
 					}
 				} else {
-					patchJump(edge.startVertex, end)
+					prevVertex = emptyVertex
+					edge match {
+						case DefaultCaseEdge(start, end) => patchLookupSwitch(start, end, true)
+						case NumberedCaseEdge(start, end, n) => patchLookupSwitch(start, end, false, n)
+						case _ => patchJump(edge.startVertex, end)
+					}
 				}
 			}
 		}
 
-		var l: List[ControlFlowElm] = Nil
-		elms.reverse.foreach(n => l = l ++ n)
-		new Bytecode(l, markers, new Array(0))
+		var ops: List[ControlFlowElm] = Nil
+		elms.reverse.foreach(op => ops = ops ++ op)
+		new Bytecode(ops, markers, new Array(0))
 	}
 
 	override def edgeToString(edge: E) = {
@@ -129,7 +186,7 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 			if (vertex.length == 0)
 				""
 			else {
-				vertex.block.last match {
+				vertex.last match {
 					case op: OpWithMarker => op.marker.toString
 					case _ => ""
 				}
