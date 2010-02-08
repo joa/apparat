@@ -114,12 +114,12 @@ sealed trait TaasField extends TaasDefinition
 case class TaasSlot(
 		name: Symbol,
 		visibility: TaasVisibility,
-		isStatic: Boolean) extends TaasDefinition
+		isStatic: Boolean) extends TaasField
 
 case class TaasConstant(
 		name: Symbol,
 		visibility: TaasVisibility,
-		isStatic: Boolean) extends TaasDefinition
+		isStatic: Boolean) extends TaasField
 
 case class TaasMethod(
 		name: Symbol,

@@ -41,9 +41,11 @@ class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
 
 		parseABC(target, main)
 
+		val lib = TaasLibrary(ListBuffer.empty)
+		
+		ast.children append lib
+		
 		for(library <- libraries) {
-			val lib = TaasLibrary(ListBuffer.empty)
-			ast.children append lib
 			parseABC(lib, library)
 		}
 
@@ -64,9 +66,17 @@ class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
 
 	private def parseScript(script: AbcScript) = {
 		script.traits foreach {
-			case AbcTraitClass(name, index, nominalType, metadata) => {
+			case AbcTraitClass(name, _, nominalType, _) => {
 				val namespace = getNS(nominalType.inst.name.namespace.name)
 				namespace.definitions += parseNominal(nominalType)
+			}
+			case anyMethod: AbcTraitAnyMethod => {
+				val namespace = getNS(anyMethod.name.namespace.name)
+				namespace.definitions += parseMethod(anyMethod, true)
+			}
+			case anySlot: AbcTraitAnySlot => {
+				val namespace = getNS(anySlot.name.namespace.name)
+				namespace.definitions += parseSlot(anySlot, true)
 			}
 		}
 	}
@@ -75,24 +85,34 @@ class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
 		if(nominal.inst.isInterface) {
 			TaasInterface(nominal.inst.name.name, Public, ListBuffer.empty)
 		} else {
-			val instMethods = nominal.inst.traits partialMap {
+			var methods = ListBuffer.empty[TaasMethod]
+			val fields = ListBuffer.empty[TaasField]
+
+			methods ++= nominal.inst.traits partialMap {
 				case methodTrait: AbcTraitAnyMethod => {
 					parseMethod(methodTrait, false)
 				}
 			}
 
-			val classMethods = nominal.klass.traits partialMap {
+			methods ++= nominal.klass.traits partialMap {
 				case methodTrait: AbcTraitAnyMethod => {
 					parseMethod(methodTrait, true)
 				}
 			}
 
-			var methods = ListBuffer.empty[TaasMethod]
-			methods ++= instMethods
-			methods ++= classMethods
+			fields ++= nominal.inst.traits partialMap {
+				case slotTrait: AbcTraitAnySlot => {
+					parseSlot(slotTrait, false)
+				}
+			}
 
-			TaasClass(
-				nominal.inst.name.name,
+			fields ++= nominal.klass.traits partialMap {
+				case slotTrait: AbcTraitAnySlot => {
+					parseSlot(slotTrait, true)
+				}
+			}
+
+			TaasClass(nominal.inst.name.name,
 				Public,
 				nominal.inst.isFinal,
 				!nominal.inst.isSealed,
@@ -109,6 +129,11 @@ class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
 
 	private def parseMethod(method: AbcMethod, isStatic: Boolean, isFinal: Boolean): TaasMethod = {
 		TaasMethod(method.name, Public, isStatic, isFinal, method.isNative)
+	}
+
+	private def parseSlot(slotTrait: AbcTraitAnySlot, isStatic: Boolean) = slotTrait match {
+		case AbcTraitSlot(name, _, _, _, _, _) => TaasSlot(name.name, Public, isStatic)
+		case AbcTraitConst(name, _, _, _, _, _) => TaasConstant(name.name, Public, isStatic)
 	}
 
 	private def getNS(namespace: Symbol) = {

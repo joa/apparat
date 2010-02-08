@@ -60,8 +60,12 @@ object Main {
 		G.sccs filter { _.canSearch } map { _.subcomponents } foreach { _ foreach println }
 
 		val swf = Swf fromFile "assets/Test04.swf"
+		val swc = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
+
 		val frontend = new AbcFrontend(
-			Abc fromSwf swf get, List.empty)
+			Abc fromSwf swf get, swc.tags partialMap {
+				case doABC: DoABC => Abc fromByteArray doABC.abcData
+			})
 		frontend.getAST.dump()
 		/*implicit val factory = DefaultEdge[Vertex](_, _)
 		val g = Graph(Vertex("Entry") -> Vertex("E"), Vertex("Entry") -> Vertex("A"), Vertex("E") -> Vertex("B"), Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D"), Vertex("D") -> Vertex("Exit"), Vertex("C") -> Vertex("Exit"))
