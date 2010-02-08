@@ -41,6 +41,14 @@ trait BlockVertex[T] {
 
 	def apply(index: Int): T = block(index)
 
+	def last = block.last
+
+	def lastOption = block.lastOption
+
+	def head = block.head
+
+	def headOption = block.headOption
+
 	def clear(): BlockVertex[T]
 
 	def isEmpty = block.isEmpty

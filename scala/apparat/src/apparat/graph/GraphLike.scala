@@ -27,10 +27,12 @@ import apparat.utils.{IndentingPrintWriter, Dumpable}
  * @author Joa Ebert
  */
 trait GraphLike[V] extends Dumpable {
+	type G <: GraphLike[V]
+
 	type E = Edge[V]
 
 	def topsort: GraphTraversal[V]
-	
+
 	def dominance: Dominance[V]
 
 	def sccs: StronglyConnectedComponentFinder[V]
@@ -46,7 +48,7 @@ trait GraphLike[V] extends Dumpable {
 	def predecessorsOf(vertex: V): Iterable[V]
 
 	def successorsOf(vertex: V): Iterable[V]
-	
+
 	def outdegreeOf(vertex: V): Int
 
 	def indegreeOf(vertex: V): Int
@@ -65,18 +67,22 @@ trait GraphLike[V] extends Dumpable {
 
 	def foreachEdge(f: E => Unit) = edgesIterator foreach f
 
-	def vertexMap[T](f: V => T): Map[V, T] = Map(verticesIterator map { v => v -> f(v) } toSeq: _*)
+	def vertexMap[T](f: V => T): Map[V, T] = Map(verticesIterator map {v => v -> f(v)} toSeq: _*)
 
-	def edgeMap[T](f: E => T): Map[E, T] = Map(edgesIterator map { e => e -> f(e) } toSeq: _*)
+	def edgeMap[T](f: E => T): Map[E, T] = Map(edgesIterator map {e => e -> f(e)} toSeq: _*)
+
+	def -(edge: E): G
+
+	def +(edge: E): G
 
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Graph:"
 		writer withIndent {
-			for(vertex <- verticesIterator) {
+			for (vertex <- verticesIterator) {
 				writer <= vertex.toString
 				writer withIndent {
 					writer.println(outgoingOf(vertex)) {
-						edge => (if(edge.kind != EdgeKind.Default) edge.kind.toString else "") + " -> " + edge.endVertex.toString
+						edge => (if (edge.kind != EdgeKind.Default) edge.kind.toString else "") + " -> " + edge.endVertex.toString
 					}
 				}
 			}

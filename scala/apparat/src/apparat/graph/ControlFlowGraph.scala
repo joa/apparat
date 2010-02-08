@@ -27,6 +27,8 @@ import annotation.tailrec
  */
 
 class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entryVertex: V, val exitVertex: V) extends GraphLike[V] with ControlFlow[V] with DOTExportAvailable[V] {
+	override type G = ControlFlowGraph[T, V]
+
 	type ControlFlowVertex = V
 	type ControlFlowEdge = E
 	type ControlFlowElm = T
@@ -51,13 +53,41 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 
 	override def outdegreeOf(vertex: V) = graph.outdegreeOf(vertex)
 
-	override def contains(edge: Edge[V]) = graph.contains(edge)
+	override def contains(edge: E) = graph.contains(edge)
 
 	override def outgoingOf(vertex: V) = graph.outgoingOf(vertex)
 
 	override def contains(vertex: V) = graph.contains(vertex)
 
+	override def +(edge: E) = new G(graph + edge, entryVertex, exitVertex)
+
+	override def -(edge: E) = new G(graph - edge, entryVertex, exitVertex)
+
 	override def toString = "[ControlFlowGraph]"
+
+	// edge like A->0->B became A->B
+	lazy val withNoEmptyJump = {
+		var g = graph
+		for (edge <- edgesIterator.filter(v => v.endVertex.isEmpty && !isExit(v.endVertex))) {
+			val startEdge = edge
+			var endEdge = edge
+			while ((outdegreeOf(endEdge.endVertex) == 1) && {
+				endEdge = outgoingOf(endEdge.endVertex).head
+				if (endEdge.endVertex.isEmpty) {
+					g = g - endEdge
+					true
+				} else
+					false
+			}) {}
+			if (startEdge != endEdge) {
+				g = (g - edge) + JumpEdge(startEdge.startVertex, endEdge.endVertex)
+			}
+		}
+		if (g != graph)
+			new G(g, entryVertex, exitVertex)
+		else
+			this
+	}
 
 	def cleanString(str: String) = {
 		val len = str.length
@@ -95,7 +125,7 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 		case FalseEdge(x, y) => "false"
 		case DefaultCaseEdge(x, y) => "default"
 		case CaseEdge(x, y) => "case"
-		case NumberedCaseEdge(x, y, n) => "case "+n
+		case NumberedCaseEdge(x, y, n) => "case " + n
 		case ThrowEdge(x, y) => "throw"
 		case ReturnEdge(x, y) => "return"
 	}) + "]"
