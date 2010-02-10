@@ -23,10 +23,5 @@ package apparat.taas.ast
 /**
  * @author Joa Ebert
  */
-object TaasVisibility extends Enumeration {
-	type TaasVisibility = Value
-	val Public = Value("Public")
-	val Internal = Value("Internal")
-	val Protected = Value("Protected")
-	val Private = Value("Private")
-}
+sealed trait TaasType
+case class TaasNominalType(nominal: TaasNominal)

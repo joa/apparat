@@ -66,7 +66,8 @@ object Main {
 			Abc fromSwf swf get, swc.tags partialMap {
 				case doABC: DoABC => Abc fromByteArray doABC.abcData
 			})
-		frontend.getAST.dump()
+
+		measure { frontend.getAST.dump() }
 		/*implicit val factory = DefaultEdge[Vertex](_, _)
 		val g = Graph(Vertex("Entry") -> Vertex("E"), Vertex("Entry") -> Vertex("A"), Vertex("E") -> Vertex("B"), Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D"), Vertex("D") -> Vertex("Exit"), Vertex("C") -> Vertex("Exit"))
 

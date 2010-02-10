@@ -20,7 +20,6 @@
  */
 package apparat.taas.ast
 
-import TaasVisibility._
 import collection.mutable.ListBuffer
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
@@ -86,44 +85,51 @@ case class TaasAST(units: ListBuffer[TaasUnit]) extends TaasTree with TaasParent
 }
 
 sealed trait TaasUnit extends TaasNode {
-	type T = TaasNamespace
+	type T = TaasPackage
 	def unit = this
 	def namespaces: ListBuffer[T]
 	def children = namespaces
 }
 
-case class TaasTarget(namespaces: ListBuffer[TaasNamespace]) extends TaasUnit
-case class TaasLibrary(namespaces: ListBuffer[TaasNamespace]) extends TaasUnit
-case class TaasNamespace(name: Symbol, definitions: ListBuffer[TaasDefinition]) extends TaasNode with ParentUnit {
+case class TaasTarget(namespaces: ListBuffer[TaasPackage]) extends TaasUnit
+case class TaasLibrary(namespaces: ListBuffer[TaasPackage]) extends TaasUnit
+case class TaasPackage(name: Symbol, definitions: ListBuffer[TaasDefinition]) extends TaasNode with ParentUnit {
 	type T = TaasDefinition
 	def children = definitions
 }
+
+sealed trait TaasNamespace extends TaasElement with ParentUnit
+case object TaasPublic extends TaasNamespace
+case object TaasInternal extends TaasNamespace
+case object TaasProtected extends TaasNamespace
+case object TaasPrivate extends TaasNamespace
+case class TaasExplicit(namespace: Symbol) extends TaasNamespace
 
 sealed trait TaasDefinition extends TaasElement with ParentUnit {
 	private var _annotations = ListBuffer.empty[TaasAnnotation]
 	def setAnnotations(annotations: ListBuffer[TaasAnnotation]) = _annotations = annotations
 	def name: Symbol
-	def visibility: TaasVisibility
+	def namespace: TaasNamespace
 	def annotations: ListBuffer[TaasAnnotation] = _annotations
 }
 
-case class TaasAnnotation(name: Symbol, visibility: TaasVisibility, properties: Map[Symbol, Symbol]) extends TaasDefinition
+case class TaasAnnotation(name: Symbol, namespace: TaasNamespace, properties: Map[Symbol, Symbol]) extends TaasDefinition
 
 sealed trait TaasField extends TaasDefinition
 
 case class TaasSlot(
 		name: Symbol,
-		visibility: TaasVisibility,
+		namespace: TaasNamespace,
 		isStatic: Boolean) extends TaasField
 
 case class TaasConstant(
 		name: Symbol,
-		visibility: TaasVisibility,
+		namespace: TaasNamespace,
 		isStatic: Boolean) extends TaasField
 
 case class TaasMethod(
 		name: Symbol,
-		visibility: TaasVisibility,
+		namespace: TaasNamespace,
 		isStatic: Boolean,
 		isFinal: Boolean,
 		isNative: Boolean) extends TaasDefinition
@@ -134,7 +140,7 @@ sealed trait TaasNominal extends TaasNode with TaasDefinition {
 
 case class TaasInterface(
 		name: Symbol,
-		visibility: TaasVisibility,
+		namespace: TaasNamespace,
 		methods: ListBuffer[TaasMethod]) extends TaasNominal {
 	type T = TaasMethod
 	def children = methods
@@ -142,7 +148,7 @@ case class TaasInterface(
 
 case class TaasClass(
 		name: Symbol,
-		visibility: TaasVisibility,
+		namespace: TaasNamespace,
 		isFinal: Boolean,
 		isDynamic: Boolean,
 		init: TaasMethod,
