@@ -60,6 +60,7 @@ object Stripper {
 				case _ => error("Internal error.")
 			}
 		}
+
 		var input = ""
 		var output = ""
 		
@@ -97,10 +98,7 @@ object Stripper {
 					method.body match {
 						case Some(body) => {
 							body.bytecode match {
-								case Some(bytecode) => {
-									bytecode rewrite trace
-									bytecode.dump()
-								}
+								case Some(bytecode) => bytecode rewrite trace
 								case None =>
 							}
 						}
