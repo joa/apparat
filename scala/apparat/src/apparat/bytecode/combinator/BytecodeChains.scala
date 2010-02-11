@@ -41,6 +41,17 @@ object BytecodeChains {
 		}
 	}
 
+	implicit def filter(f: PartialFunction[AbstractOp, Boolean]) = new BytecodeChain[AbstractOp] {
+		override def apply(list: List[AbstractOp]) = {
+			val head = list.head
+			lazy val errorMessage = "Expected '%s' got '%s'.".format(f, head)
+			if(f.isDefinedAt(head) && f(head)) {
+				Success(head, list drop 1)
+			}
+			else Failure(errorMessage)
+		}
+	}
+
 	def opt[A](chain: BytecodeChain[A]) = new BytecodeChain[Option[A]] {
 		override def apply(list: List[AbstractOp]) = {
 			chain(list) match {
