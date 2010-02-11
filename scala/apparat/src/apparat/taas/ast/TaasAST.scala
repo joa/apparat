@@ -161,9 +161,17 @@ case class TaasMethod(
 		name: Symbol,
 		namespace: TaasNamespace,
 		`type`: TaasType,
+		parameters: ListBuffer[TaasParameter],
 		isStatic: Boolean,
 		isFinal: Boolean,
-		isNative: Boolean) extends TaasDefinition with TaasTyped
+		isNative: Boolean) extends TaasNode with TaasDefinition with TaasTyped {
+	type T = TaasParameter
+	def children = parameters
+}
+
+case class TaasParameter(
+		`type`: TaasType,
+		defaultValue: Option[Any]) extends TaasElement with ParentUnit with TaasTyped
 
 sealed trait TaasNominal extends TaasNode with TaasDefinition {
 	def methods: ListBuffer[TaasMethod]

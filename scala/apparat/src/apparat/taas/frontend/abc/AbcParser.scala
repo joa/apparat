@@ -98,6 +98,7 @@ class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			methodTrait.name.name,
 			methodTrait.name.namespace,
 			methodTrait.method.returnType,
+			parseParameters(methodTrait.method.parameters),
 			isStatic,
 			methodTrait.isFinal,
 			methodTrait.method.isNative)
@@ -108,10 +109,15 @@ class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			method.name,
 			TaasPublic,
 			method.returnType,
+			parseParameters(method.parameters),
 			isStatic,
 			isFinal,
 			method.isNative)
 	}
+
+	def parseParameters(parameters: Array[AbcMethodParameter]) = ListBuffer((parameters map parseParameter): _*)
+
+	def parseParameter(parameter: AbcMethodParameter) = TaasParameter(parameter.typeName, parameter.optionalVal)
 
 	def parseSlot(slotTrait: AbcTraitAnySlot, isStatic: Boolean) = slotTrait match {
 		case AbcTraitSlot(name, _, typeName, _, _, _) => TaasSlot(name.name, name.namespace, typeName, isStatic)
