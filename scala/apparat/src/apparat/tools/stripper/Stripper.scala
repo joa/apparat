@@ -41,7 +41,7 @@ object Stripper {
 		/**
 		 * The namespace of the trace() method.
 		 */
-		private lazy val qname = AbcQName('trace, AbcNamespace(22,Symbol("")))
+		private lazy val qname = AbcQName('trace, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 
 		/**
 		 * Rewrite rule that will replace trace(x,y) with x,y.
