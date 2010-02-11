@@ -69,6 +69,7 @@ object Main {
 					(Abc fromFile "assets/builtin.abc") ::
 			 		(Abc fromFile "assets/toplevel.abc") :: Nil)
 
+		//measure { frontend.getAST.units(0).dump() }
 		measure { frontend.getAST.dump() }
 		/*implicit val factory = DefaultEdge[Vertex](_, _)
 		val g = Graph(Vertex("Entry") -> Vertex("E"), Vertex("Entry") -> Vertex("A"), Vertex("E") -> Vertex("B"), Vertex("A") -> Vertex("B"), Vertex("B") -> Vertex("C"), Vertex("B") -> Vertex("D"), Vertex("D") -> Vertex("Exit"), Vertex("C") -> Vertex("Exit"))

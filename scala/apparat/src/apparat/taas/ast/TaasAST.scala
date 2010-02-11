@@ -174,12 +174,14 @@ case class TaasParameter(
 		defaultValue: Option[Any]) extends TaasElement with ParentUnit with TaasTyped
 
 sealed trait TaasNominal extends TaasNode with TaasDefinition {
+	def base: Option[TaasType]
 	def methods: ListBuffer[TaasMethod]
 }
 
 case class TaasInterface(
 		name: Symbol,
 		namespace: TaasNamespace,
+		base: Option[TaasType],
 		methods: ListBuffer[TaasMethod]) extends TaasNominal {
 	type T = TaasMethod
 	def children = methods
@@ -192,6 +194,7 @@ case class TaasClass(
 		isDynamic: Boolean,
 		init: TaasMethod,
 		ctor: TaasMethod,
+		base: Option[TaasType],
 		methods: ListBuffer[TaasMethod],
 		fields: ListBuffer[TaasField]) extends TaasNominal {
 	type T = TaasDefinition

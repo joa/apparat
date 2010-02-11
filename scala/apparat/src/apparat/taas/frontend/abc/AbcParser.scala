@@ -52,10 +52,26 @@ class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
 	}
 
 	def parseNominal(nominal: AbcNominalType) = {
+		val base = nominal.inst.base match {
+			case Some(base) => Some(name2type(base))
+			case None => None
+		}
+
+		var methods = ListBuffer.empty[TaasMethod]
+
+		methods ++= nominal.inst.traits partialMap {
+			case methodTrait: AbcTraitAnyMethod => {
+				parseMethod(methodTrait, false)
+			}
+		}
+
 		if(nominal.inst.isInterface) {
-			TaasInterface(nominal.inst.name.name, nominal.inst.name.namespace, ListBuffer.empty)
+			TaasInterface(
+				nominal.inst.name.name,
+				nominal.inst.name.namespace,
+				base,
+				methods)
 		} else {
-			var methods = ListBuffer.empty[TaasMethod]
 			val fields = ListBuffer.empty[TaasField]
 
 			methods ++= nominal.inst.traits partialMap {
@@ -88,6 +104,7 @@ class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
 				!nominal.inst.isSealed,
 				parseMethod(nominal.klass.init, true, true),
 				parseMethod(nominal.inst.init, false, true),
+				base,
 				methods,
 				fields)
 		}
