@@ -61,6 +61,14 @@ object Abc {
 		case Some(doABC) => fromTag(doABC)
 		case None => None
 	}
+
+	def fromFile(file: JFile): Abc = {
+		val abc = new Abc()
+		abc read file
+		abc
+	}
+
+	def fromFile(pathname: String): Abc = fromFile(new JFile(pathname))
 }
 
 class Abc extends Dumpable {

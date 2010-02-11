@@ -63,9 +63,11 @@ object Main {
 		val swc = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
 		val frontend = new AbcFrontend(
-			Abc fromSwf swf get, swc.tags partialMap {
+			Abc fromSwf swf get, (swc.tags partialMap {
 				case doABC: DoABC => Abc fromByteArray doABC.abcData
-			})
+			}) ::: (Abc fromFile "assets/playerglobal.abc") ::
+					(Abc fromFile "assets/builtin.abc") ::
+			 		(Abc fromFile "assets/toplevel.abc") :: Nil)
 
 		measure { frontend.getAST.dump() }
 		/*implicit val factory = DefaultEdge[Vertex](_, _)

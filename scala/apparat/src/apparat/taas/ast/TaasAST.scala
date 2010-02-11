@@ -87,12 +87,13 @@ case class TaasAST(units: ListBuffer[TaasUnit]) extends TaasTree with TaasParent
 sealed trait TaasUnit extends TaasNode {
 	type T = TaasPackage
 	def unit = this
-	def namespaces: ListBuffer[T]
-	def children = namespaces
+	def packages: ListBuffer[T]
+	def children = packages
 }
 
-case class TaasTarget(namespaces: ListBuffer[TaasPackage]) extends TaasUnit
-case class TaasLibrary(namespaces: ListBuffer[TaasPackage]) extends TaasUnit
+case class TaasTarget(packages: ListBuffer[TaasPackage]) extends TaasUnit
+case class TaasLibrary(packages: ListBuffer[TaasPackage]) extends TaasUnit
+
 case class TaasPackage(name: Symbol, definitions: ListBuffer[TaasDefinition]) extends TaasNode with ParentUnit {
 	type T = TaasDefinition
 	def children = definitions
@@ -111,28 +112,58 @@ sealed trait TaasDefinition extends TaasElement with ParentUnit {
 	def name: Symbol
 	def namespace: TaasNamespace
 	def annotations: ListBuffer[TaasAnnotation] = _annotations
+
+	lazy val qualifiedName: String = {
+		parent match {
+			case Some(parent) => {
+				parent match {
+					case pckg: TaasPackage => {
+						val pckgName = pckg.name.name
+						
+						if(pckgName.length > 0) {
+							pckgName + "." + name.name
+						} else {
+							name.name
+						}
+					}
+					case definition: TaasDefinition => {
+						definition.qualifiedName + "." + name.name
+					}
+					case _ => name.name
+				}
+			}
+			case None => name.name
+		}
+	}
 }
 
 case class TaasAnnotation(name: Symbol, namespace: TaasNamespace, properties: Map[Symbol, Symbol]) extends TaasDefinition
 
-sealed trait TaasField extends TaasDefinition
+trait TaasTyped {
+	def `type`: TaasType
+}
+
+sealed trait TaasField extends TaasDefinition with TaasTyped
 
 case class TaasSlot(
 		name: Symbol,
 		namespace: TaasNamespace,
+		`type`: TaasType,
 		isStatic: Boolean) extends TaasField
 
 case class TaasConstant(
 		name: Symbol,
 		namespace: TaasNamespace,
+		`type`: TaasType,
 		isStatic: Boolean) extends TaasField
 
 case class TaasMethod(
 		name: Symbol,
 		namespace: TaasNamespace,
+		`type`: TaasType,
 		isStatic: Boolean,
 		isFinal: Boolean,
-		isNative: Boolean) extends TaasDefinition
+		isNative: Boolean) extends TaasDefinition with TaasTyped
 
 sealed trait TaasNominal extends TaasNode with TaasDefinition {
 	def methods: ListBuffer[TaasMethod]

@@ -24,4 +24,25 @@ package apparat.taas.ast
  * @author Joa Ebert
  */
 sealed trait TaasType
-case class TaasNominalType(nominal: TaasNominal)
+
+object TaasAny extends TaasType {
+	override def toString = "TaasType(*)"
+}
+
+object TaasVoid extends TaasType {
+	override def toString = "TaasType(void)"
+}
+
+trait TaasNominalType extends TaasType  {
+	def nominal: TaasNominal
+	override def toString = {
+		"TaasType(" + nominal.qualifiedName + ")"
+	}
+}
+
+trait TaasParameterizedType extends TaasNominalType {
+	def parameters: List[TaasType]
+	override def toString = {
+		"TaasType(" + nominal.qualifiedName + "<" + parameters.mkString(",")+ ">)"
+	}
+}
