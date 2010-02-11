@@ -43,5 +43,5 @@ class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
 		ast.init()
 	}
 
-	private def parse(unit: TaasUnit)(abc: Abc) = new AbcParser(abc, unit).parseAbc()
+	private def parse(unit: TaasUnit)(abc: Abc) = new AbcParser(ast, abc, unit).parseAbc()
 }

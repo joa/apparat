@@ -27,7 +27,7 @@ import apparat.abc._
 /**
  * @author Joa Ebert
  */
-class AbcParser(abc: Abc, unit: TaasUnit) {
+class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
 	def parseAbc(): Unit = parseAbc(unit, abc)
 	def parseAbc(abc: Abc): Unit = parseAbc(unit, abc)
 	def parseAbc(unit: TaasUnit, abc: Abc): Unit = {
@@ -94,16 +94,28 @@ class AbcParser(abc: Abc, unit: TaasUnit) {
 	}
 
 	def parseMethod(methodTrait: AbcTraitAnyMethod, isStatic: Boolean): TaasMethod = {
-		TaasMethod(methodTrait.name.name, methodTrait.name.namespace, isStatic, methodTrait.isFinal, methodTrait.method.isNative)
+		TaasMethod(
+			methodTrait.name.name,
+			methodTrait.name.namespace,
+			methodTrait.method.returnType,
+			isStatic,
+			methodTrait.isFinal,
+			methodTrait.method.isNative)
 	}
 
 	def parseMethod(method: AbcMethod, isStatic: Boolean, isFinal: Boolean): TaasMethod = {
-		TaasMethod(method.name, TaasPublic, isStatic, isFinal, method.isNative)
+		TaasMethod(
+			method.name,
+			TaasPublic,
+			method.returnType,
+			isStatic,
+			isFinal,
+			method.isNative)
 	}
 
 	def parseSlot(slotTrait: AbcTraitAnySlot, isStatic: Boolean) = slotTrait match {
-		case AbcTraitSlot(name, _, _, _, _, _) => TaasSlot(name.name, name.namespace, isStatic)
-		case AbcTraitConst(name, _, _, _, _, _) => TaasConstant(name.name, name.namespace, isStatic)
+		case AbcTraitSlot(name, _, typeName, _, _, _) => TaasSlot(name.name, name.namespace, typeName, isStatic)
+		case AbcTraitConst(name, _, typeName, _, _, _) => TaasConstant(name.name, name.namespace, typeName, isStatic)
 	}
 
 	private def packageOf(namespace: Symbol) = {
@@ -121,7 +133,7 @@ class AbcParser(abc: Abc, unit: TaasUnit) {
 		}
 	}
 
-	private implicit def visibilityOf(namespace: AbcNamespace): TaasNamespace = {
+	private implicit def ns2ns(namespace: AbcNamespace): TaasNamespace = {
 		namespace.kind match {
 			case AbcNamespaceKind.Package => TaasPublic
 			case AbcNamespaceKind.Explicit => error("Explicit")
@@ -130,6 +142,26 @@ class AbcParser(abc: Abc, unit: TaasUnit) {
 			case AbcNamespaceKind.Private => TaasPrivate
 			case AbcNamespaceKind.Protected => TaasProtected
 			case AbcNamespaceKind.StaticProtected => TaasProtected
+		}
+	}
+
+	private implicit def name2type(name: AbcName): TaasType = {
+		if(name == AbcConstantPool.EMPTY_NAME) {
+			TaasAny
+		} else {
+			name match {
+				case AbcQName(name, namespace) => {
+					if(name == 'void && namespace.name.name.length == 0) {
+						TaasVoid
+					} else {
+						AbcTypes fromQName (name, namespace)
+					}
+				}
+				case AbcTypename(name, parameters) => {
+						AbcTypes fromTypename (name, parameters)
+				}
+				case _ => error("Unexpected name: " + name)
+			}
 		}
 	}
 }
