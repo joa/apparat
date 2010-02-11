@@ -47,6 +47,16 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 		body.exceptions = exceptions
 	}
 
+	def remove(op: AbstractOp) = ops = ops filterNot (_ ~== op)
+
+	def removeAll(f: PartialFunction[AbstractOp, Boolean]) = {
+		while(ops exists (op => f(op))) {
+			ops = ops filterNot { op => f(op) }
+		}
+	}
+
+	def removeStrict(op: AbstractOp) = ops = ops filterNot (_ == op)
+	
 	def contains[A](chain: BytecodeChain[A]) = indexOf(chain) != -1
 
 	def indexOf[A](chain: BytecodeChain[A]) = {

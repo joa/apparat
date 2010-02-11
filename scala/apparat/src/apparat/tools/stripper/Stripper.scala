@@ -100,7 +100,16 @@ object Stripper {
 					method.body match {
 						case Some(body) => {
 							body.bytecode match {
-								case Some(bytecode) => bytecode rewrite trace
+								case Some(bytecode) => {
+									bytecode removeAll {
+										case Debug(_, _, _, _) => true
+										case DebugFile(_) => true
+										case DebugLine(_) => true
+										case _ => false
+									}
+									
+									bytecode rewrite trace
+								}
 								case None =>
 							}
 						}
