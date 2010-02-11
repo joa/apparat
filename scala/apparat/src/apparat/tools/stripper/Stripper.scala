@@ -55,7 +55,9 @@ object Stripper {
 			partial {
 				case CallPropVoid(name, args) if name == qname => CallPropVoid(name, args)
 			}) ^^ {
-				case findProp ~ ops ~ callProp if ops.length == callProp.numArguments => ops
+				case findProp ~ ops ~ callProp if ops.length == callProp.numArguments => {
+					ops ::: (ops map { op => Pop() })
+				}
 				case findProp ~ ops ~ callProp => findProp :: ops ::: List(callProp)
 				case _ => error("Internal error.")
 			}
