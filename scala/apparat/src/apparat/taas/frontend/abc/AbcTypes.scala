@@ -27,7 +27,6 @@ import apparat.taas.ast._
  * @author Joa Ebert
  */
 object AbcTypes {
-
 	def fromQName(name: Symbol, namespace: AbcNamespace)(implicit ast: TaasAST): AbcType = new AbcType(ast, name, namespace)
 	def fromQName(qname: AbcQName)(implicit ast: TaasAST): AbcType = fromQName(qname.name, qname.namespace)
 

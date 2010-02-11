@@ -27,7 +27,9 @@ import apparat.abc._
 /**
  * @author Joa Ebert
  */
-class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
+class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
+	private implicit val implicitAST = ast
+	
 	def parseAbc(): Unit = parseAbc(unit, abc)
 	def parseAbc(abc: Abc): Unit = parseAbc(unit, abc)
 	def parseAbc(unit: TaasUnit, abc: Abc): Unit = {
@@ -48,6 +50,7 @@ class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
 				val pckg = packageOf(anySlot.name.namespace.name)
 				pckg.definitions += parseSlot(anySlot, true)
 			}
+			case other => error("Unexpected trait: " + other)
 		}
 	}
 
@@ -74,28 +77,16 @@ class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
 		} else {
 			val fields = ListBuffer.empty[TaasField]
 
-			methods ++= nominal.inst.traits partialMap {
-				case methodTrait: AbcTraitAnyMethod => {
-					parseMethod(methodTrait, false)
-				}
-			}
-
 			methods ++= nominal.klass.traits partialMap {
-				case methodTrait: AbcTraitAnyMethod => {
-					parseMethod(methodTrait, true)
-				}
+				case methodTrait: AbcTraitAnyMethod => parseMethod(methodTrait, true)
 			}
 
 			fields ++= nominal.inst.traits partialMap {
-				case slotTrait: AbcTraitAnySlot => {
-					parseSlot(slotTrait, false)
-				}
+				case slotTrait: AbcTraitAnySlot => parseSlot(slotTrait, false)
 			}
 
 			fields ++= nominal.klass.traits partialMap {
-				case slotTrait: AbcTraitAnySlot => {
-					parseSlot(slotTrait, true)
-				}
+				case slotTrait: AbcTraitAnySlot => parseSlot(slotTrait, true)
 			}
 
 			TaasClass(nominal.inst.name.name,
@@ -148,7 +139,6 @@ class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
 		} match {
 			case Some(namespace) => namespace
 			case None => {
-
 				val result = TaasPackage(namespace, ListBuffer.empty)
 				unit.children prepend result
 				result
@@ -169,20 +159,14 @@ class AbcParser(implicit ast: TaasAST, abc: Abc, unit: TaasUnit) {
 	}
 
 	private implicit def name2type(name: AbcName): TaasType = {
-		if(name == AbcConstantPool.EMPTY_NAME) {
-			TaasAny
-		} else {
+		if(name == AbcConstantPool.EMPTY_NAME) TaasAny
+		else {
 			name match {
 				case AbcQName(name, namespace) => {
-					if(name == 'void && namespace.name.name.length == 0) {
-						TaasVoid
-					} else {
-						AbcTypes fromQName (name, namespace)
-					}
+					if(name == 'void && namespace.name.name.length == 0) TaasVoid
+					else AbcTypes fromQName (name, namespace)
 				}
-				case AbcTypename(name, parameters) => {
-						AbcTypes fromTypename (name, parameters)
-				}
+				case AbcTypename(name, parameters) => AbcTypes fromTypename (name, parameters)
 				case _ => error("Unexpected name: " + name)
 			}
 		}
