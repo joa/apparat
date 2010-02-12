@@ -44,19 +44,21 @@ object Stripper {
 		private lazy val qname = AbcQName('trace, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 
 		/**
-		 * Rewrite rule that will replace trace(x,y) with x,y.
+		 * Rewrite rule that will replace "trace(x, y)" with "x, y"
+		 * on a bytecode level.
+		 *
+		 * FindPropStrict(trace) AnyOp* CallPropVoid(trace,N) => AnyOp* repeat(Pop(), N)
 		 */
 		private lazy val trace = {
-			(FindPropStrict(qname) ~
-			rep(filter {
-				case CallPropVoid(name, args) if name == qname => false
-				case _ => true
-			}) ~
-			partial {
-				case CallPropVoid(name, args) if name == qname => CallPropVoid(name, args)
-			}) ^^ {
+			(	FindPropStrict(qname) ~
+				(filter {
+					case CallPropVoid(name, args) if name == qname => false
+					case _ => true
+				}*) ~
+				partial { case CallPropVoid(name, args) if name == qname => CallPropVoid(name, args) }
+			) ^^ {
 				case findProp ~ ops ~ callProp if ops.length == callProp.numArguments => {
-					ops ::: (List.fill(ops map (_.operandDelta) sum) { Pop() })
+					ops ::: (List.fill(callProp.numArguments) { Pop() })
 				}
 				case findProp ~ ops ~ callProp => findProp :: ops ::: List(callProp)
 				case _ => error("Internal error.")
@@ -101,13 +103,21 @@ object Stripper {
 						case Some(body) => {
 							body.bytecode match {
 								case Some(bytecode) => {
+									//
+									// Strip all debug information.
+									//
+
 									bytecode removeAll {
-										case Debug(_, _, _, _) => true
-										case DebugFile(_) => true
-										case DebugLine(_) => true
-										case _ => false
+										_.opCode match {
+											case Op.debug | Op.debugfile | Op.debugline => true
+											case _ => false
+										}
 									}
-									
+
+									//
+									// Strip all traces.
+									//
+
 									bytecode rewrite trace
 								}
 								case None =>

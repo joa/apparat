@@ -29,6 +29,7 @@ import apparat.utils.IndentingPrintWriter
 import apparat.swf.{DoABC, Swf, SwfTag, SwfTags}
 import apparat.abc.analysis._
 import collection.immutable._
+import actors.Futures._
 import java.io.{
 	ByteArrayInputStream => JByteArrayInputStream,
 	ByteArrayOutputStream => JByteArrayOutputStream,
@@ -94,24 +95,35 @@ class Abc extends Dumpable {
 	def loadBytecode() = {
 		implicit val abc = this
 
-		//
-		// Solution using futures:
-		//
+		methods filter (_.body.isDefined) map {
+			method => future {
+				val body = method.body.get
+				body.bytecode = Some(Bytecode fromBody body)
+			}
+		} map { _() }
 
-		// methods filter (_.body.isDefined) map { method => future { Bytecode.fromMethod(method)(this) } } map { _() }
-
-		methods foreach {
+		/*methods foreach {
 			_.body match {
 				case Some(body) => body.bytecode = Some(Bytecode fromBody body)
 				case None => {}
 			}
-		}
+		}*/
 	}
 
 	def saveBytecode() = {
 		implicit val abc = this
-		
-		methods foreach {
+
+		val tasks = for(method <- methods if method.body.isDefined) yield future {
+			val body = method.body.get
+			body.bytecode match {
+				case Some(bytecode) => bytecode storeIn body
+				case None =>
+			}
+		}
+
+		tasks foreach { _() }
+
+		/*methods foreach {
 			_.body match {
 				case Some(body) => body.bytecode match {
 					case Some(bytecode) => bytecode storeIn body
@@ -119,7 +131,7 @@ class Abc extends Dumpable {
 				}
 				case None => {}
 			}
-		}
+		}*/
 	}
 
 	def read(file: JFile): Unit = using(new JFileInputStream(file))(read _)
