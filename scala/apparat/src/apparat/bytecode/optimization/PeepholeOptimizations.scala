@@ -18,11 +18,12 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.bytecode
+package apparat.bytecode.optimization
 
-import combinator.BytecodeChains._
-import combinator._
-import operations._
+import apparat.bytecode.combinator.BytecodeChains._
+import apparat.bytecode.combinator._
+import apparat.bytecode.operations._
+import apparat.bytecode.Bytecode
 
 object PeepholeOptimizations extends (Bytecode => Bytecode) {
 	def apply(bytecode: Bytecode) = {
@@ -34,23 +35,23 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 		bytecode
 	}
 
-	lazy val ifFalse = (PushFalse() ~ partial { case ifFalse: IfFalse => ifFalse }) ^^ {
+	lazy val ifFalse = (PushFalse() ~ partial {case ifFalse: IfFalse => ifFalse}) ^^ {
 		case PushFalse() ~ IfFalse(marker) => Jump(marker) :: Nil
 		case _ => error("Unreachable code.")
 	}
 
-	lazy val ifTrue = (PushTrue() ~ partial { case ifTrue: IfTrue  => ifTrue }) ^^ {
+	lazy val ifTrue = (PushTrue() ~ partial {case ifTrue: IfTrue => ifTrue}) ^^ {
 		case PushTrue() ~ IfTrue(marker) => Jump(marker) :: Nil
 		case _ => error("Unreachable code.")
 	}
 
 	lazy val whileLoop = (
-		partial { case getLocal: GetLocal => getLocal } ~
-		(IncrementInt() | DecrementInt()) ~
-		Dup() ~
-		ConvertInt() ~
-		partial { case setLocal: SetLocal => setLocal }
-	) ^^ {
+			partial {case getLocal: GetLocal => getLocal} ~
+					(IncrementInt() | DecrementInt()) ~
+					Dup() ~
+					ConvertInt() ~
+					partial {case setLocal: SetLocal => setLocal}
+			) ^^ {
 		case GetLocal(x) ~ op ~ Dup() ~ ConvertInt() ~ SetLocal(y) if x == y => {
 			(op match {
 				case DecrementInt() => DecLocalInt(x)
@@ -65,9 +66,9 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 	}
 
 	lazy val getLex = (
-		partial { case findPropStrict: FindPropStrict => findPropStrict } ~
-		partial { case getProperty: GetProperty => getProperty }
-	) ^^ {
+			partial {case findPropStrict: FindPropStrict => findPropStrict} ~
+					partial {case getProperty: GetProperty => getProperty}
+			) ^^ {
 		case FindPropStrict(x) ~ GetProperty(y) if x == y => GetLex(x) :: Nil
 		case FindPropStrict(x) ~ GetProperty(y) => FindPropStrict(x) :: GetProperty(y) :: Nil
 		case _ => error("Unreachable code.")
