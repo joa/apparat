@@ -31,6 +31,38 @@ class MarkerManager {
 
 	def apply(op: AbstractOp) = getMarkerFor(op)
 
+	def patchFromTo(from: AbstractOp, to: AbstractOp) = {
+		markers get from match {
+			case Some(marker) => {
+				marker.op = Some(to)
+				markers -= from
+				markers += to -> marker
+			}
+			case None =>
+		}
+	}
+	def patchTo(ops: List[AbstractOp], exceptions: Array[BytecodeExceptionHandler], op: AbstractOp) = {
+		var toRemove = List.empty[AbstractOp]
+		var toPatch = List.empty[Marker]
+
+		for((markedOp, marker) <- markers) {
+			if(!(ops exists (_ == markedOp))) {
+				marker.op = Some(op)
+				toPatch = marker :: toPatch
+				toRemove = markedOp :: toRemove
+			}
+		}
+
+		if(toPatch.nonEmpty) {
+			if(toPatch.length > 1) {
+				error("Missing implementation: Fold")
+			} else {
+				markers += op -> toPatch.head
+				markers -= toRemove.head
+			}
+		}
+	}
+
 	def hasMarkerFor(op: AbstractOp) = markers get op match {
 		case Some(_) => true
 		case None => false

@@ -25,6 +25,7 @@ import apparat.utils.{Dumpable, IndentingPrintWriter}
 import combinator.{Failure, Success, BytecodeChain}
 import operations.AbstractOp
 import annotation.tailrec
+import operations.Nop
 
 object Bytecode {
 	def fromMethod(method: AbcMethod)(implicit abc: Abc) = method.body match {
@@ -50,9 +51,28 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 	def remove(op: AbstractOp) = ops = ops filterNot (_ ~== op)
 
 	def removeAll(f: PartialFunction[AbstractOp, Boolean]) = {
-		while(ops exists (op => f(op))) {
-			ops = ops filterNot { op => f(op) }
+		def loop(list: List[AbstractOp]): List[AbstractOp] = list match {
+			case x :: Nil => {
+				if(f(x)) {
+					val nop = Nop()
+					markers.patchFromTo(x, nop)
+					nop :: Nil
+				} else {
+					x :: Nil
+				}
+			}
+			case x :: xs => {
+				if(f(x)) {
+					markers.patchFromTo(x, xs.head)
+					loop(xs)
+				} else {
+					x :: loop(xs)
+				}
+			}
+			case Nil => Nil
 		}
+
+		ops = loop(ops)
 	}
 
 	def removeStrict(op: AbstractOp) = ops = ops filterNot (_ == op)
@@ -83,8 +103,17 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 		while(unprocessed.nonEmpty) {
 			chain(unprocessed) match {
 				case Success(value, remaining) => {
-					processed :::= body(value).reverse
+					val replacement = body(value)
+					processed :::= replacement.reverse
 					unprocessed = remaining
+					if(replacement.isEmpty) {
+						if(unprocessed.isEmpty) {
+							unprocessed = List(Nop())
+						}
+						markers.patchTo(processed ::: unprocessed, exceptions, unprocessed.head)
+					} else {
+						markers.patchTo(processed ::: unprocessed, exceptions, replacement.head)
+					}
 					modified = true
 				}
 				case Failure(_) => {
