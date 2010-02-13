@@ -25,5 +25,5 @@ package apparat.tools.shell
  */
 sealed trait ShellEvent
 
+case object ExitEvent
 case class CommandEvent(command: String) extends ShellEvent
-case class ShellMessage(message: String) extends ShellEvent

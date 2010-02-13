@@ -20,8 +20,8 @@
  */
 package apparat.tools.shell
 
-import actors.{Futures, Actor}
 import actors.Actor._
+import actors.{Exit, Futures, Actor}
 
 /**
  * @author Joa Ebert
@@ -31,6 +31,7 @@ object ApparatShell {
 	private val exec = actor {
 		loop {
 			receive {
+				case ExitEvent => Exit
 				case CommandEvent(command) => shell ! CommandEvent(command)
 				case () => 
 				case other => println(other)
@@ -48,7 +49,8 @@ object ApparatShell {
 	def exit(): Unit = {
 		try {
 			Futures.alarm(0)
-			Actor.exit()
+			exec ! ExitEvent
+			shell ! ExitEvent
 		} catch {
 			case _ =>
 		}

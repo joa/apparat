@@ -51,6 +51,7 @@ stripper - Run the stripper tool"""
 
 				sender ! response
 			}
+			case ExitEvent => exit()
 		}
 	}
 
