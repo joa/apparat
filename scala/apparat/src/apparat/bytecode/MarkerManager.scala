@@ -31,7 +31,7 @@ class MarkerManager {
 
 	def apply(op: AbstractOp) = getMarkerFor(op)
 
-	def patchFromTo(from: AbstractOp, to: AbstractOp) = {
+	def forwardMarker(from: AbstractOp, to: AbstractOp) = {
 		markers get from match {
 			case Some(marker) => {
 				marker.op = Some(to)
@@ -41,7 +41,7 @@ class MarkerManager {
 			case None =>
 		}
 	}
-	def patchTo(ops: List[AbstractOp], exceptions: Array[BytecodeExceptionHandler], op: AbstractOp) = {
+	def patchMissing(ops: List[AbstractOp], exceptions: Array[BytecodeExceptionHandler], op: AbstractOp) = {
 		var toRemove = List.empty[AbstractOp]
 		var toPatch = List.empty[Marker]
 

@@ -48,26 +48,22 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 		body.exceptions = exceptions
 	}
 
-	def remove(op: AbstractOp) = ops = ops filterNot (_ ~== op)
-
-	def removeAll(f: PartialFunction[AbstractOp, Boolean]) = {
-		def loop(list: List[AbstractOp]): List[AbstractOp] = list match {
-			case x :: Nil => {
-				if(f(x)) {
+	def filterNot(f: AbstractOp => Boolean) = {
+		@tailrec def loop(list: List[AbstractOp]): List[AbstractOp] = list match {
+			case x :: Nil => f(x) match {
+				case true => {
 					val nop = Nop()
-					markers.patchFromTo(x, nop)
+					markers.forwardMarker(x, nop)
 					nop :: Nil
-				} else {
-					x :: Nil
 				}
+				case false => x :: Nil
 			}
-			case x :: xs => {
-				if(f(x)) {
-					markers.patchFromTo(x, xs.head)
+			case x :: xs => f(x) match {
+				case true => {
+					markers.forwardMarker(x, xs.head)
 					loop(xs)
-				} else {
-					x :: loop(xs)
 				}
+				case false => x :: loop(xs)
 			}
 			case Nil => Nil
 		}
@@ -75,7 +71,11 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 		ops = loop(ops)
 	}
 
-	def removeStrict(op: AbstractOp) = ops = ops filterNot (_ == op)
+	def removeAny(op: AbstractOp) = filterNot(_ ~== op)
+
+	def removeAll(f: PartialFunction[AbstractOp, Boolean]) = filterNot(f)
+
+	def remove(op: AbstractOp) = filterNot(_ == op)
 	
 	def contains[A](chain: BytecodeChain[A]) = indexOf(chain) != -1
 
@@ -104,16 +104,20 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 			chain(unprocessed) match {
 				case Success(value, remaining) => {
 					val replacement = body(value)
+
 					processed :::= replacement.reverse
 					unprocessed = remaining
+
 					if(replacement.isEmpty) {
 						if(unprocessed.isEmpty) {
 							unprocessed = List(Nop())
 						}
-						markers.patchTo(processed ::: unprocessed, exceptions, unprocessed.head)
+						
+						markers.patchMissing(processed ::: unprocessed, exceptions, unprocessed.head)
 					} else {
-						markers.patchTo(processed ::: unprocessed, exceptions, replacement.head)
+						markers.patchMissing(processed ::: unprocessed, exceptions, replacement.head)
 					}
+
 					modified = true
 				}
 				case Failure(_) => {
