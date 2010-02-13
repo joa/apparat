@@ -57,6 +57,7 @@ object ApparatShell {
 	}
 
 	def run(): Unit = {
+		//TODO add history
 		val command = Console.readLine()
 		command.toLowerCase match {
 			case "exit" | "quit" | "stop" => exit()

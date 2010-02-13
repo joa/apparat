@@ -55,6 +55,7 @@ stripper - Run the stripper tool"""
 	}
 
 	private def createArguments(arguments: Seq[Char]) = {
+		//TODO split correct based on platform
 		arguments mkString "" split " "
 	}
 }
