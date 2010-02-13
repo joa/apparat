@@ -44,6 +44,18 @@ object Stripper {
 		private lazy val qname = AbcQName('trace, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 
 		/**
+		 * Rewrite rule that converts CallProperty into CallPropVoid.
+		 *
+		 * CallProperty(trace, N) Pop() => CallPropVoid(trace, N)
+		 */
+		private lazy val traceVoid = {
+			partial { case CallProperty(name, args) if name == qname => args } ~ Pop() ^^ {
+				case args ~ Pop() => CallPropVoid(qname, args) :: Nil
+				case _ => error("Internal error.")
+			}
+		}
+
+		/**
 		 * Rewrite rule that will replace "trace(x, y)" with "x, y"
 		 * on a bytecode level.
 		 *
@@ -55,7 +67,9 @@ object Stripper {
 					case CallPropVoid(name, args) if name == qname => false
 					case _ => true
 				}*) ~
-				partial { case CallPropVoid(name, args) if name == qname => CallPropVoid(name, args) }
+				partial {
+					case CallPropVoid(name, args) if name == qname => CallPropVoid(name, args)
+				}
 			) ^^ {
 				case findProp ~ ops ~ callProp if ops.length == callProp.numArguments => {
 					ops ::: (List.fill(callProp.numArguments) { Pop() })
@@ -118,6 +132,7 @@ object Stripper {
 									// Strip all traces.
 									//
 
+									bytecode rewrite traceVoid
 									bytecode rewrite trace
 								}
 								case None =>
