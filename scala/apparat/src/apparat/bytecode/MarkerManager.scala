@@ -56,6 +56,33 @@ class MarkerManager {
 		if(toPatch.nonEmpty) {
 			if(toPatch.length > 1) {
 				error("Missing implementation: Fold")
+				//
+				// Old code:
+				//
+				// Jump L0
+				// Jump L1
+				// L0: a
+				// L1: b
+				//
+				// New code:
+				//
+				// Jump L0
+				// Jump L1
+				// L0, L1: c
+				//
+				//
+				// TODO Use only one label
+				// We have to remove L1 and patch
+				// all occurrences (also exceptions!) to
+				// use only L0 since only one marker is
+				// allowed.
+				//
+				// Correct result:
+				//
+				// Jump L0
+				// Jump L0
+				// L0: c
+				//
 			} else {
 				markers += op -> toPatch.head
 				markers -= toRemove.head
