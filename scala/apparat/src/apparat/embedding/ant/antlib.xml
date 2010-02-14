@@ -20,4 +20,5 @@
   -->
 <antlib>
 	<typedef name="stripper" classname="apparat.embedding.ant.stripper.StripperTask"/>
+	<typedef name="reducer" classname="apparat.embedding.ant.reducer.ReducerTask"/>
 </antlib>
