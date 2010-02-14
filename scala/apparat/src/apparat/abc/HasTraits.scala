@@ -28,7 +28,7 @@ import apparat.utils.IndentingPrintWriter
 trait HasTraits {
 	def traits: Array[AbcTrait]
 
-	def dumpTraits(writer: IndentingPrintWriter) = if(traits.length > 0) {
+	def dumpTraits(writer: IndentingPrintWriter): Unit = if(traits.length > 0) {
 		def dumpMetadata(metadata: Option[Array[AbcMetadata]]) = {
 			metadata match {
 				case Some(metadata) => {

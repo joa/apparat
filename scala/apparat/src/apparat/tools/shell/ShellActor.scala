@@ -20,10 +20,10 @@
  */
 package apparat.tools.shell
 
-import actors.Actor
 import actors.Actor._
+import actors.Actor
 import apparat.tools.stripper.Stripper
-import compat.Platform
+import apparat.tools.reducer.Reducer
 
 /**
  * @author Joa Ebert
@@ -34,18 +34,21 @@ class ShellActor extends Actor {
 			case CommandEvent(command) => {
 				val response = (command: Seq[Char]) match {
 					case Seq('s','t','r','i','p','p','e','r',' ', rest @ _*) => {
-						val t0 = Platform.currentTime
-						lazy val t1 = Platform.currentTime
 						Stripper.main(createArguments(rest))
 					}
+					case Seq('r','e','d','u','c','e','r', ' ', rest @ _*) => {
+						Reducer.main(createArguments(rest))
+					}
 					case Seq('h','e','l','p', ' ', rest @ _*) => (rest mkString "") match {
+						case "reducer" => "reducer -i input [-o output] [-q quality]"
 						case "stripper" => "stripper -i input [-o output]"
 						case "help" | "exit" | "quit" | "stop" => "No detail help available."
 						case other => "Error: Unknown command \"" + other + "\""
 					}
 					case Seq('h', 'e', 'l', 'p') => """help [command] - For detailed help
 quit - Exit the Apparat shell
-stripper - Run the stripper tool"""
+reducer - Convert lossless to lossy graphics
+stripper - Strip traces and debug operations"""
 					case _ => "Error: Unknown command \"" + command + "\""
 				}
 

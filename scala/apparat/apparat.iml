@@ -24,6 +24,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="scala-library" level="application" />
+    <orderEntry type="library" name="apache-ant-1.7.1" level="application" />
   </component>
 </module>
 

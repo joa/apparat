@@ -43,14 +43,15 @@ object ApparatShell {
 		shell.start()
 		println("Welcome to the Apparat!")
 		println("Type \"help\" for a list of available commands ...")
+		println("")
 		run()
 	}
 
 	def exit(): Unit = {
 		try {
-			Futures.alarm(0)
 			exec ! ExitEvent
 			shell ! ExitEvent
+			Futures.alarm(0)
 		} catch {
 			case _ =>
 		}
@@ -59,7 +60,6 @@ object ApparatShell {
 	}
 
 	def run(): Unit = {
-		//TODO add history
 		val command = Console.readLine()
 		command.toLowerCase match {
 			case "exit" | "quit" | "stop" => exit()
