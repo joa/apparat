@@ -18,6 +18,7 @@
 # http://www.joa-ebert.com/
 #
 
-jdk.home=j\:
-scala.home=s\:
+jdk.home=
+scala.home=
+
 scalac.arguments="–optimise"
