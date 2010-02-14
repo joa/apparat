@@ -27,6 +27,7 @@ object Reducer {
 
 		override def help: String = """  -i [file]	Input file
   -o [file]	Output file (optional)
+  -d [float]	Strength of deblocking filter (optional)
   -q [float]	Quality from 0.0 to 1.0 (optional)"""
 
 		override def configure(config: ApparatConfiguration) = {
@@ -39,9 +40,9 @@ object Reducer {
 
 		override def run() = {
 			SwfTags.tagFactory = (kind: Int) => kind match {
-				/*case SwfTags.DefineBitsJPEG2 => Some(new DefineBitsJPEG2)
-				case SwfTags.DefineBitsJPEG3 => Some(new DefineBitsJPEG3)
-				case SwfTags.DefineBitsJPEG4 => Some(new DefineBitsJPEG4)*/
+			/*case SwfTags.DefineBitsJPEG2 => Some(new DefineBitsJPEG2)
+							case SwfTags.DefineBitsJPEG3 => Some(new DefineBitsJPEG3)
+							case SwfTags.DefineBitsJPEG4 => Some(new DefineBitsJPEG4)*/
 				case SwfTags.DefineBitsLossless2 => Some(new DefineBitsLossless2)
 				case _ => None
 			}
