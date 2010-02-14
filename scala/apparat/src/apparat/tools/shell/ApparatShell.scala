@@ -61,11 +61,13 @@ object ApparatShell {
 
 	def run(): Unit = {
 		val command = Console.readLine()
-		command.toLowerCase match {
-			case "exit" | "quit" | "stop" => exit()
-			case _ => {
-				exec ! CommandEvent(command)
-				run()
+		if(null != command) {
+			command.toLowerCase match {
+				case "exit" | "quit" | "stop" => exit()
+				case _ => {
+					exec ! CommandEvent(command)
+					run()
+				}
 			}
 		}
 	}
