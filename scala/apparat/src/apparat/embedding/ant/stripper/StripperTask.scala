@@ -27,7 +27,4 @@ import apparat.embedding.ant.ApparatTask
  * Time: 13:45:35
  */
 
-class StripperTask extends ApparatTask {
-	setTaskName("stripper")
-	setClassname(Stripper.getClass.getName dropRight 1)
-}
+class StripperTask extends ApparatTask(Stripper, "stripper")

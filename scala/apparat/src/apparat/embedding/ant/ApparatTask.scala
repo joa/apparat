@@ -26,10 +26,13 @@ package apparat.embedding.ant
 import org.apache.tools.ant.taskdefs.Java
 import collection.mutable.HashMap
 
-class ApparatTask extends Java {
+class ApparatTask(tool: {def getClass: Class[_]}, name: String) extends Java {
+	setClassname(tool.getClass.getName.dropRight(1))
+	setTaskName(name)
+
 	val arguments: HashMap[String, String] = HashMap.empty
 
-//	@deprecated("Use setArgument instead of createArg")
+	//	@deprecated("Use setArgument instead of createArg")
 	override def createArg = error("Use setArgument instead of createArg")
 
 	def setArgument(name: String, value: Any) = {

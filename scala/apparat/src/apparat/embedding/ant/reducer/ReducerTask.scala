@@ -27,12 +27,8 @@ import apparat.tools.reducer.Reducer
  * Time: 16:15:10
  */
 
-class ReducerTask extends ApparatTask {
-	setTaskName("reducer")
-	setClassname(Reducer.getClass.getName dropRight 1)
-	
+sealed class ReducerTask extends ApparatTask(Reducer, "reducer") {
 	def setDeblock(value: Float) = setArgument("d", value)
 
 	def setQuality(value: Float) = setArgument("q", value)
-
 }
