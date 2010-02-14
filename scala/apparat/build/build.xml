@@ -103,7 +103,7 @@
 
 	<!-- Global Libraries -->
 	<path id="library.scala_sdk.classpath">
-		<fileset dir="${scala.home}">
+		<fileset dir="${scala.home}/lib">
 			<patternset refid="library.patterns"/>
 		</fileset>
 	</path>
