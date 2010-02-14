@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ This file is part of Apparat.
+  ~
+  ~ Apparat is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Lesser General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ Apparat is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License
+  ~ along with Apparat. If not, see <http://www.gnu.org/licenses/>.
+  ~
+  ~ Copyright (C) 2010 Joa Ebert
+  ~ http://www.joa-ebert.com/
+  -->
+
+<project name="Apparat" default="all" basedir="../">
+	<property file="build/apparat.properties"/>
+
+	<property name="dir.build" value="${basedir}/build"/>
+	<property name="dir.assets" value="${dir.build}/assets"/>
+	<property name="dir.src" value="${basedir}/src"/>
+	<property name="dir.bin" value="${dir.build}/bin"/>
+	<property name="dir.jar" value="${dir.build}/jar"/>
+	<property name="dir.zip" value="${dir.build}/zip"/>
+
+	<target name="clean">
+		<delete failonerror="false" dir="${dir.bin}"/>
+		<delete failonerror="false" dir="${dir.jar}"/>
+		<delete failonerror="false" dir="${dir.zip}"/>
+	</target>
+
+	<target name="init">
+		<mkdir dir="${dir.bin}"/>
+		<mkdir dir="${dir.jar}"/>
+		<mkdir dir="${dir.zip}"/>
+	</target>
+
+	<!-- JDK definitions -->
+	<property name="jdk.bin" value="${jdk.home}/bin"/>
+	<path id="jdk.classpath">
+		<fileset dir="${jdk.home}">
+			<include name="jre/lib/charsets.jar"/>
+			<include name="jre/lib/jce.jar"/>
+			<include name="jre/lib/jsse.jar"/>
+			<include name="jre/lib/management-agent.jar"/>
+			<include name="jre/lib/managementserver.jar"/>
+			<include name="jre/lib/resources.jar"/>
+			<include name="jre/lib/rt.jar"/>
+			<include name="jre/lib/ext/dnsns.jar"/>
+			<include name="jre/lib/ext/localedata.jar"/>
+			<include name="jre/lib/ext/sunjce_provider.jar"/>
+			<include name="jre/lib/ext/sunmscapi.jar"/>
+			<include name="jre/lib/ext/sunpkcs11.jar"/>
+		</fileset>
+	</path>
+
+	<patternset id="ignored.files">
+		<exclude name="**/CVS/**"/>
+		<exclude name="**/SCCS/**"/>
+		<exclude name="**/RCS/**"/>
+		<exclude name="**/rcs/**"/>
+		<exclude name="**/.DS_Store/**"/>
+		<exclude name="**/.svn/**"/>
+		<exclude name="**/.pyc/**"/>
+		<exclude name="**/.pyo/**"/>
+		<exclude name="**/*.pyc/**"/>
+		<exclude name="**/*.pyo/**"/>
+		<exclude name="**/.git/**"/>
+		<exclude name="**/*.hprof/**"/>
+		<exclude name="**/_svn/**"/>
+		<exclude name="**/test/**"/>
+		<exclude name="MainPL.scala"/>
+		<exclude name="Main.scala"/>
+	</patternset>
+
+	<patternset id="library.patterns">
+		<include name="*.zip"/>
+		<include name="*.war"/>
+		<include name="*.egg"/>
+		<include name="*.ear"/>
+		<include name="*.swc"/>
+		<include name="*.jar"/>
+	</patternset>
+
+	<patternset id="resources">
+		<include name="**/?*.properties"/>
+		<include name="**/?*.xml"/>
+		<include name="**/?*.gif"/>
+		<include name="**/?*.png"/>
+		<include name="**/?*.jpeg"/>
+		<include name="**/?*.jpg"/>
+		<include name="**/?*.html"/>
+		<include name="**/?*.dtd"/>
+		<include name="**/?*.tld"/>
+		<include name="**/?*.ftl"/>
+	</patternset>
+
+	<!-- Global Libraries -->
+	<path id="library.scala_sdk.classpath">
+		<fileset dir="${scala.home}">
+			<patternset refid="library.patterns"/>
+		</fileset>
+	</path>
+
+	<path id="library.ant.classpath">
+		<fileset dir="${ant.home}/lib">
+			<patternset refid="library.patterns"/>
+		</fileset>
+	</path>
+
+	<!-- SCALA definitions -->
+	<property name="scalac.task.sdk" value="library.scala_sdk.classpath"/>
+	<taskdef name="scalac" classname="scala.tools.ant.Scalac" classpathref="${scalac.task.sdk}"/>
+
+	<path id="classpath">
+		<pathelement location="${dir.bin}"/>
+		<path refid="library.scala_sdk.classpath"/>
+		<path refid="library.ant.classpath"/>
+	</path>
+
+	<path id="sourcepath">
+		<dirset dir="${dir.src}"/>
+	</path>
+
+	<target name="compile" depends="clean,init" description="Compile Apparat">
+		<scalac destdir="${dir.bin}" deprecation="on" encoding="UTF8" addParams="${scalac.arguments}">
+			<src refid="sourcepath"/>
+			<classpath refid="classpath"/>
+			<patternset refid="ignored.files"/>
+		</scalac>
+		<copy todir="${dir.bin}">
+			<fileset dir="${dir.src}">
+				<include name="**/antlib.xml"/>
+				<type type="file"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="apparat" depends="compile"
+			description="Compile module apparat">
+
+		<jar destfile="${dir.jar}/apparat.jar">
+
+			<fileset dir="${dir.bin}">
+				<include name="**/*"/>
+				<exclude name="**/test/**"/>
+			</fileset>
+
+			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+				<attribute name="Created-By" value="${user.name}"/>
+				<attribute name="Class-Path" value="scala-library.jar"/>
+				<attribute name="Main-Class" value="apparat.tools.shell.ApparatShell"/>
+			</manifest>
+		</jar>
+
+		<zip
+				destfile="${dir.zip}/apparat.zip"
+				level="9">
+			<fileset dir="${dir.jar}">
+				<include name="apparat.jar"/>
+			</fileset>
+			<fileset dir="${dir.assets}/generic">
+				<include name="**/*"/>
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="all" depends="apparat" description="build all"/>
+
+</project>
