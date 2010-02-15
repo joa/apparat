@@ -21,7 +21,7 @@
 import apparat.abc.analysis.AbcConstantPoolBuilder
 import apparat.abc.{AbcNamespace, AbcQName, Abc}
 import apparat.bytecode.analysis.{LocalCount, FrequencyDistribution}
-import apparat.bytecode.PeepholeOptimizations
+import apparat.bytecode.optimization.PeepholeOptimizations
 import apparat.graph.immutable.{BytecodeControlFlowGraphBuilder, Graph}
 import apparat.graph.{DefaultEdge, Vertex}
 import apparat.swc.Swc
