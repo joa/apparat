@@ -31,7 +31,7 @@ import annotation.tailrec
 
 object BytecodeControlFlowGraphBuilder {
 	def apply(bytecode: Bytecode) = {
-		import collection.mutable.{ListBuffer, Queue}
+		import collection.mutable.{Queue}
 
 		type V = ImmutableAbstractOpBlockVertex
 
@@ -51,12 +51,21 @@ object BytecodeControlFlowGraphBuilder {
 			opList => {
 				var newOpList = opList
 
-				if (newOpList.head.isInstanceOf[Label])
-					newOpList = newOpList drop 1
+				newOpList.headOption match {
+					case Some(op) if (op.isInstanceOf[Label]) => newOpList = newOpList drop 1
+					case _ =>
+				}
 
-				val lastOp = newOpList.last
-				if (lastOp.isInstanceOf[Jump])
-					newOpList = newOpList dropRight 1
+				val lastOp = newOpList.lastOption match {
+					case Some(op) => {
+						if (op.isInstanceOf[Jump])
+							newOpList = newOpList dropRight 1
+						op
+					}
+					case _ => {
+						null.asInstanceOf[AbstractOp]
+					}
+				}
 
 				val vertex = new V(newOpList)
 
@@ -77,22 +86,10 @@ object BytecodeControlFlowGraphBuilder {
 		// connect the first block to the entry
 		edgeMap = edgeMap updated (entryVertex, JumpEdge(entryVertex, blockQueue.head._1) :: edgeMap(entryVertex))
 
-		// find which vertex belong to an Op
-		def findVertex(op: AbstractOp) = {
-			var vertex: Option[V] = None
-			def findAndStore(kv: (V, List[AbstractOp])) = {
-				val b = kv._2.contains(op)
-				if (b) vertex = Some(kv._1)
-				!b
-			}
-			vertexMap.takeWhile(findAndStore)
-			vertex
-		}
-
 		def createVertexFromMarker[E <: Edge[V]](startBlock: V, marker: Marker, edgeFactory: (V, V) => E) {
 			marker.op map {
-				findVertex(_) match {
-					case Some(block) => edgeMap = edgeMap updated (startBlock, edgeFactory(startBlock, block) :: edgeMap(startBlock))
+				op => vertexMap.view.find(_._2 contains op) match {
+					case Some((vertexBlock, ops)) => edgeMap = edgeMap updated (startBlock, edgeFactory(startBlock, vertexBlock) :: edgeMap(startBlock))
 					case _ => error("op not found into graph : " + marker.op.toString + "=>" + vertexMap)
 				}
 			}
@@ -135,12 +132,12 @@ object BytecodeControlFlowGraphBuilder {
 							edgeMap = edgeMap updated (currentBlock, JumpEdge(currentBlock, blockQueue.head._1) :: edgeMap(currentBlock))
 					}
 				}
-				// check if it exist a try catch for this block
+				// check if it exists a try catch for this block
 				if (!currentBlock.isEmpty) {
 					val startOpIndex = ops indexOf (currentBlock.head)
 					val endOpIndex = ops indexOf (currentBlock.last)
 					exceptions.filter(exc => {
-								startOpIndex >= ops.indexOf(exc.from.op.get) &&
+						startOpIndex >= ops.indexOf(exc.from.op.get) &&
 								endOpIndex <= ops.indexOf(exc.to.op.get) &&
 								ops.view(startOpIndex, endOpIndex).exists(_.canThrow)
 					}).foreach(exc => createVertexFromMarker(currentBlock, exc.target, ThrowEdge[V]))

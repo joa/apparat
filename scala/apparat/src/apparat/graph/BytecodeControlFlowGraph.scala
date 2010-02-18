@@ -52,7 +52,7 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 					vertex.head
 				)
 		}
-		class LookupSwitchContainer(val size: Int) {
+		sealed class LookupSwitchContainer(val size: Int) {
 			private val cases: Array[Marker] = new Array(size)
 			private var default: Option[Marker] = None
 			private var caseLeft = size + 1
@@ -84,6 +84,10 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 
 			def apply(): LookupSwitch = if (!isDone) error("Incomplete LookupSwitch") else LookupSwitch(default.get, cases)
 		}
+
+		sealed case class ExceptionMarker(from: Marker, to: Marker)
+
+		var vertexExceptionMap: Map[V, ExceptionMarker] = Map.empty
 
 		def patchJump(startVertex: V, endVertex: V) = {
 			val marker = getMarkerFor(endVertex)
@@ -129,9 +133,14 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 				if (!vertexBlockMap.contains(end)) {
 					val currentBlock = addBlockFor(end)
 
-					// this block have at least a back edge so add a Label as first op
-					if ((backRefCnt(end) > 0) && !currentBlock(0).isInstanceOf[Label])
-						currentBlock.insert(0, Label())
+					if (backRefCnt(end) > 0) {
+						// this block have at least a back edge
+						// so add a Label as a first op if none exists
+						currentBlock.headOption match {
+							case Some(op) if (!op.isInstanceOf[Label]) => currentBlock.insert(0, Label())
+							case _ => currentBlock.insert(0, Label())
+						}
+					}
 
 					if (prevVertex == entryVertex)
 						prevVertex = end
@@ -149,7 +158,7 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 											val target = vertexBlockMap(start)
 											target(target.length - 1) = Op.invertCopyConditionalOp(target.last, marker)
 										}
-										case _ => error("missing false edge : " + edge)
+										case _ => error("Missing false edge : " + edge)
 									}
 								} else {
 									patchJump(start, end)
@@ -157,6 +166,14 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 							}
 							case DefaultCaseEdge(start, end) => patchLookupSwitch(start, end, true)
 							case NumberedCaseEdge(start, end, n) => patchLookupSwitch(start, end, false, n)
+							case ThrowEdge(start, end) => {
+								println(start, end)
+								if (!vertexExceptionMap.contains(start) && isTryVertex(start)) {
+									vertexExceptionMap = vertexExceptionMap.updated(start, ExceptionMarker(markers.mark(start.head), markers.mark(start.last)))
+								}
+								println("try:", isTryVertex(start))
+								println("catch:", isCatchVertex(end))
+							}
 							case _ => {
 								if (prevVertex != edge.startVertex) {
 									patchJump(edge.startVertex, end)
@@ -201,7 +218,7 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 			case DefaultCaseEdge(x, y) => label("  default  ")
 			case CaseEdge(x, y) => label("  case  ")
 			case NumberedCaseEdge(x, y, n) => label("  case " + n)
-			case ThrowEdge(x, y) => label("  throw  ")+" style=\"dashed\""
+			case ThrowEdge(x, y) => label("  throw  ") + " style=\"dashed\""
 			case ReturnEdge(x, y) => label("  return  ")
 		}) + "]"
 	}

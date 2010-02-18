@@ -139,4 +139,8 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 	override def dotExport = {
 		new DOTExport(this, (vertex: V) => vertexToString(vertex), (edge: E) => edgeToString(edge))
 	}
+
+	override def isCatchVertex(vertex: V) = !isExit(vertex) && incomingOf(vertex).exists(_.isInstanceOf[ThrowEdge[_]])
+
+	override def isTryVertex(vertex: V) = outgoingOf(vertex).exists(_.isInstanceOf[ThrowEdge[_]]) && !incomingOf(vertex).exists(_.isInstanceOf[ThrowEdge[_]])
 }

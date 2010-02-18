@@ -25,9 +25,14 @@ package apparat.graph
  */
 trait ControlFlow[V] {
 	def entryVertex: V
+
 	def exitVertex: V
 
 	def isEntry(vertex: V) = vertex == entryVertex
 
 	def isExit(vertex: V) = vertex == exitVertex
+
+	def isTryVertex(vertex: V) = false
+
+	def isCatchVertex(vertex: V) = false
 }
