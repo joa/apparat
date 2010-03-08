@@ -40,12 +40,12 @@ class Dominance[V](val graph: GraphLike[V]) {
 	private lazy val reversePostorder = postorder.reverse
 
 	@tailrec private def advanceIntersection(map: Map[V, V], a: V, b: V): V = {
-		if((postorder indexOf a) < (postorder indexOf b)) advanceIntersection(map, map(a), b)
+		if ((postorder indexOf a) < (postorder indexOf b)) advanceIntersection(map, map(a), b)
 		else a
 	}
 
 	@tailrec private def intersect(map: Map[V, V], b1: V, b2: V): V = {
-		if(b1 != b2) {
+		if (b1 != b2) {
 			val f = advanceIntersection(map, b1, b2)
 			intersect(map, f, advanceIntersection(map, b2, f))
 		} else {
@@ -54,7 +54,7 @@ class Dominance[V](val graph: GraphLike[V]) {
 	}
 
 	private def pickPredecessor(map: Map[V, V], predecessors: Iterable[V]): V = {
-		predecessors.find (map contains _) match {
+		predecessors.find(map contains _) match {
 			case Some(vertex) => vertex
 			case None => error("Unreachable by definition.")
 		}
@@ -77,12 +77,12 @@ class Dominance[V](val graph: GraphLike[V]) {
 		def loop(): Unit = {
 			var changed = false
 
-			for(b <- rp) {
+			for (b <- rp) {
 				val predecessorsTmp = graph predecessorsOf b
 				var newIDom = pickPredecessor(result, predecessorsTmp)
 				val predecessors = predecessorsTmp filterNot (_ == newIDom)
 
-				for(p <- predecessors) {
+				for (p <- predecessors) {
 					result get p match {
 						case Some(vertex) => {
 							newIDom = intersect(result, vertex, newIDom)
@@ -90,9 +90,9 @@ class Dominance[V](val graph: GraphLike[V]) {
 						case None =>
 					}
 				}
-				
+
 				result get b match {
-					case Some(old) => if(old != newIDom) {
+					case Some(old) => if (old != newIDom) {
 						result = result updated (b, newIDom)
 						changed = true
 					}
@@ -103,13 +103,13 @@ class Dominance[V](val graph: GraphLike[V]) {
 				}
 			}
 
-			if(changed) {
+			if (changed) {
 				loop()
 			}
 		}
 
 		loop()
-		
+
 		result
 	}
 
@@ -126,15 +126,18 @@ class Dominance[V](val graph: GraphLike[V]) {
 
 		var result = graph vertexMap (v => List.empty[V])
 
-		for(b <- graph.verticesIterator) {
+		for (b <- graph.verticesIterator) {
 			val predecessors = graph predecessorsOf b
 
-			if(predecessors.size > 1) {
-				for(p <- predecessors) {
+			if (predecessors.size > 1) {
+				for (p <- predecessors) {
 					var runner = p
 
-					while(runner != doms(b)) {
-						result = result updated (runner, b :: result(runner))
+					while (runner != doms(b)) {
+						// result is normally a set so no duplicate into it
+						val resultRunner = result(runner)
+						if (!resultRunner.contains(b))
+							result = result updated (runner, b :: resultRunner)
 						runner = doms(runner)
 					}
 				}
@@ -145,6 +148,6 @@ class Dominance[V](val graph: GraphLike[V]) {
 	}
 
 	def apply(vertex: V) = frontiersOf(vertex)
-	
+
 	def frontiersOf(vertex: V) = frontiers get vertex
 }
