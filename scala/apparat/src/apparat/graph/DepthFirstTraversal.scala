@@ -21,23 +21,20 @@
 
 package apparat.graph
 
-final protected[graph] class DepthFirstTraversal[V](graph: GraphLike[V], startVertex: V)
+class DepthFirstTraversal[V](graph: GraphLike[V], startVertex: V)
 		extends GraphTraversal[V] with ListBasedTraversal[V] {
 	protected lazy val vertexList = {
 		var list: List[V] = Nil
-		var visited = graph vertexMap (v => false) updated (startVertex, true)
+		var visited = graph vertexMap (v => false)
 		var S = List(startVertex)
 
-		while(S.nonEmpty) {
+		while (S.nonEmpty) {
 			val v = S.head
-			
 			S = S.tail
-
-			list = v :: list
-
-			for(e <- graph.outgoingOf(v) if !visited(e.endVertex)) {
-				visited = visited updated (e.endVertex, true)
-				S = e.endVertex :: S
+			if (!visited(v)) {
+				list = v :: list
+				visited = visited updated (v, true)
+				S = graph.successorsOf(v).filterNot(visited(_)).toList ::: S
 			}
 		}
 
