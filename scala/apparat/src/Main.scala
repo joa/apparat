@@ -63,7 +63,7 @@ object Main {
 		val swc = Swf fromSwc (Swc fromFile "assets/playerglobal.swc")
 
 		val frontend = new AbcFrontend(
-			Abc fromSwf swf get, (swc.tags partialMap {
+			Abc fromSwf swf get, (swc.tags collect {
 				case doABC: DoABC => Abc fromByteArray doABC.abcData
 			}) ::: (Abc fromFile "assets/playerglobal.abc") ::
 					(Abc fromFile "assets/builtin.abc") ::

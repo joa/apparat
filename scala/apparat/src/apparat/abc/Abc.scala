@@ -39,6 +39,7 @@ import java.io.{
 	FileOutputStream => JFileOutputStream,
 	OutputStream => JOutputStream
 }
+import scala.math.max
 
 object Abc {
 	val MINOR = 16
@@ -187,14 +188,14 @@ class Abc extends Dumpable {
 			t
 		}
 
-		val ints = readTable(new Array[Int](Math.max(1, input.readU30())), 0) { input.readS32() }
-		val uints = readTable(new Array[Long](Math.max(1, input.readU30())), 0L) { input.readU32() }
-		val doubles = readTable(new Array[Double](Math.max(1, input.readU30())), Double.NaN) { input.readD64() }
+		val ints = readTable(new Array[Int](max(1, input.readU30())), 0) { input.readS32() }
+		val uints = readTable(new Array[Long](max(1, input.readU30())), 0L) { input.readU32() }
+		val doubles = readTable(new Array[Double](max(1, input.readU30())), Double.NaN) { input.readD64() }
 		//val decimals = ...
-		val strings = readTable(new Array[Symbol](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) { Symbol(input.readString()) }
-		val namespaces = readTable(new Array[AbcNamespace](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) { AbcNamespace(input.readU08(), strings(input.readU30())) }
-		val nssets = readTable(new Array[AbcNSSet](Math.max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet(Array.fill(input.readU08()) { namespaces(input.readU30()) }) }
-		val tmp = new Array[AbcName](Math.max(1, input.readU30()))
+		val strings = readTable(new Array[Symbol](max(1, input.readU30())), AbcConstantPool.EMPTY_STRING) { Symbol(input.readString()) }
+		val namespaces = readTable(new Array[AbcNamespace](max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) { AbcNamespace(input.readU08(), strings(input.readU30())) }
+		val nssets = readTable(new Array[AbcNSSet](max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet(Array.fill(input.readU08()) { namespaces(input.readU30()) }) }
+		val tmp = new Array[AbcName](max(1, input.readU30()))
 		val names = readTable(tmp, AbcConstantPool.EMPTY_NAME) {
 			input.readU08() match {
 				case AbcNameKind.QName => {

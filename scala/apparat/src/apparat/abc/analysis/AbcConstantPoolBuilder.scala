@@ -30,7 +30,7 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 	}
 
 	def optimize[@specialized B](list: List[B]) = {
-		val noDuplicates = list.removeDuplicates
+		val noDuplicates = list.distinct
 		val count = Map(noDuplicates zip (noDuplicates map { x => list count (_ == x) }): _*)
 		noDuplicates sortWith { (a, b) => count(a) > count(b) }
 	}
@@ -44,7 +44,7 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 		val namespaceFuture = future { (AbcConstantPool.EMPTY_NAMESPACE :: optimize(namespaces)).toArray }
 		val nssetFuture = future { (AbcConstantPool.EMPTY_NSSET :: optimize(nssets)).toArray }
 		val nameFuture = future {
-			val noDuplicates = names.removeDuplicates
+			val noDuplicates = names.distinct
 			val count = Map(noDuplicates zip (noDuplicates map { x => names count (_ == x) }): _*)
 			(AbcConstantPool.EMPTY_NAME :: noDuplicates.sortWith((a, b) => a match {
 				case AbcTypename(_, _) => false
@@ -52,7 +52,7 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 					case AbcTypename(_, _) => true
 					case _ => count(a) > count(b)
 				}
-			}).removeDuplicates).toArray
+			}).distinct).toArray
 		}
 		new AbcConstantPool(intFuture(), uintFuture(), doubleFuture(), stringFuture(),
 			namespaceFuture(), nssetFuture(), nameFuture())

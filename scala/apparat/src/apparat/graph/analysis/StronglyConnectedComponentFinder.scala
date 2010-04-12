@@ -22,6 +22,7 @@ package apparat.graph.analysis
 
 import apparat.graph.GraphLike
 import collection.immutable.Stack
+import scala.math.min
 
 /**
  * @author Joa Ebert
@@ -49,9 +50,9 @@ class StronglyConnectedComponentFinder[V](val graph: GraphLike[V]) {
 
 				if(-1 == nextIndex) {
 					tarjan(next)
-					vl = vl updated (vertex, Math.min(vl(vertex), vl(next)))
+					vl = vl updated (vertex, min(vl(vertex), vl(next)))
 				} else if(S contains next) {
-					vl = vl updated (vertex, Math.min(vl(vertex), nextIndex))
+					vl = vl updated (vertex, min(vl(vertex), nextIndex))
 				}
 			}
 

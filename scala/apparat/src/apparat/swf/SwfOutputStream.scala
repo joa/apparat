@@ -25,6 +25,8 @@ import java.io.{
 	ByteArrayOutputStream => JByteArrayOutputStream
 }
 
+import scala.math.{max, min}
+
 class SwfOutputStream(val output: JOutputStream) extends JOutputStream {
 	private var bitBuffer: Int = 0
 	private var bitIndex: Int = 0
@@ -38,7 +40,7 @@ class SwfOutputStream(val output: JOutputStream) extends JOutputStream {
 		body
 	}
 
-	private def numBits(x: (Int, Int, Int, Int)) = Math.max(Math.max(countBits(x._1), countBits(x._2)), Math.max(countBits(x._3), countBits(x._4)))
+	private def numBits(x: (Int, Int, Int, Int)) = max(max(countBits(x._1), countBits(x._2)), max(countBits(x._3), countBits(x._4)))
 
 	private def countBits(value: Int) = value match {
 		case 0 => 0

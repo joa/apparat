@@ -62,7 +62,7 @@ class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 
 		var methods = ListBuffer.empty[TaasMethod]
 
-		methods ++= nominal.inst.traits partialMap {
+		methods ++= nominal.inst.traits collect {
 			case methodTrait: AbcTraitAnyMethod => {
 				parseMethod(methodTrait, false)
 			}
@@ -77,15 +77,15 @@ class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 		} else {
 			val fields = ListBuffer.empty[TaasField]
 
-			methods ++= nominal.klass.traits partialMap {
+			methods ++= nominal.klass.traits collect {
 				case methodTrait: AbcTraitAnyMethod => parseMethod(methodTrait, true)
 			}
 
-			fields ++= nominal.inst.traits partialMap {
+			fields ++= nominal.inst.traits collect {
 				case slotTrait: AbcTraitAnySlot => parseSlot(slotTrait, false)
 			}
 
-			fields ++= nominal.klass.traits partialMap {
+			fields ++= nominal.klass.traits collect {
 				case slotTrait: AbcTraitAnySlot => parseSlot(slotTrait, true)
 			}
 
