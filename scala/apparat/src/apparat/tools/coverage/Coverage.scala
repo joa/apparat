@@ -64,7 +64,7 @@ object Coverage {
 										case Some(op) => {
 											val debugFile = op.asInstanceOf[DebugFile]
 											val file = debugFile.file
-											if(sourcePath.isEmpty || (sourcePath exists (file startsWith _))) {
+											if(sourcePath.isEmpty || (sourcePath exists (file.name startsWith _))) {
 												bytecode.replace(debugLine) {
 													x =>
 														DebugLine(x) ::
