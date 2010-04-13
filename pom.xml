@@ -2,8 +2,57 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.googlecode.apparat</groupId>
   <artifactId>apparat-aggregator</artifactId>
+  <name>apparat</name>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
+
+  <description>A framework to optimize ABC, SWC and SWF files.</description>
+  <url>http://code.google.com/p/apparat/</url>
+  
+  <issueManagement>
+    <system>google</system>
+	<url>http://code.google.com/p/apparat/issues/list</url>
+  </issueManagement>
+  
+  <developers>
+    <developer>
+	  <name>Joa Ebert</name>
+	  <email>joaebert@googlemail.com</email>
+	  <roles>
+	    <role>owner</role>
+	  </roles>
+	</developer>
+	<developer>
+	  <name>Patrick Le Clec'h</name>
+	  <roles>
+	    <role>comitter</role>
+	  </roles>
+	</developer>
+  </developers>
+  
+  <contributors>
+    <contributor>
+	  <name>Marvin Froeder</name>
+	  <email>velo.br@gmail.com</name>
+	</contributor>
+  </contributors>
+  
+  <scm>
+    <connection>http://apparat.googlecode.com/svn/trunk/</connection>
+    <developerConnection>https://apparat.googlecode.com/svn/trunk/</developerConnection>
+    <url>http://code.google.com/p/apparat/source/browse/trunk/</url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>LGPL</name>
+      <url>http://www.gnu.org/licenses/lgpl.html</url>
+    </license>
+  </licenses>
+  
+  <properties>
+    <scala.version>2.8.0-SNAPSHOT</scala.version>
+  </properties>
 
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -44,8 +93,17 @@
             </execution>
           </executions>
           <configuration>
-            <scalaVersion>2.8.0-SNAPSHOT</scalaVersion>
+            <scalaVersion>${scala.version}</scalaVersion>
+			<jvmArgs>
+              <arg>-Xmx512M</arg>
+              <arg>-Xss2M</arg>
+            </jvmArgs> 
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.sonatype.flexmojos</groupId>
+          <artifactId>flexmojos-maven-plugin</artifactId>
+          <version>3.5.0</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -53,7 +111,6 @@
       <plugin>
         <groupId>org.sonatype.flexmojos</groupId>
         <artifactId>flexmojos-maven-plugin</artifactId>
-        <version>3.5.0</version>
         <extensions>true</extensions>
       </plugin>
     </plugins>
@@ -66,6 +123,7 @@
     <module>as3/Apparat.Tests.AS3</module>-->
   </modules>
 
+  <!--
   <repositories>
     <repository>
       <id>scala-snapshots</id>
@@ -111,5 +169,34 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
-
+  -->
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.0-alpha-4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
