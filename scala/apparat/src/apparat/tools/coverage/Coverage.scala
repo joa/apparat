@@ -9,6 +9,7 @@ import apparat.bytecode.operations._
 import apparat.bytecode.combinator._
 import apparat.bytecode.combinator.BytecodeChains._
 import apparat.abc.{AbcQName, AbcNamespace, Abc}
+import java.io.{File => JFile}
 
 object Coverage {
 	def main(args: Array[String]): Unit = ApparatApplication(new CoverageTool, args)
@@ -20,15 +21,18 @@ object Coverage {
 		
 		var input = ""
 		var output = ""
+		var sourcePath = List.empty[String]
 
 		override def name = "Coverage"
 
 		override def help = """  -i [file]	Input file
-  -o [file]	Output file (optional)"""
+  -o [file]	Output file (optional)
+  -s [dir]	Source path to instrument"""
 
 		override def configure(config: ApparatConfiguration) = {
 			input = config("-i") getOrElse error("Input is required.")
 			output = config("-o") getOrElse input
+			sourcePath = config("-s") map { _ split JFile.pathSeparatorChar toList } getOrElse List.empty[String]
 			assert(new JFile(input) exists, "Input has to exist.")
 		}
 		
@@ -60,15 +64,17 @@ object Coverage {
 										case Some(op) => {
 											val debugFile = op.asInstanceOf[DebugFile]
 											val file = debugFile.file
-											bytecode.replace(debugLine) {
-												x =>
-													DebugLine(x) ::
-													coverageScope ::
-													PushString(file) ::
-													pushLine(x) ::
-													coverageMethod :: Nil
+											if(sourcePath.isEmpty || (sourcePath exists (file startsWith _))) {
+												bytecode.replace(debugLine) {
+													x =>
+														DebugLine(x) ::
+														coverageScope ::
+														PushString(file) ::
+														pushLine(x) ::
+														coverageMethod :: Nil
+												}
+												body.maxStack += 3
 											}
-											body.maxStack += 3
 										}
 										case None =>
 									}
