@@ -24,6 +24,7 @@ import actors.Actor._
 import actors.Actor
 import apparat.tools.stripper.Stripper
 import apparat.tools.reducer.Reducer
+import apparat.tools.concrete.Concrete
 
 /**
  * @author Joa Ebert
@@ -32,25 +33,47 @@ class ShellActor extends Actor {
 	def act() = loop {
 		receive {
 			case CommandEvent(command) => {
-				val response = (command: Seq[Char]) match {
-					case Seq('s','t','r','i','p','p','e','r',' ', rest @ _*) => {
-						Stripper.main(createArguments(rest))
+				val response = if(command startsWith "stripper ") {
+					Stripper.main(createArguments(command drop "stripper ".length))
+				} else if(command startsWith "reducer ") {
+					Reducer.main(createArguments(command drop "reducer ".length))
+				} else if(command startsWith "concrete ") {
+					Concrete.main(createArguments(command drop "concrete ".length))
+				} else if(command startsWith "help ") {
+					(command drop "help ".length) match {
+						case "reducer" => "reducer -i input [-o output] [-q quality]"
+						case "stripper" => "stripper -i input [-o output]"
+						case "concrete" => "concrete -i input"
+						case "help" | "exit" | "quit" | "stop" => "No detail help available."
+						case other => "Error: Unknown command \"" + other + "\""
 					}
-					case Seq('r','e','d','u','c','e','r', ' ', rest @ _*) => {
-						Reducer.main(createArguments(rest))
-					}
+				} else if(command == "help") {
+					"""help [command] - For detailed help
+quit - Exit the Apparat shell
+reducer - Convert lossless to lossy graphics
+stripper - Strip traces and debug operations
+concrete - Checks that [Abstract] methods are implemented"""
+				} else {
+					"Error: Unknown command \""+command+"\""
+				}
+				/*val response = (command: Seq[Char]) match {
+					case Seq('s','t','r','i','p','p','e','r',' ', rest @ _*) => Stripper.main(createArguments(rest))
+					case Seq('r','e','d','u','c','e','r',' ', rest @ _*) => Reducer.main(createArguments(rest))
+					case Seq('r','3','d','u','c','e','r',' ', rest @ _*) => Concrete.main(createArguments(rest))
 					case Seq('h','e','l','p', ' ', rest @ _*) => (rest mkString "") match {
 						case "reducer" => "reducer -i input [-o output] [-q quality]"
 						case "stripper" => "stripper -i input [-o output]"
+						case "concrete" => "concrete -i input"
 						case "help" | "exit" | "quit" | "stop" => "No detail help available."
 						case other => "Error: Unknown command \"" + other + "\""
 					}
 					case Seq('h', 'e', 'l', 'p') => """help [command] - For detailed help
 quit - Exit the Apparat shell
 reducer - Convert lossless to lossy graphics
-stripper - Strip traces and debug operations"""
+stripper - Strip traces and debug operations
+concrete - Checks that [Abstract] methods are implemented"""
 					case _ => "Error: Unknown command \"" + command + "\""
-				}
+				}*/
 
 				sender ! response
 			}

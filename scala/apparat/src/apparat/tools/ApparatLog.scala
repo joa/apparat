@@ -17,7 +17,7 @@ object ApparatLog {
 
 	def warn(message: String) = write("[!] " + message)
 
-	def err(message: String): Unit = write("[-] " + message)
+	def err(message: String): Unit = Console.err.println("[-] " + message)
 
 	def err(throwable: Throwable): Unit = {
 		err(throwable.getMessage)

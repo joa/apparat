@@ -16,8 +16,7 @@ import java.io.{File => JFile, ByteArrayOutputStream => JByteArrayOutputStream, 
 object Reducer {
 	def main(args: Array[String]): Unit = ApparatApplication(new ReducerTool, args)
 
-	class ReducerTool extends ApparatTool
-	{
+	class ReducerTool extends ApparatTool {
 		var deblock = 0.0f
 		var quality = 0.99f
 		var input = ""
