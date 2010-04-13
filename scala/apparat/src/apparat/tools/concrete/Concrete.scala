@@ -1,12 +1,12 @@
 package apparat.tools.concrete
 
-import java.io.{File => JFile}
 import apparat.swf.{DoABC, SwfTags}
 import apparat.utils.TagContainer
-import collection.immutable.Stack
-import annotation.tailrec
 import apparat.abc._
 import apparat.tools.{ApparatLog, ApparatConfiguration, ApparatTool, ApparatApplication}
+import java.io.{File => JFile}
+import scala.collection.immutable.Stack
+import scala.annotation.tailrec
 
 object Concrete {
 	def main(args: Array[String]): Unit = ApparatApplication(new ConcreteTool, args)
