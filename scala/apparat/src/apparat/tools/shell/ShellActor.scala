@@ -25,6 +25,7 @@ import actors.Actor
 import apparat.tools.stripper.Stripper
 import apparat.tools.reducer.Reducer
 import apparat.tools.concrete.Concrete
+import apparat.tools.coverage.Coverage
 
 /**
  * @author Joa Ebert
@@ -37,12 +38,15 @@ class ShellActor extends Actor {
 					Stripper.main(createArguments(command drop "stripper ".length))
 				} else if(command startsWith "reducer ") {
 					Reducer.main(createArguments(command drop "reducer ".length))
+				} else if(command startsWith "coverage ") {
+					Coverage.main(createArguments(command drop "coverage ".length))
 				} else if(command startsWith "concrete ") {
 					Concrete.main(createArguments(command drop "concrete ".length))
 				} else if(command startsWith "help ") {
 					(command drop "help ".length) match {
 						case "reducer" => "reducer -i input [-o output] [-q quality]"
 						case "stripper" => "stripper -i input [-o output]"
+						case "coverage" => "coverage -i input [-o output]"
 						case "concrete" => "concrete -i input"
 						case "help" | "exit" | "quit" | "stop" => "No detail help available."
 						case other => "Error: Unknown command \"" + other + "\""
@@ -52,7 +56,8 @@ class ShellActor extends Actor {
 quit - Exit the Apparat shell
 reducer - Convert lossless to lossy graphics
 stripper - Strip traces and debug operations
-concrete - Checks that [Abstract] methods are implemented"""
+concrete - Checks that [Abstract] methods are implemented
+coverage - Inject coverage analytics"""
 				} else {
 					"Error: Unknown command \""+command+"\""
 				}
