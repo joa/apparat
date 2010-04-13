@@ -56,24 +56,6 @@ concrete - Checks that [Abstract] methods are implemented"""
 				} else {
 					"Error: Unknown command \""+command+"\""
 				}
-				/*val response = (command: Seq[Char]) match {
-					case Seq('s','t','r','i','p','p','e','r',' ', rest @ _*) => Stripper.main(createArguments(rest))
-					case Seq('r','e','d','u','c','e','r',' ', rest @ _*) => Reducer.main(createArguments(rest))
-					case Seq('r','3','d','u','c','e','r',' ', rest @ _*) => Concrete.main(createArguments(rest))
-					case Seq('h','e','l','p', ' ', rest @ _*) => (rest mkString "") match {
-						case "reducer" => "reducer -i input [-o output] [-q quality]"
-						case "stripper" => "stripper -i input [-o output]"
-						case "concrete" => "concrete -i input"
-						case "help" | "exit" | "quit" | "stop" => "No detail help available."
-						case other => "Error: Unknown command \"" + other + "\""
-					}
-					case Seq('h', 'e', 'l', 'p') => """help [command] - For detailed help
-quit - Exit the Apparat shell
-reducer - Convert lossless to lossy graphics
-stripper - Strip traces and debug operations
-concrete - Checks that [Abstract] methods are implemented"""
-					case _ => "Error: Unknown command \"" + command + "\""
-				}*/
 
 				sender ! response
 			}
