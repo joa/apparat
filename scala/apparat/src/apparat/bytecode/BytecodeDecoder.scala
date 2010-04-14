@@ -91,6 +91,7 @@ object BytecodeDecoder {
 			case Op.convert_m => error("convert_m")
 			case Op.convert_m_p => error("convet_m_p")
 			case Op.convert_o => ConvertObject()
+			case Op.convert_s => ConvertString()
 			case Op.convert_u => ConvertUInt()
 			case Op.debug => Debug(u08, string, u08, u30)
 			case Op.debugfile => DebugFile(string)

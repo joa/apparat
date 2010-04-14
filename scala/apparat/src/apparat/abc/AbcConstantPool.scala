@@ -45,9 +45,9 @@ class AbcConstantPool(
 		case AbcConstantType.Int => ints(index)
 		case AbcConstantType.UInt => uints(index)
 		case AbcConstantType.Double => doubles(index)
-		case AbcConstantType.Utf8 => strings(index);
+		case AbcConstantType.Utf8 => strings(index)
 		case AbcConstantType.True => true
-		case AbcConstantType.False => false;
+		case AbcConstantType.False => false
 		case AbcConstantType.Null => null
 		case AbcConstantType.Undefined => null
 		case AbcConstantType.Namespace |
@@ -80,7 +80,52 @@ class AbcConstantPool(
 		}
 	}
 
-	def indexOf(kind: Int, value: Any): Int = error("TODO")//TODO needs to write type
+	def indexOf(kind: Int, value: Any): Int = {
+		//
+		// Undocumented: If a value type has no value associated with it. I.e.
+		// Null we have to return the type of the constant.
+		//
+
+		//
+		// NOTE: Although index zero is correct for certain values (e.g. type
+		// is Int and value is "0" the index is usually 0) we may not return
+		// it since a trait has no value associated with it if the index
+		// is zero.
+		//
+		kind match {
+			case AbcConstantType.Int => ints.indexOf(value.asInstanceOf[Int], 1)
+			case AbcConstantType.UInt => uints.indexOf(value.asInstanceOf[Long], 1)
+			case AbcConstantType.Double => {
+				//TODO fix when fixed
+				//http://lampsvn.epfl.ch/trac/scala/ticket/3291
+				val double = value.asInstanceOf[Double]
+				if(double.isNaN) {
+					for(i <- 1 until doubles.length) {
+						if(doubles(i).isNaN) {
+							return i
+						}
+					}
+					
+					-1
+				} else {
+					doubles.indexOf(value.asInstanceOf[Double], 1)
+				}
+			}
+			case AbcConstantType.Utf8 => strings.indexOf(value.asInstanceOf[Symbol], 1)
+			case AbcConstantType.True |
+					AbcConstantType.False |
+					AbcConstantType.Null |
+					AbcConstantType.Undefined => kind
+			case AbcConstantType.Namespace |
+					AbcConstantType.PackageNamespace |
+					AbcConstantType.InternalNamespace |
+					AbcConstantType.ProtectedNamespace |
+					AbcConstantType.ExplicitNamespace |
+					AbcConstantType.StaticProtectedNamespace |
+					AbcConstantType.PrivateNamespace => namespaces.indexOf(value.asInstanceOf[AbcNamespace], 1)
+			case _ => 0xff
+		}
+	}
 
 	override def toString = "[AbcConstantPool]"
 

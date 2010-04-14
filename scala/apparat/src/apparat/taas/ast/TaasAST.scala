@@ -247,7 +247,7 @@ sealed trait TaasUnop
 case object TNot extends TaasUnop
 case object TRef extends TaasUnop
 
-sealed trait TExpr extends TaasElement
+sealed trait TExpr extends TaasElement with ParentUnit
 
 case class TReg(index: Int) extends TExpr
 case class T2(op: TaasUnop, operand1: TReg, operand2: TReg) extends TExpr
