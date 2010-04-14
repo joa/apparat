@@ -45,60 +45,62 @@ object Coverage {
 			val source = new JFile(input)
 			val target = new JFile(output)
 			val cont = TagContainer fromFile source
-			cont.tags = cont.tags map { tag => future { coverage(tag) } } map { _() }
+			cont.tags = cont.tags map coverage
 			cont write target
 		}
 
 		private def coverage(tag: SwfTag) = tag match {
 			case doABC: DoABC => {
-				val abc = Abc fromDoABC doABC
+				val f = future {
+					val abc = Abc fromDoABC doABC
 
-				abc.loadBytecode()
+					abc.loadBytecode()
 
-				for(method <- abc.methods) {
-					method.body match {
-						case Some(body) => {
-							body.bytecode match {
-								case Some(bytecode) => {
-									bytecode.ops find (_.opCode == Op.debugfile) match {
-										case Some(op) => {
-											val debugFile = op.asInstanceOf[DebugFile]
-											val file = debugFile.file
-											if(sourcePath.isEmpty || (sourcePath exists (file.name startsWith _))) {
-												bytecode.replace(debugLine) {
-													x =>
-														DebugLine(x) ::
-														coverageScope ::
-														PushString(file) ::
-														pushLine(x) ::
-														coverageMethod :: Nil
+					for(method <- abc.methods) {
+						method.body match {
+							case Some(body) => {
+								body.bytecode match {
+									case Some(bytecode) => {
+										bytecode.ops find (_.opCode == Op.debugfile) match {
+											case Some(op) => {
+												val debugFile = op.asInstanceOf[DebugFile]
+												val file = debugFile.file
+												if(sourcePath.isEmpty || (sourcePath exists (file.name startsWith _))) {
+													bytecode.replace(debugLine) {
+														x =>
+															DebugLine(x) ::
+															coverageScope ::
+															PushString(file) ::
+															pushLine(x) ::
+															coverageMethod :: Nil
+													}
+													body.maxStack += 3
 												}
-												body.maxStack += 3
 											}
+											case None =>
 										}
-										case None =>
 									}
+									case None =>
 								}
-								case None =>
 							}
+							case None =>
 						}
-						case None =>
 					}
+
+					abc.saveBytecode()
+					abc write doABC
+
+					doABC
 				}
-
-				abc.rebuildPool()
-				abc.saveBytecode()
-				abc write doABC
-
-				doABC
+				f()
 			}
 			case _ => tag
 		}
 
 		private def pushLine(line: Int) = line match {
-			case x if x < 0x7f => PushByte(x)
-			case x if x < 0x7fff => PushShort(x)
-			case x => PushUInt(x)
+			case x if x < 0x80 => PushByte(x)
+			case x if x < 0x8000 => PushShort(x)
+			case x => error("Too many lines.")
 		}
 	}
 }
