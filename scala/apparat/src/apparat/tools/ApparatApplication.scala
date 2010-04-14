@@ -8,6 +8,9 @@ object ApparatApplication {
 			ApparatLog("Apparat -- http://apparat.googlecode.com/")
 			ApparatLog("Launching tool: " + tool.name)
 
+			if(!apparat.actors.Actor.threadsEnabled) {
+				ApparatLog.warn("All apparat actors are running in single-thread mode.")
+			}
 			val config = new ApparatConfiguration
 			var valid = args.length > 0
 
