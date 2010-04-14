@@ -20,7 +20,7 @@
  */
 package apparat.taas.frontend.abc
 
-import scala.actors.Futures._
+import apparat.actors.Futures._
 import apparat.abc.{Abc, AbcMethod}
 import apparat.graph.immutable.{Graph, BytecodeControlFlowGraphBuilder}
 import apparat.taas.ast._

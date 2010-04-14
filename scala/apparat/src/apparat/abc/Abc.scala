@@ -20,7 +20,7 @@
  */
 package apparat.abc
 
-import annotation.tailrec
+import scala.annotation.tailrec
 import apparat.bytecode._
 import apparat.utils.IO
 import apparat.utils.IO._
@@ -28,8 +28,8 @@ import apparat.utils.Dumpable
 import apparat.utils.IndentingPrintWriter
 import apparat.swf.{DoABC, Swf, SwfTag, SwfTags}
 import apparat.abc.analysis._
-import collection.immutable._
-import actors.Futures._
+import scala.collection.immutable._
+import apparat.actors.Futures._
 import java.io.{
 	ByteArrayInputStream => JByteArrayInputStream,
 	ByteArrayOutputStream => JByteArrayOutputStream,

@@ -1,7 +1,7 @@
 package apparat.tools.coverage
 
 import apparat.utils.TagContainer
-import actors.Futures._
+import apparat.actors.Futures._
 import java.io.{File => JFile}
 import apparat.tools.{ApparatConfiguration, ApparatTool, ApparatApplication}
 import apparat.swf.{SwfTag, SwfTags, DoABC}

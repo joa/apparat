@@ -36,7 +36,7 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 	}
 
 	def createPool = {
-		import scala.actors.Futures._
+		import apparat.actors.Futures._
 		val intFuture = future { (0 :: optimize(ints)).toArray }
 		val uintFuture = future { (0L :: optimize(uints)).toArray }
 		val doubleFuture = future { (Double.NaN :: optimize(doubles)).toArray }

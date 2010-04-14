@@ -20,8 +20,8 @@
  */
 package apparat.tools.shell
 
-import actors.Actor._
-import actors.{Exit, Futures, Actor}
+import scala.actors.Actor._
+import scala.actors.{Exit, Futures, Actor}
 
 /**
  * @author Joa Ebert

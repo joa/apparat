@@ -23,7 +23,7 @@ package apparat.tools.stripper
 import apparat.tools.{ApparatConfiguration, ApparatApplication, ApparatTool}
 import java.io.{File => JFile}
 import apparat.utils.TagContainer
-import actors.Futures._
+import apparat.actors.Futures._
 import apparat.swf.{SwfTag, DoABC, SwfTags, DefineBitsLossless2}
 import apparat.abc._
 import apparat.bytecode.operations._
@@ -102,50 +102,53 @@ object Stripper {
 			val source = new JFile(input)
 			val target = new JFile(output)
 			val cont = TagContainer fromFile source
-			cont.tags = cont.tags map { tag => future { strip(tag) } } map { _() }
+			cont.tags = cont.tags map strip
 			cont write target
 		}
 
 		private def strip(tag: SwfTag) = tag match {
 			case doABC: DoABC => {
-				val abc = Abc fromDoABC doABC
+				val f = future {
+					val abc = Abc fromDoABC doABC
+	
+					abc.loadBytecode()
 
-				abc.loadBytecode()
+					for(method <- abc.methods) {
+						method.body match {
+							case Some(body) => {
+								body.bytecode match {
+									case Some(bytecode) => {
+										//
+										// Strip all debug information.
+										//
 
-				for(method <- abc.methods) {
-					method.body match {
-						case Some(body) => {
-							body.bytecode match {
-								case Some(bytecode) => {
-									//
-									// Strip all debug information.
-									//
-
-									bytecode removeAll {
-										_.opCode match {
-											case Op.debug | Op.debugfile | Op.debugline => true
-											case _ => false
+										bytecode removeAll {
+											_.opCode match {
+												case Op.debug | Op.debugfile | Op.debugline => true
+												case _ => false
+											}
 										}
+
+										//
+										// Strip all traces.
+										//
+
+										bytecode rewrite traceVoid
+										bytecode rewrite trace
 									}
-
-									//
-									// Strip all traces.
-									//
-
-									bytecode rewrite traceVoid
-									bytecode rewrite trace
+									case None =>
 								}
-								case None =>
 							}
+							case None =>
 						}
-						case None =>
 					}
+
+					abc.saveBytecode()
+					abc write doABC
+
+					doABC
 				}
-
-				abc.saveBytecode()
-				abc write doABC
-
-				doABC
+				f()
 			}
 			case _ => tag
 		}

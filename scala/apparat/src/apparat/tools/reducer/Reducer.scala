@@ -10,7 +10,7 @@ import javax.imageio.{ImageIO => JImageIO}
 import javax.imageio.{ImageWriteParam => JImageWriteParam}
 import java.util.zip.{Inflater => JInflater}
 import java.util.zip.{Deflater => JDeflater}
-import scala.actors.Futures._
+import apparat.actors.Futures._
 import java.io.{File => JFile, ByteArrayOutputStream => JByteArrayOutputStream, ByteArrayInputStream => JByteArrayInputStream}
 
 object Reducer {
@@ -49,7 +49,7 @@ object Reducer {
 			val target = new JFile(output)
 			val l0 = source length
 			val cont = TagContainer fromFile source
-			cont.tags = cont.tags map {x => future {reduce(x)}} map {_()}
+			cont.tags = cont.tags map reduce
 			cont write target
 			val delta = l0 - (target length)
 			ApparatLog("Compression ratio: " + ((delta).asInstanceOf[Float] / l0.asInstanceOf[Float]) * 100.0f + "%")
@@ -58,12 +58,15 @@ object Reducer {
 
 		private def reduce(tag: SwfTag) = tag.kind match {
 			case SwfTags.DefineBitsLossless2 => {
-				val dbl2 = tag.asInstanceOf[DefineBitsLossless2]
-				if (5 == dbl2.bitmapFormat && (dbl2.bitmapWidth * dbl2.bitmapHeight) > 1024) {
-					lossless2jpg(dbl2)
-				} else {
-					dbl2
+				val f = future {
+					val dbl2 = tag.asInstanceOf[DefineBitsLossless2]
+					if (5 == dbl2.bitmapFormat && (dbl2.bitmapWidth * dbl2.bitmapHeight) > 1024) {
+						lossless2jpg(dbl2)
+					} else {
+						dbl2
+					}
 				}
+				f()
 			}
 			case _ => tag
 		}
