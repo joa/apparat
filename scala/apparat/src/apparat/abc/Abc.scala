@@ -81,6 +81,7 @@ class Abc extends Dumpable {
 	var metadata = new Array[AbcMetadata](0)
 	var types = new Array[AbcNominalType](0)
 	var scripts = new Array[AbcScript](0)
+	var bytecodeAvailable = false
 
 	def accept(visitor: AbcVisitor) = {
 		visitor visit this
@@ -93,7 +94,7 @@ class Abc extends Dumpable {
 
 	def rebuildPool() = cpool = AbcConstantPoolBuilder using this
 	
-	def loadBytecode() = {
+	def loadBytecode() = if(!bytecodeAvailable) {
 		implicit val abc = this
 
 		methods filter (_.body.isDefined) map {
@@ -109,9 +110,11 @@ class Abc extends Dumpable {
 				case None => {}
 			}
 		}*/
+
+		bytecodeAvailable = true
 	}
 
-	def saveBytecode() = {
+	def saveBytecode() = if(bytecodeAvailable) {
 		implicit val abc = this
 
 		val tasks = for(method <- methods if method.body.isDefined) yield future {
@@ -663,10 +666,6 @@ class Abc extends Dumpable {
 			writer withIndent {
 				scripts foreach (_ dump writer)
 			}
-			/*
-	var types = new Array[AbcNominalType](0)
-	var scripts = new Array[AbcScript](0)
-			 */
 		}
 	}
 }

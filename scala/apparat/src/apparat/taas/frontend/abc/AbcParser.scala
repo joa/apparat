@@ -27,7 +27,7 @@ import apparat.abc._
 /**
  * @author Joa Ebert
  */
-class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
+protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 	private implicit val implicitAST = ast
 	
 	def parseAbc(): Unit = parseAbc(unit, abc)
@@ -109,7 +109,8 @@ class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			parseParameters(methodTrait.method.parameters),
 			isStatic,
 			methodTrait.isFinal,
-			methodTrait.method.isNative)
+			methodTrait.method.isNative,
+			methodTrait.method)
 	}
 
 	def parseMethod(method: AbcMethod, isStatic: Boolean, isFinal: Boolean): TaasMethod = {
@@ -120,7 +121,8 @@ class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			parseParameters(method.parameters),
 			isStatic,
 			isFinal,
-			method.isNative)
+			method.isNative,
+			method)
 	}
 
 	def parseParameters(parameters: Array[AbcMethodParameter]) = ListBuffer((parameters map parseParameter): _*)
@@ -169,6 +171,16 @@ class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 				case AbcTypename(name, parameters) => AbcTypes fromTypename (name, parameters)
 				case _ => error("Unexpected name: " + name)
 			}
+		}
+	}
+
+	private implicit def method2code(method: AbcMethod): Option[TaasCode] = {
+		method.body match {
+			case Some(body) => body.bytecode match {
+				case Some(bytecode) => Some(new AbcCode(ast, abc, method))
+				case None => None
+			}
+			case None => None
 		}
 	}
 }

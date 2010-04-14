@@ -44,4 +44,6 @@ class AbcInstance(
 
 		}
 	}
+
+	override def toString = "[AbcInstance name: " + name + "]"
 }

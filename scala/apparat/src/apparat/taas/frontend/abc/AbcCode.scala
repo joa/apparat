@@ -20,31 +20,31 @@
  */
 package apparat.taas.frontend.abc
 
-import apparat.taas.frontend.TaasFrontend
+import scala.actors.Futures._
+import apparat.abc.{Abc, AbcMethod}
+import apparat.graph.immutable.{Graph, BytecodeControlFlowGraphBuilder}
 import apparat.taas.ast._
-import collection.mutable.ListBuffer
-import apparat.abc._
-
 /**
  * @author Joa Ebert
  */
-class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
-	private val ast: TaasAST = TaasAST(ListBuffer.empty)
+protected[abc] class AbcCode(ast: TaasTree, abc: Abc, method: AbcMethod) extends TaasCode {
+	lazy val graph = {
+		val f = future { computeGraph() }
+		f()
+	}
 	
-	override def getAST = {
-		main.loadBytecode()
-		libraries foreach { _.loadBytecode() }
+	private def computeGraph() = {
+		require(method.body.isDefined, "MethodBody has to be defined.")
+		require(method.body.get.bytecode.isDefined, "Bytecode has to be defined.")
+
+		val body = method.body.get
+		val bytecode = body.bytecode.get
+		val g = BytecodeControlFlowGraphBuilder(bytecode)
 		
-		val target = TaasTarget(ListBuffer.empty)
-		val lib = TaasLibrary(ListBuffer.empty)
-		ast.children append target
-		ast.children append lib
-
-		libraries foreach parse(lib) _
-		parse(target)(main)
-
-		ast.init()
+		g.dump()
+		
+		new Graph[TaasElement]()
 	}
 
-	private def parse(unit: TaasUnit)(abc: Abc) = new AbcParser(ast, abc, unit).parseAbc()
+	override def toString = "AbcCode"
 }

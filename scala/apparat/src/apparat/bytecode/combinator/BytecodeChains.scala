@@ -45,7 +45,7 @@ object BytecodeChains {
 		override def apply(list: List[AbstractOp]) = {
 			val head = list.head
 			lazy val errorMessage = "Expected '%s' got '%s'.".format(f, head)
-			if(f.isDefinedAt(head) && f(head)) {
+			if(head != Nil && f.isDefinedAt(head) && f(head)) {
 				Success(head, list drop 1)
 			}
 			else Failure(errorMessage)

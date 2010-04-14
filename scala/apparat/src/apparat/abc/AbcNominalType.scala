@@ -22,4 +22,6 @@ class AbcNominalType(val inst: AbcInstance) extends Dumpable {
 			inst dump writer
 		}
 	}
+
+	override def toString = "[AbcNominalType inst: " + inst + "]"
 }

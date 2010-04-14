@@ -26,7 +26,7 @@ import apparat.taas.ast._
 /**
  * @author Joa Ebert
  */
-object AbcTypes {
+protected[abc] object AbcTypes {
 	def fromQName(name: Symbol, namespace: AbcNamespace)(implicit ast: TaasAST): AbcType = new AbcType(ast, name, namespace)
 	def fromQName(qname: AbcQName)(implicit ast: TaasAST): AbcType = fromQName(qname.name, qname.namespace)
 
@@ -34,7 +34,7 @@ object AbcTypes {
 	def fromTypename(typename: AbcTypename)(implicit ast: TaasAST): AbcParameterizedType = fromTypename(typename.name, typename.parameters)
 }
 
-class AbcType(ast: TaasAST, name: Symbol, namespace: AbcNamespace) extends TaasNominalType {
+protected[abc] class AbcType(ast: TaasAST, name: Symbol, namespace: AbcNamespace) extends TaasNominalType {
 	lazy val nominal: TaasNominal = {
 		def search(ast: TaasAST): TaasNominal = {
 			for(unit <- ast.units;
@@ -55,7 +55,7 @@ class AbcType(ast: TaasAST, name: Symbol, namespace: AbcNamespace) extends TaasN
 	}
 }
 
-class AbcParameterizedType(ast: TaasAST, name: AbcQName, params: Array[AbcName]) extends TaasParameterizedType {
+protected[abc] class AbcParameterizedType(ast: TaasAST, name: AbcQName, params: Array[AbcName]) extends TaasParameterizedType {
 	lazy val nominal: TaasNominal = AbcTypes.fromQName(name)(ast).nominal
 	lazy val parameters: List[TaasNominalType] = params map {
 		case AbcQName(name, namespace) => AbcTypes.fromQName(name, namespace)(ast)

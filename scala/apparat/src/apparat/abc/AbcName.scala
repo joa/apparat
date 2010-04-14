@@ -56,4 +56,6 @@ case class AbcMultiname(name: Symbol, nsset: AbcNSSet) extends AbcName(AbcNameKi
 case class AbcMultinameA(name: Symbol, nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameA)
 case class AbcMultinameL(nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameL)
 case class AbcMultinameLA(nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameLA)
-case class AbcTypename(name: AbcQName, parameters: Array[AbcName]) extends AbcName(AbcNameKind.Typename) 
+case class AbcTypename(name: AbcQName, parameters: Array[AbcName]) extends AbcName(AbcNameKind.Typename) {
+	override def toString = "AbcTypename(" + name + ", [" + (parameters mkString ", ") + "])"
+}

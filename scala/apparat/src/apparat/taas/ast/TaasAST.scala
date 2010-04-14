@@ -21,6 +21,7 @@
 package apparat.taas.ast
 
 import collection.mutable.ListBuffer
+import apparat.graph.GraphLike
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 /**
@@ -164,9 +165,31 @@ case class TaasMethod(
 		parameters: ListBuffer[TaasParameter],
 		isStatic: Boolean,
 		isFinal: Boolean,
-		isNative: Boolean) extends TaasNode with TaasDefinition with TaasTyped {
+		isNative: Boolean, code: Option[TaasCode]) extends TaasNode with TaasDefinition with TaasTyped {
 	type T = TaasParameter
 	def children = parameters
+
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= toString
+		code match {
+			case Some(code) => writer withIndent {
+				code dump writer
+			}
+			case None =>
+		}
+	}
+}
+
+abstract class TaasCode extends Dumpable {
+	type TaasGraph = GraphLike[TaasElement]
+	def graph: TaasGraph
+
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= "TaasCode"
+		writer withIndent {
+			graph dump writer
+		}
+	}
 }
 
 case class TaasParameter(
@@ -205,3 +228,27 @@ case class TaasClass(
 		result
 	}
 }
+
+//
+// You are here.
+//
+
+sealed trait TaasBinop
+case object TAdd extends TaasBinop
+case object TSub extends TaasBinop
+case object TMul extends TaasBinop
+case object TDiv extends TaasBinop
+case object TMod extends TaasBinop
+case object TAnd extends TaasBinop
+case object TXor extends TaasBinop
+case object TOr extends TaasBinop
+
+sealed trait TaasUnop
+case object TNot extends TaasUnop
+case object TRef extends TaasUnop
+
+sealed trait TExpr extends TaasElement
+
+case class TReg(index: Int) extends TExpr
+case class T2(op: TaasUnop, operand1: TReg, operand2: TReg) extends TExpr
+case class T3(op: TaasBinop, operand1: TReg, operand2: TReg, result: TReg) extends TExpr

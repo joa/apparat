@@ -29,5 +29,5 @@ trait Dumpable {
 		dump(indentingPrintWriter)
 		indentingPrintWriter.flush()
 	}
-	def dump(writer: IndentingPrintWriter)
+	def dump(writer: IndentingPrintWriter): Unit
 }
