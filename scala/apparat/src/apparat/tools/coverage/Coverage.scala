@@ -8,16 +8,19 @@ import apparat.swf.{SwfTag, SwfTags, DoABC}
 import apparat.bytecode.operations._
 import apparat.bytecode.combinator._
 import apparat.bytecode.combinator.BytecodeChains._
-import apparat.abc.{AbcQName, AbcNamespace, Abc}
 import java.io.{File => JFile}
+import apparat.abc.{AbcConstantPool, AbcQName, AbcNamespace, Abc}
+import compat.Platform
 
 object Coverage {
 	def main(args: Array[String]): Unit = ApparatApplication(new CoverageTool, args)
 
 	class CoverageTool extends ApparatTool {
 		val debugLine = partial { case DebugLine(line) => line }
-		val coverageScope = GetLex(AbcQName('Coverage, AbcNamespace(22, Symbol("apparat.coverage"))))
-		val coverageMethod = CallPropVoid(AbcQName('onSample, AbcNamespace(22, Symbol(""))), 2)
+		val coverageQName = AbcQName('Coverage, AbcNamespace(22, Symbol("apparat.coverage")))
+		val coverageOnSample = AbcQName('onSample, AbcNamespace(22, Symbol("")))
+		val coverageScope = GetLex(coverageQName)
+		val coverageMethod = CallPropVoid(coverageOnSample, 2)
 		
 		var input = ""
 		var output = ""
@@ -52,6 +55,7 @@ object Coverage {
 		private def coverage(tag: SwfTag) = tag match {
 			case doABC: DoABC => {
 				val f = future {
+					var abcModified = false
 					val abc = Abc fromDoABC doABC
 
 					abc.loadBytecode()
@@ -66,6 +70,7 @@ object Coverage {
 												val debugFile = op.asInstanceOf[DebugFile]
 												val file = debugFile.file
 												if(sourcePath.isEmpty || (sourcePath exists (file.name startsWith _))) {
+													abcModified = true
 													bytecode.replace(debugLine) {
 														x =>
 															DebugLine(x) ::
@@ -87,8 +92,11 @@ object Coverage {
 						}
 					}
 
-					abc.saveBytecode()
-					abc write doABC
+					if(abcModified) {
+						abc.rebuildPool()
+						abc.saveBytecode()
+						abc write doABC
+					}
 
 					doABC
 				}

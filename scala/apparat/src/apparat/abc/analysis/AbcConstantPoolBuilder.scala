@@ -18,6 +18,7 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 	var namespaces: List[AbcNamespace] = Nil
 	var nssets: List[AbcNSSet] = Nil
 	var names: List[AbcName] = Nil
+	var addNaN = false
 
 	def reset = {
 		ints = Nil
@@ -27,6 +28,7 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 		namespaces = Nil
 		nssets = Nil
 		names = Nil
+		addNaN = false
 	}
 
 	def optimize[@specialized B](list: List[B]) = {
@@ -39,7 +41,13 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 		import apparat.actors.Futures._
 		val intFuture = future { (0 :: optimize(ints)).toArray }
 		val uintFuture = future { (0L :: optimize(uints)).toArray }
-		val doubleFuture = future { (Double.NaN :: optimize(doubles)).toArray }
+		val doubleFuture = future {
+			if(addNaN) {
+				(Double.NaN :: Double.NaN :: optimize(doubles)).toArray
+			} else {
+				(Double.NaN :: optimize(doubles)).toArray
+			}
+		}
 		val stringFuture = future { (AbcConstantPool.EMPTY_STRING :: optimize(strings)).toArray }
 		val namespaceFuture = future { (AbcConstantPool.EMPTY_NAMESPACE :: optimize(namespaces)).toArray }
 		val nssetFuture = future { (AbcConstantPool.EMPTY_NSSET :: optimize(nssets)).toArray }
@@ -109,6 +117,33 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 				parameters foreach add
 			}
 		}
+	}
+
+	def add(kind: Int, value: Any): Unit = kind match {
+		case AbcConstantType.Int => add(value.asInstanceOf[Int])
+		case AbcConstantType.UInt => add(value.asInstanceOf[Long])
+		case AbcConstantType.Double => {
+			//TODO fix when fixed
+			//http://lampsvn.epfl.ch/trac/scala/ticket/3291
+			val double = value.asInstanceOf[Double]
+			if(double.isNaN) {
+				addNaN = true
+			} else {
+				add(value.asInstanceOf[Double])
+			}
+		}
+		case AbcConstantType.Utf8 => add(value.asInstanceOf[Symbol])
+		case AbcConstantType.True |
+				AbcConstantType.False |
+				AbcConstantType.Null |
+				AbcConstantType.Undefined =>
+		case AbcConstantType.Namespace |
+				AbcConstantType.PackageNamespace |
+				AbcConstantType.InternalNamespace |
+				AbcConstantType.ProtectedNamespace |
+				AbcConstantType.ExplicitNamespace |
+				AbcConstantType.StaticProtectedNamespace |
+				AbcConstantType.PrivateNamespace => add(value.asInstanceOf[AbcNamespace])
 	}
 
 	override def visit(value: AbcConstantPool): Unit = {}
@@ -274,8 +309,11 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 		}
 
 		if(value.optional) {
-			error("TODO")
-			//TODO add optional
+			if(value.optionalType.isDefined && value.optionalVal.isDefined) {
+				add(value.optionalType.get, value.optionalVal.get)
+			} else {
+				error("Optional parameter that is not properly defined.")
+			}
 		}
 	}
 
@@ -286,7 +324,13 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 			case slot: AbcTraitAnySlot => {
 				add(slot.typeName)
 				slot.value match {
-					case Some(value) => error("TODO")//TODO add optional
+					case Some(value) => {
+						if(slot.value.isDefined && slot.valueType.isDefined) {
+							add(slot.valueType.get, slot.value.get)
+						} else {
+							error("Slot with initial value that is not properly defined.")
+						}
+					}
 					case None =>
 				}
 			}
