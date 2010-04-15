@@ -21,13 +21,13 @@
 
 package com.joa_ebert.apparat.swf.io;
 
+import com.joa_ebert.apparat.swf.tags.ITag;
+import com.joa_ebert.apparat.swf.tags.Tags;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
-
-import com.joa_ebert.apparat.swf.tags.ITag;
-import com.joa_ebert.apparat.swf.tags.Tags;
 
 /**
  * 
@@ -151,7 +151,7 @@ public final class SwfOutputStream extends OutputStream
 	{
 		int tagTypeAndLength = value.type << 6;
 		// Patrick
-		// Fix issue n°5 (http://code.google.com/p/apparat/issues/detail?id=5#c2)
+		// Fix issue no5 (http://code.google.com/p/apparat/issues/detail?id=5#c2)
 		// smaller image disappear
 		// This was trickier to find
 		// The problem is that the SWF Format expect that length of

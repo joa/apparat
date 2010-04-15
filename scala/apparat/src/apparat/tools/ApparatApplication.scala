@@ -9,13 +9,14 @@ object ApparatApplication {
 			ApparatLog("Launching tool: " + tool.name)
 
 			if(!apparat.actors.Actor.threadsEnabled) {
-				ApparatLog.warn("All apparat actors are running in single-thread mode.")
+				ApparatLog.warn("Warning: Apparat actors running in single-thread mode")
 			}
 			val config = new ApparatConfiguration
 			var valid = args.length > 0
 
-			try {config parse args}
-			catch {
+			try {
+				config parse args
+			} catch {
 				case t => {
 					valid = false
 					result = -1
