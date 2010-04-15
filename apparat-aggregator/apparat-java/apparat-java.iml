@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../java/Apparat.Core">
+      <sourceFolder url="file://$MODULE_DIR$/../../java/Apparat.Core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../java/Apparat.Core/tests" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/../../java/Apparat.Core/bin" />
+      <excludeFolder url="file://$MODULE_DIR$/../../java/Apparat.Core/build" />
+      <excludeFolder url="file://$MODULE_DIR$/../../java/Apparat.Core/debug" />
+      <excludeFolder url="file://$MODULE_DIR$/../../java/Apparat.Core/launch" />
+    </content>
+    <orderEntry type="jdk" jdkName="1.6.0_18" jdkType="JavaSDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
+

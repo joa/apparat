@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="Flex" version="4">
+  <component name="Flex.Build.Configuration">
+    <option name="DO_BUILD" value="true" />
+    <option name="OUTPUT_TYPE" value="Library" />
+    <option name="OUTPUT_FILE_NAME" value="apparat-samples.swc" />
+    <option name="TARGET_PLAYER_VERSION" value="10.0.0" />
+    <option name="VERSION" value="3" />
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../as3/Apparat.Tests.AS3">
+      <sourceFolder url="file://$MODULE_DIR$/../../as3/Apparat.Tests.AS3/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/../../as3/Apparat.Tests.AS3/bin" />
+      <excludeFolder url="file://$MODULE_DIR$/../../as3/Apparat.Tests.AS3/build" />
+    </content>
+    <orderEntry type="jdk" jdkName="4.0.0.14159" jdkType="Flex SDK Type" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
+
