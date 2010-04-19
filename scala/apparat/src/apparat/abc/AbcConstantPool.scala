@@ -21,6 +21,7 @@
 package apparat.abc
 
 import apparat.utils.{Dumpable, IndentingPrintWriter}
+import compat.Platform
 
 object AbcConstantPool {
 	val EMPTY_STRING = Symbol(null)
@@ -147,5 +148,108 @@ class AbcConstantPool(
 			writer <= names.length + " multiname(s):"
 			writer <<< names
 		}
+	}
+
+	//
+
+	def add(value: Int): AbcConstantPool  = new AbcConstantPool(addToPool(value, ints) { _ == value }, uints, doubles, strings, namespaces, nssets, names)
+
+	def add(value: Long): AbcConstantPool  = new AbcConstantPool(ints, addToPool(value, uints) { _ == value }, doubles, strings, namespaces, nssets, names)
+
+	def add(value: Double): AbcConstantPool  = {
+		if(value.isNaN) {
+			new AbcConstantPool(ints, uints, addToPool(Double.NaN, doubles) { _.isNaN }, strings, namespaces, nssets, names)
+		} else {
+			new AbcConstantPool(ints, uints, addToPool(value, doubles) { _ == value }, strings, namespaces, nssets, names)
+		}
+	}
+
+	def add(value: Symbol): AbcConstantPool = {
+		if(value != AbcConstantPool.EMPTY_STRING) {
+			new AbcConstantPool(ints, uints, doubles, addToPool(value, strings) { _ == value }, namespaces, nssets, names)
+		} else {
+			this
+		}
+	}
+
+	def add(value: AbcNamespace): AbcConstantPool = {
+		val result = add(value.name)
+
+		if(value != AbcConstantPool.EMPTY_NAMESPACE) {
+			new AbcConstantPool(result.ints, result.uints, result.doubles, result.strings, addToPool(value, result.namespaces) { _ == value }, result.nssets, result.names)
+		} else {
+			result
+		}
+	}
+
+	def add(value: AbcNSSet): AbcConstantPool = {
+		var result = this
+
+		for(ns <- value.set) {
+			result = result add ns
+		}
+
+		if(value != AbcConstantPool.EMPTY_NSSET) {
+			new AbcConstantPool(result.ints, result.uints, result.doubles, result.strings, result.namespaces, addToPool(value, result.nssets) { _ == value }, result.names)
+		} else {
+			result
+		}
+	}
+
+	def add(value: AbcName): AbcConstantPool = {
+		var result = if(value != AbcConstantPool.EMPTY_NAME) {
+			new AbcConstantPool(ints, uints, doubles, strings, namespaces, nssets, addToPool(value, names) { _ == value })
+		} else {
+			this
+		}
+
+		value match {
+			case AbcQName(name, namespace) => {
+				result = result add name
+				result = result add namespace
+			}
+			case AbcQNameA(name, namespace) => {
+				result = result add name
+				result = result add namespace
+			}
+			case AbcRTQName(name) => result = result add name
+			case AbcRTQNameA(name) => result = result add name
+			case AbcRTQNameL | AbcRTQNameLA =>
+			case AbcMultiname(name, nsset) => {
+				result = result add name
+				result = result add nsset
+			}
+			case AbcMultinameA(name, nsset) => {
+				result = result add name
+				result = result add nsset
+			}
+			case AbcMultinameL(nsset) => result = result add nsset
+			case AbcMultinameLA(nsset) => result = result add nsset
+			case AbcTypename(name, parameters) => {
+				result = result add name
+				for(parameter <- parameters) {
+					result = result add parameter
+				}
+			}
+		}
+
+		result
+	}
+
+	@inline private def addToPool[T: ClassManifest](value: T, array: Array[T])(condition: T => Boolean): Array[T] = {
+		var i = 1//NOTE we ignore index 0. this can lead to duplicates for the 0 entry but is safe for optionals
+		val n = array.length
+		while(i < n) {
+			if(condition(array(i))) {
+				return array
+			}
+			i += 1
+		}
+
+		val r = new Array[T](n + 1)
+		Platform.arraycopy(array, 0, r, 0, n)
+		r(n) = value
+
+		r
 	}
 }

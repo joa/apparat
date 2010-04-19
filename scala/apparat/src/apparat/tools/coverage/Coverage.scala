@@ -93,7 +93,7 @@ object Coverage {
 					}
 
 					if(abcModified) {
-						abc.rebuildPool()
+						abc.cpool = (abc.cpool add coverageQName) add coverageOnSample
 						abc.saveBytecode()
 						abc write doABC
 					}

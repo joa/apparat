@@ -72,8 +72,7 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 
 	def add(value: Long): Unit  = uints = value :: uints
 
-	//TODO got compile error when using Double.isNaN -- why? idea/scala bug?
-	def add(value: Double): Unit  = if(!java.lang.Double.isNaN(value)) doubles = value :: doubles
+	def add(value: Double): Unit  = if(!value.isNaN) doubles = value :: doubles
 
 	def add(value: Symbol): Unit  = if(value != AbcConstantPool.EMPTY_STRING) strings = value :: strings
 
