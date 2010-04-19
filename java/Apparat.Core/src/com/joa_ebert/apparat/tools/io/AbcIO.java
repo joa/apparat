@@ -29,6 +29,7 @@ import java.util.List;
 import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.Tags;
+import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 
 /**
  * 
@@ -67,7 +68,7 @@ public class AbcIO
 
 		for( final ITag tag : tagIO.getTags() )
 		{
-			if( tag.getType() == Tags.DoABC )
+			if(tag instanceof DoABCTag)
 			{
 			}
 		}

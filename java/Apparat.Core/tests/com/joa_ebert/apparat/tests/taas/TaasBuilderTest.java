@@ -72,9 +72,9 @@ import com.joa_ebert.apparat.taas.TaasVertex;
 import com.joa_ebert.apparat.taas.toolkit.livenessAnalysis.LivenessAnalysis;
 
 /**
- * 
+ *
  * @author Joa Ebert
- * 
+ *
  */
 public class TaasBuilderTest
 {
@@ -235,7 +235,7 @@ public class TaasBuilderTest
 
 		for( final ITag tag : playerGlobalSwf.tags )
 		{
-			if( tag.getType() == Tags.DoABC )
+			if( tag instanceof DoABCTag )
 			{
 				final Abc temp = new Abc();
 
@@ -256,7 +256,7 @@ public class TaasBuilderTest
 
 		for( final ITag tag : test.tags )
 		{
-			if( tag.getType() == Tags.DoABC )
+			if( tag instanceof DoABCTag )
 			{
 				final DoABCTag doAbc = (DoABCTag)tag;
 

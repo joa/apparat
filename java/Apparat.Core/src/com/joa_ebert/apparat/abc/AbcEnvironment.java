@@ -183,7 +183,7 @@ public final class AbcEnvironment
 	{
 		for( final ITag tag : tags )
 		{
-			if( Tags.DoABC == tag.getType() )
+			if( tag instanceof DoABCTag )
 			{
 				final DoABCTag doABC = (DoABCTag)tag;
 				final Abc abc = new Abc();

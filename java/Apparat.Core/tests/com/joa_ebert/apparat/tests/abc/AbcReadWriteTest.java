@@ -21,46 +21,37 @@
 
 package com.joa_ebert.apparat.tests.abc;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.PrintWriter;
-
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.abc.utils.AbcPrinter;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 import com.joa_ebert.apparat.tools.io.TagIO;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.io.*;
 
 /**
- * 
  * @author Joa Ebert
- * 
  */
 @Ignore
-public class AbcReadWriteTest
-{
-	private void test( final DoABCTag tag, final int i ) throws Exception
-	{
+public class AbcReadWriteTest {
+	private void test(final DoABCTag tag, final int i) throws Exception {
 		final byte[] input = tag.abcData;
 		byte[] output = null;
 
-		final InputStream inputStream = new ByteArrayInputStream( input );
+		final InputStream inputStream = new ByteArrayInputStream(input);
 		final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
 		final Abc abc = new Abc();
 
-		abc.read( inputStream );
+		abc.read(inputStream);
 
-		new AbcPrinter( new PrintWriter( new FileOutputStream( "debug/i_" + i
-				+ ".txt" ) ) ).print( abc );
+		new AbcPrinter(new PrintWriter(new FileOutputStream("debug/i_" + i
+				+ ".txt"))).print(abc);
 
-		abc.write( outputStream );
+		abc.write(outputStream);
 
 		output = outputStream.toByteArray();
 
@@ -76,10 +67,10 @@ public class AbcReadWriteTest
 
 		// abc.constantPool.debug( System.out );
 
-		abc2.read( output );
+		abc2.read(output);
 
-		new AbcPrinter( new PrintWriter( new FileOutputStream( "debug/o_" + i
-				+ ".txt" ) ) ).print( abc2 );
+		new AbcPrinter(new PrintWriter(new FileOutputStream("debug/o_" + i
+				+ ".txt"))).print(abc2);
 
 		// abc2.constantPool.debug( System.out );
 
@@ -87,46 +78,38 @@ public class AbcReadWriteTest
 	}
 
 	@Test
-	public void testReadWrite() throws Exception
-	{
-		final TagIO tagIO = new TagIO( "assets/priv_rtn.swf" );
+	public void testReadWrite() throws Exception {
+		final TagIO tagIO = new TagIO("assets/priv_rtn.swf");
 
 		tagIO.read();
 
-		final PrintWriter writer = new PrintWriter( new FileOutputStream(
-				"debug/tags.txt" ) );
+		final PrintWriter writer = new PrintWriter(new FileOutputStream(
+				"debug/tags.txt"));
 
 		int i = 0;
 
-		for( final ITag tag : tagIO.getTags() )
-		{
-			if( tag.getType() == Tags.DoABC )
-			{
-				test( (DoABCTag)tag, i++ );
+		for (final ITag tag : tagIO.getTags()) {
+			if (tag instanceof DoABCTag) {
+				test((DoABCTag) tag, i++);
 			}
 
-			final String tagString = Tags.typeToString( tag.getType() );
+			final String tagString = Tags.typeToString(tag.getType());
 			String output = tagString;
 
-			if( tagString.length() < 5 )
-			{
+			if (tagString.length() < 5) {
 				output += "\t\t\t";
-			}
-			else if( tagString.length() < 12 )
-			{
+			} else if (tagString.length() < 12) {
 				output += "\t\t";
-			}
-			else
-			{
+			} else {
 				output += "\t";
 			}
 
-			writer.println( output + tag.toString() );
+			writer.println(output + tag.toString());
 		}
 
 		writer.flush();
 		writer.close();
 
-		tagIO.write( "assets/priv_rtn_.swf" );
+		tagIO.write("assets/priv_rtn_.swf");
 	}
 }

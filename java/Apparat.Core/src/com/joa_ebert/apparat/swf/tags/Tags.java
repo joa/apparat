@@ -21,34 +21,20 @@
 
 package com.joa_ebert.apparat.swf.tags;
 
-import java.util.HashMap;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import com.joa_ebert.apparat.swf.tags.control.DebugID;
-import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
-import com.joa_ebert.apparat.swf.tags.control.EndTag;
-import com.joa_ebert.apparat.swf.tags.control.ExportAssetsTag;
-import com.joa_ebert.apparat.swf.tags.control.FileAttributesTag;
-import com.joa_ebert.apparat.swf.tags.control.FrameLabelTag;
-import com.joa_ebert.apparat.swf.tags.control.MetadataTag;
-import com.joa_ebert.apparat.swf.tags.control.ProductInfoTag;
-import com.joa_ebert.apparat.swf.tags.control.ScriptLimitsTag;
-import com.joa_ebert.apparat.swf.tags.control.SetBackgroundColorTag;
-import com.joa_ebert.apparat.swf.tags.control.ShowFrameTag;
-import com.joa_ebert.apparat.swf.tags.control.SymbolClassTag;
+import com.joa_ebert.apparat.swf.tags.control.*;
 import com.joa_ebert.apparat.swf.tags.define.DefineBitsJPEG2Tag;
 import com.joa_ebert.apparat.swf.tags.define.DefineBitsJPEG3Tag;
 import com.joa_ebert.apparat.swf.tags.define.DefineBitsJPEG4Tag;
 import com.joa_ebert.apparat.swf.tags.define.DefineBitsLossless2Tag;
 
+import java.util.HashMap;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 /**
- * 
  * @author Joa Ebert
- * 
  */
-public final class Tags
-{
+public final class Tags {
 	public static final int End = 0;
 	public static final int ShowFrame = 1;
 	public static final int DefineShape = 2;
@@ -100,6 +86,7 @@ public final class Tags
 	public static final int FileAttributes = 69;
 	public static final int PlaceObject3 = 70;
 	public static final int ImportAssets2 = 71;
+	public static final int DoABC1 = 72;
 	public static final int DefineFontAlignZones = 73;
 	public static final int CSMTextSettings = 74;
 	public static final int DefineFont3 = 75;
@@ -120,138 +107,132 @@ public final class Tags
 	private static final SortedMap<Integer, String> stringMap = new TreeMap<Integer, String>();
 	private static final HashMap<Integer, Boolean> writeLongLengthMap = new HashMap<Integer, Boolean>();
 
-	static
-	{
-		writeLongLengthMap.put( DefineBits, true );
-		writeLongLengthMap.put( DefineBitsJPEG2, true );
-		writeLongLengthMap.put( DefineBitsJPEG3, true );
-		writeLongLengthMap.put( DefineBitsJPEG4, true );
-		writeLongLengthMap.put( DefineBitsLossless, true );
-		writeLongLengthMap.put( DefineBitsLossless2, true );
+	static {
+		writeLongLengthMap.put(DefineBits, true);
+		writeLongLengthMap.put(DefineBitsJPEG2, true);
+		writeLongLengthMap.put(DefineBitsJPEG3, true);
+		writeLongLengthMap.put(DefineBitsJPEG4, true);
+		writeLongLengthMap.put(DefineBitsLossless, true);
+		writeLongLengthMap.put(DefineBitsLossless2, true);
 
-		stringMap.put( End, "End" );
-		stringMap.put( ShowFrame, "ShowFrame" );
-		stringMap.put( DefineShape, "DefineShape" );
-		stringMap.put( PlaceObject, "PlaceObject" );
-		stringMap.put( RemoveObject, "RemoveObject" );
-		stringMap.put( DefineBits, "DefineBits" );
-		stringMap.put( DefineButton, "DefineButton" );
-		stringMap.put( JPEGTables, "JPEGTables" );
-		stringMap.put( SetBackgroundColor, "SetBackgroundColor" );
-		stringMap.put( DefineFont, "DefineFont" );
-		stringMap.put( DefineText, "DefineText" );
-		stringMap.put( DoAction, "DoAction" );
-		stringMap.put( DefineFontInfo, "DefineFontInfo" );
-		stringMap.put( DefineSound, "DefineSound" );
-		stringMap.put( StartSound, "StartSound" );
-		stringMap.put( DefineButtonSound, "DefineButtonSound" );
-		stringMap.put( SoundStreamHead, "SoundStreamHead" );
-		stringMap.put( SoundStreamBlock, "SoundStreamBlock" );
-		stringMap.put( DefineBitsLossless, "DefineBitsLossless" );
-		stringMap.put( DefineBitsJPEG2, "DefineBitsJPEG2" );
-		stringMap.put( DefineShape2, "DefineShape2" );
-		stringMap.put( DefineButtonCxform, "DefineButtonCxform" );
-		stringMap.put( Protect, "Protect" );
-		stringMap.put( PlaceObject2, "PlaceObject2" );
-		stringMap.put( RemoveObject2, "RemoveObject2" );
-		stringMap.put( DefineShape3, "DefineShape3" );
-		stringMap.put( DefineText2, "DefineText2" );
-		stringMap.put( DefineButton2, "DefineButton2" );
-		stringMap.put( DefineBitsJPEG3, "DefineBitsJPEG3" );
-		stringMap.put( DefineBitsLossless2, "DefineBitsLossless2" );
-		stringMap.put( DefineEditText, "DefineEditText" );
-		stringMap.put( DefineSprite, "DefineSprite" );
-		stringMap.put( ProductInfo, "ProductInfo" );
-		stringMap.put( FrameLabel, "FrameLabel" );
-		stringMap.put( SoundStreamHead2, "SoundStreamHead2" );
-		stringMap.put( DefineMorphShape, "DefineMorphShape" );
-		stringMap.put( DefineFont2, "DefineFont2" );
-		stringMap.put( ExportAssets, "ExportAssets" );
-		stringMap.put( ImportAssets, "ImportAssets" );
-		stringMap.put( EnableDebugger, "EnableDebugger" );
-		stringMap.put( DoInitAction, "DoInitAction" );
-		stringMap.put( DefineVideoStream, "DefineVideoStream" );
-		stringMap.put( VideoFrame, "VideoFrame" );
-		stringMap.put( DefineFontInfo2, "DefineFontInfo2" );
-		stringMap.put( DebugID, "DebugID" );
-		stringMap.put( EnableDebugger2, "EnableDebugger2" );
-		stringMap.put( ScriptLimits, "ScriptLimits" );
-		stringMap.put( SetTabIndex, "SetTabIndex" );
-		stringMap.put( FileAttributes, "FileAttributes" );
-		stringMap.put( PlaceObject3, "PlaceObject3" );
-		stringMap.put( ImportAssets2, "ImportAssets2" );
-		stringMap.put( DefineFontAlignZones, "DefineFontAlignZones" );
-		stringMap.put( CSMTextSettings, "CSMTextSettings" );
-		stringMap.put( DefineFont3, "DefineFont3" );
-		stringMap.put( SymbolClass, "SymbolClass" );
-		stringMap.put( Metadata, "Metadata" );
-		stringMap.put( DefineScalingGrid, "DefineScalingGrid" );
-		stringMap.put( DoABC, "DoABC" );
-		stringMap.put( DefineShape4, "DefineShape4" );
-		stringMap.put( DefineMorphShape2, "DefineMorphShape2" );
-		stringMap.put( DefineSceneAndFrameLabelData,
-				"DefineSceneAndFrameLabelData" );
-		stringMap.put( DefineBinaryData, "DefineBinaryData" );
-		stringMap.put( DefineFontName, "DefineFontName" );
-		stringMap.put( StartSound2, "StartSound2" );
-		stringMap.put( DefineBitsJPEG4, "DefineBitsJPEG4" );
-		stringMap.put( DefineFont4, "DefineFont4" );
+		stringMap.put(End, "End");
+		stringMap.put(ShowFrame, "ShowFrame");
+		stringMap.put(DefineShape, "DefineShape");
+		stringMap.put(PlaceObject, "PlaceObject");
+		stringMap.put(RemoveObject, "RemoveObject");
+		stringMap.put(DefineBits, "DefineBits");
+		stringMap.put(DefineButton, "DefineButton");
+		stringMap.put(JPEGTables, "JPEGTables");
+		stringMap.put(SetBackgroundColor, "SetBackgroundColor");
+		stringMap.put(DefineFont, "DefineFont");
+		stringMap.put(DefineText, "DefineText");
+		stringMap.put(DoAction, "DoAction");
+		stringMap.put(DefineFontInfo, "DefineFontInfo");
+		stringMap.put(DefineSound, "DefineSound");
+		stringMap.put(StartSound, "StartSound");
+		stringMap.put(DefineButtonSound, "DefineButtonSound");
+		stringMap.put(SoundStreamHead, "SoundStreamHead");
+		stringMap.put(SoundStreamBlock, "SoundStreamBlock");
+		stringMap.put(DefineBitsLossless, "DefineBitsLossless");
+		stringMap.put(DefineBitsJPEG2, "DefineBitsJPEG2");
+		stringMap.put(DefineShape2, "DefineShape2");
+		stringMap.put(DefineButtonCxform, "DefineButtonCxform");
+		stringMap.put(Protect, "Protect");
+		stringMap.put(PlaceObject2, "PlaceObject2");
+		stringMap.put(RemoveObject2, "RemoveObject2");
+		stringMap.put(DefineShape3, "DefineShape3");
+		stringMap.put(DefineText2, "DefineText2");
+		stringMap.put(DefineButton2, "DefineButton2");
+		stringMap.put(DefineBitsJPEG3, "DefineBitsJPEG3");
+		stringMap.put(DefineBitsLossless2, "DefineBitsLossless2");
+		stringMap.put(DefineEditText, "DefineEditText");
+		stringMap.put(DefineSprite, "DefineSprite");
+		stringMap.put(ProductInfo, "ProductInfo");
+		stringMap.put(FrameLabel, "FrameLabel");
+		stringMap.put(SoundStreamHead2, "SoundStreamHead2");
+		stringMap.put(DefineMorphShape, "DefineMorphShape");
+		stringMap.put(DefineFont2, "DefineFont2");
+		stringMap.put(ExportAssets, "ExportAssets");
+		stringMap.put(ImportAssets, "ImportAssets");
+		stringMap.put(DoABC1, "DoABC1");
+		stringMap.put(EnableDebugger, "EnableDebugger");
+		stringMap.put(DoInitAction, "DoInitAction");
+		stringMap.put(DefineVideoStream, "DefineVideoStream");
+		stringMap.put(VideoFrame, "VideoFrame");
+		stringMap.put(DefineFontInfo2, "DefineFontInfo2");
+		stringMap.put(DebugID, "DebugID");
+		stringMap.put(EnableDebugger2, "EnableDebugger2");
+		stringMap.put(ScriptLimits, "ScriptLimits");
+		stringMap.put(SetTabIndex, "SetTabIndex");
+		stringMap.put(FileAttributes, "FileAttributes");
+		stringMap.put(PlaceObject3, "PlaceObject3");
+		stringMap.put(ImportAssets2, "ImportAssets2");
+		stringMap.put(DefineFontAlignZones, "DefineFontAlignZones");
+		stringMap.put(CSMTextSettings, "CSMTextSettings");
+		stringMap.put(DefineFont3, "DefineFont3");
+		stringMap.put(SymbolClass, "SymbolClass");
+		stringMap.put(Metadata, "Metadata");
+		stringMap.put(DefineScalingGrid, "DefineScalingGrid");
+		stringMap.put(DoABC, "DoABC");
+		stringMap.put(DefineShape4, "DefineShape4");
+		stringMap.put(DefineMorphShape2, "DefineMorphShape2");
+		stringMap.put(DefineSceneAndFrameLabelData,
+				"DefineSceneAndFrameLabelData");
+		stringMap.put(DefineBinaryData, "DefineBinaryData");
+		stringMap.put(DefineFontName, "DefineFontName");
+		stringMap.put(StartSound2, "StartSound2");
+		stringMap.put(DefineBitsJPEG4, "DefineBitsJPEG4");
+		stringMap.put(DefineFont4, "DefineFont4");
 
-		classMap.put( DebugID, DebugID.class );
-		classMap.put( DoABC, DoABCTag.class );
-		classMap.put( End, EndTag.class );
-		classMap.put( ExportAssets, ExportAssetsTag.class );
-		classMap.put( FileAttributes, FileAttributesTag.class );
-		classMap.put( FrameLabel, FrameLabelTag.class );
-		classMap.put( Metadata, MetadataTag.class );
-		classMap.put( ProductInfo, ProductInfoTag.class );
-		classMap.put( ScriptLimits, ScriptLimitsTag.class );
-		classMap.put( SetBackgroundColor, SetBackgroundColorTag.class );
-		classMap.put( ShowFrame, ShowFrameTag.class );
-		classMap.put( SymbolClass, SymbolClassTag.class );
+		classMap.put(DebugID, DebugID.class);
+		classMap.put(DoABC1, DoABC1Tag.class);
+		classMap.put(DoABC, DoABCTag.class);
+		classMap.put(End, EndTag.class);
+		classMap.put(ExportAssets, ExportAssetsTag.class);
+		classMap.put(FileAttributes, FileAttributesTag.class);
+		classMap.put(FrameLabel, FrameLabelTag.class);
+		classMap.put(Metadata, MetadataTag.class);
+		classMap.put(ProductInfo, ProductInfoTag.class);
+		classMap.put(ScriptLimits, ScriptLimitsTag.class);
+		classMap.put(SetBackgroundColor, SetBackgroundColorTag.class);
+		classMap.put(ShowFrame, ShowFrameTag.class);
+		classMap.put(SymbolClass, SymbolClassTag.class);
 
-		classMap.put( DefineBitsJPEG2, DefineBitsJPEG2Tag.class );
-		classMap.put( DefineBitsJPEG3, DefineBitsJPEG3Tag.class );
-		classMap.put( DefineBitsJPEG4, DefineBitsJPEG4Tag.class );
-		classMap.put( DefineBitsLossless2, DefineBitsLossless2Tag.class );
+		classMap.put(DefineBitsJPEG2, DefineBitsJPEG2Tag.class);
+		classMap.put(DefineBitsJPEG3, DefineBitsJPEG3Tag.class);
+		classMap.put(DefineBitsJPEG4, DefineBitsJPEG4Tag.class);
+		classMap.put(DefineBitsLossless2, DefineBitsLossless2Tag.class);
 	}
 
-	public static ITag createTag( final int type )
-			throws InstantiationException, IllegalAccessException
-	{
-		return getTagClass( type ).newInstance();
+	public static ITag createTag(final int type)
+			throws InstantiationException, IllegalAccessException {
+		return getTagClass(type).newInstance();
 	}
 
-	public static Class<? extends ITag> getTagClass( final int type )
-	{
-		Class<? extends ITag> klass = classMap.get( type );
+	public static Class<? extends ITag> getTagClass(final int type) {
+		Class<? extends ITag> klass = classMap.get(type);
 
-		if( null == klass )
-		{
+		if (null == klass) {
 			klass = GenericTag.class;
 		}
 
 		return klass;
 	}
 
-	public static boolean isLongLength( final int type )
-	{
-		return writeLongLengthMap.containsKey( type );
+	public static boolean isLongLength(final int type) {
+		return writeLongLengthMap.containsKey(type);
 	}
 
-	public static String typeToString( final int type )
-	{
-		String name = stringMap.get( type );
+	public static String typeToString(final int type) {
+		String name = stringMap.get(type);
 
-		if( null == name )
-		{
-			name = "(Unknown " + Integer.toString( type ) + ")";
+		if (null == name) {
+			name = "(Unknown " + Integer.toString(type) + ")";
 		}
 
 		return name;
 	}
 
-	private Tags()
-	{
+	private Tags() {
 	}
 }

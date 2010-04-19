@@ -146,7 +146,7 @@ public final class TDSI implements ITool, ITagVisitor
 
 		for( final ITag tag : tagIO.getTags() )
 		{
-			if( tag.getType() == Tags.DoABC )
+			if( tag instanceof DoABCTag )
 			{
 				run( (DoABCTag)tag );
 			}
@@ -263,7 +263,7 @@ public final class TDSI implements ITool, ITagVisitor
 
 	public void visit( final ITag tag )
 	{
-		if( tag.getType() == Tags.DoABC )
+		if( tag instanceof DoABCTag )
 		{
 			run( (DoABCTag)tag );
 		}

@@ -21,79 +21,61 @@
 
 package com.joa_ebert.apparat.tests.abc;
 
-import java.io.ByteArrayInputStream;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.joa_ebert.apparat.abc.io.AbcInputStream;
 import com.joa_ebert.apparat.swf.Swf;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.ITagVisitor;
-import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
+import org.junit.*;
+
+import java.io.ByteArrayInputStream;
 
 /**
- * 
  * @author Joa Ebert
- * 
  */
-public class AbcInputStreamTest
-{
+public class AbcInputStreamTest {
 
 	private static byte[] abcData;
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
+	public static void setUpBeforeClass() throws Exception {
 		final Swf swf = new Swf();
 
-		swf.read( "assets/Underflow.swf" );
+		swf.read("assets/Underflow.swf");
 
-		final ITagVisitor visitor = new ITagVisitor()
-		{
-			public void visit( final ITag tag )
-			{
-				if( tag.getType() == Tags.DoABC )
-				{
-					abcData = ( (DoABCTag)tag ).abcData;
+		final ITagVisitor visitor = new ITagVisitor() {
+			public void visit(final ITag tag) {
+				if (tag instanceof DoABCTag) {
+					abcData = ((DoABCTag) tag).abcData;
 				}
 			}
 		};
 
-		swf.accept( visitor );
+		swf.accept(visitor);
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+	public static void tearDownAfterClass() throws Exception {
 		abcData = null;
 	}
 
 	private AbcInputStream input;
 
 	@Before
-	public void setUp() throws Exception
-	{
-		input = new AbcInputStream( new ByteArrayInputStream( abcData ) );
+	public void setUp() throws Exception {
+		input = new AbcInputStream(new ByteArrayInputStream(abcData));
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 		input.close();
 
 		input = null;
 	}
 
 	@Test
-	public void testRead() throws Exception
-	{
-		Assert.assertEquals( 16, input.readU16() );
-		Assert.assertEquals( 46, input.readU16() );
+	public void testRead() throws Exception {
+		Assert.assertEquals(16, input.readU16());
+		Assert.assertEquals(46, input.readU16());
 	}
 }

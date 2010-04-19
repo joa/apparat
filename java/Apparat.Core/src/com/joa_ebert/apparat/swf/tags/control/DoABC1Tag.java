@@ -25,8 +25,6 @@ import com.joa_ebert.apparat.swf.SwfException;
 import com.joa_ebert.apparat.swf.io.RECORDHEADER;
 import com.joa_ebert.apparat.swf.io.SwfInputStream;
 import com.joa_ebert.apparat.swf.io.SwfOutputStream;
-import com.joa_ebert.apparat.swf.tags.ControlTag;
-import com.joa_ebert.apparat.swf.tags.ITagVisitor;
 import com.joa_ebert.apparat.swf.tags.Tags;
 
 import java.io.IOException;
@@ -34,45 +32,17 @@ import java.io.IOException;
 /**
  * @author Joa Ebert
  */
-public class DoABCTag extends ControlTag {
-	public long flags;
+public class DoABC1Tag extends DoABCTag {
 
-	public String name = "";
-
-	public byte[] abcData;
-
-	public void accept(final ITagVisitor visitor) {
-		visitor.visit(this);
-	}
-
-	public int getLength() {
-		return -1;
-		// try
-		// {
-		// // TODO fix me
-		// return abcData.length + name.getBytes( "UTF8" ).length + 5;
-		// }
-		// catch( UnsupportedEncodingException e )
-		// {
-		// return abcData.length + name.getBytes().length + 5;
-		// }
-	}
-
+	@Override
 	public int getType() {
-		return Tags.DoABC;
+		return Tags.DoABC1;
 	}
 
-	public boolean isLengthKnown() {
-		return false;
-	}
-
+	@Override
 	public void read(final RECORDHEADER header, final SwfInputStream input)
 			throws IOException, SwfException {
-		flags = input.readUI32();
-
-		name = input.readSTRING();
-
-		final int abcLength = header.length - name.length() - 5;
+		final int abcLength = header.length;
 
 		abcData = new byte[abcLength];
 
@@ -85,16 +55,11 @@ public class DoABCTag extends ControlTag {
 
 	@Override
 	public String toString() {
-		return "[DoABCTag flags: " + flags + ", name: " + name
-				+ ", dataLength: " + abcData.length + "]";
+		return "[DoABC1Tag dataLength: " + abcData.length + "]";
 	}
 
+	@Override
 	public void write(final SwfOutputStream output) throws IOException {
-		output.writeUI32(flags);
-
-		output.writeSTRING(name);
-
 		output.write(abcData);
 	}
-
 }

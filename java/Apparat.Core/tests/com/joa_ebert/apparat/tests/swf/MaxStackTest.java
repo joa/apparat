@@ -21,98 +21,74 @@
 
 package com.joa_ebert.apparat.tests.swf;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.joa_ebert.apparat.abc.Abc;
-import com.joa_ebert.apparat.abc.AbcContext;
-import com.joa_ebert.apparat.abc.AbcEnvironment;
-import com.joa_ebert.apparat.abc.IMethodVisitor;
-import com.joa_ebert.apparat.abc.Method;
+import com.joa_ebert.apparat.abc.*;
 import com.joa_ebert.apparat.abc.bytecode.analysis.BytecodePrinter;
 import com.joa_ebert.apparat.abc.bytecode.analysis.DeadCodeElimination;
 import com.joa_ebert.apparat.abc.io.AbcInputStream;
 import com.joa_ebert.apparat.swf.Swf;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.ITagVisitor;
-import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
+import org.junit.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 
 /**
- * 
  * @author Joa Ebert
- * 
  */
-public class MaxStackTest
-{
+public class MaxStackTest {
 
 	private static byte[] abcData;
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
+	public static void setUpBeforeClass() throws Exception {
 		final Swf swf = new Swf();
 
-		swf.read( "assets/onefunction.swf" );
+		swf.read("assets/onefunction.swf");
 
-		final ITagVisitor visitor = new ITagVisitor()
-		{
-			public void visit( final ITag tag )
-			{
-				if( tag.getType() == Tags.DoABC )
-				{
-					abcData = ( (DoABCTag)tag ).abcData;
+		final ITagVisitor visitor = new ITagVisitor() {
+			public void visit(final ITag tag) {
+				if (tag instanceof DoABCTag) {
+					abcData = ((DoABCTag) tag).abcData;
 				}
 			}
 		};
 
-		swf.accept( visitor );
+		swf.accept(visitor);
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+	public static void tearDownAfterClass() throws Exception {
 		abcData = null;
 	}
 
 	private AbcInputStream input;
 
 	@Before
-	public void setUp() throws Exception
-	{
-		input = new AbcInputStream( new ByteArrayInputStream( abcData ) );
+	public void setUp() throws Exception {
+		input = new AbcInputStream(new ByteArrayInputStream(abcData));
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 		input.close();
 
 		input = null;
 	}
 
 	@Test
-	public void testRead() throws Exception
-	{
+	public void testRead() throws Exception {
 		final Abc abc = new Abc();
 
-		final FileOutputStream fos = new FileOutputStream( "assets/log.txt" );
+		final FileOutputStream fos = new FileOutputStream("assets/log.txt");
 
-		abc.read( input );
-		abc.accept( new DeadCodeElimination() );
-		abc.accept( new IMethodVisitor()
-		{
-			public void visit( final AbcContext context, final Method method )
-			{
-				if( null == method.body )
-				{
+		abc.read(input);
+		abc.accept(new DeadCodeElimination());
+		abc.accept(new IMethodVisitor() {
+			public void visit(final AbcContext context, final Method method) {
+				if (null == method.body) {
 					return;
 				}
 
@@ -134,14 +110,14 @@ public class MaxStackTest
 				// .interpret( new AbcEnvironment( context ),
 				// method.body.code );
 
-				final BytecodePrinter printer = new BytecodePrinter( fos );
+				final BytecodePrinter printer = new BytecodePrinter(fos);
 
-				final PrintWriter pw = new PrintWriter( fos );
+				final PrintWriter pw = new PrintWriter(fos);
 				pw
-						.write( "\n--------------------------------------------------------\n" );
+						.write("\n--------------------------------------------------------\n");
 				pw.flush();
-				printer.interpret( new AbcEnvironment( context ),
-						method.body.code );
+				printer.interpret(new AbcEnvironment(context),
+						method.body.code);
 				// calc
 				// .interpret( new AbcEnvironment( context ),
 				// method.body.code );
@@ -159,7 +135,7 @@ public class MaxStackTest
 				//
 				// System.out.println( "\n" );
 			}
-		} );
+		});
 
 		// abc.write( "assets/output.swf" );
 		//

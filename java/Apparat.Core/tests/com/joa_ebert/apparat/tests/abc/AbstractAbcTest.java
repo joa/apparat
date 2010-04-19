@@ -21,92 +21,78 @@
 
 package com.joa_ebert.apparat.tests.abc;
 
-import java.io.File;
-
-import org.junit.Test;
-
 import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.swf.tags.ITag;
-import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
 import com.joa_ebert.apparat.tests.FlashPlayerTest;
 import com.joa_ebert.apparat.tools.io.TagIO;
+import org.junit.Test;
+
+import java.io.File;
 
 /**
  * @author Joa Ebert
- * 
  */
-public abstract class AbstractAbcTest
-{
+public abstract class AbstractAbcTest {
 	private File inputFile;
 	private boolean doWriteCheck;
 
-	protected abstract void compute( Abc abc );
+	protected abstract void compute(Abc abc);
 
-	protected void input( final File file )
-	{
+	protected void input(final File file) {
 		this.inputFile = file;
 	}
 
-	protected void input( final String file )
-	{
-		input( new File( file ) );
+	protected void input(final String file) {
+		input(new File(file));
 	}
 
-	protected void output()
-	{
+	protected void output() {
 		doWriteCheck = true;
 	}
 
 	@Test
-	public void test() throws Exception
-	{
-		if( inputFile.getName().endsWith( ".abc" ) )
-		{
+	public void test() throws Exception {
+		if (inputFile.getName().endsWith(".abc")) {
 			final Abc abc = new Abc();
 
-			abc.read( inputFile );
+			abc.read(inputFile);
 
-			compute( abc );
-		}
-		else
-		{
-			final TagIO tagIO = new TagIO( inputFile );
+			compute(abc);
+		} else {
+			final TagIO tagIO = new TagIO(inputFile);
 
 			tagIO.read();
 
-			for( final ITag tag : tagIO.getTags() )
-			{
-				if( tag.getType() == Tags.DoABC )
-				{
-					final DoABCTag doABC = (DoABCTag)tag;
+			for (final ITag tag : tagIO.getTags()) {
+				if (tag instanceof DoABCTag) {
+					final DoABCTag doABC = (DoABCTag) tag;
 
 					final Abc abc = new Abc();
 
-					abc.read( doABC );
+					abc.read(doABC);
 
-					compute( abc );
+					compute(abc);
 
-					abc.write( doABC );
+					abc.write(doABC);
 				}
 			}
 
-			if( doWriteCheck )
-			{
+			if (doWriteCheck) {
 				final String name = inputFile.getName();
-				final String extension = name.substring( name.length() - 3,
-						name.length() );
-				final String newname = name.substring( 0, name.length() - 3 )
+				final String extension = name.substring(name.length() - 3,
+						name.length());
+				final String newname = name.substring(0, name.length() - 3)
 						+ "output." + extension;
-				final File output = new File( inputFile.getParentFile()
+				final File output = new File(inputFile.getParentFile()
 						.getAbsolutePath()
-						+ File.separator + newname );
+						+ File.separator + newname);
 
-				tagIO.write( output );
+				tagIO.write(output);
 
 				final FlashPlayerTest playerTest = new FlashPlayerTest();
 
-				playerTest.spawn( output, 5000 );
+				playerTest.spawn(output, 5000);
 				playerTest.assertNoError();
 			}
 

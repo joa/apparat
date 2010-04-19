@@ -233,7 +233,7 @@ public final class Dump implements ITool
 
 				for( final ITag tag : tagIO.getTags() )
 				{
-					if( tag.getType() == Tags.DoABC )
+					if( tag instanceof DoABCTag )
 					{
 						final DoABCTag doABC = (DoABCTag)tag;
 						final Abc abc = new Abc();

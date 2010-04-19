@@ -21,14 +21,6 @@
 
 package com.joa_ebert.apparat.tests.asbridge;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.joa_ebert.apparat.abc.Abc;
 import com.joa_ebert.apparat.abc.AbcContext;
 import com.joa_ebert.apparat.abc.AbcEnvironment;
@@ -42,88 +34,81 @@ import com.joa_ebert.apparat.abc.utils.StringConverter;
 import com.joa_ebert.apparat.swf.Swf;
 import com.joa_ebert.apparat.swf.tags.ITag;
 import com.joa_ebert.apparat.swf.tags.ITagVisitor;
-import com.joa_ebert.apparat.swf.tags.Tags;
 import com.joa_ebert.apparat.swf.tags.control.DoABCTag;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 
 /**
- * 
  * @author Joa Ebert
- * 
  */
-public class BytecodeTest
-{
+public class BytecodeTest {
 	private static DoABCTag abcTag;
 	private static Swf swf;
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
+	public static void setUpBeforeClass() throws Exception {
 		swf = new Swf();
-		swf.read( "assets/Underflow.swf" );
+		swf.read("assets/Underflow.swf");
 
-		final ITagVisitor visitor = new ITagVisitor()
-		{
-			public void visit( final ITag tag )
-			{
-				if( tag.getType() == Tags.DoABC )
-				{
-					abcTag = (DoABCTag)tag;
+		final ITagVisitor visitor = new ITagVisitor() {
+			public void visit(final ITag tag) {
+				if (tag instanceof DoABCTag) {
+					abcTag = (DoABCTag) tag;
 				}
 			}
 		};
 
-		swf.accept( visitor );
+		swf.accept(visitor);
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
-		swf.write( "assets/Underflow_.swf" );
+	public static void tearDownAfterClass() throws Exception {
+		swf.write("assets/Underflow_.swf");
 	}
 
 	@Test
-	public void testInjection() throws Exception
-	{
+	public void testInjection() throws Exception {
 		final Abc abc = new Abc();
 
 		abc
-				.read( new AbcInputStream( new ByteArrayInputStream(
-						abcTag.abcData ) ) );
+				.read(new AbcInputStream(new ByteArrayInputStream(
+						abcTag.abcData)));
 
 		final AbcEnvironment abcEnvironment = new AbcEnvironment(
-				new AbcContext( abc ) );
+				new AbcContext(abc));
 
-		final PrintStream printStream = new PrintStream( new FileOutputStream(
-				"debug/inline.txt" ) );
+		final PrintStream printStream = new PrintStream(new FileOutputStream(
+				"debug/inline.txt"));
 
 		final IInterpreter memInterp = new MemoryInlineJob();
 		final IInterpreter bytecodeInterp = new BytecodeInlineJob();
-		final IInterpreter printer = new BytecodePrinter( printStream );
+		final IInterpreter printer = new BytecodePrinter(printStream);
 
-		for( final Method method : abc.methods )
-		{
-			if( null == method.body )
-			{
+		for (final Method method : abc.methods) {
+			if (null == method.body) {
 				continue;
 			}
 
-			printStream.println( StringConverter.toString( method ) );
-			printStream.println( "\tBefore:" );
-			printer.interpret( abcEnvironment, method.body.code );
-			bytecodeInterp.interpret( abcEnvironment, method.body.code );
-			memInterp.interpret( abcEnvironment, method.body.code );
-			printStream.println( "\tAfter:" );
-			printer.interpret( abcEnvironment, method.body.code );
+			printStream.println(StringConverter.toString(method));
+			printStream.println("\tBefore:");
+			printer.interpret(abcEnvironment, method.body.code);
+			bytecodeInterp.interpret(abcEnvironment, method.body.code);
+			memInterp.interpret(abcEnvironment, method.body.code);
+			printStream.println("\tAfter:");
+			printer.interpret(abcEnvironment, method.body.code);
 		}
 
 		// abc.constantPool.debug( System.out );
 
-		try
-		{
-			abc.write( abcTag );
+		try {
+			abc.write(abcTag);
 		}
-		catch( final Exception e )
-		{
+		catch (final Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
