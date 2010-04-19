@@ -71,7 +71,7 @@ object Coverage {
 												val file = debugFile.file
 												if(sourcePath.isEmpty || (sourcePath exists (file.name startsWith _))) {
 													abcModified = true
-													bytecode.replace(debugLine) {
+													bytecode.replaceFrom(4, debugLine) {
 														x =>
 															DebugLine(x) ::
 															coverageScope ::

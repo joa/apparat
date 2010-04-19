@@ -95,40 +95,46 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 
 	def rewrite[A <: AbstractOp](rule: BytecodeChain[List[A]]) = replace(rule) { a => a }
 
-	def replace[A](chain: BytecodeChain[A])(body: A => List[AbstractOp]) = {
-		var modified = false
-		var processed: List[AbstractOp] = Nil
-		var unprocessed: List[AbstractOp] = ops
+	def replace[A](chain: BytecodeChain[A])(body: A => List[AbstractOp]) = replaceFrom(0, chain)(body)
 
-		while(unprocessed.nonEmpty) {
-			chain(unprocessed) match {
-				case Success(value, remaining) => {
-					val replacement = body(value)
+	def replaceFrom[A](fromIndex: Int, chain: BytecodeChain[A])(body: A => List[AbstractOp]) = {
+		if(ops.length <= fromIndex) {
+			false
+		} else {
+			var modified = false
+			var processed: List[AbstractOp] = Nil
+			var unprocessed: List[AbstractOp] = if(0 == fromIndex) { ops } else { ops drop fromIndex }
 
-					processed :::= replacement.reverse
-					unprocessed = remaining
+			while(unprocessed.nonEmpty) {
+				chain(unprocessed) match {
+					case Success(value, remaining) => {
+						val replacement = body(value)
 
-					if(replacement.isEmpty) {
-						if(unprocessed.isEmpty) {
-							unprocessed = List(Nop())
+						processed :::= replacement.reverse
+						unprocessed = remaining
+
+						if(replacement.isEmpty) {
+							if(unprocessed.isEmpty) {
+								unprocessed = List(Nop())
+							}
+
+							markers.patchMissing(processed ::: unprocessed, exceptions, unprocessed.head)
+						} else {
+							markers.patchMissing(processed ::: unprocessed, exceptions, replacement.head)
 						}
-						
-						markers.patchMissing(processed ::: unprocessed, exceptions, unprocessed.head)
-					} else {
-						markers.patchMissing(processed ::: unprocessed, exceptions, replacement.head)
-					}
 
-					modified = true
-				}
-				case Failure(_) => {
-					processed ::= unprocessed.head
-					unprocessed = unprocessed.tail
+						modified = true
+					}
+					case Failure(_) => {
+						processed ::= unprocessed.head
+						unprocessed = unprocessed.tail
+					}
 				}
 			}
-		}
 
-		ops = processed.reverse
-		modified
+			ops = if(0 == fromIndex) { processed.reverse } else { (ops take fromIndex) ::: processed.reverse}
+			modified
+		}
 	}
 
 	def replaceAll[A](chain: BytecodeChain[A])(rule: A => List[AbstractOp]): Boolean = {
