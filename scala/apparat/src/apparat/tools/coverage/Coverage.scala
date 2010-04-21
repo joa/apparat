@@ -82,11 +82,9 @@ object Coverage {
 												if(sourcePath.isEmpty || (sourcePath exists (file.name startsWith _))) {
 													abcModified = true
 
-													observers foreach (_ begin file.name)
-
 													bytecode.replaceFrom(4, debugLine) {
 														x =>
-															observers foreach (_ instrument x)
+															observers foreach (_.instrument(file.name, x))
 															
 															DebugLine(x) ::
 															coverageScope ::
@@ -96,8 +94,6 @@ object Coverage {
 													}
 
 													body.maxStack += 3
-
-													observers foreach (_ end file.name)
 												}
 											}
 											case None =>
