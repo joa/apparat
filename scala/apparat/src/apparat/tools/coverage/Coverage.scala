@@ -26,6 +26,8 @@ object Coverage {
 		var output = ""
 		var sourcePath = List.empty[String]
 
+		var observers = List.empty[CoverageObserver]
+
 		override def name = "Coverage"
 
 		override def help = """  -i [file]	Input file
@@ -52,6 +54,14 @@ object Coverage {
 			cont write target
 		}
 
+		def addObserver(observer: CoverageObserver) = {
+			observers = observer :: observers
+		}
+
+		def removeObserver(observer: CoverageObserver) = {
+			observers = observers filterNot (_ == observer)
+		}
+
 		private def coverage(tag: SwfTag) = tag match {
 			case doABC: DoABC => {
 				val f = future {
@@ -71,15 +81,23 @@ object Coverage {
 												val file = debugFile.file
 												if(sourcePath.isEmpty || (sourcePath exists (file.name startsWith _))) {
 													abcModified = true
+
+													observers foreach (_ begin file.name)
+
 													bytecode.replaceFrom(4, debugLine) {
 														x =>
+															observers foreach (_ instrument x)
+															
 															DebugLine(x) ::
 															coverageScope ::
 															PushString(file) ::
 															pushLine(x) ::
 															coverageMethod :: Nil
 													}
+
 													body.maxStack += 3
+
+													observers foreach (_ end file.name)
 												}
 											}
 											case None =>
