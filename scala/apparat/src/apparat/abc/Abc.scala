@@ -59,7 +59,7 @@ object Abc {
 		case _ => None
 	}
 
-	def fromSwf(swf: Swf) = swf.tags find (_.isInstanceOf[DoABC]) match {
+	def fromSwf(swf: Swf) = swf.tags find (_.kind == SwfTags.DoABC) match {
 		case Some(doABC) => fromTag(doABC)
 		case None => None
 	}

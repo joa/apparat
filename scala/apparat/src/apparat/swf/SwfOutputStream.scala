@@ -21,8 +21,8 @@
 package apparat.swf
 
 import java.io.{
-	OutputStream => JOutputStream,
-	ByteArrayOutputStream => JByteArrayOutputStream
+OutputStream => JOutputStream,
+ByteArrayOutputStream => JByteArrayOutputStream
 }
 
 import scala.math.{max, min}
@@ -119,7 +119,7 @@ class SwfOutputStream(val output: JOutputStream) extends JOutputStream {
 					val bytes = baos toByteArray;
 					buffer close
 
-					writeRECORDHEADER(new Recordheader(value kind, bytes length))
+					writeRECORDHEADER(new Recordheader(SwfTags.kind(value), bytes length))
 					write(bytes)
 				} finally {
 					try {

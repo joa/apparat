@@ -6,7 +6,7 @@ import apparat.tools.{ApparatLog, ApparatConfiguration, ApparatTool, ApparatAppl
 import java.io.{File => JFile}
 import scala.collection.immutable.Stack
 import scala.annotation.tailrec
-import apparat.swf.{DoABC1, DoABC, SwfTags}
+import apparat.swf.{DoABC, SwfTags}
 
 object Concrete {
 	def main(args: Array[String]): Unit = ApparatApplication(new ConcreteTool, args)
@@ -17,7 +17,7 @@ object Concrete {
 		var cache = Map.empty[AbcQName, AbcNominalType]
 
 		var abcs = List.empty[Abc]
-		
+
 		override def name = "Concrete"
 
 		override def help = "  -i [file0"+JFile.pathSeparatorChar+"file1"+JFile.pathSeparatorChar+"..."+JFile.pathSeparatorChar+"fileN]	Input file(s)"
@@ -43,7 +43,7 @@ object Concrete {
 
 			SwfTags.tagFactory = (kind: Int) => kind match {
 				case SwfTags.DoABC => Some(new DoABC)
-				case SwfTags.DoABC1 => Some(new DoABC1)
+				case SwfTags.DoABC1 => Some(new DoABC(kind))
 				case _ => None
 			}
 
@@ -59,7 +59,7 @@ object Concrete {
 				val stack = buildStack(nominalType, Stack.empty[AbcNominalType])
 				var abstracts = List.empty[AbcQName]
 				var concretes = List.empty[AbcQName]
-				
+
 				for(currentType <- stack; `trait` <- currentType.inst.traits) {
 					`trait` match {
 						case anyMethod: AbcTraitAnyMethod => {

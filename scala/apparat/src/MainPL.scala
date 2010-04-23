@@ -65,7 +65,7 @@ object MainPL {
 //		var swf = Swf fromFile "assets/_Switch.swf"
 		var swf = Swf fromFile "assets/test.swf"
 
-		var idx = swf.tags.findIndexOf(_.isInstanceOf[DoABC])
+		var idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
 		var doABC = swf.tags(idx).asInstanceOf[DoABC]
 		var abc = Abc fromDoABC doABC
 		abc.loadBytecode()
@@ -97,8 +97,7 @@ object MainPL {
 		swf write "assets/test.output.swf"
 
 //		swf = Swf fromFile "assets/_Switch.output.swf"
-		swf = Swf fromFile "assets/test.output.swf"
-		idx = swf.tags.findIndexOf(_.isInstanceOf[DoABC])
+		idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
 		doABC = swf.tags(idx).asInstanceOf[DoABC]
 		abc = Abc fromDoABC doABC
 		abc.loadBytecode()
