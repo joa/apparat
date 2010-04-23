@@ -1,12 +1,12 @@
 package apparat.tools.concrete
 
-import apparat.swf.{DoABC, SwfTags}
 import apparat.utils.TagContainer
 import apparat.abc._
 import apparat.tools.{ApparatLog, ApparatConfiguration, ApparatTool, ApparatApplication}
 import java.io.{File => JFile}
 import scala.collection.immutable.Stack
 import scala.annotation.tailrec
+import apparat.swf.{DoABC1, DoABC, SwfTags}
 
 object Concrete {
 	def main(args: Array[String]): Unit = ApparatApplication(new ConcreteTool, args)
@@ -43,6 +43,7 @@ object Concrete {
 
 			SwfTags.tagFactory = (kind: Int) => kind match {
 				case SwfTags.DoABC => Some(new DoABC)
+				case SwfTags.DoABC1 => Some(new DoABC1)
 				case _ => None
 			}
 

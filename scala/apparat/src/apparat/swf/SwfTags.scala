@@ -74,6 +74,7 @@ object SwfTags {
 	val FileAttributes = 69
 	val PlaceObject3 = 70
 	val ImportAssets2 = 71
+	val DoABC1 = 72
 	val DefineFontAlignZones = 73
 	val CSMTextSettings = 74
 	val DefineFont3 = 75
@@ -142,6 +143,7 @@ object SwfTags {
 		case FileAttributes => "FileAttributes"
 		case PlaceObject3 => "PlaceObject3"
 		case ImportAssets2 => "ImportAssets2"
+		case DoABC1 => "DoABC1"
 		case DefineFontAlignZones => "DefineFontAlignZones"
 		case CSMTextSettings => "CSMTextSettings"
 		case DefineFont3 => "DefineFont3"
@@ -167,6 +169,7 @@ object SwfTags {
 		case SetBackgroundColor => Some(new SetBackgroundColor)
 		case ProductInfo => Some(new ProductInfo)
 		case FrameLabel => Some(new FrameLabel)
+		case DoABC1 => Some(new DoABC1)
 		case DoABC => Some(new DoABC)
 		case SymbolClass => Some(new SymbolClass)
 		case ShowFrame => Some(new ShowFrame)
@@ -439,6 +442,19 @@ class DoABC extends SwfTag(SwfTags.DoABC) {
 	override def toString = "[DoABC flags: " + flags + ", name: \"" + name + "\"]"
 }
 
+class DoABC1 extends DoABC {
+	override val kind: Int=SwfTags.DoABC1
+
+	override def read(header: Recordheader)(implicit input: SwfInputStream) = {
+		abcData = IO read (header.length)
+	}
+
+	override def write(implicit output: SwfOutputStream) = {
+		output write abcData
+	}
+
+	override def toString = "[DoABC1]"
+}
 ////////////////////////////////////////////////////////////////////////////////
 // Define Tags
 ////////////////////////////////////////////////////////////////////////////////

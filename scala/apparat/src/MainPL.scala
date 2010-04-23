@@ -62,9 +62,10 @@ object MainPL {
 		//		}
 
 		//		val swf = Swf fromFile "assets/_Test1.swf"
-		var swf = Swf fromFile "assets/_Switch.swf"
+//		var swf = Swf fromFile "assets/_Switch.swf"
+		var swf = Swf fromFile "assets/test.swf"
 
-		var idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
+		var idx = swf.tags.findIndexOf(_.isInstanceOf[DoABC])
 		var doABC = swf.tags(idx).asInstanceOf[DoABC]
 		var abc = Abc fromDoABC doABC
 		abc.loadBytecode()
@@ -78,7 +79,7 @@ object MainPL {
 			val g = BytecodeControlFlowGraphBuilder(bc)
 			g.dotExport to Console.out
 
-//			g.withNoEmptyJump.dotExport to Console.out
+			//			g.withNoEmptyJump.dotExport to Console.out
 
 			val nbc = g.bytecode
 			nbc.dump()
@@ -92,10 +93,12 @@ object MainPL {
 		abc.cpool.dump()
 		abc.saveBytecode()
 		abc write doABC
-		swf write "assets/_Switch.output.swf"
+//		swf write "assets/_Switch.output.swf"
+		swf write "assets/test.output.swf"
 
-		swf = Swf fromFile "assets/_Switch.output.swf"
-		idx = swf.tags.findIndexOf(_.kind == SwfTags.DoABC)
+//		swf = Swf fromFile "assets/_Switch.output.swf"
+		swf = Swf fromFile "assets/test.output.swf"
+		idx = swf.tags.findIndexOf(_.isInstanceOf[DoABC])
 		doABC = swf.tags(idx).asInstanceOf[DoABC]
 		abc = Abc fromDoABC doABC
 		abc.loadBytecode()

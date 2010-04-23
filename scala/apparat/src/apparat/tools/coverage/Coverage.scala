@@ -4,13 +4,13 @@ import apparat.utils.TagContainer
 import apparat.actors.Futures._
 import java.io.{File => JFile}
 import apparat.tools.{ApparatConfiguration, ApparatTool, ApparatApplication}
-import apparat.swf.{SwfTag, SwfTags, DoABC}
 import apparat.bytecode.operations._
 import apparat.bytecode.combinator._
 import apparat.bytecode.combinator.BytecodeChains._
 import java.io.{File => JFile}
 import apparat.abc.{AbcConstantPool, AbcQName, AbcNamespace, Abc}
 import compat.Platform
+import apparat.swf.{DoABC1, SwfTag, SwfTags, DoABC}
 
 object Coverage {
 	def main(args: Array[String]): Unit = ApparatApplication(new CoverageTool, args)
@@ -44,6 +44,7 @@ object Coverage {
 		override def run() = {
 			SwfTags.tagFactory = (kind: Int) => kind match {
 				case SwfTags.DoABC => Some(new DoABC)
+				case SwfTags.DoABC1 => Some(new DoABC1)
 				case _ => None
 			}
 
