@@ -21,4 +21,6 @@
 <antlib>
 	<typedef name="stripper" classname="apparat.embedding.ant.stripper.StripperTask"/>
 	<typedef name="reducer" classname="apparat.embedding.ant.reducer.ReducerTask"/>
+	<typedef name="coverage" classname="apparat.embedding.ant.coverage.CoverageTask"/>
+	<typedef name="concrete" classname="apparat.embedding.ant.concrete.ConcreteTask"/>
 </antlib>

@@ -26,6 +26,12 @@ package apparat.embedding.ant
 import org.apache.tools.ant.taskdefs.Java
 import collection.mutable.HashMap
 
+trait OutParameter {
+	def setArgument(name: String, value: Any)
+
+	def setOut(name: String) = setArgument("o", name)
+}
+
 class ApparatTask(tool: {def getClass: Class[_]}, name: String) extends Java {
 	setClassname(tool.getClass.getName.dropRight(1))
 	setTaskName(name)
@@ -50,11 +56,9 @@ class ApparatTask(tool: {def getClass: Class[_]}, name: String) extends Java {
 		super.execute()
 	}
 
-	def out = arguments.getOrElse("o", "")
-
-	def int = arguments.getOrElse("i", "")
+	//	def out = arguments.getOrElse("o", "")
+	//
+	//	def int = arguments.getOrElse("i", "")
 
 	def setIn(name: String) = setArgument("i", name)
-
-	def setOut(name: String) = setArgument("o", name)
 }

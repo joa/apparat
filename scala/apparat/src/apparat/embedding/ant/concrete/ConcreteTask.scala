@@ -1,7 +1,7 @@
-package apparat.embedding.ant.reducer
+package apparat.embedding.ant.concrete
 
-import apparat.tools.reducer.Reducer
-import apparat.embedding.ant.{OutParameter, ApparatTask}
+import apparat.embedding.ant.ApparatTask
+import apparat.tools.concrete.Concrete
 
 /*
  * This file is part of Apparat.
@@ -23,12 +23,8 @@ import apparat.embedding.ant.{OutParameter, ApparatTask}
  * http://www.joa-ebert.com/
  * 
  * User: Patrick Le Clec'h
- * Date: 14 févr. 2010
- * Time: 16:15:10
+ * Date: 23 avr. 2010
+ * Time: 10:07:57
  */
 
-sealed class ReducerTask extends ApparatTask(Reducer, "reducer") with OutParameter {
-	def setDeblock(value: Float) = setArgument("d", value)
-
-	def setQuality(value: Float) = setArgument("q", value)
-}
+sealed class ConcreteTask extends ApparatTask(Concrete, "concrete")

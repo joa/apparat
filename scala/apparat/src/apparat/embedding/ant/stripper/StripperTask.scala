@@ -1,8 +1,7 @@
 package apparat.embedding.ant.stripper
 
 import apparat.tools.stripper.Stripper
-import apparat.embedding.ant.ApparatTask
-
+import apparat.embedding.ant.{OutParameter, ApparatTask}
 /*
  * This file is part of Apparat.
  * 
@@ -27,4 +26,4 @@ import apparat.embedding.ant.ApparatTask
  * Time: 13:45:35
  */
 
-class StripperTask extends ApparatTask(Stripper, "stripper")
+class StripperTask extends ApparatTask(Stripper, "stripper") with OutParameter
