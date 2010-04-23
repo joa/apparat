@@ -119,7 +119,7 @@ class SwfOutputStream(val output: JOutputStream) extends JOutputStream {
 					val bytes = baos toByteArray;
 					buffer close
 
-					writeRECORDHEADER(new Recordheader(SwfTags.kind(value), bytes length))
+					writeRECORDHEADER(new Recordheader(value kind, bytes length))
 					write(bytes)
 				} finally {
 					try {

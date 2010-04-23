@@ -96,7 +96,7 @@ object Stripper {
 		override def run() = {
 			SwfTags.tagFactory = (kind: Int) => kind match {
 				case SwfTags.DoABC => Some(new DoABC)
-				case SwfTags.DoABC1 => Some(new DoABC(kind))
+				case SwfTags.DoABC1 => Some(new DoABC)
 				case _ => None
 			}
 

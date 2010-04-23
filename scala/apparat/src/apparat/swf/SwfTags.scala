@@ -169,7 +169,7 @@ object SwfTags {
 		case SetBackgroundColor => Some(new SetBackgroundColor)
 		case ProductInfo => Some(new ProductInfo)
 		case FrameLabel => Some(new FrameLabel)
-		case DoABC1 => Some(new DoABC(kind))
+		case DoABC1 => Some(new DoABC)
 		case DoABC => Some(new DoABC)
 		case SymbolClass => Some(new SymbolClass)
 		case ShowFrame => Some(new ShowFrame)
@@ -197,11 +197,6 @@ object SwfTags {
 				| DefineBitsLossless
 				| DefineBitsLossless2 => true
 		case _ => false
-	}
-
-	def kind(value: SwfTag) = value match {
-		case tag: ShadowedKind => tag.shadowedKind
-		case _ => value.kind
 	}
 }
 
@@ -427,23 +422,14 @@ class SymbolClass extends SwfTag(SwfTags.SymbolClass) {
 	}
 }
 
-trait ShadowedKind {
-	def shadowedKind: Int
-	def kind:Int
-	def isShadowedKind = shadowedKind != kind
-}
-
-// this class handle two type of DoABC tags
-// DoABC tag 72 and DoABC2 tag 82
-// in case of DoABC(72), the kind is shadowed with the DoABC(82) tag so you can use _.kind==SwfTags.DoABC for both tags
-class DoABC(val shadowedKind: Int = SwfTags.DoABC) extends SwfTag(SwfTags.DoABC) with ShadowedKind {
+class DoABC extends SwfTag(SwfTags.DoABC) {
 	var flags = 0L
 	var name = ""
 	var abcData = new Array[Byte](0)
 
 	override def read(header: Recordheader)(implicit input: SwfInputStream) = {
-		if (isShadowedKind) { // we are in a DoABC1 kind
-			abcData = IO read (header.length)			
+		if (header.kind == SwfTags.DoABC1) {
+			abcData = IO read (header.length)
 		} else {
 			flags = input readUI32 ()
 			name = input readSTRING ()
@@ -452,18 +438,13 @@ class DoABC(val shadowedKind: Int = SwfTags.DoABC) extends SwfTag(SwfTags.DoABC)
 	}
 
 	override def write(implicit output: SwfOutputStream) = {
-		if (!isShadowedKind) { //we are in a DoABC2 kind
-			output writeUI32 flags
-			output writeSTRING name
-		}
+		output writeUI32 flags
+		output writeSTRING name
 		output write abcData
 	}
 
 	override def toString = {
-		if (isShadowedKind)
-			"[DoABC1]"
-		else
-			"[DoABC flags: " + flags + ", name: \"" + name + "\"]"
+		"[DoABC flags: " + flags + ", name: \"" + name + "\"]"
 	}
 }
 
