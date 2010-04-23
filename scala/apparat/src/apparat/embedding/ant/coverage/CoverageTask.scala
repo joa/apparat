@@ -27,6 +27,6 @@ import apparat.embedding.ant.{OutParameter, ApparatTask}
  * Time: 10:17:21
  */
 
-class CoverageTask extends ApparatTask(Coverage, "coverage") with OutParameter {
+sealed class CoverageTask extends ApparatTask(Coverage, "coverage") with OutParameter {
 	def setSource(value: String) = setArgument("s", value)
 }

@@ -26,4 +26,4 @@ import apparat.embedding.ant.{OutParameter, ApparatTask}
  * Time: 13:45:35
  */
 
-class StripperTask extends ApparatTask(Stripper, "stripper") with OutParameter
+sealed class StripperTask extends ApparatTask(Stripper, "stripper") with OutParameter
