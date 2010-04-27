@@ -62,8 +62,7 @@ class GraphSpec extends SpecificationWithJUnit {
     }
 
     "throw exception when removing non existing vertex" >> {
-      skip("don't know how to expect exceptions yet")
-      val g1 = g - "D" must throwA(new Exception)
+      val g1 = g - "D" must throwAn[AssertionError]
     }
 
     "remove edge" >> {
@@ -77,15 +76,18 @@ class GraphSpec extends SpecificationWithJUnit {
     "throw exception when removing non existing edge" >> {
 
       "non existing direction" >> {
-
+         val e4 = DefaultEdge("B", "A")
+         g - e4 must throwAn[AssertionError]
       }
 
       "non existing starting vertex" >> {
-
+        val e4 = DefaultEdge("U", "A")
+         g - e4 must throwAn[AssertionError]
       }
 
       "non existing end vertex" >> {
-
+        val e4 = DefaultEdge("B", "U")
+         g - e4 must throwAn[AssertionError]
       }
     }
 
