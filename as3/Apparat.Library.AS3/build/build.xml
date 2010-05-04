@@ -54,7 +54,7 @@
 			<arg line="-strict"/>
 			<arg line="-optimize"/>
 			<arg line="-o '${dir.bin}/apparat.swc'"/>
-			<arg line="-el '${flex.libs}/player/10/playerglobal.swc'"/>
+			<arg line="-el '${flex.libs}/player/10.0/playerglobal.swc'"/>
 			<arg line="-sp '${dir.src}'"/>
 			<arg line="-is '${dir.src}'"/>
 		</exec>

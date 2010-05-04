@@ -46,9 +46,9 @@
   </contributors>
   
   <scm>
-    <connection>http://apparat.googlecode.com/svn/trunk/</connection>
-    <developerConnection>https://apparat.googlecode.com/svn/trunk/</developerConnection>
-    <url>http://code.google.com/p/apparat/source/browse/trunk/</url>
+    <connection>http://apparat.googlecode.com/hg/</connection>
+    <developerConnection>https://apparat.googlecode.com/hg/</developerConnection>
+    <url>http://code.google.com/p/apparat/source/browse/</url>
   </scm>
 
   <licenses>

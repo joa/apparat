@@ -130,7 +130,7 @@
 			<arg line="-optimize"/>
 			<arg line="-warnings"/>
 			<arg line="-o '${dir.bin}/${file}.swf'"/>
-			<arg line="-el '${flex.libs}/player/10/playerglobal.swc'"/>
+			<arg line="-el '${flex.libs}/player/10.0/playerglobal.swc'"/>
 			<arg line="-sp '${dir.src}'"/>
 			<arg line="-- '${dir.src}/${file}.as'"/>
 		</exec>
