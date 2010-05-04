@@ -3,3 +3,5 @@
 /*.properties$
 java/Apparat.Core/assets/
 scala/apparat/assets/
+/out$
+/classes$
