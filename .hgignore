@@ -1,8 +1,9 @@
+/*.properties$
+/*.iws$
 /target$
 /bin$
-/*.properties$
-java/Apparat.Core/assets/
-scala/apparat/assets/
 /out$
 /classes$
-/*.iws$
+java/Apparat.Core/assets/
+scala/apparat/assets/
+scala/apparat/src/Main.scala
