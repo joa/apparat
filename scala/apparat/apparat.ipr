@@ -143,6 +143,7 @@
         <w>vertices</w>
       </words>
     </dictionary>
+    <dictionary name="joa.ebert" />
   </component>
   <component name="ProjectModuleManager">
     <modules>
@@ -167,7 +168,7 @@
     <option name="mySupportsUserInfoFilter" value="true" />
   </component>
   <component name="VcsDirectoryMappings">
-    <mapping directory="" vcs="svn" />
+    <mapping directory="" vcs="" />
   </component>
 </project>
 
