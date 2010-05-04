@@ -9,6 +9,15 @@ object StackAnalysis {
 	def apply(bytecode: Bytecode): (Int, Int) = apply(BytecodeControlFlowGraphBuilder(bytecode))
 
 	def apply[V <: BlockVertex[AbstractOp]](cfg: BytecodeControlFlowGraph[V]): (Int, Int) = {
+		//
+		// The stack analysis is quite easy. We have to keep the invariant in mind that
+		// the stack is the same at each cf-merge. This means we do not have to compute
+		// all (n-1)! possible paths but can simply walk from top->bottom without visiting
+		// any vertex twice.
+		//
+		// The maximum stack that we record is the final result.
+		//
+
 		var visited = cfg vertexMap { v => false }
 		var maxOperand = 0
 		var maxScope = 0
