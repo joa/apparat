@@ -9,14 +9,14 @@ object StackAnalysis {
 	def apply(bytecode: Bytecode): (Int, Int) = apply(BytecodeControlFlowGraphBuilder(bytecode))
 
 	def apply[V <: BlockVertex[AbstractOp]](cfg: BytecodeControlFlowGraph[V]): (Int, Int) = {
-		var visited = cfg vertexMap { _ -> false }
+		var visited = cfg vertexMap { v => false }
 		var maxOperand = 0
 		var maxScope = 0
 
-		def loop(vertex: V, initOperand, initScope) = {
+		def loop(vertex: V, initOperand: Int, initScope: Int): Unit = {
 			if(!visited(vertex)) {
-				var operand = oldOperand
-				var scope = oldScope
+				var operand = initOperand
+				var scope = initScope
 
 				for(op <- vertex.block) {
 					operand += op.operandDelta
@@ -34,7 +34,7 @@ object StackAnalysis {
 				visited = visited.updated(vertex, true)
 				
 				for(successor <- cfg outgoingOf vertex) {
-					loop(successor, operand, scope)
+					loop(successor.endVertex, operand, scope)
 				}
 			}
 		}
