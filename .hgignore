@@ -1,7 +1,10 @@
 /*.properties$
 /*.iws$
+/*.class$
 /target$
 /bin$
+/jar$
+/zip$
 /out$
 /classes$
 java/Apparat.Core/assets/
