@@ -1,2 +1,5 @@
 /target$
+/bin$
 /*.properties$
+java/Apparat.Core/assets/
+scala/apparat/assets/
