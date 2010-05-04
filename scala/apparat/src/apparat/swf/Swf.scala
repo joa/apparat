@@ -211,4 +211,10 @@ final class Swf {
 
 		new SwfInputStream(new JByteArrayInputStream(bufferOut));
 	}
+
+	def toByteArray = {
+		val baos = new JByteArrayOutputStream()
+		using(baos) { write _ }
+		baos.toByteArray
+	}
 }
