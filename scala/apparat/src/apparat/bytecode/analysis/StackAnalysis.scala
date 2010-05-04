@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2009 Joa Ebert
+ * Copyright (C) 2010 Joa Ebert
  * http://www.joa-ebert.com/
  *
  */
