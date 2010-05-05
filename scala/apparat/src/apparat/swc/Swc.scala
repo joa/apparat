@@ -21,6 +21,7 @@
 package apparat.swc
 
 import java.io.{
+	BufferedInputStream => JBufferedInputStream,
 	File => JFile,
 	FileInputStream => JFileInputStream,
 	FileOutputStream => JFileOutputStream,
@@ -57,7 +58,7 @@ class Swc {
 	var catalog: Option[Array[Byte]] = None
 	var library: Option[Array[Byte]] = None
 
-	def read(file: JFile): Unit = using(new JFileInputStream(file))(read _)
+	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x4000))(read _)
 
 	def read(pathname: String): Unit = read(new JFile(pathname))
 
