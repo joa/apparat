@@ -27,6 +27,7 @@ import apparat.utils.{IndentingPrintWriter, Dumpable}
  * @author Joa Ebert
  */
 trait GraphLike[V] extends Dumpable {
+	type G <: GraphLike[V]
 	type E = Edge[V]
 
 	def topsort: GraphTraversal[V]
@@ -69,13 +70,13 @@ trait GraphLike[V] extends Dumpable {
 
 	def edgeMap[T](f: E => T): Map[E, T] = Map(edgesIterator map {e => e -> f(e)} toSeq: _*)
 
-	def -(edge: E): this.type
+	def -(edge: E): G
 
-	def +(edge: E): this.type
+	def +(edge: E): G
 
-	def -(vertex: V): this.type
+	def -(vertex: V): G
 
-	def +(vertex: V): this.type
+	def +(vertex: V): G
 
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Graph:"

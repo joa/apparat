@@ -32,6 +32,7 @@ trait ExitVertex {
 }
 
 abstract class MutableCFG[T, V <: BlockVertex[T]] extends MutableGraphWithAdjacencyMatrix[V] with DOTExportAvailable[V] {
+	override type G = this.type
 	type Block = Seq[T]
 
 	protected[graph] def newEntryVertex: V
