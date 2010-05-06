@@ -23,6 +23,7 @@ package apparat.swf
 import apparat.swc.Swc
 import apparat.utils.IO._
 import java.io.{
+	BufferedInputStream => JBufferedInputStream,
 	File => JFile,
 	FileInputStream => JFileInputStream,
 	FileOutputStream => JFileOutputStream,
@@ -69,7 +70,7 @@ final class Swf {
 	var frameCount: Int = 1
 	var tags: List[SwfTag] = Nil
 
-	def read(file: JFile): Unit = using(new JFileInputStream(file))(read(_, file length))
+	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x4000))(read(_, file length))
 
 	def read(pathname: String): Unit = read(new JFile(pathname))
 

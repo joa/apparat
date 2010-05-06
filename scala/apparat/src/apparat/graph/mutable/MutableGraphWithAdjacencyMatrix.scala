@@ -24,8 +24,6 @@ import collection.mutable.HashMap
 
 trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 {
-	type Edge = E
-	
 	private val adjacencyMatrix = new HashMap[V, List[E]]()
 	private var edges: List[E] = Nil
 	private var vertices: List[V] = Nil
@@ -70,4 +68,24 @@ trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 	override def incomingOf(vertex: V) = edges filter (_.endVertex == vertex)
 
 	override def outgoingOf(vertex: V) = adjacencyMatrix(vertex)
+
+	override def +(edge: E) = {
+		add(edge)
+		this
+	}
+
+	override def -(edge: E) = {
+		remove(edge)
+		this
+	}
+
+	override def +(vertex: V) = {
+		add(vertex)
+		this
+	}
+
+	override def -(vertex: V) = {
+		remove(vertex)
+		this
+	}
 }
