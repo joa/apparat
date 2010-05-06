@@ -88,4 +88,7 @@ final class DOTExport[V](val graph: GraphLike[V],
 		}
 		writer <= "}"
 	}
+
+	private def escape(value: String) = value.replaceAll("\\\\", "\\\\\\\\").
+			replaceAll("\n", "\\\\\\\\n").replaceAll("\"", "\\\\\"")
 }
