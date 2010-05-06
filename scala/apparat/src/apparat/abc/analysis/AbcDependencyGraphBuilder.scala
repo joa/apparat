@@ -46,9 +46,15 @@ object AbcDependencyGraphBuilder extends (List[Abc] => GraphLike[AbcNominalType]
 				}
 				case None =>
 			}
+
+			for(interface <- vertex.inst.interfaces) {
+				map get interface match {
+					case Some(interface) => graph += DefaultEdge(vertex, interface)
+					case None =>
+				}
+			}
 		}
 
-		graph.dump()
 		graph
 	}
 }
