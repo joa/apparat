@@ -308,10 +308,15 @@ sealed abstract class AbstractOp extends OpCode with Product {
 
 	def ~==(that: AbstractOp): Boolean = {
 		if (opCode == that.opCode && productArity == that.productArity) {
-			for(i <- 0 until productArity) {
+			var i = 0
+			val n = productArity
+
+			while(i < n) {
 				if(this.productElement(i) != that.productElement(i)) {
 					return false
 				}
+
+				i += 1
 			}
 			
 			true
