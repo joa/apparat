@@ -334,19 +334,31 @@ trait DebugOp
 
 trait AlchemyOp
 
-trait OpThatCanThrow extends AbstractOp {final override def canThrow = true}
+trait OpThatCanThrow extends AbstractOp {
+	final override def canThrow = true
+}
 
-trait OpThatControlsFlow extends AbstractOp {final override def controlsFlow = true}
+trait OpThatControlsFlow extends AbstractOp {
+	final override def controlsFlow = true
+}
 
 trait OpThatReturns extends OpThatControlsFlow
 
-trait OpWithRegister {def register: Int}
+trait OpWithRegister {
+	def register: Int
+}
 
-trait OpWithSlot {def slot: Int}
+trait OpWithSlot {
+	def slot: Int
+}
 
-trait OpWithMethod {def method: AbcMethod}
+trait OpWithMethod {
+	def method: AbcMethod
+}
 
-trait OpWithMarker {def marker: Marker}
+trait OpWithMarker {
+	def marker: Marker
+}
 
 trait OpWithArguments extends AbstractOp {
 	def numArguments: Int
@@ -385,69 +397,69 @@ sealed abstract class AbstractPushOp extends AbstractOpWithOperands(1, 0)
 sealed abstract class AbstractAlchemySetOp extends AbstractOpWithOperands(0, 2) with AlchemyOp
 sealed abstract class AbstractAlchemyGetOp extends AbstractOpWithOperands(1, 1) with AlchemyOp
 
-case class Add() extends AbstractBinaryOp {final override def opCode = Op.add}
-case class AddInt() extends AbstractBinaryOp {final override def opCode = Op.add_i}
-case class ApplyType(numArguments: Int) extends AbstractUnaryOp with OpWithArguments with OpThatCanThrow {final override def opCode = Op.applytype}
+case class Add() extends AbstractBinaryOp { final override def opCode = Op.add }
+case class AddInt() extends AbstractBinaryOp { final override def opCode = Op.add_i }
+case class ApplyType(numArguments: Int) extends AbstractUnaryOp with OpWithArguments with OpThatCanThrow { final override def opCode = Op.applytype }
 case class AsType(typeName: AbcName) extends AbstractUnaryOp {
 	require(!typeName.isRuntimeName)
 	final override def opCode = Op.astype
 }
-case class AsTypeLate() extends AbstractOpWithOperands(1, 2) {final override def opCode = Op.astypelate}
-case class BitAnd() extends AbstractBinaryOp {final override def opCode = Op.bitand}
-case class BitNot() extends AbstractUnaryOp {final override def opCode = Op.bitnot}
-case class BitOr() extends AbstractBinaryOp {final override def opCode = Op.bitor}
-case class BitXor() extends AbstractBinaryOp {final override def opCode = Op.bitxor}
-case class Breakpoint() extends AbstractOp with DebugOp {final override def opCode = Op.bkpt}
-case class BreakpointLine() extends AbstractOp with DebugOp {final override def opCode = Op.bkptline}
-case class Call(numArguments: Int) extends AbstractOpWithOperands(1, 2) with OpWithArguments with OpThatCanThrow {final override def opCode = Op.call}
-case class CallMethod(methodIndex: Int, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow {final override def opCode = Op.callmethod}
-case class CallProperty(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow {final override def opCode = Op.callproperty}
-case class CallPropLex(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow {final override def opCode = Op.callproplex}
-case class CallPropVoid(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow {final override def opCode = Op.callpropvoid}
-case class CallStatic(method: AbcMethod, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow {final override def opCode = Op.callstatic}
-case class CallSuper(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow {final override def opCode = Op.callsuper}
-case class CallSuperVoid(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow {final override def opCode = Op.callsupervoid}
-case class CheckFilter() extends AbstractOpWithOperands(1, 1) with OpThatCanThrow {final override def opCode = Op.checkfilter}
+case class AsTypeLate() extends AbstractOpWithOperands(1, 2) { final override def opCode = Op.astypelate }
+case class BitAnd() extends AbstractBinaryOp { final override def opCode = Op.bitand }
+case class BitNot() extends AbstractUnaryOp { final override def opCode = Op.bitnot }
+case class BitOr() extends AbstractBinaryOp { final override def opCode = Op.bitor }
+case class BitXor() extends AbstractBinaryOp { final override def opCode = Op.bitxor }
+case class Breakpoint() extends AbstractOp with DebugOp { final override def opCode = Op.bkpt }
+case class BreakpointLine() extends AbstractOp with DebugOp { final override def opCode = Op.bkptline }
+case class Call(numArguments: Int) extends AbstractOpWithOperands(1, 2) with OpWithArguments with OpThatCanThrow { final override def opCode = Op.call }
+case class CallMethod(methodIndex: Int, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow { final override def opCode = Op.callmethod }
+case class CallProperty(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow { final override def opCode = Op.callproperty }
+case class CallPropLex(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow { final override def opCode = Op.callproplex }
+case class CallPropVoid(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow { final override def opCode = Op.callpropvoid }
+case class CallStatic(method: AbcMethod, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithMethod with OpThatCanThrow { final override def opCode = Op.callstatic }
+case class CallSuper(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow { final override def opCode = Op.callsuper }
+case class CallSuperVoid(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow { final override def opCode = Op.callsupervoid }
+case class CheckFilter() extends AbstractOpWithOperands(1, 1) with OpThatCanThrow { final override def opCode = Op.checkfilter }
 case class Coerce(typeName: AbcName) extends AbstractUnaryOp with OpThatCanThrow {
 	require(!typeName.isRuntimeName)
 	final override def opCode = Op.coerce
 }
-case class CoerceAny() extends AbstractUnaryOp {final override def opCode = Op.coerce_a}
-case class CoerceBoolean() extends AbstractUnaryOp {final override def opCode = Op.coerce_b}
-case class CoerceDouble() extends AbstractUnaryOp {final override def opCode = Op.coerce_d}
-case class CoerceInt() extends AbstractUnaryOp {final override def opCode = Op.coerce_i}
-case class CoerceObject() extends AbstractUnaryOp {final override def opCode = Op.coerce_o}
-case class CoerceString() extends AbstractUnaryOp {final override def opCode = Op.coerce_s}
-case class CoerceUInt() extends AbstractUnaryOp {final override def opCode = Op.coerce_u}
-case class Construct(numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow {final override def opCode = Op.construct}
-case class ConstructProp(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow {final override def opCode = Op.constructprop}
-case class ConstructSuper(numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpThatCanThrow {final override def opCode = Op.constructsuper}
-case class ConvertBoolean() extends AbstractUnaryOp {final override def opCode = Op.convert_b}
-case class ConvertInt() extends AbstractUnaryOp {final override def opCode = Op.convert_i}
-case class ConvertDouble() extends AbstractUnaryOp {final override def opCode = Op.convert_d}
-case class ConvertObject() extends AbstractUnaryOp with OpThatCanThrow {final override def opCode = Op.convert_o}
-case class ConvertString() extends AbstractUnaryOp {final override def opCode = Op.convert_s}
-case class ConvertUInt() extends AbstractUnaryOp {final override def opCode = Op.convert_u}
-case class Debug(kind: Int, name: Symbol, register: Int, extra: Int) extends AbstractOp with OpWithRegister with DebugOp {final override def opCode = Op.debug}
-case class DebugFile(file: Symbol) extends AbstractOp with DebugOp {final override def opCode = Op.debugfile}
-case class DebugLine(line: Int) extends AbstractOp with DebugOp {final override def opCode = Op.debugline}
-case class DecLocal(register: Int) extends AbstractOp with OpWithRegister {final override def opCode = Op.declocal}
-case class DecLocalInt(register: Int) extends AbstractOp with OpWithRegister {final override def opCode = Op.declocal_i}
-case class Decrement() extends AbstractUnaryOp {final override def opCode = Op.decrement}
-case class DecrementInt() extends AbstractUnaryOp {final override def opCode = Op.decrement_i}
-case class DeleteProperty(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow {final override def opCode = Op.deleteproperty}
-case class Divide() extends AbstractBinaryOp {final override def opCode = Op.divide}
-case class Dup() extends AbstractOpWithOperands(2, 1) {final override def opCode = Op.dup}
-case class DefaultXMLNamespace(uri: Symbol) extends AbstractOp with OpThatCanThrow {final override def opCode = Op.dxns}
-case class DefaultXMLNamespaceLate() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow {final override def opCode = Op.dxnslate}
-case class Equals() extends AbstractBinaryOp {final override def opCode = Op.equals}
-case class EscapeXMLAttribute() extends AbstractOpWithOperands(1, 1) {final override def opCode = Op.esc_xattr}
-case class EscapeXMLElement() extends AbstractOpWithOperands(1, 1) {final override def opCode = Op.esc_xelem}
-case class FindProperty(property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty {final override def opCode = Op.findproperty}
-case class FindPropStrict(property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty with OpThatCanThrow {final override def opCode = Op.findpropstrict}
-case class GetDescendants(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow {final override def opCode = Op.getdescendants}
-case class GetGlobalScope() extends AbstractOpWithOperands(1, 0) {final override def opCode = Op.getglobalscope}
-case class GetGlobalSlot(slot: Int) extends AbstractOpWithOperands(1, 0) with OpWithSlot {final override def opCode = Op.getglobalslot}
+case class CoerceAny() extends AbstractUnaryOp { final override def opCode = Op.coerce_a }
+case class CoerceBoolean() extends AbstractUnaryOp { final override def opCode = Op.coerce_b }
+case class CoerceDouble() extends AbstractUnaryOp { final override def opCode = Op.coerce_d }
+case class CoerceInt() extends AbstractUnaryOp { final override def opCode = Op.coerce_i }
+case class CoerceObject() extends AbstractUnaryOp { final override def opCode = Op.coerce_o }
+case class CoerceString() extends AbstractUnaryOp { final override def opCode = Op.coerce_s }
+case class CoerceUInt() extends AbstractUnaryOp { final override def opCode = Op.coerce_u }
+case class Construct(numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpThatCanThrow { final override def opCode = Op.construct }
+case class ConstructProp(property: AbcName, numArguments: Int) extends AbstractOpWithOperands(1, 1) with OpWithArguments with OpWithProperty with OpThatCanThrow { final override def opCode = Op.constructprop }
+case class ConstructSuper(numArguments: Int) extends AbstractOpWithOperands(0, 1) with OpWithArguments with OpThatCanThrow { final override def opCode = Op.constructsuper }
+case class ConvertBoolean() extends AbstractUnaryOp { final override def opCode = Op.convert_b }
+case class ConvertInt() extends AbstractUnaryOp { final override def opCode = Op.convert_i }
+case class ConvertDouble() extends AbstractUnaryOp { final override def opCode = Op.convert_d }
+case class ConvertObject() extends AbstractUnaryOp with OpThatCanThrow { final override def opCode = Op.convert_o }
+case class ConvertString() extends AbstractUnaryOp { final override def opCode = Op.convert_s }
+case class ConvertUInt() extends AbstractUnaryOp { final override def opCode = Op.convert_u }
+case class Debug(kind: Int, name: Symbol, register: Int, extra: Int) extends AbstractOp with OpWithRegister with DebugOp { final override def opCode = Op.debug }
+case class DebugFile(file: Symbol) extends AbstractOp with DebugOp { final override def opCode = Op.debugfile }
+case class DebugLine(line: Int) extends AbstractOp with DebugOp { final override def opCode = Op.debugline }
+case class DecLocal(register: Int) extends AbstractOp with OpWithRegister { final override def opCode = Op.declocal }
+case class DecLocalInt(register: Int) extends AbstractOp with OpWithRegister { final override def opCode = Op.declocal_i }
+case class Decrement() extends AbstractUnaryOp { final override def opCode = Op.decrement }
+case class DecrementInt() extends AbstractUnaryOp { final override def opCode = Op.decrement_i }
+case class DeleteProperty(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow { final override def opCode = Op.deleteproperty }
+case class Divide() extends AbstractBinaryOp { final override def opCode = Op.divide }
+case class Dup() extends AbstractOpWithOperands(2, 1) { final override def opCode = Op.dup }
+case class DefaultXMLNamespace(uri: Symbol) extends AbstractOp with OpThatCanThrow { final override def opCode = Op.dxns }
+case class DefaultXMLNamespaceLate() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow { final override def opCode = Op.dxnslate }
+case class Equals() extends AbstractBinaryOp { final override def opCode = Op.equals }
+case class EscapeXMLAttribute() extends AbstractOpWithOperands(1, 1) { final override def opCode = Op.esc_xattr }
+case class EscapeXMLElement() extends AbstractOpWithOperands(1, 1) { final override def opCode = Op.esc_xelem }
+case class FindProperty(property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty { final override def opCode = Op.findproperty }
+case class FindPropStrict(property: AbcName) extends AbstractOpWithOperands(1, 0) with OpWithProperty with OpThatCanThrow { final override def opCode = Op.findpropstrict }
+case class GetDescendants(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow { final override def opCode = Op.getdescendants }
+case class GetGlobalScope() extends AbstractOpWithOperands(1, 0) { final override def opCode = Op.getglobalscope }
+case class GetGlobalSlot(slot: Int) extends AbstractOpWithOperands(1, 0) with OpWithSlot { final override def opCode = Op.getglobalslot }
 case class GetLex(typeName: AbcName) extends AbstractOpWithOperands(1, 0) with OpThatCanThrow {
 	require(!typeName.isRuntimeName)
 	final override def opCode = Op.getlex
@@ -461,89 +473,89 @@ case class GetLocal(register: Int) extends AbstractOpWithOperands(1, 0) with OpW
 		case _ => Op.getlocal
 	}
 }
-case class GetProperty(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty {final override def opCode = Op.getproperty}
-case class GetScopeObject(index: Int) extends AbstractOpWithOperands(1, 0) {final override def opCode = Op.getscopeobject}
-case class GetSlot(slot: Int) extends AbstractOpWithOperands(1, 1) with OpWithSlot with OpThatCanThrow {final override def opCode = Op.getslot}
-case class GetSuper(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow {final override def opCode = Op.getsuper}
-case class GreaterEquals() extends AbstractBinaryOp {final override def opCode = Op.greaterequals}
-case class GreaterThan() extends AbstractBinaryOp {final override def opCode = Op.greaterthan}
-case class HasNext() extends AbstractOpWithOperands(1, 2) {final override def opCode = Op.hasnext}
-case class HasNext2(objectRegister: Int, indexRegister: Int) extends AbstractOpWithOperands(1, 0) {final override def opCode = Op.hasnext2} //TODO uses two local registers?!!
-case class IfEqual(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifeq}
-case class IfFalse(marker: Marker) extends AbstractConditionalUnaryOp {final override def opCode = Op.iffalse}
-case class IfGreaterEqual(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifge}
-case class IfGreaterThan(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifgt}
-case class IfLessEqual(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifle}
-case class IfLessThan(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.iflt}
-case class IfNotGreaterEqual(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifnge}
-case class IfNotGreaterThan(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifngt}
-case class IfNotLessEqual(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifnle}
-case class IfNotLessThan(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifnlt}
-case class IfNotEqual(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifne}
-case class IfStrictEqual(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifstricteq}
-case class IfStrictNotEqual(marker: Marker) extends AbstractConditionalBinaryOp {final override def opCode = Op.ifstrictne}
-case class IfTrue(marker: Marker) extends AbstractConditionalUnaryOp {final override def opCode = Op.iftrue}
-case class In() extends AbstractOpWithOperands(1, 2) {final override def opCode = Op.in}
-case class IncLocal(register: Int) extends AbstractOp with OpWithRegister {final override def opCode = Op.inclocal}
-case class IncLocalInt(register: Int) extends AbstractOp with OpWithRegister {final override def opCode = Op.inclocal_i}
-case class Increment() extends AbstractUnaryOp {final override def opCode = Op.increment}
-case class IncrementInt() extends AbstractUnaryOp {final override def opCode = Op.increment_i}
-case class InitProperty(property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow {final override def opCode = Op.initproperty}
-case class InstanceOf() extends AbstractBinaryOp with OpThatCanThrow {final override def opCode = Op.instanceof}
+case class GetProperty(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty { final override def opCode = Op.getproperty }
+case class GetScopeObject(index: Int) extends AbstractOpWithOperands(1, 0) { final override def opCode = Op.getscopeobject }
+case class GetSlot(slot: Int) extends AbstractOpWithOperands(1, 1) with OpWithSlot with OpThatCanThrow { final override def opCode = Op.getslot }
+case class GetSuper(property: AbcName) extends AbstractOpWithOperands(1, 1) with OpWithProperty with OpThatCanThrow { final override def opCode = Op.getsuper }
+case class GreaterEquals() extends AbstractBinaryOp { final override def opCode = Op.greaterequals }
+case class GreaterThan() extends AbstractBinaryOp { final override def opCode = Op.greaterthan }
+case class HasNext() extends AbstractOpWithOperands(1, 2) { final override def opCode = Op.hasnext }
+case class HasNext2(objectRegister: Int, indexRegister: Int) extends AbstractOpWithOperands(1, 0) { final override def opCode = Op.hasnext2} //TODO uses two local registers?! !
+case class IfEqual(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifeq }
+case class IfFalse(marker: Marker) extends AbstractConditionalUnaryOp { final override def opCode = Op.iffalse }
+case class IfGreaterEqual(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifge }
+case class IfGreaterThan(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifgt }
+case class IfLessEqual(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifle }
+case class IfLessThan(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.iflt }
+case class IfNotGreaterEqual(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifnge }
+case class IfNotGreaterThan(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifngt }
+case class IfNotLessEqual(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifnle }
+case class IfNotLessThan(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifnlt }
+case class IfNotEqual(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifne }
+case class IfStrictEqual(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifstricteq }
+case class IfStrictNotEqual(marker: Marker) extends AbstractConditionalBinaryOp { final override def opCode = Op.ifstrictne }
+case class IfTrue(marker: Marker) extends AbstractConditionalUnaryOp { final override def opCode = Op.iftrue }
+case class In() extends AbstractOpWithOperands(1, 2) { final override def opCode = Op.in }
+case class IncLocal(register: Int) extends AbstractOp with OpWithRegister { final override def opCode = Op.inclocal }
+case class IncLocalInt(register: Int) extends AbstractOp with OpWithRegister { final override def opCode = Op.inclocal_i }
+case class Increment() extends AbstractUnaryOp { final override def opCode = Op.increment }
+case class IncrementInt() extends AbstractUnaryOp { final override def opCode = Op.increment_i }
+case class InitProperty(property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow { final override def opCode = Op.initproperty }
+case class InstanceOf() extends AbstractBinaryOp with OpThatCanThrow { final override def opCode = Op.instanceof }
 case class IsType(typeName: AbcName) extends AbstractOpWithOperands(1, 1) {
 	require(!typeName.isRuntimeName)
 	final override def opCode = Op.istype
 }
-case class IsTypeLate() extends AbstractOpWithOperands(1, 2) with OpThatCanThrow {final override def opCode = Op.istypelate}
-case class Jump(marker: Marker) extends AbstractOp with OpWithMarker with OpThatControlsFlow {final override def opCode = Op.jump}
-case class Kill(register: Int) extends AbstractOp with OpWithRegister {final override def opCode = Op.kill}
-case class Label() extends AbstractOp {final override def opCode = Op.label}
-case class LessEquals() extends AbstractBinaryOp {final override def opCode = Op.lessequals}
-case class LessThan() extends AbstractBinaryOp {final override def opCode = Op.lessthan}
-case class LookupSwitch(defaultCase: Marker, cases: Array[Marker]) extends AbstractOpWithOperands(0, 1) with OpThatControlsFlow {final override def opCode = Op.lookupswitch}
-case class ShiftLeft() extends AbstractBinaryOp {final override def opCode = Op.lshift}
-case class Modulo() extends AbstractBinaryOp {final override def opCode = Op.modulo}
-case class Multiply() extends AbstractBinaryOp {final override def opCode = Op.multiply}
-case class MultiplyInt() extends AbstractBinaryOp {final override def opCode = Op.multiply_i}
-case class Negate() extends AbstractUnaryOp {final override def opCode = Op.negate}
-case class NegateInt() extends AbstractUnaryOp {final override def opCode = Op.negate_i}
-case class NewActivation() extends AbstractOpWithOperands(1, 0) {final override def opCode = Op.newactivation}
-case class NewArray(numArguments: Int) extends AbstractOpWithOperands(1, 0) with OpWithArguments {final override def opCode = Op.newarray}
-case class NewCatch(exceptionHandler: BytecodeExceptionHandler) extends AbstractOpWithOperands(1, 0) {final override def opCode = Op.newcatch}
-case class NewClass(nominalType: AbcNominalType) extends AbstractOpWithOperands(1, 1) {final override def opCode = Op.newclass}
-case class NewFunction(function: AbcMethod) extends AbstractOpWithOperands(1, 0) {final override def opCode = Op.newfunction}
-case class NewObject(numArguments: Int) extends AbstractOpWithOperands(1, numArguments * 2) {final override def opCode = Op.newobject}
-case class NextName() extends AbstractOpWithOperands(1, 2) {final override def opCode = Op.nextname}
-case class NextValue() extends AbstractOpWithOperands(1, 2) {final override def opCode = Op.nextvalue}
-case class Nop() extends AbstractOp {final override def opCode = Op.nop}
-case class Not() extends AbstractUnaryOp {final override def opCode = Op.not}
-case class Pop() extends AbstractOpWithOperands(0, 1) {final override def opCode = Op.pop}
-case class PopScope() extends AbstractOpWithScopes(0, 1) {final override def opCode = Op.popscope}
-case class PushByte(value: Int) extends AbstractPushOp {final override def opCode = Op.pushbyte}
-case class PushDouble(value: Double) extends AbstractPushOp {final override def opCode = Op.pushdouble}
-case class PushFalse() extends AbstractPushOp {final override def opCode = Op.pushfalse}
-case class PushInt(value: Int) extends AbstractPushOp {final override def opCode = Op.pushint}
-case class PushNamespace(value: AbcNamespace) extends AbstractPushOp {final override def opCode = Op.pushnamespace}
-case class PushNaN() extends AbstractPushOp {final override def opCode = Op.pushnan}
-case class PushNull() extends AbstractPushOp {final override def opCode = Op.pushnull}
+case class IsTypeLate() extends AbstractOpWithOperands(1, 2) with OpThatCanThrow { final override def opCode = Op.istypelate }
+case class Jump(marker: Marker) extends AbstractOp with OpWithMarker with OpThatControlsFlow { final override def opCode = Op.jump }
+case class Kill(register: Int) extends AbstractOp with OpWithRegister { final override def opCode = Op.kill }
+case class Label() extends AbstractOp { final override def opCode = Op.label }
+case class LessEquals() extends AbstractBinaryOp { final override def opCode = Op.lessequals }
+case class LessThan() extends AbstractBinaryOp { final override def opCode = Op.lessthan }
+case class LookupSwitch(defaultCase: Marker, cases: Array[Marker]) extends AbstractOpWithOperands(0, 1) with OpThatControlsFlow { final override def opCode = Op.lookupswitch }
+case class ShiftLeft() extends AbstractBinaryOp { final override def opCode = Op.lshift }
+case class Modulo() extends AbstractBinaryOp { final override def opCode = Op.modulo }
+case class Multiply() extends AbstractBinaryOp { final override def opCode = Op.multiply }
+case class MultiplyInt() extends AbstractBinaryOp { final override def opCode = Op.multiply_i }
+case class Negate() extends AbstractUnaryOp { final override def opCode = Op.negate }
+case class NegateInt() extends AbstractUnaryOp { final override def opCode = Op.negate_i }
+case class NewActivation() extends AbstractOpWithOperands(1, 0) { final override def opCode = Op.newactivation }
+case class NewArray(numArguments: Int) extends AbstractOpWithOperands(1, 0) with OpWithArguments { final override def opCode = Op.newarray }
+case class NewCatch(exceptionHandler: BytecodeExceptionHandler) extends AbstractOpWithOperands(1, 0) { final override def opCode = Op.newcatch }
+case class NewClass(nominalType: AbcNominalType) extends AbstractOpWithOperands(1, 1) { final override def opCode = Op.newclass }
+case class NewFunction(function: AbcMethod) extends AbstractOpWithOperands(1, 0) { final override def opCode = Op.newfunction }
+case class NewObject(numArguments: Int) extends AbstractOpWithOperands(1, numArguments * 2) { final override def opCode = Op.newobject }
+case class NextName() extends AbstractOpWithOperands(1, 2) { final override def opCode = Op.nextname }
+case class NextValue() extends AbstractOpWithOperands(1, 2) { final override def opCode = Op.nextvalue }
+case class Nop() extends AbstractOp { final override def opCode = Op.nop }
+case class Not() extends AbstractUnaryOp { final override def opCode = Op.not }
+case class Pop() extends AbstractOpWithOperands(0, 1) { final override def opCode = Op.pop }
+case class PopScope() extends AbstractOpWithScopes(0, 1) { final override def opCode = Op.popscope }
+case class PushByte(value: Int) extends AbstractPushOp { final override def opCode = Op.pushbyte }
+case class PushDouble(value: Double) extends AbstractPushOp { final override def opCode = Op.pushdouble }
+case class PushFalse() extends AbstractPushOp { final override def opCode = Op.pushfalse }
+case class PushInt(value: Int) extends AbstractPushOp { final override def opCode = Op.pushint }
+case class PushNamespace(value: AbcNamespace) extends AbstractPushOp { final override def opCode = Op.pushnamespace }
+case class PushNaN() extends AbstractPushOp { final override def opCode = Op.pushnan }
+case class PushNull() extends AbstractPushOp { final override def opCode = Op.pushnull }
 case class PushScope() extends AbstractOpWithScopes(1, 0) with OpThatCanThrow {
 	override def popOperands = 1
 
 	final override def opCode = Op.pushscope
 }
-case class PushShort(value: Int) extends AbstractPushOp {final override def opCode = Op.pushshort}
-case class PushString(value: Symbol) extends AbstractPushOp {final override def opCode = Op.pushstring}
-case class PushTrue() extends AbstractPushOp {final override def opCode = Op.pushtrue}
-case class PushUInt(value: Long) extends AbstractPushOp {final override def opCode = Op.pushuint}
-case class PushUndefined() extends AbstractPushOp {final override def opCode = Op.pushundefined}
+case class PushShort(value: Int) extends AbstractPushOp { final override def opCode = Op.pushshort }
+case class PushString(value: Symbol) extends AbstractPushOp { final override def opCode = Op.pushstring }
+case class PushTrue() extends AbstractPushOp { final override def opCode = Op.pushtrue }
+case class PushUInt(value: Long) extends AbstractPushOp { final override def opCode = Op.pushuint }
+case class PushUndefined() extends AbstractPushOp { final override def opCode = Op.pushundefined }
 case class PushWith() extends AbstractOpWithScopes(1, 0) with OpThatCanThrow {
 	override def popOperands = 1
 
 	final override def opCode = Op.pushwith
 }
-case class ReturnValue() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatReturns {final override def opCode = Op.returnvalue}
-case class ReturnVoid() extends AbstractOp with OpThatReturns {final override def opCode = Op.returnvoid}
-case class ShiftRight() extends AbstractBinaryOp {final override def opCode = Op.rshift}
+case class ReturnValue() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatReturns { final override def opCode = Op.returnvalue }
+case class ReturnVoid() extends AbstractOp with OpThatReturns { final override def opCode = Op.returnvoid }
+case class ShiftRight() extends AbstractBinaryOp { final override def opCode = Op.rshift }
 case class SetLocal(register: Int) extends AbstractOpWithOperands(0, 1) with OpWithRegister {
 	final override def opCode = register match {
 		case 0 => Op.setlocal0
@@ -553,27 +565,27 @@ case class SetLocal(register: Int) extends AbstractOpWithOperands(0, 1) with OpW
 		case _ => Op.setlocal
 	}
 }
-case class SetGlobalSlot(slot: Int) extends AbstractOpWithOperands(0, 1) with OpWithSlot {final override def opCode = Op.setglobalslot}
-case class SetProperty(property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow {final override def opCode = Op.setproperty}
-case class SetSlot(slot: Int) extends AbstractOpWithOperands(0, 2) with OpWithSlot with OpThatCanThrow {final override def opCode = Op.setslot}
-case class SetSuper(property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow {final override def opCode = Op.setsuper}
-case class StrictEquals() extends AbstractBinaryOp {final override def opCode = Op.strictequals}
-case class Subtract() extends AbstractBinaryOp {final override def opCode = Op.subtract}
-case class SubtractInt() extends AbstractBinaryOp {final override def opCode = Op.subtract_i}
-case class Swap() extends AbstractOpWithOperands(2, 2) {final override def opCode = Op.swap}
-case class Throw() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatControlsFlow {final override def opCode = Op.`throw`}
-case class TypeOf() extends AbstractOpWithOperands(1, 1) {final override def opCode = Op.typeof}
-case class ShiftRightUnsigned() extends AbstractBinaryOp {final override def opCode = Op.urshift}
-case class SetByte() extends AbstractAlchemySetOp {final override def opCode = Op.si8}
-case class SetShort() extends AbstractAlchemySetOp {final override def opCode = Op.si16}
-case class SetInt() extends AbstractAlchemySetOp {final override def opCode = Op.si32}
-case class SetFloat() extends AbstractAlchemySetOp {final override def opCode = Op.sf32}
-case class SetDouble() extends AbstractAlchemySetOp {final override def opCode = Op.sf64}
-case class GetByte() extends AbstractAlchemyGetOp {final override def opCode = Op.li8}
-case class GetShort() extends AbstractAlchemyGetOp {final override def opCode = Op.li16}
-case class GetInt() extends AbstractAlchemyGetOp {final override def opCode = Op.li32}
-case class GetFloat() extends AbstractAlchemyGetOp {final override def opCode = Op.lf32}
-case class GetDouble() extends AbstractAlchemyGetOp {final override def opCode = Op.lf64}
-case class Sign1() extends AbstractUnaryOp with AlchemyOp {final override def opCode = Op.sxi1}
-case class Sign8() extends AbstractUnaryOp with AlchemyOp {final override def opCode = Op.sxi8}
-case class Sign16() extends AbstractUnaryOp with AlchemyOp {final override def opCode = Op.sxi16}
+case class SetGlobalSlot(slot: Int) extends AbstractOpWithOperands(0, 1) with OpWithSlot { final override def opCode = Op.setglobalslot }
+case class SetProperty(property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow { final override def opCode = Op.setproperty }
+case class SetSlot(slot: Int) extends AbstractOpWithOperands(0, 2) with OpWithSlot with OpThatCanThrow { final override def opCode = Op.setslot }
+case class SetSuper(property: AbcName) extends AbstractOpWithOperands(0, 2) with OpWithProperty with OpThatCanThrow { final override def opCode = Op.setsuper }
+case class StrictEquals() extends AbstractBinaryOp { final override def opCode = Op.strictequals }
+case class Subtract() extends AbstractBinaryOp { final override def opCode = Op.subtract }
+case class SubtractInt() extends AbstractBinaryOp { final override def opCode = Op.subtract_i }
+case class Swap() extends AbstractOpWithOperands(2, 2) { final override def opCode = Op.swap }
+case class Throw() extends AbstractOpWithOperands(0, 1) with OpThatCanThrow with OpThatControlsFlow { final override def opCode = Op.`throw` }
+case class TypeOf() extends AbstractOpWithOperands(1, 1) { final override def opCode = Op.typeof }
+case class ShiftRightUnsigned() extends AbstractBinaryOp { final override def opCode = Op.urshift }
+case class SetByte() extends AbstractAlchemySetOp { final override def opCode = Op.si8 }
+case class SetShort() extends AbstractAlchemySetOp { final override def opCode = Op.si16 }
+case class SetInt() extends AbstractAlchemySetOp { final override def opCode = Op.si32 }
+case class SetFloat() extends AbstractAlchemySetOp { final override def opCode = Op.sf32 }
+case class SetDouble() extends AbstractAlchemySetOp { final override def opCode = Op.sf64 }
+case class GetByte() extends AbstractAlchemyGetOp { final override def opCode = Op.li8 }
+case class GetShort() extends AbstractAlchemyGetOp { final override def opCode = Op.li16 }
+case class GetInt() extends AbstractAlchemyGetOp { final override def opCode = Op.li32 }
+case class GetFloat() extends AbstractAlchemyGetOp { final override def opCode = Op.lf32 }
+case class GetDouble() extends AbstractAlchemyGetOp { final override def opCode = Op.lf64 }
+case class Sign1() extends AbstractUnaryOp with AlchemyOp { final override def opCode = Op.sxi1 }
+case class Sign8() extends AbstractUnaryOp with AlchemyOp { final override def opCode = Op.sxi8 }
+case class Sign16() extends AbstractUnaryOp with AlchemyOp { final override def opCode = Op.sxi16 }
