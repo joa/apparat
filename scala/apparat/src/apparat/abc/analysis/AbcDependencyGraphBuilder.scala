@@ -20,21 +20,35 @@
  */
 package apparat.abc.analysis
 
-import apparat.abc.Abc
-import apparat.abc.AbcNominalType
-import apparat.graph.GraphLike
-import apparat.graph.immutable.Graph
+import apparat.graph.mutable.Graph
+import apparat.abc.{AbcName, Abc, AbcNominalType}
+import scala.collection.mutable.HashMap
+import apparat.graph.{DefaultEdge, GraphLike}
 
 /**
  * @author Joa Ebert
  */
 object AbcDependencyGraphBuilder extends (List[Abc] => GraphLike[AbcNominalType]) {
 	def apply(abcs: List[Abc]): GraphLike[AbcNominalType] = {
-		def createGraph(abc: List[Abc], G: Graph[AbcNominalType]): Graph[AbcNominalType] = abc match {
-			case Nil => G
-			case x :: xs => createGraph(xs, G ++ x.types.toList)
+		var graph: Graph[AbcNominalType] = new Graph()
+		var map: HashMap[AbcName, AbcNominalType] = HashMap.empty
+
+		for(abc <- abcs; types = abc.types) {
+			graph ++= types
+			map ++= types.map { `type` => `type`.inst.name -> `type` }
 		}
 
-		createGraph(abcs, Graph.empty[AbcNominalType]).dump()
+		for((qname, vertex) <- map.elements) {
+			vertex.inst.base match {
+				case Some(base) => map get base match {
+					case Some(baseType) => graph += DefaultEdge(vertex, baseType)
+					case None =>
+				}
+				case None =>
+			}
+		}
+
+		graph.dump()
+		graph
 	}
 }
