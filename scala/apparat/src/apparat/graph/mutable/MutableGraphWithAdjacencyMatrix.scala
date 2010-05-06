@@ -24,6 +24,7 @@ import collection.mutable.HashMap
 
 trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 {
+	override type G = this.type
 	type Edge = E
 	
 	private val adjacencyMatrix = new HashMap[V, List[E]]()
