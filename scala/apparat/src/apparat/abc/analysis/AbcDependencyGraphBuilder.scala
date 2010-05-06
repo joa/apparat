@@ -23,10 +23,18 @@ package apparat.abc.analysis
 import apparat.abc.Abc
 import apparat.abc.AbcNominalType
 import apparat.graph.GraphLike
+import apparat.graph.immutable.Graph
 
 /**
  * @author Joa Ebert
  */
 object AbcDependencyGraphBuilder extends (List[Abc] => GraphLike[AbcNominalType]) {
-	
+	def apply(abcs: List[Abc]): GraphLike[AbcNominalType] = {
+		def createGraph(abc: List[Abc], G: Graph[AbcNominalType]): Graph[AbcNominalType] = abc match {
+			case Nil => G
+			case x :: xs => createGraph(xs, G ++ x.types.toList)
+		}
+
+		createGraph(abcs, Graph.empty[AbcNominalType]).dump()
+	}
 }
