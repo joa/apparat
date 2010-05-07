@@ -172,6 +172,18 @@
 		</zip>
 	</target>
 
+	<target name="package" description="Package a ZIP file of the Maven generated package.">
+		<copy file="${basedir}/target/apparat-1.0-SNAPSHOT.jar" tofile="${dir.jar}/apparat.jar" overwrite="true"/>
+		<zip destfile="${dir.zip}/apparat.zip" level="9">
+			<fileset dir="${dir.jar}">
+				<include name="apparat.jar"/>
+			</fileset>
+			<fileset dir="${dir.assets}/generic">
+				<include name="**/*"/>
+			</fileset>
+		</zip>
+	</target>
+	
 	<target name="all" depends="apparat" description="build all"/>
 
 </project>
