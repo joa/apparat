@@ -49,7 +49,7 @@ object InlineMemory extends (Bytecode => Boolean) {
 				removes = op :: removes
 				removePop = false
 			}
-			case GetLex(typeName) if typeName.namesapce == memory0 || typeName == memory1 || typeName == memory2 => {
+			case GetLex(typeName) if typeName == memory0 || typeName == memory1 || typeName == memory2 => {
 				removes = op :: removes
 				balance += 1
 			}
