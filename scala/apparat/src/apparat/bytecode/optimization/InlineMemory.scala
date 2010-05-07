@@ -20,20 +20,24 @@
  */
 package apparat.bytecode.optimization
 
-import apparat.abc.{AbcQName, AbcNamespaceKind}
 import apparat.bytecode.Bytecode
 import apparat.bytecode.operations._
+import apparat.abc.{AbcNamespace, AbcQName, AbcNamespaceKind}
 
 /**
  * @author Joa Ebert
  */
-object InlineMemory extends (Bytecode => Unit) {
-	private val namespace0 = AbcNamesapce(AbcNamespaceKind.Package, Symbol("apparat.memory"))
-	private val namespace1 = AbcNamesapce(AbcNamespaceKind.Package, Symbol("com.joa_ebert.apparat.memory"))
-	private val memory0 = AbcQName(namespace0, 'Memory)
-	private val memory1 = AbcQName(namespace1, 'Memory)
+object InlineMemory extends (Bytecode => Boolean) {
+	private val namespace0 = AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.memory"))
+	private val memory0 = AbcQName('Memory, namespace0)
 
-	override def apply(bytecode: Bytecode): Unit = {
+	// Backwards compatibility
+	private val namespace1 = AbcNamespace(AbcNamespaceKind.Package, Symbol("com.joa_ebert.apparat.memory"))
+	private val memory1 = AbcQName('Memory, namespace1)
+	private val namespace2 = AbcNamespace(AbcNamespaceKind.Package, Symbol("com.joa_ebert.abc.bytecode.asbridge"))
+	private val memory2 = AbcQName('Memory, namespace2)
+
+	override def apply(bytecode: Bytecode): Boolean = {
 		var removes = List.empty[AbstractOp]
 		var replacements = Map.empty[AbstractOp, AbstractOp]
 		var modified = false
@@ -45,7 +49,7 @@ object InlineMemory extends (Bytecode => Unit) {
 				removes = op :: removes
 				removePop = false
 			}
-			case GetLex(`type`) if `type` == memory0 || `type` == memory1 => {
+			case GetLex(typeName) if typeName.namesapce == memory0 || typeName == memory1 || typeName == memory2 => {
 				removes = op :: removes
 				balance += 1
 			}
@@ -76,14 +80,14 @@ object InlineMemory extends (Bytecode => Unit) {
 			case CallProperty(property, numArguments) if balance > 0 => property match {
 				case AbcQName(name, _) => {
 					(name match {
-						case 'readUnsignedByte => GetByte()
-						case 'readUnsignedShort => GetShort()
-						case 'readInt => GetInt()
-						case 'readFloat => GetFloat()
-						case 'readDouble => GetDouble()
-						case 'signExtend1 => Sign1()
-						case 'signExtend8 => Sign8()
-						case 'signExtend16 => Sign16()
+						case 'readUnsignedByte => Some(GetByte())
+						case 'readUnsignedShort => Some(GetShort())
+						case 'readInt => Some(GetInt())
+						case 'readFloat => Some(GetFloat())
+						case 'readDouble => Some(GetDouble())
+						case 'signExtend1 => Some(Sign1())
+						case 'signExtend8 => Some(Sign8())
+						case 'signExtend16 => Some(Sign16())
 						case 'writeByte => {
 							removePop = true
 							Some(SetByte())
@@ -120,11 +124,16 @@ object InlineMemory extends (Bytecode => Unit) {
 				}
 				case _ =>
 			}
+			case _ =>
 		}
 
 		if(modified) {
 			removes foreach { bytecode remove _ }
-			replacements.elements foreach { bytecode replace _ }
+			replacements.iterator foreach { bytecode replace _ }
+
+			true
+		} else {
+			false
 		}
 	}
 }
