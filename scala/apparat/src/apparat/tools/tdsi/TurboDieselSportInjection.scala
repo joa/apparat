@@ -18,7 +18,7 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.tools.stripper
+package apparat.tools.tdsi
 
 import apparat.tools.{ApparatConfiguration, ApparatApplication, ApparatTool}
 import java.io.{File => JFile}
