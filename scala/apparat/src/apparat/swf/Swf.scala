@@ -32,8 +32,9 @@ import java.io.{
 	InputStream => JInputStream,
 	OutputStream => JOutputStream
 }
-import java.util.zip.{Inflater => JInflater, Deflater => JDeflater}
+import java.util.zip.{Inflater => JInflater}
 import scala.annotation.tailrec
+import apparat.utils.Deflate
 
 
 object Swf {
@@ -150,34 +151,26 @@ final class Swf {
 	}
 
 	def write(output: SwfOutputStream): Unit = {
-		val baos = new JByteArrayOutputStream(0x08 + (tags.length << 0x03));
+		val baos = new JByteArrayOutputStream(0x08 + (tags.length << 0x03))
 		val buffer = new SwfOutputStream(baos)
 		try {
 			buffer writeRECT (frameSize)
 			buffer writeFIXED8 (frameRate)
 			buffer writeUI16 (frameCount)
-			buffer flush;
+			buffer.flush()
 			tags foreach (buffer writeTAG (_))
-			buffer flush;
+			buffer.flush()
 
-			val bytes = baos toByteArray;
-			buffer close;
+			val bytes = baos.toByteArray
+
+			buffer.close()
 
 			output write (List[Byte](if (compressed) 'C' else 'F', 'W', 'S') toArray)
 			output writeUI08 version
 			output writeUI32 (8 + bytes.length)
 
 			if (compressed) {
-				val deflater = new JDeflater(JDeflater.BEST_COMPRESSION)
-				val buffer2 = new Array[Byte](0x8000); //assume we have 32kb of ram spare ...
-				var numBytesCompressed = 0;
-				deflater setInput bytes
-				deflater finish
-
-				do {
-					numBytesCompressed = deflater deflate buffer2
-					output write (buffer2, 0, numBytesCompressed);
-				} while (0 != numBytesCompressed);
+				Deflate.compress(bytes, output)
 			} else {
 				output write bytes
 			}
