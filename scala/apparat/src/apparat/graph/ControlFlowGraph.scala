@@ -62,6 +62,10 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 
 	override def -(edge: E) = new G(graph - edge, entryVertex, exitVertex)
 
+	override def +(vertex: V) = new G(graph + vertex, entryVertex, exitVertex)
+
+	override def -(vertex: V) = new G(graph - vertex, entryVertex, exitVertex)
+	
 	override def toString = "[ControlFlowGraph]"
 
 	// edge like A->0->B became A->B

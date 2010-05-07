@@ -58,7 +58,7 @@ class Swc {
 	var catalog: Option[Array[Byte]] = None
 	var library: Option[Array[Byte]] = None
 
-	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x4000))(read _)
+	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x1000))(read _)
 
 	def read(pathname: String): Unit = read(new JFile(pathname))
 

@@ -139,7 +139,7 @@ class Abc extends Dumpable {
 		}*/
 	}
 
-	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x4000))(read _)
+	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x1000))(read _)
 
 	def read(pathname: String): Unit = read(new JFile(pathname))
 
