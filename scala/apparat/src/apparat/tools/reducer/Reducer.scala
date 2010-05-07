@@ -49,7 +49,7 @@ object Reducer {
 			val target = new JFile(output)
 			val l0 = source length
 			val cont = TagContainer fromFile source
-			cont.tags = cont.tags map reduce
+			cont.tags = cont.tags filterNot (tag => tag.kind == SwfTags.Metadata || tag.kind == SwfTags.ProductInfo) map reduce
 			cont write target
 			val delta = l0 - (target length)
 			ApparatLog("Compression ratio: " + ((delta).asInstanceOf[Float] / l0.asInstanceOf[Float]) * 100.0f + "%")
