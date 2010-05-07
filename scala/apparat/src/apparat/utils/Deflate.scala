@@ -20,16 +20,45 @@
  */
 package apparat.utils
 
-import java.io.{OutputStream => JOutputStream}
+import java.io.{
+	OutputStream => JOutputStream,
+	File => JFile,
+	IOException => JIOException,
+	BufferedReader => JBufferedReader,
+	InputStreamReader => JInputStreamReader}
 import java.util.zip.{Deflater => JDeflater}
+import java.lang.{ProcessBuilder => JProcessBuilder}
+import compat.Platform
 
 /**
  * @author Joa Ebert
  */
 object Deflate {
-	val enable7z = System.getProperty("apparat.7z", "true").toLowerCase == "true"
+	private var _7z = System.getProperty("apparat.7z", "true").toLowerCase == "true"
 
 	def compress(bytes: Array[Byte], output: JOutputStream) = {
+		if(_7z) {
+			try {
+				val builder = new JProcessBuilder("7z")
+				val proc = builder.start()
+				val input = new ManagedReader(new JBufferedReader(new JInputStreamReader(proc.getInputStream())))
+
+				for(line <- input) {
+					println(line)
+				}
+			} catch {
+				case ioException: JIOException => {
+					ioException.printStackTrace
+					_7z = false
+					compressUsingDeflater(bytes, output)
+				}
+			}
+		} else {
+			compressUsingDeflater(bytes, output)
+		}
+	}
+
+	private def compressUsingDeflater(bytes: Array[Byte], output: JOutputStream) = {
 		val deflater = new JDeflater(JDeflater.BEST_COMPRESSION)
 		val buffer = new Array[Byte](0x8000)
 		var numBytesCompressed = 0
