@@ -80,13 +80,11 @@ object Deflate {
 		} catch {
 			case ioException: JIOException => {
 				_7z = false
-				ioException.printStackTrace()
 				ApparatLog warn "7z is not present on PATH. Fallback to normal compression."
 				compressUsingDeflater(bytes, output)
 			}
 			case other => {
 				_7z = false
-				other.printStackTrace()
 				ApparatLog warn "7z failed. Fallback to normal compression."
 				compressUsingDeflater(bytes, output)
 			}
