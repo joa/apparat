@@ -22,6 +22,7 @@ package apparat.graph.mutable
 
 import apparat.graph._
 
-abstract class Graph[V] extends MutableGraphWithAdjacencyMatrix[V] with DefaultDOTExport[V] {
+class Graph[V] extends MutableGraphWithAdjacencyMatrix[V] with DefaultDOTExport[V] {
+	override type G = this.type
 	override def toString = "[Graph]"
 }
