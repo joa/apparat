@@ -144,5 +144,19 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 		}
 	}
 
+	def replace(tuple: (AbstractOp, AbstractOp)): Unit = replace(tuple._1, tuple._2)
+	
+	def replace(existing: AbstractOp, replacement: AbstractOp): Unit = {
+		val index = ops indexOf existing
+		if(-1 != index) {
+			markers.forwardMarker(existing, replacement)
+			ops = ((ops take index) ::: List(replacement)) ::: (ops drop (index + 1))
+//			ops = ops map {
+//				case e if e == existing => replacement
+//				case other => other
+//			}
+		}
+	}
+
 	def toByteArray(implicit abc: Abc) = BytecodeEncoder(this)._1
 }
