@@ -73,7 +73,7 @@ object TurboDieselSportInjection {
 					val abc = Abc fromDoABC doABC
 					abc.loadBytecode()
 
-					for(methos <- abc.methods) method.body match {
+					for(method <- abc.methods) method.body match {
 						case Some(body) => {
 							body.bytecode match {
 								case Some(bytecode) => InlineMemory(PeepholeOptimizations(bytecode))
