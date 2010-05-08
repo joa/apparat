@@ -72,17 +72,17 @@ object TurboDieselSportInjection {
 				val f = future {
 					val abc = Abc fromDoABC doABC
 					abc.loadBytecode()
-					abc.methods foreach {
-						_.body match {
-							case Some(body) => {
-								body.bytecode match {
-									case Some(bytecode) => InlineMemory(PeepholeOptimizations(bytecode))
-									case None =>
-								}
+
+					for(methos <- abc.methods) method.body match {
+						case Some(body) => {
+							body.bytecode match {
+								case Some(bytecode) => InlineMemory(PeepholeOptimizations(bytecode))
+								case None =>
 							}
-							case None =>
 						}
+						case None =>
 					}
+
 					abc.saveBytecode()
 					abc write doABC
 					doABC
