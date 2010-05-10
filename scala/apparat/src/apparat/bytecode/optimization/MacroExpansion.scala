@@ -25,6 +25,7 @@ import apparat.bytecode.operations._
 import apparat.abc.{AbcTraitMethod, AbcName, AbcNominalType, Abc}
 import scala.math.max
 import apparat.bytecode.analysis.{StackAnalysis, LocalCount}
+import collection.immutable.SortedMap
 
 /**
  * @author Joa Ebert
@@ -61,14 +62,14 @@ class MacroExpansion(abcs: List[Abc]) {
 
 							val method = methodTrait.method
 
-							method.body match {//TODO transfer markers by index (+-2)
+							method.body match {
 								case Some(body) => body.bytecode match {
 									case Some(macro) => {
 										parameters = parameters.reverse
 
 										val parameterCount = method.parameters.length
 										val newLocals = body.localCount - parameterCount - 1
-										var replacement = (macro.ops.slice(2, macro.ops.length - 1) map {
+										val replacement = (macro.ops.slice(2, macro.ops.length - 1) map {
 											//
 											// Shift all local variables that are not parameters.
 											//
@@ -96,7 +97,10 @@ class MacroExpansion(abcs: List[Abc]) {
 											//
 											// Map all parameters to local registers.
 											//
-											case GetLocal(x) => parameters(x - 1)
+											case GetLocal(x) => parameters(x - 1) match {
+												case getLocal: GetLocal => getLocal.copy()
+												case other => error("Unexpected "+other+".")
+											}
 											case SetLocal(x) => SetLocal(registerOf(parameters(x - 1)))
 											case DecLocal(x) => DecLocal(registerOf(parameters(x - 1)))
 											case DecLocalInt(x) => DecLocalInt(registerOf(parameters(x - 1)))
@@ -106,12 +110,38 @@ class MacroExpansion(abcs: List[Abc]) {
 											case Debug(kind, name, x, extra) => Debug(kind, name, registerOf(parameters(x - 1)), extra)
 
 											case other => other
-										}) ::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
+										}) ::: List(Nop()) ::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
 
+										//
 										// Clean up
+										//
 										parameters = Nil
 										localCount += newLocals
-										replacements += op -> replacement
+										replacements += op -> (replacement map {
+											case Jump(marker) => Jump(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfEqual(marker) => IfEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfFalse(marker) => IfFalse(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfGreaterEqual(marker) => IfGreaterEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfGreaterThan(marker) => IfGreaterThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfLessEqual(marker) => IfLessEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfLessThan(marker) => IfLessThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfNotGreaterEqual(marker) => IfNotGreaterEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfNotGreaterThan(marker) => {
+												println("index: " + (macro.ops indexOf marker.op.get))
+												IfNotGreaterThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											}
+											case IfNotLessEqual(marker) => IfNotLessEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfNotLessThan(marker) => IfNotLessThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfNotEqual(marker) => IfNotEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfStrictEqual(marker) => IfStrictEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case IfStrictNotEqual(marker) => IfStrictNotEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case LookupSwitch(defaultCase, cases) => {
+												LookupSwitch(markers mark replacement((macro.ops indexOf defaultCase.op.get) - 2), cases map {
+													käse => markers mark replacement((macro.ops indexOf käse.op.get) - 2)//the reward is cheese!												})
+												})
+											}
+											case other => other
+										})
 									}
 									case None => error("Bytecode is not loaded.")
 								}
