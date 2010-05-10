@@ -126,10 +126,7 @@ class MacroExpansion(abcs: List[Abc]) {
 											case IfLessEqual(marker) => IfLessEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
 											case IfLessThan(marker) => IfLessThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
 											case IfNotGreaterEqual(marker) => IfNotGreaterEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfNotGreaterThan(marker) => {
-												println("index: " + (macro.ops indexOf marker.op.get))
-												IfNotGreaterThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											}
+											case IfNotGreaterThan(marker) => IfNotGreaterThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
 											case IfNotLessEqual(marker) => IfNotLessEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
 											case IfNotLessThan(marker) => IfNotLessThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
 											case IfNotEqual(marker) => IfNotEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
@@ -137,7 +134,7 @@ class MacroExpansion(abcs: List[Abc]) {
 											case IfStrictNotEqual(marker) => IfStrictNotEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
 											case LookupSwitch(defaultCase, cases) => {
 												LookupSwitch(markers mark replacement((macro.ops indexOf defaultCase.op.get) - 2), cases map {
-													käse => markers mark replacement((macro.ops indexOf käse.op.get) - 2)//the reward is cheese!												})
+													`case` => markers mark replacement((macro.ops indexOf `case`.op.get) - 2)//the reward is cheese!
 												})
 											}
 											case other => other
