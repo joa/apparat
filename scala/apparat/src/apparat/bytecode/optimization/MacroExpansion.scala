@@ -23,8 +23,8 @@ package apparat.bytecode.optimization
 import apparat.bytecode.Bytecode
 import apparat.bytecode.operations._
 import apparat.abc.{AbcTraitMethod, AbcName, AbcNominalType, Abc}
-import apparat.bytecode.analysis.LocalCount
 import scala.math.max
+import apparat.bytecode.analysis.{StackAnalysis, LocalCount}
 
 /**
  * @author Joa Ebert
@@ -154,6 +154,16 @@ class MacroExpansion(abcs: List[Abc]) {
 		if(modified) {
 			expand(bytecode)
 		} else {
+			bytecode.body match {
+				case Some(body) => {
+					val (operandStack, scopeStack) = StackAnalysis(bytecode)
+					body.localCount = localCount
+					body.maxStack = operandStack
+					body.maxScopeDepth = body.initScopeDepth + scopeStack
+				}
+				case None =>
+			}
+	
 			bytecode
 		}
 	}
