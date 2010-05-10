@@ -22,17 +22,60 @@ package apparat.bytecode.optimization
 
 import apparat.bytecode.Bytecode
 import apparat.bytecode.operations._
-import apparat.abc.{AbcTraitMethod, AbcName, AbcNominalType, Abc}
-import scala.math.max
 import apparat.bytecode.analysis.{StackAnalysis, LocalCount}
-import collection.immutable.SortedMap
+import apparat.abc._
 
 /**
  * @author Joa Ebert
  */
 class MacroExpansion(abcs: List[Abc]) {
+	lazy val voidName = AbcQName('void, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 	lazy val macros: Map[AbcName, AbcNominalType] = {
-		Map((for(abc <- abcs; nominal <- abc.types if nominal.inst.name.name.name endsWith "Macro") yield (nominal.inst.name -> nominal)):_*)
+		Map((for(abc <- abcs; nominal <- abc.types if (nominal.inst.name.name.name endsWith "Macro") && !nominal.inst.isInterface) yield (nominal.inst.name -> nominal)):_*)
+	}
+
+	def validate() = {
+		for(nominal <- macros.valueIterator) {
+			if(nominal.inst.traits.length != 1) {
+				error("No instance members are allowed.")
+			}
+
+			if(!nominal.inst.isSealed) {
+				error("Macro must not be a dynamic class.")
+			}
+
+			for(t <- nominal.klas.traits) {
+				t match {
+					case AbcTraitMethod(_, _, method, _, _, _) if method.body.isDefined => {
+						if(method.hasOptionalParameters) {
+							error("Macro may not have any optional parameters.")
+						}
+
+						if(method.needsActivation) {
+							error("Macro may not throw any exception.")
+						}
+
+						if(method.needsRest) {
+							error("Macro may not use rest parameters.")
+						}
+
+						if(method.setsDXNS) {
+							error("Macro may not change the default XML namespace.")
+						}
+
+						if(method.returnType != voidName) {
+							error("Macro must return void.")
+						}
+						
+						if(method.body.get.traits != 0) {
+							error("Macro may not use constant variables or throw any exceptions.")
+						}
+					}
+					
+					case other => error("Only static methods are allowed.")
+				}
+			}
+		}
 	}
 
 	@inline private def registerOf(op: AbstractOp): Int = op match {
@@ -50,6 +93,7 @@ class MacroExpansion(abcs: List[Abc]) {
 		var replacements = Map.empty[AbstractOp, List[AbstractOp]]
 		var localCount = LocalCount(bytecode)
 		var markers = bytecode.markers
+		val debugFile = bytecode.ops find (_.opCode == Op.debugfile)
 
 		@inline def insert(op: AbstractOp, property: AbcName, numArguments: Int) = {
 			macroStack.head.klass.traits find (_.name == property) match {
@@ -69,7 +113,8 @@ class MacroExpansion(abcs: List[Abc]) {
 
 										val parameterCount = method.parameters.length
 										val newLocals = body.localCount - parameterCount - 1
-										val replacement = (macro.ops.slice(2, macro.ops.length - 1) map {
+										val oldDebugFile = macro.ops.find (_.opCode == Op.debugfile)
+										val replacement = (macro.ops.slice(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length - 1) map {
 											//
 											// Shift all local variables that are not parameters.
 											//
@@ -113,11 +158,27 @@ class MacroExpansion(abcs: List[Abc]) {
 										}) ::: List(Nop()) ::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
 
 										//
+										// Switch debug file back into place.
+										//
+
+										debugFile match {
+											case Some(debugFile) => oldDebugFile match {
+												case Some(oldDebugFile) => (oldDebugFile :: replacement) ::: List(debugFile)
+												case None => replacement
+											}
+											case None => replacement
+										}
+
+										//
 										// Clean up
 										//
 										parameters = Nil
 										localCount += newLocals
+										
 										replacements += op -> (replacement map {
+											//
+											// Patch all markers.
+											//
 											case Jump(marker) => Jump(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
 											case IfEqual(marker) => IfEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
 											case IfFalse(marker) => IfFalse(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
@@ -166,18 +227,20 @@ class MacroExpansion(abcs: List[Abc]) {
 				macroStack = macros(name) :: macroStack
 				balance += 1
 			}
-			case CallPropVoid(property, numArguments) if balance > 0 => if(insert(op, property, numArguments)) {
-				modified = true
+			case CallPropVoid(property, numArguments) if balance > 0 => {
+				if(insert(op, property, numArguments)) {
+					modified = true
+				} else {
+					error("Unexpected "+CallPropVoid(property, numArguments))
+				}
 			}
 			case CallProperty(property, numArguments) if balance > 0 => {
 				if(insert(op, property, numArguments)) {
 					removePop = true
 					modified = true
+				} else {
+					error("Unexpected "+CallPropVoid(property, numArguments))
 				}
-			}
-			case p: AbstractPushOp if balance > 0 => {
-				parameters = p :: parameters
-				removes = p :: removes
 			}
 			case g: GetLocal if balance > 0 => {
 				parameters = g :: parameters
