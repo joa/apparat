@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.memory 
+package apparat.memory 
 {
 	/**
 	 * The MemoryBlock class represents a block of occupied memory.

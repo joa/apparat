@@ -19,9 +19,9 @@
  * 
  */
 
-package com.joa_ebert.apparat.memory 
+package apparat.memory 
 {
-	import com.joa_ebert.apparat.memory.strategies.StaticChunksStrategy;
+	import apparat.memory.strategies.StaticChunksStrategy;
 
 	import flash.system.ApplicationDomain;
 	import flash.utils.ByteArray;

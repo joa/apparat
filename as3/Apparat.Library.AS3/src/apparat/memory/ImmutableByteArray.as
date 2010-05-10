@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.memory 
+package apparat.memory 
 {
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;

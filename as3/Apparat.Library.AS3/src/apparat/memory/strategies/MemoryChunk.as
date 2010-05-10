@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.memory.strategies 
+package apparat.memory.strategies 
 {
 
 	/**

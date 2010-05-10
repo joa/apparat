@@ -19,7 +19,7 @@
  * 
  */
 
-package com.joa_ebert.apparat.memory 
+package apparat.memory 
 {
 	/**
 	 * The MemoryMath class is a collection of functions
