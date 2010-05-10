@@ -48,6 +48,7 @@ class MacroExpansion(abcs: List[Abc]) {
 		var parameters = List.empty[AbstractOp]
 		var replacements = Map.empty[AbstractOp, List[AbstractOp]]
 		var localCount = LocalCount(bytecode)
+		var markers = bytecode.markers
 
 		@inline def insert(op: AbstractOp, property: AbcName, numArguments: Int) = {
 			macroStack.head.klass.traits find (_.name == property) match {
@@ -62,13 +63,14 @@ class MacroExpansion(abcs: List[Abc]) {
 
 							method.body match {//TODO transfer markers by index (+-2)
 								case Some(body) => body.bytecode match {
-									case Some(bytecode) => {
+									case Some(macro) => {
 										parameters = parameters.reverse
+
 										val parameterCount = method.parameters.length
 										val newLocals = body.localCount - parameterCount - 1
-										val replacement = bytecode.ops.slice(2, bytecode.length - 1) map {
+										var replacement = macro.ops.slice(2, macro.length - 1) map {
 											//
-											// Shift all local variables that are not parameters
+											// Shift all local variables that are not parameters.
 											//
 											case GetLocal(x) if x > parameterCount => GetLocal(localCount + x - parameterCount - 1)
 											case SetLocal(x) if x > parameterCount => SetLocal(localCount + x - parameterCount - 1)
@@ -80,7 +82,7 @@ class MacroExpansion(abcs: List[Abc]) {
 											case Debug(kind, name, x, extra) if x > parameterCount => Debug(kind, name, localCount + x - parameterCount - 1, extra)
 
 											//
-											// Prohibit use of "this" register
+											// Prohibit use of "this".
 											//
 											case GetLocal(0) => error("Illegal GetLocal(0).")
 											case SetLocal(0) => error("Illegal SetLocal(0).")
@@ -92,7 +94,7 @@ class MacroExpansion(abcs: List[Abc]) {
 											case Debug(_, _, 0, _) => error("Illegal Debug(.., 0, ..)")
 
 											//
-											// Map all parameters to current function
+											// Map all parameters to local registers.
 											//
 											case GetLocal(x) => parameters(x - 1)
 											case SetLocal(x) => SetLocal(registerOf(parameters(x - 1)))
@@ -106,7 +108,10 @@ class MacroExpansion(abcs: List[Abc]) {
 											case other => other
 										} ::: ((0 until newLocals) foreach { register => Kill(localCount + register) })
 
+										// Clean up
+										parameters = Nil
 										localCount += newLocals
+										replacements += op -> replacement
 									}
 									case None => error("Bytecode is not loaded.")
 								}

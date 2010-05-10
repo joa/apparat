@@ -21,14 +21,14 @@
 package apparat.bytecode
 
 import annotation.tailrec
-import apparat.abc.{AbcInputStream, AbcExceptionHandler, Abc}
 import collection.immutable.{TreeMap, SortedMap}
 import collection.mutable.ListBuffer
 import java.io.{ByteArrayInputStream => JByteArrayInputStream}
 import operations._
+import apparat.abc.{AbcMethodBody, AbcInputStream, AbcExceptionHandler, Abc}
 
 object BytecodeDecoder {
-	def apply(bytecode: Array[Byte], abcExceptions: Array[AbcExceptionHandler])(implicit abc: Abc) = {
+	def apply(bytecode: Array[Byte], abcExceptions: Array[AbcExceptionHandler], body: AbcMethodBody)(implicit abc: Abc) = {
 		val input = new AbcInputStream(new JByteArrayInputStream(bytecode))
 		val cpool = abc.cpool
 		val markers = new MarkerManager()
@@ -250,7 +250,7 @@ object BytecodeDecoder {
 
 		try {
 			val (ops, map) = build(Nil, TreeMap())
-			new Bytecode(ops.reverse, markers solve map, exceptions)
+			new Bytecode(ops.reverse, markers solve map, exceptions, Some(body))
 		}
 		finally {
 			try { input.close() } catch { case _ => {} }

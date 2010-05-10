@@ -33,12 +33,12 @@ object Bytecode {
 		case None => None
 	}
 
-	def fromBody(body: AbcMethodBody)(implicit abc: Abc) = BytecodeDecoder(body.code, body.exceptions)
+	def fromBody(body: AbcMethodBody)(implicit abc: Abc) = BytecodeDecoder(body.code, body.exceptions, body)
 
-	def bytecode(body: => List[AbstractOp]) = new Bytecode(body, new MarkerManager(), new Array(0))
+	def bytecode(body: => List[AbstractOp]) = new Bytecode(body, new MarkerManager(), new Array(0), Some(body))
 }
 
-class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var exceptions: Array[BytecodeExceptionHandler]) extends Dumpable {
+class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var exceptions: Array[BytecodeExceptionHandler], val body: Option[AbcMethodBody]) extends Dumpable {
 	override def dump(writer: IndentingPrintWriter) = new BytecodeDump(ops, markers, exceptions) dump writer
 
 	def storeIn(body: AbcMethodBody)(implicit abc: Abc) = {
