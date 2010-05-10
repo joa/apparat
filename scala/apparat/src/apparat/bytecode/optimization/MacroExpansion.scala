@@ -24,6 +24,7 @@ import apparat.bytecode.Bytecode
 import apparat.bytecode.operations._
 import apparat.abc.{AbcTraitMethod, AbcName, AbcNominalType, Abc}
 import apparat.bytecode.analysis.LocalCount
+import scala.math.max
 
 /**
  * @author Joa Ebert
@@ -31,6 +32,11 @@ import apparat.bytecode.analysis.LocalCount
 class MacroExpansion(abcs: List[Abc]) {
 	lazy val macros: Map[AbcName, AbcNominalType] = {
 		Map((for(abc <- abcs; nominal <- abc.types if nominal.inst.name.name.name endsWith "Macro") yield (nominal.inst.name -> nominal)):_*)
+	}
+
+	@inline private def registerOf(op: AbstractOp): Int = op match {
+		case opWithRegister: OpWithRegister => opWithRegister.register
+		case _ => error("Unexpected "+op+".")
 	}
 
 	def expand(bytecode: Bytecode): Bytecode = {
@@ -54,31 +60,53 @@ class MacroExpansion(abcs: List[Abc]) {
 
 							val method = methodTrait.method
 
-							method.body match {//TODO transfer markers
+							method.body match {//TODO transfer markers by index (+-2)
 								case Some(body) => body.bytecode match {
 									case Some(bytecode) => {
 										parameters = parameters.reverse
 										val parameterCount = method.parameters.length
+										val newLocals = body.localCount - parameterCount - 1
 										val replacement = bytecode.ops.slice(2, bytecode.length - 1) map {
-											//TODO add all OpWithRegister
-											case GetLocal(x) if x > parameterCount => GetLocal(localCount + x)
-											case SetLocal(x) if x > parameterCount => SetLocal(localCount + x)
-											case other => other
-										} map {
-											//TODO add all OpWithRegister
+											//
+											// Shift all local variables that are not parameters
+											//
+											case GetLocal(x) if x > parameterCount => GetLocal(localCount + x - parameterCount - 1)
+											case SetLocal(x) if x > parameterCount => SetLocal(localCount + x - parameterCount - 1)
+											case DecLocal(x) if x > parameterCount => DecLocal(localCount + x - parameterCount - 1)
+											case DecLocalInt(x) if x > parameterCount => DecLocalInt(localCount + x - parameterCount - 1)
+											case IncLocal(x) if x > parameterCount => IncLocal(localCount + x - parameterCount - 1)
+											case IncLocalInt(x) if x > parameterCount => IncLocalInt(localCount + x - parameterCount - 1)
+											case Kill(x) if x > parameterCount => Kill(localCount + x - parameterCount - 1)
+											case Debug(kind, name, x, extra) if x > parameterCount => Debug(kind, name, localCount + x - parameterCount - 1, extra)
+
+											//
+											// Prohibit use of "this" register
+											//
 											case GetLocal(0) => error("Illegal GetLocal(0).")
-											case GetLocal(x) if x <= parameterCount => {
-												parameters(x - 1)
-											}
-											case SetLocal(x) if x != 0 && x <= parameterCount => {
-												parameters(x - 1) match {
-													case GetLocal(y) => SetLocal(y)
-													case other => Pop()
-												}
-											}
+											case SetLocal(0) => error("Illegal SetLocal(0).")
+											case DecLocal(0) => error("Illegal DecLocal(0).")
+											case DecLocalInt(0) => error("Illegal DecLocalInt(0).")
+											case IncLocal(0) => error("Illegal IncLocal(0).")
+											case IncLocalInt(0) => error("Illegal IncLocalInt(0).")
+											case Kill(0) => error("Illegal Kill(0).")
+											case Debug(_, _, 0, _) => error("Illegal Debug(.., 0, ..)")
+
+											//
+											// Map all parameters to current function
+											//
+											case GetLocal(x) => parameters(x - 1)
+											case SetLocal(x) => SetLocal(registerOf(parameters(x - 1)))
+											case DecLocal(x) => DecLocal(registerOf(parameters(x - 1)))
+											case DecLocalInt(x) => DecLocalInt(registerOf(parameters(x - 1)))
+											case IncLocal(x) => IncLocal(registerOf(parameters(x - 1)))
+											case IncLocalInt(x) => IncLocalInt(registerOf(parameters(x - 1)))
+											case Kill(x) => Kill(registerOf(parameters(x - 1)))
+											case Debug(kind, name, x, extra) => Debug(kind, name, registerOf(parameters(x - 1)), extra)
+
 											case other => other
-										}
-										body.localCount
+										} ::: ((0 until newLocals) foreach { register => Kill(localCount + register) })
+
+										localCount += newLocals
 									}
 									case None => error("Bytecode is not loaded.")
 								}
