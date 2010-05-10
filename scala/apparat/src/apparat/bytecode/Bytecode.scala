@@ -145,16 +145,20 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 	}
 
 	def replace(tuple: (AbstractOp, AbstractOp)): Unit = replace(tuple._1, tuple._2)
-	
-	def replace(existing: AbstractOp, replacement: AbstractOp): Unit = {
-		val index = ops indexOf existing
-		if(-1 != index) {
-			markers.forwardMarker(existing, replacement)
-			ops = ((ops take index) ::: List(replacement)) ::: (ops drop (index + 1))
-//			ops = ops map {
-//				case e if e == existing => replacement
-//				case other => other
-//			}
+
+	def replace(existing: AbstractOp, replacement: AbstractOp): Unit = replace(existing, replacement :: Nil)
+
+	def replace(existing: AbstractOp, replacement: List[AbstractOp]): Unit = {
+		if(replacement.nonEmpty) {
+			val index = ops indexOf existing
+			if(-1 != index) {
+				markers.forwardMarker(existing, replacement.head)
+				ops = ((ops take index) ::: replacement) ::: (ops drop (index + 1))
+//				ops = ops map {
+//					case e if e == existing => replacement
+//					case other => other
+//				}
+			}
 		}
 	}
 
