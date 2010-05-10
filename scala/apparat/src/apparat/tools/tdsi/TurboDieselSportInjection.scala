@@ -29,7 +29,7 @@ import apparat.bytecode.operations._
 import apparat.bytecode.combinator._
 import apparat.bytecode.combinator.BytecodeChains._
 import apparat.swf._
-import apparat.bytecode.optimization.{PeepholeOptimizations, InlineMemory}
+import apparat.bytecode.optimization.{MacroExpansion, PeepholeOptimizations, InlineMemory}
 
 /**
  * @author Joa Ebert
@@ -41,15 +41,21 @@ object TurboDieselSportInjection {
 	{
 		var input = ""
 		var output = ""
+		var alchemy = true
+		var macros = true
 
 		override def name = "Turbo Diesel Sport Injection"
 
-		override def help = """  -i [file]	Input file
-  -o [file]	Output file (optional)"""
+		override def help = """  -i [file]			Input file
+  -o [file]			Output file (optional)
+  -a (true|false)	Inline Alchemy operations
+  -m (true|false)	Macro expansion"""
 
 		override def configure(config: ApparatConfiguration) = {
 			input = config("-i") getOrElse error("Input is required.")
 			output = config("-o") getOrElse input
+			alchemy = (config("-a") getOrElse "true").toBoolean
+			macros = (config("-m") getOrElse "true").toBoolean
 			assert(new JFile(input) exists, "Input has to exist.")
 		}
 
@@ -63,6 +69,38 @@ object TurboDieselSportInjection {
 			val source = new JFile(input)
 			val target = new JFile(output)
 			val cont = TagContainer fromFile source
+			val allABC = Map((for(doABC <- cont.tags collect { case doABC: DoABC => doABC }) yield (doABC -> (Abc fromDoABC doABC))):_*)
+			val macroExpansion = if(macros) Some(new MacroExpansion(allABC.valuesIterator.toList)) else None
+
+			for((doABC, abc) <- allABC.iterator) {
+				abc.loadBytecode()
+
+				for(method <- abc.methods) {
+					method.body match {
+						case Some(body) => {
+							body.bytecode match {
+								case Some(bytecode) => {
+									PeepholeOptimizations(bytecode)
+
+									if(alchemy) {
+										InlineMemory(bytecode)
+									}
+
+									if(macros) {
+										macroExpansion.get expand bytecode
+									}
+								}
+								case None =>
+							}
+						}
+						case None =>
+					}
+				}
+
+				abc.saveBytecode()
+				abc write doABC
+			}
+
 			cont.tags = cont.tags map injection
 			cont write target
 		}

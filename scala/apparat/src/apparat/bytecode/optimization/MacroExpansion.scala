@@ -41,7 +41,8 @@ class MacroExpansion(abcs: List[Abc]) {
 			if(!nominal.inst.isSealed) error("Macro must not be a dynamic class.")
 			for(t <- nominal.klass.traits) {
 				t match {
-					case AbcTraitMethod(_, _, method, _, _, _) if method.body.isDefined => {
+					case AbcTraitMethod(_, _, method, _, _, _) => {
+						if(!method.body.isDefined) error("Method body is not defined.")
 						if(method.hasOptionalParameters) error("Macro may not have any optional parameters.")
 						if(method.needsActivation) error("Macro may not require an activation scope.")
 						if(method.needsRest) error("Macro may not use rest parameters.")
