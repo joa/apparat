@@ -195,7 +195,7 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 
 		var ops: List[ControlFlowElm] = Nil
 		elms.reverse.foreach(op => ops = ops ++ op)
-		new Bytecode(ops, markers, new Array(0))
+		new Bytecode(ops, markers, new Array(0), None)
 	}
 
 	override def edgeToString(edge: E) = {

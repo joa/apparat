@@ -68,7 +68,7 @@ class MacroExpansion(abcs: List[Abc]) {
 
 										val parameterCount = method.parameters.length
 										val newLocals = body.localCount - parameterCount - 1
-										var replacement = macro.ops.slice(2, macro.length - 1) map {
+										var replacement = (macro.ops.slice(2, macro.ops.length - 1) map {
 											//
 											// Shift all local variables that are not parameters.
 											//
@@ -106,7 +106,7 @@ class MacroExpansion(abcs: List[Abc]) {
 											case Debug(kind, name, x, extra) => Debug(kind, name, registerOf(parameters(x - 1)), extra)
 
 											case other => other
-										} ::: ((0 until newLocals) foreach { register => Kill(localCount + register) })
+										}) ::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
 
 										// Clean up
 										parameters = Nil
@@ -122,7 +122,7 @@ class MacroExpansion(abcs: List[Abc]) {
 							balance -= 1
 							true
 						}
-						case _ => error("Unexpected trait "+t)
+						case _ => error("Unexpected trait "+anyTrait)
 					}
 				}
 				case None => false
@@ -139,21 +139,31 @@ class MacroExpansion(abcs: List[Abc]) {
 				macroStack = macros(name) :: macroStack
 				balance += 1
 			}
-			case CallPropVoid(property, numArguments) if balance > 0 => insert(op, property, numArguments)
+			case CallPropVoid(property, numArguments) if balance > 0 => if(insert(op, property, numArguments)) {
+				modified = true
+			}
 			case CallProperty(property, numArguments) if balance > 0 => {
 				if(insert(op, property, numArguments)) {
 					removePop = true
+					modified = true
 				}
 			}
-			case p: AbstractPushOp if balance > 0 => parameters = p :: parameters
-			case g: GetLocal if balance > 0 => parameters = g :: parameters
+			case p: AbstractPushOp if balance > 0 => {
+				parameters = p :: parameters
+				removes = p :: removes
+			}
+			case g: GetLocal if balance > 0 => {
+				parameters = g :: parameters
+				removes = g :: removes
+			}
 			case x if balance > 0 => error("Unexpected operation "+x)
 			case _ =>
 		}
 		
 		if(modified) {
-			expand(bytecode)
-		} else {
+			removes foreach { bytecode remove _ }
+			replacements.iterator foreach { x => bytecode.replace(x._1, x._2) }
+
 			bytecode.body match {
 				case Some(body) => {
 					val (operandStack, scopeStack) = StackAnalysis(bytecode)
@@ -163,7 +173,9 @@ class MacroExpansion(abcs: List[Abc]) {
 				}
 				case None =>
 			}
-	
+
+			expand(bytecode)
+		} else {
 			bytecode
 		}
 	}
