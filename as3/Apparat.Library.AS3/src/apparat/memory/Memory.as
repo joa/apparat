@@ -21,7 +21,7 @@
 
 package apparat.memory 
 {
-	import com.joa_ebert.apparat.inline.__bytecode;
+	import apparat.inline.__bytecode;
 
 	import flash.system.ApplicationDomain;
 	import flash.utils.ByteArray;
