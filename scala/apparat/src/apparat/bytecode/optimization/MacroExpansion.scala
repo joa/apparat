@@ -29,49 +29,27 @@ import apparat.abc._
  * @author Joa Ebert
  */
 class MacroExpansion(abcs: List[Abc]) {
+	lazy val apparatMacro = AbcQName('Macro, AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.inline")))
 	lazy val voidName = AbcQName('void, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 	lazy val macros: Map[AbcName, AbcNominalType] = {
-		Map((for(abc <- abcs; nominal <- abc.types if (nominal.inst.name.name.name endsWith "Macro") && !nominal.inst.isInterface) yield (nominal.inst.name -> nominal)):_*)
+		Map((for(abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == apparatMacro) && !nominal.inst.isInterface) yield (nominal.inst.name -> nominal)):_*)
 	}
 
 	def validate() = {
-		for(nominal <- macros.valueIterator) {
-			if(nominal.inst.traits.length != 1) {
-				error("No instance members are allowed.")
-			}
-
-			if(!nominal.inst.isSealed) {
-				error("Macro must not be a dynamic class.")
-			}
-
-			for(t <- nominal.klas.traits) {
+		for(nominal <- macros.valuesIterator) {
+			if(nominal.inst.traits.length != 1) error("No instance members are allowed.")
+			if(!nominal.inst.isSealed) error("Macro must not be a dynamic class.")
+			for(t <- nominal.klass.traits) {
 				t match {
 					case AbcTraitMethod(_, _, method, _, _, _) if method.body.isDefined => {
-						if(method.hasOptionalParameters) {
-							error("Macro may not have any optional parameters.")
-						}
-
-						if(method.needsActivation) {
-							error("Macro may not throw any exception.")
-						}
-
-						if(method.needsRest) {
-							error("Macro may not use rest parameters.")
-						}
-
-						if(method.setsDXNS) {
-							error("Macro may not change the default XML namespace.")
-						}
-
-						if(method.returnType != voidName) {
-							error("Macro must return void.")
-						}
-						
-						if(method.body.get.traits != 0) {
-							error("Macro may not use constant variables or throw any exceptions.")
-						}
+						if(method.hasOptionalParameters) error("Macro may not have any optional parameters.")
+						if(method.needsActivation) error("Macro may not require an activation scope.")
+						if(method.needsRest) error("Macro may not use rest parameters.")
+						if(method.setsDXNS) error("Macro may not change the default XML namespace.")
+						if(method.returnType != voidName) error("Macro must return void.")
+						if(method.body.get.exceptions.length != 0) error("Macro may not throw any exception.")
+						if(method.body.get.traits != 0) error("Macro may not use constant variables or throw any exceptions.")
 					}
-					
 					case other => error("Only static methods are allowed.")
 				}
 			}
