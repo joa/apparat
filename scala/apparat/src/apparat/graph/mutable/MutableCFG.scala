@@ -21,8 +21,7 @@
 package apparat.graph.mutable
 
 import apparat.graph._
-
-// FIXME is it ok to manage entry and exit vertex like that ?
+import annotation.tailrec
 
 trait EntryVertex {
 	override def toString() = "Entry"
@@ -74,6 +73,9 @@ abstract class MutableCFG[T, V <: BlockVertex[T]] extends MutableGraphWithAdjace
 
 	//error: name clash
 	//def contains(elm: T) = verticesIterator.exists(_ contains elm)
+
+	// TODO optimise version for mutable graph
+	override def optimized = this
 
 	override def toString = "[MutableCFG]"
 

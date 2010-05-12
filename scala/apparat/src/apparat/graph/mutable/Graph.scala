@@ -24,5 +24,6 @@ import apparat.graph._
 
 class Graph[V] extends MutableGraphWithAdjacencyMatrix[V] with DefaultDOTExport[V] {
 	override type G = this.type
+	override def optimized = this	
 	override def toString = "[Graph]"
 }

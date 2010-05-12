@@ -51,20 +51,18 @@ object BytecodeControlFlowGraphBuilder extends (Bytecode => BytecodeControlFlowG
 			opList => {
 				var newOpList = opList
 
+				val lastOp = newOpList.last
+
+				// remove label from block
 				newOpList.headOption match {
-					case Some(op) if (op.isInstanceOf[Label]) => newOpList = newOpList drop 1
+					case Some(op) => if (op.isInstanceOf[Label]) newOpList = newOpList.tail
 					case _ =>
 				}
 
-				val lastOp = newOpList.lastOption match {
-					case Some(op) => {
-						if (op.isInstanceOf[Jump])
-							newOpList = newOpList dropRight 1
-						op
-					}
-					case _ => {
-						null.asInstanceOf[AbstractOp]
-					}
+				//remove jum from block
+				newOpList.lastOption match {
+					case Some(op)  => if (op.isInstanceOf[Jump]) newOpList = newOpList dropRight 1
+					case _ =>
 				}
 
 				val vertex = new V(newOpList)
@@ -103,7 +101,8 @@ object BytecodeControlFlowGraphBuilder extends (Bytecode => BytecodeControlFlowG
 				lastOp match {
 					case condOp: AbstractConditionalOp => {
 						// the next block into the queue is a false edge
-						edgeMap = edgeMap updated (currentBlock, FalseEdge(currentBlock, blockQueue.head._1) :: edgeMap(currentBlock))
+						if (blockQueue.nonEmpty)
+							edgeMap = edgeMap updated (currentBlock, FalseEdge(currentBlock, blockQueue.head._1) :: edgeMap(currentBlock))
 
 						// the marker is a TrueEdge
 						createVertexFromMarker(currentBlock, condOp.marker, TrueEdge[V] _)
@@ -147,6 +146,6 @@ object BytecodeControlFlowGraphBuilder extends (Bytecode => BytecodeControlFlowG
 		}
 		buildEdge()
 
-		new BytecodeControlFlowGraph(new Graph(edgeMap), entryVertex, exitVertex)
+		new BytecodeControlFlowGraph(new Graph(edgeMap), entryVertex, exitVertex).optimized
 	}
 }

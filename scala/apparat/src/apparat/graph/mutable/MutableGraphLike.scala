@@ -24,7 +24,6 @@ import apparat.graph._
 import analysis.{StronglyConnectedComponentFinder, Dominance}
 
 trait MutableGraphLike[V] extends GraphLike[V] {
-
 	def +=(that: (V, V))(implicit f: (V, V) => E): Unit = {
 		if (!contains(that._1)) add(that._1)
 		if (!contains(that._2)) add(that._2)

@@ -26,40 +26,40 @@ import analysis.{StronglyConnectedComponentFinder, Dominance}
 object Graph {
 	def apply[V](edges: Edge[V]*): Graph[V] = {
 		def loop(edges: Seq[Edge[V]], graph: Graph[V]): Graph[V] = {
-			if(edges.isEmpty) graph else {
+			if (edges.isEmpty) graph else {
 				val edge = edges.head
 				val remaining = edges drop 1
-				val g = if(graph contains edge.startVertex) { graph } else { graph + edge.startVertex }
-				loop(remaining, (if(g contains edge.endVertex) { g } else { g + edge.endVertex }) + edge)
+				val g = if (graph contains edge.startVertex) {graph} else {graph + edge.startVertex}
+				loop(remaining, (if (g contains edge.endVertex) {g} else {g + edge.endVertex}) + edge)
 			}
 		}
 
 		loop(edges, empty[V])
 	}
 
-	def apply[V](edges: Tuple2[V,V]*)(implicit f: (V, V) => Edge[V]): Graph[V] = {
-		apply(edges map { edge => f(edge._1, edge._2) }: _*)
+	def apply[V](edges: Tuple2[V, V]*)(implicit f: (V, V) => Edge[V]): Graph[V] = {
+		apply(edges map {edge => f(edge._1, edge._2)}: _*)
 	}
 
 	def empty[V]: Graph[V] = new EmptyGraph[V]
 }
 
-class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with DefaultDOTExport[V] with Immutable {
-	def this() = this(Map.empty[V, List[Edge[V]]])
+class Graph[V](val adjacency: Map[V, List[Edge[V]]]) extends GraphLike[V] with DefaultDOTExport[V] with Immutable {
+	def this() = this (Map.empty[V, List[Edge[V]]])
 
 	type G = Graph[V]
 
 	lazy val topsort = new TopsortTraversal(this)
-	
+
 	lazy val dominance = new Dominance(this)
 
 	lazy val sccs = new StronglyConnectedComponentFinder(this)
 
-	private def newGraph(adjacency: Map[V,List[E]]) = new Graph(adjacency)
+	private def newGraph(adjacency: Map[V, List[E]]) = new Graph(adjacency)
 
 	def ++(that: Traversable[V]) = {
 		def loop(that: Traversable[V]): Graph[V] = {
-			if(that.isEmpty) {
+			if (that.isEmpty) {
 				this
 			} else {
 				loop(that drop 1) + that.head
@@ -76,7 +76,7 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with De
 
 	def +>(that: Traversable[E]) = {
 		def loop(that: Traversable[E]): Graph[V] = {
-			if(that.isEmpty) {
+			if (that.isEmpty) {
 				this
 			} else {
 				loop(that drop 1) + that.head
@@ -102,7 +102,7 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with De
 
 	def -(vertex: V) = {
 		assert(contains(vertex))
-		newGraph(adjacency filterNot (_._1 == vertex) map { e => e._1 -> (e._2 filterNot (_.endVertex == vertex))})
+		newGraph(adjacency filterNot (_._1 == vertex) map {e => e._1 -> (e._2 filterNot (_.endVertex == vertex))})
 	}
 
 	def -(edge: E) = {
@@ -112,23 +112,11 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with De
 		newGraph(adjacency updated (edge.startVertex, adjacency(edge.startVertex) filterNot (_ == edge)))
 	}
 
-	def -(edge: (V, V)) = if(contains(edge._1) && contains(edge._2)) {
+	def -(edge: (V, V)) = if (contains(edge._1) && contains(edge._2)) {
 		newGraph(adjacency updated (edge._1, adjacency(edge._1) filterNot (_.endVertex == edge._2)))
-	} else { this }
+	} else {this}
 
-	def replace(v0: V, v1: V) = {
-		def rebuild(start: V, end: V, edge: E) = edge match {
-			case e: DefaultEdge[_] => DefaultEdge(start, end)
-			case e: JumpEdge[_] => JumpEdge(start, end)
-			case e: TrueEdge[_] => TrueEdge(start, end)
-			case e: FalseEdge[_] => FalseEdge(start, end)
-			case e: DefaultCaseEdge[_] => DefaultCaseEdge(start, end)
-			case e: CaseEdge[_] => CaseEdge(start, end)
-			case e: ThrowEdge[_] => ThrowEdge(start, end)
-			case e: ReturnEdge[_] => ReturnEdge(start, end)
-			case _ => error(edge + " is not and Edge")
-		}
-		
+	override def replace(v0: V, v1: V) = {
 		assert(contains(v0), "Graph must contain v0.")
 		assert(!contains(v1), "Graph must not contain v1.")
 
@@ -136,8 +124,8 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with De
 		val io = incomingOf(v0)
 		var result = this - v0 + v1
 
-		for(e <- oo) result = result + rebuild(v1, e.endVertex, e)
-		for(e <- io) result = result + rebuild(e.startVertex, v1, e)
+		for (e <- oo) result = result + Edge.copy(e, Some(v1))
+		for (e <- io) result = result + Edge.copy(e, Some(e.startVertex), Some(v1))
 
 		result
 	}
@@ -174,18 +162,29 @@ class Graph[V](val adjacency: Map[V,List[Edge[V]]]) extends GraphLike[V] with De
 
 	override def edgesIterator = adjacency.valuesIterator flatMap (_.iterator)
 
+	override def optimized = this
+
 	override def toString = "[Graph]"
 }
 
 protected[immutable] final class EmptyGraph[V] extends Graph[V] {
 	override def contains(vertex: V) = false
+
 	override def contains(edge: E) = false
+
 	override def incomingOf(vertex: V) = Nil
+
 	override def outgoingOf(vertex: V) = Nil
+
 	override def outdegreeOf(vertex: V) = 0
+
 	override def indegreeOf(vertex: V) = 0
+
 	override def predecessorsOf(vertex: V) = Nil
+
 	override def successorsOf(vertex: V) = Nil
+
 	override def verticesIterator = Iterator.empty
+
 	override def edgesIterator = Iterator.empty
 }

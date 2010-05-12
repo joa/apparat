@@ -21,6 +21,7 @@
 package apparat.graph.mutable
 
 import collection.mutable.HashMap
+import apparat.graph.Edge
 
 trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 {
@@ -91,4 +92,21 @@ trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 		remove(vertex)
 		this
 	}
+
+	override def replace(v0: V, v1: V) = {
+		assert(contains(v0), "Graph must contain v0.")
+		assert(!contains(v1), "Graph must not contain v1.")
+
+		val oo = outgoingOf(v0)
+		val io = incomingOf(v0)
+
+		remove(v0)
+		add(v1)
+
+		for (e <- oo) add(Edge.copy(e, Some(v1)))
+		for (e <- io) add(Edge.copy(e, Some(e.startVertex), Some(v1)))
+
+		this
+	}
+
 }

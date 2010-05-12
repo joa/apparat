@@ -78,6 +78,10 @@ trait GraphLike[V] extends Dumpable {
 
 	def +(vertex: V): G
 
+	def replace(v0: V, v1: V): G
+	
+	def optimized: G
+
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Graph:"
 		writer withIndent {
