@@ -27,9 +27,9 @@ import apparat.bytecode.operations.AbstractOp
  */
 
 class ImmutableBlockVertex[T](val block: List[T] = Nil) extends BlockVertex[T] with Immutable {
-	def add(elms: List[T]) = new ImmutableBlockVertex(block ::: elms)
+	def ++(elms: List[T]) = new ImmutableBlockVertex(block ::: elms)
 
-	def removeFirst = new ImmutableBlockVertex(block drop 1)
+	def removeFirst = new ImmutableBlockVertex(block.tail)
 
 	def removeLast = new ImmutableBlockVertex(block dropRight 1)
 
@@ -37,5 +37,7 @@ class ImmutableBlockVertex[T](val block: List[T] = Nil) extends BlockVertex[T] w
 }
 
 class ImmutableAbstractOpBlockVertex(block: List[AbstractOp] = Nil) extends ImmutableBlockVertex[AbstractOp](block) {
+	override def ++(elms: List[AbstractOp]) = new ImmutableAbstractOpBlockVertex(block ::: elms)
+
 	override def toString = block.mkString("[[", "\\n", "]]")
 }

@@ -126,8 +126,7 @@ class GraphSpec extends SpecificationWithJUnit {
       val is = new IndentingPrintWriter(s, false);
       g.dump(is);
       val expectation = "Graph:|A|->C|->B|B|->C|C|"
-
-      val output: String = s.toString.replace(" ", "").replace("\n", "|")
+      val output: String = s.toString.replaceAll(" ", "").replaceAll("\\n", "|").replaceAll("\\r", "")
       output must_== expectation
     }
   }

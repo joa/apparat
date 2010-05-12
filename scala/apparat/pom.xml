@@ -48,7 +48,7 @@
         <dependency>
             <groupId>org.scala-tools.testing</groupId>
             <artifactId>specs</artifactId>
-            <version>1.6.0-2.8.0-SNAPSHOT</version>
+            <version>1.6.1-2.8.0.Beta1-RC6</version>
             <scope>test</scope>
         </dependency>
         <dependency>

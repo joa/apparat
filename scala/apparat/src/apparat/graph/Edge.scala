@@ -38,7 +38,7 @@ final case class ThrowEdge[V](override val startVertex: V, override val endVerte
 final case class ReturnEdge[V](override val startVertex: V, override val endVertex: V) extends Edge[V](startVertex, endVertex, EdgeKind.Return)
 
 object Edge {
-	def copy[V](edge: AnyRef, start: Option[V] = None, end: Option[V] = None) = edge match {
+	def copy[V](edge: Edge[V], start: Option[V] = None, end: Option[V] = None) = edge match {
 		case e: DefaultEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case e: JumpEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case e: TrueEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))

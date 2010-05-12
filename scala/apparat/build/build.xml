@@ -28,6 +28,7 @@
 	<property name="dir.bin" value="${dir.build}/bin"/>
 	<property name="dir.jar" value="${dir.build}/jar"/>
 	<property name="dir.zip" value="${dir.build}/zip"/>
+	<property name="dir.aslib" value="${basedir}/../../as3/Apparat.Library.AS3/bin"/>
 
 	<target name="clean">
 		<delete failonerror="false" dir="${dir.bin}"/>
@@ -169,9 +170,27 @@
 			<fileset dir="${dir.assets}/generic">
 				<include name="**/*"/>
 			</fileset>
+			<fileset dir="${dir.aslib}">
+				<include name="apparat.swc"/>
+			</fileset>
 		</zip>
 	</target>
 
+	<target name="package" description="Package a ZIP file of the Maven generated package.">
+		<copy file="${basedir}/target/apparat-1.0-SNAPSHOT.jar" tofile="${dir.jar}/apparat.jar" overwrite="true"/>
+		<zip destfile="${dir.zip}/apparat.zip" level="9">
+			<fileset dir="${dir.jar}">
+				<include name="apparat.jar"/>
+			</fileset>
+			<fileset dir="${dir.assets}/generic">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="${dir.aslib}">
+				<include name="apparat.swc"/>
+			</fileset>
+		</zip>
+	</target>
+	
 	<target name="all" depends="apparat" description="build all"/>
 
 </project>

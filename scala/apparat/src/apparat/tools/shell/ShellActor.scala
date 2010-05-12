@@ -26,6 +26,7 @@ import apparat.tools.stripper.Stripper
 import apparat.tools.reducer.Reducer
 import apparat.tools.concrete.Concrete
 import apparat.tools.coverage.Coverage
+import apparat.tools.tdsi.TurboDieselSportInjection
 
 /**
  * @author Joa Ebert
@@ -42,10 +43,13 @@ class ShellActor extends Actor {
 					Coverage.main(createArguments(command drop "coverage ".length))
 				} else if(command startsWith "concrete ") {
 					Concrete.main(createArguments(command drop "concrete ".length))
+				} else if(command startsWith "tdsi ") {
+					TurboDieselSportInjection.main(createArguments(command drop "tdsi ".length))
 				} else if(command startsWith "help ") {
 					(command drop "help ".length) match {
 						case "reducer" => "reducer -i input [-o output] [-q quality]"
 						case "stripper" => "stripper -i input [-o output]"
+						case "tdsi" => "tdsi -i input [-o output]"
 						case "coverage" => "coverage -i input [-o output]"
 						case "concrete" => "concrete -i input"
 						case "help" | "exit" | "quit" | "stop" => "No detail help available."
@@ -54,6 +58,7 @@ class ShellActor extends Actor {
 				} else if(command == "help") {
 					"""help [command] - For detailed help
 quit - Exit the Apparat shell
+tdsi - Inline Alchemy operations
 reducer - Convert lossless to lossy graphics
 stripper - Strip traces and debug operations
 concrete - Checks that [Abstract] methods are implemented

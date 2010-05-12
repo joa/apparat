@@ -21,8 +21,8 @@
 package apparat.bytecode.analysis
 
 import apparat.bytecode.Bytecode
-import apparat.bytecode.operations.NewActivation
+import apparat.bytecode.operations.Op
 
 object NeedsActivation extends (Bytecode => Boolean) {
-	def apply(bytecode: Bytecode) = bytecode.ops exists (_ ~== NewActivation())
+	def apply(bytecode: Bytecode) = bytecode.ops exists (_.opCode == Op.newactivation)
 }

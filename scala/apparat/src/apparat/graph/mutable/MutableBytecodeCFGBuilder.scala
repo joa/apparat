@@ -31,6 +31,9 @@ import apparat.graph._
 
 object MutableBytecodeCFGBuilder {
 	def apply(bytecode: Bytecode) = {
+		// todo update to be as the same level as immutable graph cfg builder
+		error("Not yet updated, use BytecodeControlFlowGraphBuilder instead")
+
 		val graph = new MutableBytecodeCFG()
 
 		val ops = bytecode.ops

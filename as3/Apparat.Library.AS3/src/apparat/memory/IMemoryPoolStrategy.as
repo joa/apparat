@@ -19,38 +19,40 @@
  * 
  */
 
-package com.joa_ebert.apparat.memory 
+package apparat.memory 
 {
 	import flash.utils.ByteArray;
-	import flash.utils.Endian;
 
 	/**
-	 * The ImmutableByteArray class represents a ByteArray whose endian and
-	 * length can not be changed.
-	 * 
-	 * @private
+	 * The IMemoryPoolStrategy interface describes a strategy for memory
+	 * allocation and deallocation.
 	 * 
 	 * @author Joa Ebert
 	 */
-	internal final class ImmutableByteArray extends ByteArray 
+	public interface IMemoryPoolStrategy
 	{
-		public function ImmutableByteArray( length: uint )
-		{
-			super();
-			
-			super.length = length;
-			super.endian = Endian.LITTLE_ENDIAN;
-		}
-
+		/**
+		 * Initializes the strategy with a given buffer.
+		 */
+		function initialize( buffer: ByteArray ): void;
 		
-		override public function set endian( type : String ) : void
-		{
-			throw new Error( 'You are not allowed to change the endian.' );
-		}
-
-		override public function set length( value : uint ) : void
-		{
-			throw new Error( 'You are not allowed to change the length.' );
-		}
+		/**
+		 * Allocates the requested amount of memory.
+		 *
+		 * @param length The number of bytes to allocate.
+		 * 
+		 * @return A MemoryBlock object representing the occupied space.
+		 * 
+		 * @throws flash.errors.MemoryError A MemoryError is thrown if it is 
+		 * 	not possible to allocate the requested amount of memory.
+		 */
+		function allocate( length: uint ): MemoryBlock;
+		
+		/**
+		 * Frees a block of occupied space.
+		 * 
+		 * @param block The block of memory to free.
+		 */
+		function free( block: MemoryBlock ): void;
 	}
 }

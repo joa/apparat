@@ -36,6 +36,12 @@
 	    <role>comitter</role>
 	  </roles>
 	</developer>
+	<developer>
+	  <name>Maxim Zaks</name>
+	  <roles>
+	    <role>comitter</role>
+	  </roles>
+	</developer>
   </developers>
   
   <contributors>

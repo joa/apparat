@@ -1,3 +1,27 @@
+/*
+ * This file is part of Apparat.
+ *
+ * Apparat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Apparat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2009 Joa Ebert
+ * http://www.joa-ebert.com/
+ *
+ * User: Patrick Le Clec'h
+ * Date: 31 janv. 2010
+ * Time: 19:52:30
+ */
+
 package apparat.graph.immutable
 
 import apparat.bytecode.{Marker, Bytecode}
@@ -5,31 +29,7 @@ import apparat.bytecode.operations._
 import apparat.graph._
 import annotation.tailrec
 
-/*
- * This file is part of Apparat.
- * 
- * Apparat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Apparat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License
- * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
- * 
- * Copyright (C) 2009 Joa Ebert
- * http://www.joa-ebert.com/
- * 
- * User: Patrick Le Clec'h
- * Date: 31 janv. 2010
- * Time: 19:52:30
- */
-
-object BytecodeControlFlowGraphBuilder {
+object BytecodeControlFlowGraphBuilder extends (Bytecode => BytecodeControlFlowGraph[ImmutableAbstractOpBlockVertex]) {
 	def apply(bytecode: Bytecode) = {
 		import collection.mutable.{Queue}
 
@@ -51,20 +51,18 @@ object BytecodeControlFlowGraphBuilder {
 			opList => {
 				var newOpList = opList
 
+				val lastOp = newOpList.last
+
+				// remove label from block
 				newOpList.headOption match {
-					case Some(op) if (op.isInstanceOf[Label]) => newOpList = newOpList drop 1
+					case Some(op) => if (op.isInstanceOf[Label]) newOpList = newOpList.tail
 					case _ =>
 				}
 
-				val lastOp = newOpList.lastOption match {
-					case Some(op) => {
-						if (op.isInstanceOf[Jump])
-							newOpList = newOpList dropRight 1
-						op
-					}
-					case _ => {
-						null.asInstanceOf[AbstractOp]
-					}
+				//remove jum from block
+				newOpList.lastOption match {
+					case Some(op)  => if (op.isInstanceOf[Jump]) newOpList = newOpList dropRight 1
+					case _ =>
 				}
 
 				val vertex = new V(newOpList)
@@ -103,7 +101,8 @@ object BytecodeControlFlowGraphBuilder {
 				lastOp match {
 					case condOp: AbstractConditionalOp => {
 						// the next block into the queue is a false edge
-						edgeMap = edgeMap updated (currentBlock, FalseEdge(currentBlock, blockQueue.head._1) :: edgeMap(currentBlock))
+						if (blockQueue.nonEmpty)
+							edgeMap = edgeMap updated (currentBlock, FalseEdge(currentBlock, blockQueue.head._1) :: edgeMap(currentBlock))
 
 						// the marker is a TrueEdge
 						createVertexFromMarker(currentBlock, condOp.marker, TrueEdge[V] _)
@@ -147,6 +146,6 @@ object BytecodeControlFlowGraphBuilder {
 		}
 		buildEdge()
 
-		new BytecodeControlFlowGraph(new Graph(edgeMap), entryVertex, exitVertex)
+		new BytecodeControlFlowGraph(new Graph(edgeMap), entryVertex, exitVertex).optimized
 	}
 }

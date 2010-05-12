@@ -19,11 +19,11 @@
  * 
  */
 
-package com.joa_ebert.apparat.memory.strategies 
+package apparat.memory.strategies 
 {
-	import com.joa_ebert.apparat.memory.MemoryMath;
-	import com.joa_ebert.apparat.memory.MemoryBlock;
-	import com.joa_ebert.apparat.memory.IMemoryPoolStrategy;
+	import apparat.memory.MemoryMath;
+	import apparat.memory.MemoryBlock;
+	import apparat.memory.IMemoryPoolStrategy;
 
 	import flash.errors.MemoryError;
 	import flash.utils.ByteArray;

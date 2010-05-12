@@ -20,4 +20,4 @@
 # http://www.joa-ebert.com/
 #
 
-scala -cp apparat.jar apparat.tools.reducer.Reducer
+scala -cp apparat.jar apparat.tools.reducer.Reducer $*

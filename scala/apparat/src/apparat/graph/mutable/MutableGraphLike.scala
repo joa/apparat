@@ -24,25 +24,27 @@ import apparat.graph._
 import analysis.{StronglyConnectedComponentFinder, Dominance}
 
 trait MutableGraphLike[V] extends GraphLike[V] {
-
-	def +=(that: (V, V))(implicit f: (V, V) => E) = {
+	def +=(that: (V, V))(implicit f: (V, V) => E): Unit = {
 		if (!contains(that._1)) add(that._1)
 		if (!contains(that._2)) add(that._2)
 		add(f(that._1, that._2))
+		this
 	}
 
-	def -=(that: (V, V)) = {
+	def -=(that: (V, V)): Unit = {
 		if (contains(that._1) && contains(that._2))
 			outgoingOf(that._1) filter (_.endVertex == that._2) foreach remove _
 	}
 
-	def +=(that: E) = add(that)
+	def +=(that: E): Unit = add(that)
 
-	def +=(that: V) = add(that)
+	def +=(that: V): Unit = add(that)
 
-	def -=(that: E) = remove(that)
+	def -=(that: E): Unit = remove(that)
 
-	def -=(that: V) = remove(that)
+	def -=(that: V): Unit = remove(that)
+
+	def ++=(that: Traversable[V]): Unit = that foreach add
 
 	override def dominance = new Dominance(this)
 

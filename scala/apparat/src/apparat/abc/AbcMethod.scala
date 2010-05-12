@@ -72,8 +72,8 @@ class AbcMethod(val parameters: Array[AbcMethodParameter], val returnType: AbcNa
 	}
 }
 
-class AbcMethodBody(var maxStack: Int, val localCount: Int, val initScopeDepth: Int,
-					val maxScopeDepth: Int, var code: Array[Byte], var exceptions: Array[AbcExceptionHandler],
+class AbcMethodBody(var maxStack: Int, var localCount: Int, val initScopeDepth: Int,
+					var maxScopeDepth: Int, var code: Array[Byte], var exceptions: Array[AbcExceptionHandler],
 					val traits: Array[AbcTrait], var bytecode: Option[Bytecode] = None) extends Dumpable with HasTraits
 {
 	def accept(visitor: AbcVisitor) = {

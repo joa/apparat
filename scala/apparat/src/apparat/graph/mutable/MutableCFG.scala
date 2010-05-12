@@ -21,8 +21,7 @@
 package apparat.graph.mutable
 
 import apparat.graph._
-
-// FIXME is it ok to manage entry and exit vertex like that ?
+import annotation.tailrec
 
 trait EntryVertex {
 	override def toString() = "Entry"
@@ -33,7 +32,6 @@ trait ExitVertex {
 
 abstract class MutableCFG[T, V <: BlockVertex[T]] extends MutableGraphWithAdjacencyMatrix[V] with DOTExportAvailable[V] {
 	override type G = this.type
-
 	type Block = Seq[T]
 
 	protected[graph] def newEntryVertex: V
@@ -76,6 +74,9 @@ abstract class MutableCFG[T, V <: BlockVertex[T]] extends MutableGraphWithAdjace
 	//error: name clash
 	//def contains(elm: T) = verticesIterator.exists(_ contains elm)
 
+	// TODO optimise version for mutable graph
+	override def optimized = this
+
 	override def toString = "[MutableCFG]"
 
 	def edgeToString(edge: E) = edge match {
@@ -87,7 +88,7 @@ abstract class MutableCFG[T, V <: BlockVertex[T]] extends MutableGraphWithAdjace
 		case CaseEdge(x, y) => "case"
 		case ThrowEdge(x, y) => "throw"
 		case ReturnEdge(x, y) => "return"
-		case _@e => error("Unknown edge : " + e)
+		case e => error("Unknown edge : " + e)
 	}
 
 	def vertexToString(vertex: V) = vertex.toString()

@@ -33,12 +33,12 @@ object Bytecode {
 		case None => None
 	}
 
-	def fromBody(body: AbcMethodBody)(implicit abc: Abc) = BytecodeDecoder(body.code, body.exceptions)
+	def fromBody(body: AbcMethodBody)(implicit abc: Abc) = BytecodeDecoder(body.code, body.exceptions, body)
 
-	def bytecode(body: => List[AbstractOp]) = new Bytecode(body, new MarkerManager(), new Array(0))
+	def bytecode(body: => List[AbstractOp]) = new Bytecode(body, new MarkerManager(), new Array(0), None)
 }
 
-class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var exceptions: Array[BytecodeExceptionHandler]) extends Dumpable {
+class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var exceptions: Array[BytecodeExceptionHandler], var body: Option[AbcMethodBody]) extends Dumpable {
 	override def dump(writer: IndentingPrintWriter) = new BytecodeDump(ops, markers, exceptions) dump writer
 
 	def storeIn(body: AbcMethodBody)(implicit abc: Abc) = {
@@ -141,6 +141,24 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 		replace(chain)(rule) match {
 			case true => replaceAll(chain)(rule) || true
 			case false => false
+		}
+	}
+
+	def replace(tuple: (AbstractOp, AbstractOp)): Unit = replace(tuple._1, tuple._2)
+
+	def replace(existing: AbstractOp, replacement: AbstractOp): Unit = replace(existing, replacement :: Nil)
+
+	def replace(existing: AbstractOp, replacement: List[AbstractOp]): Unit = {
+		if(replacement.nonEmpty) {
+			val index = ops indexOf existing
+			if(-1 != index) {
+				markers.forwardMarker(existing, replacement.head)
+				ops = ((ops take index) ::: replacement) ::: (ops drop (index + 1))
+//				ops = ops map {
+//					case e if e == existing => replacement
+//					case other => other
+//				}
+			}
 		}
 	}
 
