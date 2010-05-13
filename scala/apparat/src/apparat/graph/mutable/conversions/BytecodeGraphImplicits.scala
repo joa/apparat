@@ -1,8 +1,3 @@
-package apparat.graph.mutable.conversions
-
-import apparat.bytecode.operations.AbstractOp
-import apparat.graph.mutable.MutableAbstractOpBlockVertex
-
 /*
  * This file is part of Apparat.
  * 
@@ -26,7 +21,11 @@ import apparat.graph.mutable.MutableAbstractOpBlockVertex
  * Date: 11 janv. 2010
  * Time: 22:50:14
  */
+package apparat.graph.mutable.conversions
+
+import apparat.bytecode.operations.AbstractOp
+import apparat.graph.mutable.MutableAbstractOpBlockVertex
 
 object BytecodeGraphImplicits {
-	implicit def aopSeq2MutableBV(seq: Seq[AbstractOp]): MutableAbstractOpBlockVertex = new MutableAbstractOpBlockVertex(seq)
+	implicit def aopSeq2MutableBV(list: List[AbstractOp]): MutableAbstractOpBlockVertex = new MutableAbstractOpBlockVertex(list)
 }

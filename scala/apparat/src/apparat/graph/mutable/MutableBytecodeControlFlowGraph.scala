@@ -18,27 +18,37 @@
  * http://www.joa-ebert.com/
  *
  * User: Patrick Le Clec'h
- * Date: 31 janv. 2010
- * Time: 21:34:43
+ * Date: 9 janv. 2010
+ * Time: 16:08:01
  */
-package apparat.graph
+package apparat.graph.mutable
 
 import apparat.bytecode.operations._
 import annotation.tailrec
 import collection.mutable.ListBuffer
-import apparat.bytecode.{BytecodeExceptionHandler, MarkerManager, Marker, Bytecode}
-import immutable.BytecodeControlFlowGraphBuilder
+import apparat.bytecode.{BytecodeExceptionHandler, Marker, MarkerManager, Bytecode}
+import apparat.graph._
 
-class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V], entryVertex: V, exitVertex: V) extends ControlFlowGraph[AbstractOp, V](graph, entryVertex, exitVertex) {
-	def this(graph: ControlFlowGraph[AbstractOp, V]) = this (graph, graph.entryVertex, graph.exitVertex)
+class MutableAbstractOpBlockVertex(block: List[AbstractOp] = Nil) extends MutableBlockVertex[AbstractOp](block)
 
-	override def toString = "[BytecodeControlFlowGraph]"
+class MutableBytecodeControlFlowGraph extends MutableControlFlowGraph[AbstractOp, MutableAbstractOpBlockVertex] {
+	type V = MutableAbstractOpBlockVertex
 
-	override def optimized = simplified
+	protected[graph] def newEntryVertex = new V() with EntryVertex
 
-	private lazy val simplified = {
-		var g = super.optimized
-		var g2 = g
+	protected[graph] def newExitVertex = new V() with ExitVertex
+
+	def fromBytecode(bytecode: Bytecode) = MutableBytecodeControlFlowGraphBuilder(_)
+
+	override def toString = "[MutableBytecodeControlFlowGraph]"
+
+	override def optimized = {simplified(); this}
+
+	private def simplified() {
+		super.optimized
+
+		val g = this
+		var modified = false
 
 		def reducible(edge: E) = (edge.startVertex != entryVertex) &&
 				(edge.endVertex != exitVertex) &&
@@ -48,31 +58,35 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 
 		// coalesce successive block A->B->C into ABC
 		@tailrec def coalesce() {
+			var verticesToRemove = List.empty[V]
+
 			g.edgesIterator.find(reducible(_)) match {
 				case Some(branch) => {
 					val newVertex = (branch.startVertex ++ branch.endVertex.block).asInstanceOf[V]
-					val edges = g2.outgoingOf(branch.endVertex)
-					g2 = g2 - branch
-					g2 = g2.replace(branch.startVertex, newVertex)
+					val edges = g.outgoingOf(branch.endVertex)
+
+					g -= branch
+
 					for (edge <- edges) {
-						g2 = g2 + Edge.copy(edge, Some(newVertex))
+						g += Edge.copy(edge, Some(newVertex))
 					}
-					g2 = g2 - branch.endVertex
+
+					verticesToRemove = branch.endVertex :: verticesToRemove
+
+					modified = true
 				}
 				case _ =>
 			}
-			if (g != g2) {
-				g = g2
+			if (modified) {
+				for (vertex <- verticesToRemove) g -= vertex
+
+				modified = false
 				coalesce()
 			}
 		}
 
 		coalesce()
-
-		new BytecodeControlFlowGraph(g, entryVertex, exitVertex)
 	}
-
-	def fromBytecode(bytecode: Bytecode) = BytecodeControlFlowGraphBuilder(_)
 
 	lazy val bytecode = {
 		val newGraph = optimized
@@ -317,30 +331,4 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 		}
 		new Bytecode(elms.reverse.flatMap(ops => ops), markers, exceptionHandlers.toArray, None)
 	}
-
-	override def edgeToString(edge: E) = {
-		def headLabel(vertex: V) = " headlabel=\"" + ({
-			if (vertex.length == 0)
-				""
-			else {
-				vertex.last match {
-					case op: OpWithMarker => op.marker.toString
-					case _ => ""
-				}
-			}
-		}) + "\""
-
-		"[" + (edge match {
-			case DefaultEdge(x, y) => label("")
-			case JumpEdge(x, y) => label("  jump  ")
-			case TrueEdge(x, y) => label("  true  ")
-			case FalseEdge(x, y) => label("  false  ")
-			case DefaultCaseEdge(x, y) => label("  default  ")
-			case CaseEdge(x, y) => label("  case  ")
-			case NumberedCaseEdge(x, y, n) => label("  case " + n)
-			case ThrowEdge(x, y) => label("  throw  ") + " style=\"dashed\""
-			case ReturnEdge(x, y) => label("  return  ")
-		}) + "]"
-	}
 }
-

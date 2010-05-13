@@ -26,8 +26,7 @@ import apparat.graph.Edge
 trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 {
 	override type G = this.type
-	type Edge = E
-	
+
 	private val adjacencyMatrix = new HashMap[V, List[E]]()
 	private var edges: List[E] = Nil
 	private var vertices: List[V] = Nil
@@ -66,6 +65,7 @@ trait MutableGraphWithAdjacencyMatrix[V] extends MutableGraphLike[V]
 		assert(contains(vertex))
 		outgoingOf(vertex) foreach remove _
 		incomingOf(vertex) foreach remove _
+		vertices = vertices filterNot (_ == vertex)
 		adjacencyMatrix -= vertex
 	}
 

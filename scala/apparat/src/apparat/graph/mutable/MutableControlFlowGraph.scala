@@ -17,64 +17,72 @@
  * Copyright (C) 2009 Joa Ebert
  * http://www.joa-ebert.com/
  *
- * User: Patrick Le Clec'h
- * Date: 31 janv. 2010
- * Time: 14:15:41
  */
-package apparat.graph
+package apparat.graph.mutable
 
+import apparat.graph._
 import annotation.tailrec
 
-class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entryVertex: V, val exitVertex: V) extends ControlFlowGraphLike[V] with DOTExportAvailable[V] {
-	override type G = ControlFlowGraph[T, V]
+trait EntryVertex {
+	override def toString() = "Entry"
+}
+trait ExitVertex {
+	override def toString() = "Exit"
+}
+
+abstract class MutableControlFlowGraph[T, V <: BlockVertex[T]] extends MutableGraphWithAdjacencyMatrix[V] with ControlFlowGraphLike[V] with DOTExportAvailable[V] {
+	override type G <: MutableControlFlowGraph[T, V]
 
 	type ControlFlowVertex = V
 	type ControlFlowEdge = E
 	type ControlFlowElm = T
+	type Block = Seq[T]
 
-	override def topsort = graph.topsort
+	protected[graph] def newEntryVertex: V
 
-	override def sccs = graph.sccs
+	protected[graph] def newExitVertex(): V
 
-	override def dominance = graph.dominance
+	override lazy val entryVertex = newEntryVertex
 
-	override def predecessorsOf(vertex: V) = graph.predecessorsOf(vertex)
+	override lazy val exitVertex = newExitVertex
 
-	override def successorsOf(vertex: V) = graph.successorsOf(vertex)
+	add(entryVertex)
+	add(exitVertex)
 
-	override def incomingOf(vertex: V) = graph.incomingOf(vertex)
+	protected[graph] def add(block: Block)(implicit b2v: Block => V): V = {
+		val blockAsV: V = block
+		add(blockAsV)
+		blockAsV
+	}
 
-	override def verticesIterator = graph.verticesIterator
+	override def add(edge: E) = {
+		assert(edge.kind != EdgeKind.Default)
+		super.add(edge)
+	}
 
-	override def edgesIterator = graph.edgesIterator
+	override def +(edge: E) = {
+		add(edge)
+		this
+	}
 
-	override def indegreeOf(vertex: V) = graph.indegreeOf(vertex)
+	override def -(edge: E) = {
+		remove(edge)
+		this
+	}
 
-	override def outdegreeOf(vertex: V) = graph.outdegreeOf(vertex)
+	def find(elm: T) = verticesIterator.find(_ contains elm)
 
-	override def contains(edge: E) = graph.contains(edge)
+	//error: name clash
+	//def contains(elm: T) = verticesIterator.exists(_ contains elm)
 
-	override def outgoingOf(vertex: V) = graph.outgoingOf(vertex)
+	override def optimized = {simplified(); this}
 
-	override def contains(vertex: V) = graph.contains(vertex)
+	override def toString = "[MutableControlFlowGraph]"
 
-	override def +(edge: E) = new G(graph + edge, entryVertex, exitVertex)
-
-	override def -(edge: E) = new G(graph - edge, entryVertex, exitVertex)
-
-	override def +(vertex: V) = new G(graph + vertex, entryVertex, exitVertex)
-
-	override def -(vertex: V) = new G(graph - vertex, entryVertex, exitVertex)
-
-	override def replace(v0: V, v1: V) = new G(graph.replace(v0, v1), entryVertex, exitVertex)
-
-	override def optimized = simplified
-
-	override def toString = "[ControlFlowGraph]"
-
-	private lazy val simplified = {
-		var g = graph
+	private def simplified() {
+		val g = this
 		var modified = false
+
 		@tailrec def loop() {
 			var vertices = DepthFirstWithOrder(g).vertices
 
@@ -85,35 +93,34 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 					val out = g.outgoingOf(emptyVertex)
 					if (out.size == 1 && out.head.isInstanceOf[JumpEdge[_]]) {
 						val endEdge = out.head
-						g = g - endEdge
+						g -= endEdge
+
 						g.incomingOf(emptyVertex).foreach {
-							startEdge => g = (g - startEdge) + Edge.copy[V](startEdge, Some(startEdge.startVertex), Some(endEdge.endVertex))
+							startEdge => {
+								g -= startEdge
+								g += Edge.copy[V](startEdge, Some(startEdge.startVertex), Some(endEdge.endVertex))
+							}
 						}
-						g = g - emptyVertex
+
+						g -= emptyVertex
 
 						modified = true
 					}
 			}
 
-			// remove dead edge
+			//		// remove dead edge
 			for (edge <- g.edgesIterator.filter(e => g.incomingOf(e.startVertex).isEmpty && !isEntry(e.startVertex))) {
-				g = g - edge
-				g = g - edge.startVertex
+				g -= edge
+				g -= edge.startVertex
 
 				modified = true
 			}
-
 			if (modified) {
 				modified = false
 				loop()
 			}
 		}
 		loop()
-
-		if (g != graph)
-			new G(g, entryVertex, exitVertex)
-		else
-			this
 	}
 
 	def cleanString(str: String) = {
@@ -147,14 +154,14 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 
 	def edgeToString(edge: E) = "[" + label(edge match {
 		case DefaultEdge(x, y) => ""
-		case JumpEdge(x, y) => "jump"
-		case TrueEdge(x, y) => "true"
-		case FalseEdge(x, y) => "false"
-		case DefaultCaseEdge(x, y) => "default"
-		case CaseEdge(x, y) => "case"
-		case NumberedCaseEdge(x, y, n) => "case " + n
-		case ThrowEdge(x, y) => "throw"
-		case ReturnEdge(x, y) => "return"
+		case JumpEdge(x, y) => "  jump  "
+		case TrueEdge(x, y) => "  true  "
+		case FalseEdge(x, y) => "  false  "
+		case DefaultCaseEdge(x, y) => "  default  "
+		case CaseEdge(x, y) => "  case  "
+		case NumberedCaseEdge(x, y, n) => "  case " + n
+		case ThrowEdge(x, y) => "  throw  "
+		case ReturnEdge(x, y) => "  return  "
 	}) + "]"
 
 	override def dotExport = {
