@@ -38,7 +38,21 @@ class TagContainer {
 	private def strategyFor(file: JFile) = file.getName() match {
 		case x if x endsWith ".swf" => Some(new SwfStrategy)
 		case x if x endsWith ".swc" => Some(new SwcStrategy)
-		case _ => None //TODO test for header of FWS/CWS
+		case x => {
+			using(new JFileInputStream(file)) {
+				input => {
+					val b0 = input.read()
+
+					if(('F' == b0 || 'C' == b0) && 'W' == input.read() && 'S' == input.read()) {
+						Some(new SwfStrategy)
+					} else if ('P' == b0 && 'K' == input.read()) {
+						Some(new SwcStrategy)
+					} else {
+						None
+					}
+				}
+			}
+		}
 	}
 
 	def read(pathname: String): Unit = read(new JFile(pathname))
