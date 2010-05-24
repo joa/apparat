@@ -72,11 +72,11 @@ object Deflate {
 
 	private def compressUsing7z(bytes: Array[Byte], output: JOutputStream) = {
 		try {
-			if(bytes.length < 0x40000) {
-				compress7zInSTDIO(bytes, output)
-			} else {
+			//if(bytes.length < 0x40000) {
+			//	compress7zInSTDIO(bytes, output)
+			//} else {
 				compress7zOnDisk(bytes, output)
-			}
+			//}
 		} catch {
 			case ioException: JIOException => {
 				_7z = false
