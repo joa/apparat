@@ -29,7 +29,7 @@ import apparat.bytecode.operations._
 import apparat.bytecode.combinator._
 import apparat.bytecode.combinator.BytecodeChains._
 import apparat.swf._
-import apparat.bytecode.optimization.{MacroExpansion, PeepholeOptimizations, InlineMemory}
+import apparat.bytecode.optimization.{InlineExpansion, MacroExpansion, PeepholeOptimizations, InlineMemory}
 
 /**
  * @author Joa Ebert
@@ -43,12 +43,14 @@ object TurboDieselSportInjection {
 		var output = ""
 		var alchemy = true
 		var macros = true
+		var inline = true
 
 		override def name = "Turbo Diesel Sport Injection"
 
 		override def help = """  -i [file]			Input file
   -o [file]			Output file (optional)
   -a (true|false)	Inline Alchemy operations
+  -e (true|false)	Inline expansion
   -m (true|false)	Macro expansion"""
 
 		override def configure(config: ApparatConfiguration) = {
@@ -56,6 +58,7 @@ object TurboDieselSportInjection {
 			output = config("-o") getOrElse input
 			alchemy = (config("-a") getOrElse "true").toBoolean
 			macros = (config("-m") getOrElse "true").toBoolean
+			inline = (config("-e") getOrElse "true").toBoolean
 			assert(new JFile(input) exists, "Input has to exist.")
 		}
 
@@ -71,6 +74,7 @@ object TurboDieselSportInjection {
 			val cont = TagContainer fromFile source
 			val allABC = Map((for(doABC <- cont.tags collect { case doABC: DoABC => doABC }) yield (doABC -> (Abc fromDoABC doABC))):_*)
 			val macroExpansion = if(macros) Some(new MacroExpansion(allABC.valuesIterator.toList)) else None
+			val inlineExpansion = if(inline) Some(new InlineExpansion(allABC.valuesIterator.toList)) else None
 
 			for((doABC, abc) <- allABC.iterator) {
 				abc.loadBytecode()
@@ -86,6 +90,10 @@ object TurboDieselSportInjection {
 										InlineMemory(bytecode)
 									}
 
+									if(inline) {
+										inlineExpansion.get expand bytecode
+									}
+									
 									if(macros) {
 										macroExpansion.get expand bytecode
 									}
