@@ -175,6 +175,64 @@ package apparat.math {
   		}
 
 		/**
+		 * Computes and returns the square root of the specified number.
+		 *
+		 * The address parameter should be a pointer to a <code>char[4]</code> in 
+		 * the Alchemy memory buffer.
+		 * 
+		 * @param value A number or expression greater than or equal to 0.
+		 * @param address The address in the Alchemy memory buffer.
+		 * @return If the parameter val is greater than or equal to zero, a number; otherwise NaN (not a number).
+		 * @throws TypeError If no <code>ApplicationDomain.domainMemory</code> has been set.
+		 */
+		public static function sqrt2(value: Number, address: int): Number {
+			if(value == 0.0) {
+				return 0.0
+			} else if(value < 0.0) {
+				return Number.NaN
+			}
+
+			var originalValue: Number = value
+			var halfValue: Number = value * 0.5
+
+			Memory.writeFloat(value, address)
+			var i: int = 0x5f3759df - (Memory.readInt(address) >> 1)
+			Memory.writeInt(i, address)
+			value = Memory.readFloat(address)
+
+			return originalValue * value * (1.5 - halfValue * value * value)
+		}
+
+		/**
+		 * Computes and returns the reciprocal of the square root for the specified number.
+		 *
+		 * The address parameter should be a pointer to a <code>char[4]</code> in 
+		 * the Alchemy memory buffer.
+		 * 
+		 * @param value A number or expression greater than or equal to 0.
+		 * @param address The address in the Alchemy memory buffer.
+		 * @return If the parameter val is greater than or equal to zero, a number; otherwise NaN (not a number).
+		 * @see initMemory
+		 * @throws TypeError If no <code>ApplicationDomain.domainMemory</code> has been set.
+		 */
+		public static function rsqrt(value: Number, address: int): Number {
+			if(value == 0.0) {
+				return 0.0
+			} else if(value < 0.0) {
+				return Number.NaN
+			}
+			
+			var halfValue: Number = value * 0.5
+
+			Memory.writeFloat(value, address)
+			var i: int = 0x5f3759df - (Memory.readInt(address) >> 1)
+			Memory.writeInt(i, address)
+			value = Memory.readFloat(address)
+
+			return value * (1.5 - halfValue * value * value)
+  		}
+		
+		/**
 		 * Integer cast with respect to its sign.
 		 * 
 		 * @param value A number.
