@@ -116,7 +116,7 @@ class MacroExpansion(abcs: List[Abc]) {
 											case IncLocal(0) => error("Illegal IncLocal(0).")
 											case IncLocalInt(0) => error("Illegal IncLocalInt(0).")
 											case Kill(0) => error("Illegal Kill(0).")
-											case Debug(_, _, 0, _) => error("Illegal Debug(.., 0, ..)")
+											case Debug(_, _, 0, _) => Nop()
 
 											//
 											// Map all parameters to local registers.
