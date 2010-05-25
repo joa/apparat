@@ -215,7 +215,7 @@ package apparat.math {
 		 * @see initMemory
 		 * @throws TypeError If no <code>ApplicationDomain.domainMemory</code> has been set.
 		 */
-		public static function rsqrt(value: Number, address: int): Number {
+		public static function rsqrt2(value: Number, address: int): Number {
 			if(value == 0.0) {
 				return 0.0
 			} else if(value < 0.0) {
