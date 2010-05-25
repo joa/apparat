@@ -128,17 +128,18 @@ package apparat.math {
 		 * @throws TypeError If no <code>ApplicationDomain.domainMemory</code> has been set.
 		 */
 		public static function sqrt(value: Number): Number {
+			var originalValue: Number = value
+			var halfValue: Number = value * 0.5
+			var i: int = 0
+			
 			if(value == 0.0) {
 				return 0.0
 			} else if(value < 0.0) {
 				return Number.NaN
 			}
 
-			var originalValue: Number = value
-			var halfValue: Number = value * 0.5
-
 			Memory.writeFloat(value, 0)
-			var i: int = 0x5f3759df - (Memory.readInt(0) >> 1)
+			i = 0x5f3759df - (Memory.readInt(0) >> 1)
 			Memory.writeInt(i, 0)
 			value = Memory.readFloat(0)
 
@@ -158,16 +159,17 @@ package apparat.math {
 		 * @throws TypeError If no <code>ApplicationDomain.domainMemory</code> has been set.
 		 */
 		public static function rsqrt(value: Number): Number {
+			var halfValue: Number = value * 0.5
+			var i: int = 0
+			
 			if(value == 0.0) {
 				return 0.0
 			} else if(value < 0.0) {
 				return Number.NaN
 			}
 			
-			var halfValue: Number = value * 0.5
-
 			Memory.writeFloat(value, 0)
-			var i: int = 0x5f3759df - (Memory.readInt(0) >> 1)
+			i = 0x5f3759df - (Memory.readInt(0) >> 1)
 			Memory.writeInt(i, 0)
 			value = Memory.readFloat(0)
 
@@ -186,17 +188,18 @@ package apparat.math {
 		 * @throws TypeError If no <code>ApplicationDomain.domainMemory</code> has been set.
 		 */
 		public static function sqrt2(value: Number, address: int): Number {
+			var originalValue: Number = value
+			var halfValue: Number = value * 0.5
+			var i: int = 0
+			
 			if(value == 0.0) {
 				return 0.0
 			} else if(value < 0.0) {
 				return Number.NaN
 			}
 
-			var originalValue: Number = value
-			var halfValue: Number = value * 0.5
-
 			Memory.writeFloat(value, address)
-			var i: int = 0x5f3759df - (Memory.readInt(address) >> 1)
+			i = 0x5f3759df - (Memory.readInt(address) >> 1)
 			Memory.writeInt(i, address)
 			value = Memory.readFloat(address)
 
@@ -216,16 +219,17 @@ package apparat.math {
 		 * @throws TypeError If no <code>ApplicationDomain.domainMemory</code> has been set.
 		 */
 		public static function rsqrt2(value: Number, address: int): Number {
+			var halfValue: Number = value * 0.5
+			var i: int = 0
+			
 			if(value == 0.0) {
 				return 0.0
 			} else if(value < 0.0) {
 				return Number.NaN
 			}
 			
-			var halfValue: Number = value * 0.5
-
 			Memory.writeFloat(value, address)
-			var i: int = 0x5f3759df - (Memory.readInt(address) >> 1)
+			i = 0x5f3759df - (Memory.readInt(address) >> 1)
 			Memory.writeInt(i, address)
 			value = Memory.readFloat(address)
 

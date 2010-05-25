@@ -70,7 +70,7 @@ class Graph[V](val adjacency: Map[V, List[Edge[V]]]) extends GraphLike[V] with D
 	}
 
 	def +(vertex: V) = {
-		assert(!contains(vertex), "Graph must not contain vertex.")
+		assert(!contains(vertex), "Graph must not contain vertex "+vertex+".")
 		newGraph(adjacency + (vertex -> Nil))
 	}
 
@@ -87,9 +87,9 @@ class Graph[V](val adjacency: Map[V, List[Edge[V]]]) extends GraphLike[V] with D
 	}
 
 	def +(edge: E) = {
-		assert(contains(edge.startVertex), "Graph must contain start vertex.")
-		assert(contains(edge.endVertex), "Graph must contain end vertex.")
-		assert(!contains(edge), "Graph must not contain edge object already.")
+		assert(contains(edge.startVertex), "Graph must contain start vertex "+edge.startVertex+".")
+		assert(contains(edge.endVertex), "Graph must contain end vertex "+edge.endVertex+".")
+		assert(!contains(edge), "Graph must not contain edge object "+edge+" already.")
 		newGraph(adjacency updated (edge.startVertex, edge :: adjacency(edge.startVertex)))
 	}
 
@@ -106,9 +106,9 @@ class Graph[V](val adjacency: Map[V, List[Edge[V]]]) extends GraphLike[V] with D
 	}
 
 	def -(edge: E) = {
-		assert(contains(edge.startVertex), "Graph must contain start vertex.")
-		assert(contains(edge.endVertex), "Graph must contain end vertex.")
-		assert(contains(edge), "Graph must contain edge.")
+		assert(contains(edge.startVertex), "Graph must contain start vertex "+edge.startVertex+".")
+		assert(contains(edge.endVertex), "Graph must contain end vertex "+edge.endVertex+".")
+		assert(contains(edge), "Graph must contain edge "+edge+".")
 		newGraph(adjacency updated (edge.startVertex, adjacency(edge.startVertex) filterNot (_ == edge)))
 	}
 
@@ -117,8 +117,8 @@ class Graph[V](val adjacency: Map[V, List[Edge[V]]]) extends GraphLike[V] with D
 	} else {this}
 
 	override def replace(v0: V, v1: V) = {
-		assert(contains(v0), "Graph must contain v0.")
-		assert(!contains(v1), "Graph must not contain v1.")
+		assert(contains(v0), "Graph must contain v0 "+v0+".")
+		assert(!contains(v1), "Graph must not contain v1 "+v1+".")
 
 		val oo = outgoingOf(v0)
 		val io = incomingOf(v0)
@@ -138,19 +138,19 @@ class Graph[V](val adjacency: Map[V, List[Edge[V]]]) extends GraphLike[V] with D
 	}
 
 	override def incomingOf(vertex: V) = {
-		assert(contains(vertex), "Graph must contain vertex.")
+		assert(contains(vertex), "Graph must contain vertex "+vertex+".")
 		adjacency flatMap (_._2) filter (_.endVertex == vertex)
 	}
 
 	override def outgoingOf(vertex: V) = {
-		assert(contains(vertex), "Graph must contain vertex.")
+		assert(contains(vertex), "Graph must contain vertex "+vertex+".")
 		adjacency(vertex)
 	}
 
 	override def outdegreeOf(vertex: V) = outgoingOf(vertex).length
 
 	override def indegreeOf(vertex: V) = {
-		assert(contains(vertex), "Graph must contain vertex.")
+		assert(contains(vertex), "Graph must contain vertex "+vertex+".")
 		adjacency flatMap (_._2) count (_.endVertex == vertex)
 	}
 

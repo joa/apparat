@@ -87,6 +87,7 @@ class InlineExpansion(abcs: List[Abc]) {
 										val oldDebugFile = macro.ops.find (_.opCode == Op.debugfile)
 										val gathering = Nop()
 										val delta = -macro.ops.indexWhere(_.opCode == Op.pushscope) - 1 + parameterCount
+										val nopReturn = macro.ops.last.isInstanceOf[OpThatReturns] && (macro.ops.count { case x: OpThatReturns => true; case _ => false } == 1)
 										val replacement =
 										(((parameterCount - 1) to 0 by -1) map { register => SetLocal(localCount + register) } toList) :::
 										(macro.ops.slice(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length) map {
@@ -117,11 +118,11 @@ class InlineExpansion(abcs: List[Abc]) {
 											//
 											// Patch return statements
 											//
-											case ReturnValue() => Jump(markers mark gathering)
-											case ReturnVoid() => Jump(markers mark gathering)
+											case ReturnValue() => if(nopReturn) Nop() else Jump(markers mark gathering)
+											case ReturnVoid() => if(nopReturn) Nop() else Jump(markers mark gathering)
 											
 											case other => other
-										}) ::: List(gathering)::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
+										}) ::: List(gathering) ::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
 
 										//
 										// Switch debug file back into place.
