@@ -24,6 +24,7 @@ import apparat.bytecode.Bytecode
 import apparat.bytecode.operations._
 import apparat.bytecode.analysis.{StackAnalysis, LocalCount}
 import apparat.abc._
+import apparat.tools.ApparatLog
 
 /**
  * @author Joa Ebert
@@ -121,20 +122,20 @@ class InlineExpansion(abcs: List[Abc]) {
 											case ReturnValue() => if(nopReturn) Nop() else Jump(markers mark gathering)
 											case ReturnVoid() => if(nopReturn) Nop() else Jump(markers mark gathering)
 											
-											case other => other
+											case other => other.opCopy()
 										}) ::: List(gathering) ::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
 
 										//
 										// Switch debug file back into place.
 										//
 
-										debugFile match {
+										/*debugFile match {
 											case Some(debugFile) => oldDebugFile match {
-												case Some(oldDebugFile) => (oldDebugFile :: replacement) ::: List(debugFile)
+												case Some(oldDebugFile) => (oldDebugFile.opCopy() :: replacement) ::: List(debugFile.opCopy())
 												case None => replacement
 											}
 											case None => replacement
-										}
+										}*/
 
 										//
 										// Clean up
@@ -219,7 +220,7 @@ class InlineExpansion(abcs: List[Abc]) {
 					body.maxStack = operandStack
 					body.maxScopeDepth = body.initScopeDepth + scopeStack
 				}
-				case None =>
+				case None => ApparatLog warn "Bytecode body missing. Cannot adjust stack/locals."
 			}
 
 			expand(bytecode)

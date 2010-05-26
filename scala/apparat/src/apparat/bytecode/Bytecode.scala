@@ -39,7 +39,7 @@ object Bytecode {
 }
 
 class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var exceptions: Array[BytecodeExceptionHandler], var body: Option[AbcMethodBody]) extends Dumpable {
-	override def dump(writer: IndentingPrintWriter) = new BytecodeDump(ops, markers, exceptions) dump writer
+	override def dump(writer: IndentingPrintWriter) = new BytecodeDump(ops, markers, exceptions, body) dump writer
 
 	def storeIn(body: AbcMethodBody)(implicit abc: Abc) = {
 		val (code, exceptions) = BytecodeEncoder(this)

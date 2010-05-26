@@ -20,13 +20,22 @@
  */
 package apparat.bytecode
 
+import apparat.abc.AbcMethodBody
 import apparat.utils.{Dumpable, IndentingPrintWriter}
 import operations.AbstractOp
 
-class BytecodeDump(val ops: Seq[AbstractOp], val markers: MarkerManager, val exceptions: Array[BytecodeExceptionHandler]) extends Dumpable {
+class BytecodeDump(val ops: Seq[AbstractOp], val markers: MarkerManager, val exceptions: Array[BytecodeExceptionHandler], val body: Option[AbcMethodBody]) extends Dumpable {
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Bytecode:"
 		writer withIndent {
+			body match {
+				case Some(body) => {
+					writer <= "operandStack: "+body.maxStack
+					writer <= "scopeStack:   "+(body.maxScopeDepth - body.initScopeDepth)
+					writer <= "localCount:   "+body.localCount
+				}
+				case None => writer <= "(unknown body)"
+			}
 			writer <= exceptions.length + " exception(s):"
 			writer <<< exceptions
 
@@ -34,7 +43,7 @@ class BytecodeDump(val ops: Seq[AbstractOp], val markers: MarkerManager, val exc
 			writer withIndent {
 				writer.println(ops) {
 					op => {
-						val opString = op.toString
+						val opString = "+"+op.pushOperands+"|-"+op.popOperands+"  "+op.toString
 						val builder = new StringBuilder(opString.length + 6)
 
 						markers(op) match {

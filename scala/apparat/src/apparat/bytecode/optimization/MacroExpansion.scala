@@ -24,6 +24,7 @@ import apparat.bytecode.Bytecode
 import apparat.bytecode.operations._
 import apparat.bytecode.analysis.{StackAnalysis, LocalCount}
 import apparat.abc._
+import apparat.tools.ApparatLog
 
 /**
  * @author Joa Ebert
@@ -93,6 +94,7 @@ class MacroExpansion(abcs: List[Abc]) {
 										val parameterCount = method.parameters.length
 										val newLocals = body.localCount - parameterCount - 1
 										val oldDebugFile = macro.ops.find (_.opCode == Op.debugfile)
+										val delta = -macro.ops.indexWhere(_.opCode == Op.pushscope) - 1
 										val replacement = (macro.ops.slice(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length - 1) map {
 											//
 											// Shift all local variables that are not parameters.
@@ -133,20 +135,20 @@ class MacroExpansion(abcs: List[Abc]) {
 											case Kill(x) => Kill(registerOf(parameters(x - 1)))
 											case Debug(kind, name, x, extra) => Debug(kind, name, registerOf(parameters(x - 1)), extra)
 
-											case other => other
+											case other => other.opCopy()
 										}) ::: List(Nop()) ::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
 
 										//
 										// Switch debug file back into place.
 										//
 
-										debugFile match {
+										/*debugFile match {
 											case Some(debugFile) => oldDebugFile match {
-												case Some(oldDebugFile) => (oldDebugFile :: replacement) ::: List(debugFile)
+												case Some(oldDebugFile) => (oldDebugFile.opCopy() :: replacement) ::: List(debugFile.opCopy())
 												case None => replacement
 											}
 											case None => replacement
-										}
+										}*/
 
 										//
 										// Clean up
@@ -158,23 +160,23 @@ class MacroExpansion(abcs: List[Abc]) {
 											//
 											// Patch all markers.
 											//
-											case Jump(marker) => Jump(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfEqual(marker) => IfEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfFalse(marker) => IfFalse(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfGreaterEqual(marker) => IfGreaterEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfGreaterThan(marker) => IfGreaterThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfLessEqual(marker) => IfLessEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfLessThan(marker) => IfLessThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfNotGreaterEqual(marker) => IfNotGreaterEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfNotGreaterThan(marker) => IfNotGreaterThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfNotLessEqual(marker) => IfNotLessEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfNotLessThan(marker) => IfNotLessThan(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfNotEqual(marker) => IfNotEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfStrictEqual(marker) => IfStrictEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
-											case IfStrictNotEqual(marker) => IfStrictNotEqual(markers mark replacement((macro.ops indexOf marker.op.get) - 2))
+											case Jump(marker) => Jump(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfEqual(marker) => IfEqual(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfFalse(marker) => IfFalse(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfGreaterEqual(marker) => IfGreaterEqual(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfGreaterThan(marker) => IfGreaterThan(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfLessEqual(marker) => IfLessEqual(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfLessThan(marker) => IfLessThan(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfNotGreaterEqual(marker) => IfNotGreaterEqual(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfNotGreaterThan(marker) => IfNotGreaterThan(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfNotLessEqual(marker) => IfNotLessEqual(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfNotLessThan(marker) => IfNotLessThan(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfNotEqual(marker) => IfNotEqual(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfStrictEqual(marker) => IfStrictEqual(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
+											case IfStrictNotEqual(marker) => IfStrictNotEqual(markers mark replacement((macro.ops indexOf marker.op.get) + delta))
 											case LookupSwitch(defaultCase, cases) => {
-												LookupSwitch(markers mark replacement((macro.ops indexOf defaultCase.op.get) - 2), cases map {
-													`case` => markers mark replacement((macro.ops indexOf `case`.op.get) - 2)//the reward is cheese!
+												LookupSwitch(markers mark replacement((macro.ops indexOf defaultCase.op.get) + delta), cases map {
+													`case` => markers mark replacement((macro.ops indexOf `case`.op.get) + delta)//the reward is cheese!
 												})
 											}
 											case other => other
@@ -240,7 +242,7 @@ class MacroExpansion(abcs: List[Abc]) {
 					body.maxStack = operandStack
 					body.maxScopeDepth = body.initScopeDepth + scopeStack
 				}
-				case None =>
+				case None => ApparatLog warn "Bytecode body missing. Cannot adjust stack/locals."
 			}
 
 			expand(bytecode)

@@ -146,6 +146,6 @@ object BytecodeControlFlowGraphBuilder extends (Bytecode => BytecodeControlFlowG
 		}
 		buildEdge()
 
-		new BytecodeControlFlowGraph(new Graph(edgeMap), entryVertex, exitVertex)//.optimized
+		new BytecodeControlFlowGraph(new Graph(edgeMap), entryVertex, exitVertex).optimized
 	}
 }
