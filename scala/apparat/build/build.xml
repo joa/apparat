@@ -130,7 +130,7 @@
 	</path>
 
 	<target name="compile" depends="clean,init" description="Compile Apparat">
-		<scalac destdir="${dir.bin}" deprecation="on" encoding="UTF8" addParams="${scalac.arguments}">
+		<scalac destdir="${dir.bin}" deprecation="on" optimise="on" encoding="UTF8" addParams="${scalac.arguments}">
 			<src refid="sourcepath"/>
 			<classpath refid="classpath"/>
 			<patternset refid="ignored.files"/>
