@@ -25,12 +25,48 @@ package apparat.taas.ast
  */
 sealed trait TaasType
 
+object TaasType {
+	def widen(a: TaasType, b: TaasType): TaasType = {
+		if(a == b) { a
+		} else if(a == TaasString || b == TaasString) { TaasString
+		} else if(a == TaasDouble || b == TaasDouble) { TaasDouble
+		} else if((a == TaasLong && b != TaasLong) || (a != TaasLong && b == TaasLong)) { TaasDouble
+		} else if(a == TaasInt || b == TaasInt) { TaasInt
+		} else { error("Cannot widen types "+a+" and "+b+".")
+		}
+	}
+}
+
 object TaasAny extends TaasType {
 	override def toString = "TaasType(*)"
 }
 
 object TaasVoid extends TaasType {
 	override def toString = "TaasType(void)"
+}
+
+object TaasBoolean extends TaasType {
+	override def toString = "TaasType(boolean)"
+}
+
+object TaasDouble extends TaasType {
+	override def toString = "TaasType(double)"
+}
+
+object TaasInt extends TaasType {
+	override def toString = "TaasType(int)"
+}
+
+object TaasObject extends TaasType {
+	override def toString = "TaasType(object)"
+}
+
+object TaasString extends TaasType {
+	override def toString = "TaasType(string)"
+}
+
+object TaasLong extends TaasType {
+	override def toString = "TaasType(long)"
 }
 
 trait TaasNominalType extends TaasType  {
@@ -46,3 +82,5 @@ trait TaasParameterizedType extends TaasNominalType {
 		"TaasType(" + nominal.qualifiedName + "<" + parameters.mkString(",")+ ">)"
 	}
 }
+
+case class TaasNominalTypeInstance(nominal: TaasNominal) extends TaasNominalType

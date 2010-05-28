@@ -23,6 +23,7 @@ package apparat.taas.ast
 import collection.mutable.ListBuffer
 import apparat.graph.GraphLike
 import apparat.utils.{IndentingPrintWriter, Dumpable}
+import apparat.graph.mutable.MutableBlockVertex
 
 /**
  * @author Joa Ebert
@@ -144,7 +145,9 @@ trait TaasTyped {
 	def `type`: TaasType
 }
 
-sealed trait TaasField extends TaasDefinition with TaasTyped
+sealed trait TaasField extends TaasDefinition with TaasTyped {
+	def isStatic: Boolean
+}
 
 case class TaasSlot(
 		name: Symbol,
@@ -181,7 +184,7 @@ case class TaasMethod(
 }
 
 abstract class TaasCode extends Dumpable {
-	type TaasGraph = GraphLike[TaasElement]
+	type TaasGraph = GraphLike[TaasBlock]
 	def graph: TaasGraph
 
 	override def dump(writer: IndentingPrintWriter) = {
@@ -229,26 +232,181 @@ case class TaasClass(
 	}
 }
 
+class TaasBlock(block: List[TExpr]) extends MutableBlockVertex(block) with TaasElement with ParentUnit
+
 //
 // You are here.
 //
 
-sealed trait TaasBinop
-case object TAdd extends TaasBinop
-case object TSub extends TaasBinop
-case object TMul extends TaasBinop
-case object TDiv extends TaasBinop
-case object TMod extends TaasBinop
-case object TAnd extends TaasBinop
-case object TXor extends TaasBinop
-case object TOr extends TaasBinop
+sealed abstract class TaasBinop(val string: String) {
+	override def toString = string
+}
+sealed abstract class TaasUnop(val string: String) {
+	override def toString = string
+}
 
-sealed trait TaasUnop
-case object TNot extends TaasUnop
-case object TRef extends TaasUnop
+case object TOp_Nothing extends TaasUnop("")
 
-sealed trait TExpr extends TaasElement with ParentUnit
+// Arithmetic operations
+case object TOp_+ extends TaasBinop("+")
+case object TOp_- extends TaasBinop("-")
+case object TOp_* extends TaasBinop("*")
+case object TOp_/ extends TaasBinop("/")
+case object TOp_% extends TaasBinop("%")
 
-case class TReg(index: Int) extends TExpr
-case class T2(op: TaasUnop, operand1: TReg, operand2: TReg) extends TExpr
-case class T3(op: TaasBinop, operand1: TReg, operand2: TReg, result: TReg) extends TExpr
+// Binary operations
+case object TOp_&   extends TaasBinop("&")
+case object TOp_^   extends TaasBinop("^")
+case object TOp_|   extends TaasBinop("|")
+case object TOp_<<  extends TaasBinop("<<")
+case object TOp_>>  extends TaasBinop(">>")
+case object TOp_>>> extends TaasBinop(">>>")
+case object TOp_~   extends TaasUnop("~")
+
+// Boolean operations
+case object TOp_==  extends TaasBinop("==")
+case object TOp_>=  extends TaasBinop(">=")
+case object TOp_>   extends TaasBinop(">")
+case object TOp_<=  extends TaasBinop("<=")
+case object TOp_<   extends TaasBinop("<")
+case object TOp_!=  extends TaasBinop("!=")
+case object TOp_!>= extends TaasBinop("!>=")
+case object TOp_!>  extends TaasBinop("!>")
+case object TOp_!<= extends TaasBinop("!<=")
+case object TOp_!<  extends TaasBinop("!<")
+case object TOp_=== extends TaasBinop("===")
+case object TOp_!== extends TaasBinop("!==")
+case object TOp_!   extends TaasUnop("!")
+case object TOp_true extends TaasUnop("true ==")
+case object TOp_false extends TaasUnop("false ==")
+
+case class TConvert(`type`: TaasType) extends TaasUnop("(convert "+`type`+")")
+case class TCoerce(`type`: TaasType) extends TaasUnop("("+`type`+")")
+
+sealed trait TExpr {
+	def defines(index: Int): Boolean
+	def uses(index: Int): Boolean
+}
+
+sealed trait TValue extends TExpr with TaasTyped {
+	override def defines(index: Int) = false
+	override def uses(index: Int) = false
+	def matches(index: Int) = false
+}
+
+sealed trait TSideEffect
+sealed trait TArgumentList {
+	def arguments: List[TValue]
+	def argumentMatches(index: Int): Boolean = {
+		var p = arguments
+		while(p.nonEmpty) {
+			if(p.head matches index) {
+				return true
+			}
+			p = p.tail
+		}
+		false
+	}
+}
+
+case object TVoid extends TValue { override def `type` = TaasVoid }
+case class TInt(value: Int) extends TValue { override def `type` = TaasInt }
+case class TLong(value: Long) extends TValue { override def `type` = TaasLong }
+case class TBool(value: Boolean) extends TValue { override def `type` = TaasBoolean }
+case class TString(value: Symbol) extends TValue { override def `type` = TaasString }
+case class TDouble(value: Double) extends TValue { override def `type` = TaasDouble }
+case class TClass(value: TaasType) extends TValue { override def `type` = value }
+case class TInstance(value: TaasType) extends TValue { override def `type` = value }
+case class TLexical(value: TaasDefinition) extends TValue {
+	override def `type` = value match {
+		case klass: TaasClass => TaasNominalTypeInstance(klass)
+		case interface: TaasInterface => TaasNominalTypeInstance(interface)
+		case field: TaasField => field.`type`
+		case method: TaasMethod => method.`type`
+		case _ => error("Unexpected lexical "+value+".")
+	}
+}
+case class TReg(index: Int) extends TValue {
+	private var _type: TaasType = TaasAny
+
+	def typeAs(`type`: TaasType) = _type = `type`
+
+	override def `type` = _type
+	override def toString = "r"+index
+	override def matches(index: Int) = this.index == index
+}
+
+//result = op operand1
+case class T2(op: TaasUnop, rhs: TValue, result: TReg) extends TExpr {
+	result typeAs (op match {
+		case TOp_Nothing => rhs.`type`
+		case TOp_~ => TaasInt
+		case TOp_! | TOp_true | TOp_false => TaasBoolean
+		case TConvert(t) => t
+		case TCoerce(t) => t
+	})
+
+	override def toString = result.toString+" = "+op.toString+rhs.toString
+	override def defines(index: Int) = result.index == index
+	override def uses(index: Int) = rhs matches index
+}
+
+//result = operand1 op operand2
+case class T3(op: TaasBinop, lhs: TValue, rhs: TValue, result: TReg) extends TExpr {
+	result typeAs TaasType.widen(lhs.`type`, rhs.`type`)
+
+	override def toString = result.toString+" = "+lhs.toString+" "+op.toString+" "+rhs.toString
+	override def defines(index: Int) = result.index == index
+	override def uses(index: Int) = (lhs matches index) || (rhs matches index)
+}
+
+//branch if: op rhs
+case class TIf1(op: TaasUnop, rhs: TValue) extends TExpr {
+	override def toString = "if("+op.toString+" "+rhs.toString+")"
+	override def defines(index: Int) = false
+	override def uses(index: Int) = rhs matches index
+}
+
+//branch if: lhs op rhs
+case class TIf2(op: TaasBinop, lhs: TValue, rhs: TValue) extends TExpr {
+	override def toString = "if("+lhs.toString+" "+op.toString+" "+rhs.toString+")"
+	override def defines(index: Int) = false
+	override def uses(index: Int) = (lhs matches index) || (rhs matches index)
+}
+
+case class TNop() extends TExpr {
+	override def defines(index: Int) = false
+	override def uses(index: Int) = false
+}
+
+case class TReturn(value: TValue) extends TExpr with TSideEffect {
+	override def toString = "return "+value.toString
+	override def defines(index: Int) = false
+	override def uses(index: Int) = value matches index
+}
+
+case class TConstruct(`object`: TValue, arguments: List[TValue]) extends TExpr with TSideEffect with TArgumentList {
+	override def defines(index: Int) = false
+	override def uses(index: Int) = (`object` matches index) || argumentMatches(index)
+}
+
+case class TSuper(base: TValue, arguments: List[TValue]) extends TExpr with TSideEffect with TArgumentList {
+	override def defines(index: Int) = false
+	override def uses(index: Int) = (base matches index) || argumentMatches(index)
+}
+
+case class TCall(`this`: TValue, method: TaasMethod, arguments: List[TValue], result: Option[TReg]) extends TExpr with TSideEffect with TArgumentList {
+	override def defines(index: Int) = if(result.isDefined) { result.get.index == index } else { false }
+	override def uses(index: Int) = (`this` matches index) || argumentMatches(index)
+}
+
+case class TLoad(`object`: TValue, field: TaasField, result: TReg) extends TExpr {
+	result typeAs field.`type`
+	override def defines(index: Int) = result.index == index
+	override def uses(index: Int) = `object` matches index
+}
+
+case class TStore(`object`: TValue, field: TaasField, value: TValue) extends TExpr {
+	override def defines(index: Int) = false
+	override def uses(index: Int) = (`object` matches index) || (value matches index)
+}
