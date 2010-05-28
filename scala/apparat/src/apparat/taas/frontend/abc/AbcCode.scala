@@ -32,7 +32,9 @@ import apparat.graph.Edge
 /**
  * @author Joa Ebert
  */
-protected[abc] class AbcCode(implicit ast: TaasAST, abc: Abc, method: AbcMethod, scope: Option[AbcNominalType], isStatic: Boolean) extends TaasCode {
+protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: Option[AbcNominalType], isStatic: Boolean) extends TaasCode {
+	implicit private val implicitAST = ast
+
 	lazy val graph = {
 		val f = future { computeGraph() }
 		f()
