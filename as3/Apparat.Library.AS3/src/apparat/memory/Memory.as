@@ -21,8 +21,6 @@
 
 package apparat.memory 
 {
-	import apparat.inline.__bytecode;
-
 	import flash.system.ApplicationDomain;
 	import flash.utils.ByteArray;
 
@@ -43,6 +41,7 @@ package apparat.memory
 	 */
 	public final class Memory 
 	{
+		private static var domainMemory:ByteArray=null;
 		/**
 		 * Selects a ByteArray object as the current memory.
 		 * 
@@ -50,7 +49,7 @@ package apparat.memory
 		 */
 		public static function select( byteArray: ByteArray ): void
 		{
-			ApplicationDomain.currentDomain.domainMemory = byteArray;
+			ApplicationDomain.currentDomain.domainMemory = domainMemory = byteArray;
 		}
 		
 		/**
@@ -61,22 +60,8 @@ package apparat.memory
 		 */
 		public static function writeByte( value: int, address: int ): void
 		{
-			__bytecode(
-				0xd1,	//GetLocal1
-				0xd2,	//GetLocal2
-				0x3a,	//SetByte
-				0x47	//ReturnVoid
-			);
-			
-			//
-			// DCE will remove this parts since a ReturnVoid has happened
-			// before.
-			//
-			// This applies for all the following methods.
-			//
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			ApplicationDomain.currentDomain.domainMemory.writeByte( value );
+			domainMemory.position = address;
+			domainMemory.writeByte( value );
 		}
 		
 		/**
@@ -87,10 +72,8 @@ package apparat.memory
 		 */
 		public static function writeShort( value: int, address: int ): void
 		{
-			__bytecode( 0xd1, 0xd2, 0x3b, 0x47 );
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			ApplicationDomain.currentDomain.domainMemory.writeShort( value );
+			domainMemory.position = address;
+			domainMemory.writeShort( value );
 		}
 		
 		/**
@@ -101,10 +84,8 @@ package apparat.memory
 		 */
 		public static function writeInt(value: int, address: int): void
 		{
-			__bytecode( 0xd1, 0xd2, 0x3c, 0x47 );
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			ApplicationDomain.currentDomain.domainMemory.writeInt( value );
+			domainMemory.position = address;
+			domainMemory.writeInt( value );
 		}
 		
 		/**
@@ -115,10 +96,8 @@ package apparat.memory
 		 */
 		public static function writeFloat(value: Number, address: int): void
 		{
-			__bytecode( 0xd1, 0xd2, 0x3d, 0x47 );
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			ApplicationDomain.currentDomain.domainMemory.writeFloat( value );
+			domainMemory.position = address;
+			domainMemory.writeFloat( value );
 		}
 		
 		/**
@@ -129,10 +108,8 @@ package apparat.memory
 		 */
 		public static function writeDouble(value: Number, address: int): void
 		{
-			__bytecode( 0xd1, 0xd2, 0x3e, 0x47 );
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			ApplicationDomain.currentDomain.domainMemory.writeDouble( value );
+			domainMemory.position = address;
+			domainMemory.writeDouble( value );
 		}
 		
 		/**
@@ -143,10 +120,8 @@ package apparat.memory
 		 */
 		public static function readUnsignedByte( address: int ): int
 		{
-			__bytecode( 0xd1, 0x35, 0x48 );
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			return ApplicationDomain.currentDomain.domainMemory.readUnsignedByte();
+			domainMemory.position = address;
+			return domainMemory.readUnsignedByte();
 		}
 		
 		/**
@@ -157,10 +132,8 @@ package apparat.memory
 		 */
 		public static function readUnsignedShort(address: int): int
 		{
-			__bytecode(0xd1, 0x36, 0x48);
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			return ApplicationDomain.currentDomain.domainMemory.readUnsignedShort();
+			domainMemory.position = address;
+			return domainMemory.readUnsignedShort();
 		}
 		
 		/**
@@ -171,10 +144,8 @@ package apparat.memory
 		 */
 		public static function readInt( address: int ): int
 		{
-			__bytecode( 0xd1, 0x37, 0x48 );
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			return ApplicationDomain.currentDomain.domainMemory.readInt();
+			domainMemory.position = address;
+			return domainMemory.readInt();
 		}
 		
 		/**
@@ -185,10 +156,8 @@ package apparat.memory
 		 */
 		public static function readFloat( address: int ): Number
 		{
-			__bytecode( 0xd1, 0x38, 0x48 );
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			return ApplicationDomain.currentDomain.domainMemory.readFloat();
+			domainMemory.position = address;
+			return domainMemory.readFloat();
 		}
 		
 		/**
@@ -199,10 +168,8 @@ package apparat.memory
 		 */
 		public static function readDouble( address: int ): Number
 		{
-			__bytecode( 0xd1, 0x39, 0x48 );
-			
-			ApplicationDomain.currentDomain.domainMemory.position = address;
-			return ApplicationDomain.currentDomain.domainMemory.readDouble();
+			domainMemory.position = address;
+			return domainMemory.readDouble();
 		}
 		
 		/**
@@ -213,8 +180,6 @@ package apparat.memory
 		 */
 		public static function signExtend1( value: int ): int
 		{
-			__bytecode( 0xd1, 0x50, 0x48 );
-			
 			if( 0 != ( value & 0x1 ) )
 			{
 				value &= 0x0;
@@ -232,8 +197,6 @@ package apparat.memory
 		 */
 		public static function signExtend8( value: int ): int
 		{
-			__bytecode( 0xd1, 0x51, 0x48 );
-		
 			if( 0 != ( value & 0x80 ) )
 			{
 				value &= 0x7f;
@@ -251,8 +214,6 @@ package apparat.memory
 		 */
 		public static function signExtend16( value: int ): int
 		{
-			__bytecode( 0xd1, 0x52, 0x48 );
-			
 			if( 0 != ( value & 0x8000 ) )
 			{
 				value &= 0x7fff;
