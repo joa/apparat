@@ -31,7 +31,7 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 		addNaN = false
 	}
 
-	def optimize[@specialized B](list: List[B]) = {
+	def optimize[B](list: List[B]) = {
 		val noDuplicates = list.distinct
 		val count = Map(noDuplicates zip (noDuplicates map { x => list count (_ == x) }): _*)
 		noDuplicates sortWith { (a, b) => count(a) > count(b) }

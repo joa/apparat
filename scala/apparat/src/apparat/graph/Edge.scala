@@ -50,4 +50,17 @@ object Edge {
 		case e: ReturnEdge[_] => e.copy(start.getOrElse(e.startVertex), end.getOrElse(e.endVertex))
 		case _ => error(edge + " is not and Edge")
 	}
+
+	def transpose[X, Y](edge: Edge[X], start: Y, end: Y) = edge match {
+		case e: DefaultEdge[_] => DefaultEdge(start, end)
+		case e: JumpEdge[_] => JumpEdge(start, end)
+		case e: TrueEdge[_] => TrueEdge(start, end)
+		case e: FalseEdge[_] => FalseEdge(start, end)
+		case e: DefaultCaseEdge[_] => DefaultCaseEdge(start, end)
+		case e: CaseEdge[_] => CaseEdge(start, end)
+		case e: NumberedCaseEdge[_] => NumberedCaseEdge(start, end, e.index)
+		case e: ThrowEdge[_] => ThrowEdge(start, end)
+		case e: ReturnEdge[_] => ReturnEdge(start, end)
+		case _ => error(edge + " is not and Edge")
+	}
 }

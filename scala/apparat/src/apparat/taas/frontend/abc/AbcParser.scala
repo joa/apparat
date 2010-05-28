@@ -44,7 +44,7 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			}
 			case anyMethod: AbcTraitAnyMethod => {
 				val pckg = packageOf(anyMethod.name.namespace.name)
-				pckg.definitions += parseMethod(anyMethod, true)
+				pckg.definitions += parseMethod(None, anyMethod, true)
 			}
 			case anySlot: AbcTraitAnySlot => {
 				val pckg = packageOf(anySlot.name.namespace.name)
@@ -55,6 +55,7 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 	}
 
 	def parseNominal(nominal: AbcNominalType) = {
+		val someNominal = Some(nominal)
 		val base = nominal.inst.base match {
 			case Some(base) => Some(name2type(base))
 			case None => None
@@ -64,7 +65,7 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 
 		methods ++= nominal.inst.traits collect {
 			case methodTrait: AbcTraitAnyMethod => {
-				parseMethod(methodTrait, false)
+				parseMethod(someNominal, methodTrait, false)
 			}
 		}
 
@@ -78,7 +79,7 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			val fields = ListBuffer.empty[TaasField]
 
 			methods ++= nominal.klass.traits collect {
-				case methodTrait: AbcTraitAnyMethod => parseMethod(methodTrait, true)
+				case methodTrait: AbcTraitAnyMethod => parseMethod(someNominal, methodTrait, true)
 			}
 
 			fields ++= nominal.inst.traits collect {
@@ -93,15 +94,15 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 				nominal.inst.name.namespace,
 				nominal.inst.isFinal,
 				!nominal.inst.isSealed,
-				parseMethod(nominal.klass.init, true, true),
-				parseMethod(nominal.inst.init, false, true),
+				parseMethod(someNominal, nominal.klass.init, true, true),
+				parseMethod(someNominal, nominal.inst.init, false, true),
 				base,
 				methods,
 				fields)
 		}
 	}
 
-	def parseMethod(methodTrait: AbcTraitAnyMethod, isStatic: Boolean): TaasMethod = {
+	def parseMethod(scope: Option[AbcNominalType], methodTrait: AbcTraitAnyMethod, isStatic: Boolean): TaasMethod = {
 		TaasMethod(
 			methodTrait.name.name,
 			methodTrait.name.namespace,
@@ -110,10 +111,10 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			isStatic,
 			methodTrait.isFinal,
 			methodTrait.method.isNative,
-			methodTrait.method)
+			method2code(scope, isStatic, methodTrait.method))
 	}
 
-	def parseMethod(method: AbcMethod, isStatic: Boolean, isFinal: Boolean): TaasMethod = {
+	def parseMethod(scope: Option[AbcNominalType], method: AbcMethod, isStatic: Boolean, isFinal: Boolean): TaasMethod = {
 		TaasMethod(
 			method.name,
 			TaasPublic,
@@ -122,7 +123,7 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			isStatic,
 			isFinal,
 			method.isNative,
-			method)
+			method2code(scope, isStatic, method))
 	}
 
 	def parseParameters(parameters: Array[AbcMethodParameter]) = ListBuffer((parameters map parseParameter): _*)
@@ -174,10 +175,10 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 		}
 	}
 
-	private implicit def method2code(method: AbcMethod): Option[TaasCode] = {
+	private def method2code(scope: Option[AbcNominalType], isStatic: Boolean, method: AbcMethod): Option[TaasCode] = {
 		method.body match {
 			case Some(body) => body.bytecode match {
-				case Some(bytecode) => Some(new AbcCode(ast, abc, method))
+				case Some(bytecode) => Some(new AbcCode(ast, abc, method, scope, isStatic))
 				case None => None
 			}
 			case None => None
