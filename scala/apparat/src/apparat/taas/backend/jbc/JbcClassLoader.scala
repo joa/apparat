@@ -18,28 +18,19 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.graph
+package apparat.taas.backend.jbc
+
+import java.lang.String
 
 /**
  * @author Joa Ebert
  */
-final protected[graph] class TopsortTraversal[V](graph: GraphLike[V]) extends GraphTraversal[V]
-		with ListBasedTraversal[V] {
-	protected lazy val vertexList = {
-		var visited = graph vertexMap (v => false)
-		var result = List.empty[V]
-
-		def visit(vertex: V): Unit = {
-			if(!visited(vertex)) {
-				visited = visited updated (vertex, true)
-				for(edge <- graph.outgoingOf(vertex)) {
-					visit(edge.endVertex)
-				}
-				result = vertex :: result
-			}
+class JbcClassLoader(map: Map[String, Array[Byte]]) extends ClassLoader {
+	override protected def findClass(name: String): Class[_] = {
+		println("findClass: "+name)
+		(map get name) match {
+			case Some(result) => defineClass(name, result, 0, result.length)
+			case None => super.findClass(name)
 		}
-
-		graph.verticesIterator foreach visit
-		result
 	}
 }

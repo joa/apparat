@@ -18,28 +18,22 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.graph
+package apparat.taas.ast
 
 /**
  * @author Joa Ebert
  */
-final protected[graph] class TopsortTraversal[V](graph: GraphLike[V]) extends GraphTraversal[V]
-		with ListBasedTraversal[V] {
-	protected lazy val vertexList = {
-		var visited = graph vertexMap (v => false)
-		var result = List.empty[V]
-
-		def visit(vertex: V): Unit = {
-			if(!visited(vertex)) {
-				visited = visited updated (vertex, true)
-				for(edge <- graph.outgoingOf(vertex)) {
-					visit(edge.endVertex)
-				}
-				result = vertex :: result
-			}
-		}
-
-		graph.verticesIterator foreach visit
-		result
-	}
+trait TaasVisitor {
+	def visit(value: TaasAST): Unit = {}
+	def visit(value: TaasTarget): Unit = {}
+	def visit(value: TaasLibrary): Unit = {}
+	def visit(value: TaasPackage): Unit = {}
+	def visit(value: TaasAnnotation): Unit = {}
+	def visit(value: TaasSlot): Unit = {}
+	def visit(value: TaasConstant): Unit = {}
+	def visit(value: TaasMethod): Unit = {}
+	def visit(value: TaasInterface): Unit = {}
+	def visit(value: TaasClass): Unit = {}
+	def visit(value: TaasParameter): Unit = {}
+	def visit(value: TaasFunction): Unit = {}
 }

@@ -69,6 +69,10 @@ object TaasLong extends TaasType {
 	override def toString = "TaasType(long)"
 }
 
+object TaasFunctionType extends TaasType {
+	override def toString = "TaasType(function)"
+}
+
 trait TaasNominalType extends TaasType  {
 	def nominal: TaasNominal
 	override def toString = {

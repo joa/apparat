@@ -42,7 +42,7 @@ protected[abc] class AbcType(ast: TaasAST, name: Symbol, namespace: AbcNamespace
 				pckg.definitions find (_.name == name) match {
 					case Some(definition) => definition match {
 						case nominal: TaasNominal => return nominal
-						case _ => error("Expected nominal type.")
+						case _ => error("Expected nominal type, got "+definition+".")
 					}
 					case None => false
 				}

@@ -64,6 +64,8 @@ object AbcSolver {
 				case _ => error("QName expected.")
 			}
 		}
+
+		case TaasFunction(_, _, method) => Some(method)
 	}
 
 	def getLexical(scope: TaasType, static: Boolean, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {

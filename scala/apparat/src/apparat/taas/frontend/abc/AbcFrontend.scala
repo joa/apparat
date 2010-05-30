@@ -31,7 +31,7 @@ import apparat.abc._
 class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
 	private val ast: TaasAST = TaasAST(ListBuffer.empty)
 	
-	override def getAST = {
+	override lazy val getAST = {
 		main.loadBytecode()
 		libraries foreach { _.loadBytecode() }
 		

@@ -209,7 +209,10 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 					case EscapeXMLAttribute() => TODO(op)
 					case EscapeXMLElement() => TODO(op)
 					case FindProperty(property) => TODO(op)
-					case FindPropStrict(property) => TODO(op)
+					case FindPropStrict(property) => property match {
+						case qname: AbcQName => push(TLexical((AbcTypes fromQName qname).nominal))
+						case _ => error("QName expected.")
+					}
 					case GetDescendants(property) => TODO(op)
 					case GetGlobalScope() => TODO(op)
 					case GetGlobalSlot(slot) => TODO(op)

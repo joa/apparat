@@ -38,6 +38,8 @@ sealed trait TaasTree extends Dumpable {
 			case _ =>
 		}
 	}
+
+	def accept(visitor: TaasVisitor)
 }
 
 sealed trait TaasParent extends TaasTree {
@@ -84,6 +86,11 @@ case class TaasAST(units: ListBuffer[TaasUnit]) extends TaasTree with TaasParent
 		children foreach (_ setParent this)
 		this
 	}
+
+	override def accept(visitor: TaasVisitor) = {
+		visitor visit this
+		children foreach { _ accept visitor }
+	}
 }
 
 sealed trait TaasUnit extends TaasNode {
@@ -93,15 +100,31 @@ sealed trait TaasUnit extends TaasNode {
 	def children = packages
 }
 
-case class TaasTarget(packages: ListBuffer[TaasPackage]) extends TaasUnit
-case class TaasLibrary(packages: ListBuffer[TaasPackage]) extends TaasUnit
+case class TaasTarget(packages: ListBuffer[TaasPackage]) extends TaasUnit {
+	override def accept(visitor: TaasVisitor) = {
+		visitor visit this
+		children foreach { _ accept visitor }
+	}
+}
+
+case class TaasLibrary(packages: ListBuffer[TaasPackage]) extends TaasUnit {
+	override def accept(visitor: TaasVisitor) = {
+		visitor visit this
+		children foreach { _ accept visitor }
+	}
+}
 
 case class TaasPackage(name: Symbol, definitions: ListBuffer[TaasDefinition]) extends TaasNode with ParentUnit {
 	type T = TaasDefinition
 	def children = definitions
+	
+	override def accept(visitor: TaasVisitor) = {
+		visitor visit this
+		children foreach { _ accept visitor }
+	}
 }
 
-sealed trait TaasNamespace extends TaasElement with ParentUnit
+sealed trait TaasNamespace
 case object TaasPublic extends TaasNamespace
 case object TaasInternal extends TaasNamespace
 case object TaasProtected extends TaasNamespace
@@ -139,7 +162,9 @@ sealed trait TaasDefinition extends TaasElement with ParentUnit {
 	}
 }
 
-case class TaasAnnotation(name: Symbol, namespace: TaasNamespace, properties: Map[Symbol, Symbol]) extends TaasDefinition
+case class TaasAnnotation(name: Symbol, namespace: TaasNamespace, properties: Map[Symbol, Symbol]) extends TaasDefinition {
+	override def accept(visitor: TaasVisitor) = visitor visit this
+}
 
 trait TaasTyped {
 	def `type`: TaasType
@@ -153,13 +178,17 @@ case class TaasSlot(
 		name: Symbol,
 		namespace: TaasNamespace,
 		`type`: TaasType,
-		isStatic: Boolean) extends TaasField
+		isStatic: Boolean) extends TaasField {
+	override def accept(visitor: TaasVisitor) = visitor visit this
+}
 
 case class TaasConstant(
 		name: Symbol,
 		namespace: TaasNamespace,
 		`type`: TaasType,
-		isStatic: Boolean) extends TaasField
+		isStatic: Boolean) extends TaasField {
+	override def accept(visitor: TaasVisitor) = visitor visit this
+}
 
 case class TaasMethod(
 		name: Symbol,
@@ -181,6 +210,11 @@ case class TaasMethod(
 			case None =>
 		}
 	}
+
+	override def accept(visitor: TaasVisitor) = {
+		visitor visit this
+		children foreach { _ accept visitor }
+	}
 }
 
 abstract class TaasCode extends Dumpable {
@@ -197,20 +231,42 @@ abstract class TaasCode extends Dumpable {
 
 case class TaasParameter(
 		`type`: TaasType,
-		defaultValue: Option[Any]) extends TaasElement with ParentUnit with TaasTyped
+		defaultValue: Option[Any]) extends TaasElement with ParentUnit with TaasTyped {
+	override def accept(visitor: TaasVisitor) = visitor visit this
+}
 
 sealed trait TaasNominal extends TaasNode with TaasDefinition {
 	def base: Option[TaasType]
 	def methods: ListBuffer[TaasMethod]
+	def interfaces: ListBuffer[TaasType]
+}
+
+case class TaasFunction(name: Symbol, namespace: TaasNamespace, method: TaasMethod) extends TaasNominal {
+	type T = TaasMethod
+	val interfaces = ListBuffer.empty[TaasType]
+	val methods = ListBuffer(method)
+	val children = methods
+	val base = Some(TaasFunctionType)
+
+	override def accept(visitor: TaasVisitor) = {
+		visitor visit this
+		children foreach { _ accept visitor }
+	}
 }
 
 case class TaasInterface(
 		name: Symbol,
 		namespace: TaasNamespace,
 		base: Option[TaasType],
-		methods: ListBuffer[TaasMethod]) extends TaasNominal {
+		methods: ListBuffer[TaasMethod],
+		interfaces: ListBuffer[TaasType]) extends TaasNominal {
 	type T = TaasMethod
 	def children = methods
+
+	override def accept(visitor: TaasVisitor) = {
+		visitor visit this
+		children foreach { _ accept visitor }
+	}
 }
 
 case class TaasClass(
@@ -222,7 +278,8 @@ case class TaasClass(
 		ctor: TaasMethod,
 		base: Option[TaasType],
 		methods: ListBuffer[TaasMethod],
-		fields: ListBuffer[TaasField]) extends TaasNominal {
+		fields: ListBuffer[TaasField],
+		interfaces: ListBuffer[TaasType]) extends TaasNominal {
 	type T = TaasDefinition
 	lazy val children = {
 		val result: ListBuffer[T] = ListBuffer(init, ctor)
@@ -230,9 +287,14 @@ case class TaasClass(
 		result ++= fields
 		result
 	}
+
+	override def accept(visitor: TaasVisitor) = {
+		visitor visit this
+		children foreach { _ accept visitor }
+	}
 }
 
-class TaasBlock(block: List[TExpr]) extends MutableBlockVertex(block) with TaasElement with ParentUnit
+class TaasBlock(block: List[TExpr]) extends MutableBlockVertex(block)
 
 //
 // You are here.
@@ -323,6 +385,7 @@ case class TLexical(value: TaasDefinition) extends TValue {
 		case interface: TaasInterface => TaasNominalTypeInstance(interface)
 		case field: TaasField => field.`type`
 		case method: TaasMethod => method.`type`
+		case function: TaasFunction => TaasNominalTypeInstance(function)
 		case _ => error("Unexpected lexical "+value+".")
 	}
 }

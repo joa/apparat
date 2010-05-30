@@ -44,7 +44,10 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			}
 			case anyMethod: AbcTraitAnyMethod => {
 				val pckg = packageOf(anyMethod.name.namespace.name)
-				pckg.definitions += parseMethod(None, anyMethod, true)
+				pckg.definitions += {
+					val method = parseMethod(None, anyMethod, true)
+					TaasFunction(method.name,  method.namespace, method)
+				}
 			}
 			case anySlot: AbcTraitAnySlot => {
 				val pckg = packageOf(anySlot.name.namespace.name)
@@ -69,12 +72,16 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			}
 		}
 
+		val interfaces = ListBuffer.empty[TaasType] ++ (nominal.inst.interfaces map { name2type _ })
+
 		if(nominal.inst.isInterface) {
 			TaasInterface(
 				nominal.inst.name.name,
 				nominal.inst.name.namespace,
 				base,
-				methods)
+				methods,
+				interfaces
+				)
 		} else {
 			val fields = ListBuffer.empty[TaasField]
 
@@ -98,7 +105,8 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 				parseMethod(someNominal, nominal.inst.init, false, true),
 				base,
 				methods,
-				fields)
+				fields,
+				interfaces)
 		}
 	}
 
@@ -170,6 +178,7 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 					else AbcTypes fromQName (name, namespace)
 				}
 				case AbcTypename(name, parameters) => AbcTypes fromTypename (name, parameters)
+				case AbcMultiname(name, nsset) => AbcTypes fromQName (name, nsset.set(1))
 				case _ => error("Unexpected name: " + name)
 			}
 		}

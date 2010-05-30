@@ -20,7 +20,7 @@
  */
 package apparat.abc
 
-abstract class AbcVisitor {
+trait AbcVisitor {
 	def visit(value: Abc): Unit = {}
 	def visit(value: AbcClass): Unit = {}
 	def visit(value: AbcConstantPool): Unit = {}
