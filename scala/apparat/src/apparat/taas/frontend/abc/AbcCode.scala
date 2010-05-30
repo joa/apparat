@@ -28,6 +28,7 @@ import apparat.graph.immutable.{Graph, BytecodeControlFlowGraphBuilder}
 import apparat.bytecode.operations._
 import apparat.abc.{Abc, AbcMethod, AbcNominalType, AbcQName}
 import apparat.graph.Edge
+import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer}
 
 /**
  * @author Joa Ebert
@@ -79,13 +80,15 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 
 			result.dotExport to Console.out
 			println("-------------------------------------------------")
-			result
+			new TaasGraphLinearizer(new TaasGraph(result, TaasEntry, TaasExit)).list foreach println
+			println("=================================================")
+			new TaasGraph(result, TaasEntry, TaasExit)
 		} catch {
 			case e => {
 				e.printStackTrace
 				bytecode.dump()
 				println("-------------------------------------------------")
-				new Graph[TaasBlock]()
+				new TaasGraph(new Graph[TaasBlock](), TaasEntry, TaasExit)
 			}
 		}
 	}
@@ -94,7 +97,11 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 		var result = HashMap.empty[V, TaasBlock]
 
 		for(vertex <- g.verticesIterator) {
-			result += vertex -> mapVertex(vertex, annotations(vertex))
+			result += vertex -> (
+				if(g isEntry vertex) TaasEntry
+				else if(g isExit vertex) TaasExit
+				else mapVertex(vertex, annotations(vertex))
+			)
 		}
 
 		result

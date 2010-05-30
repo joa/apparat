@@ -21,9 +21,8 @@
 package apparat.taas.ast
 
 import collection.mutable.ListBuffer
-import apparat.graph.GraphLike
 import apparat.utils.{IndentingPrintWriter, Dumpable}
-import apparat.graph.mutable.MutableBlockVertex
+import apparat.taas.graph.TaasGraph
 
 /**
  * @author Joa Ebert
@@ -218,7 +217,6 @@ case class TaasMethod(
 }
 
 abstract class TaasCode extends Dumpable {
-	type TaasGraph = GraphLike[TaasBlock]
 	def graph: TaasGraph
 
 	override def dump(writer: IndentingPrintWriter) = {
@@ -293,8 +291,6 @@ case class TaasClass(
 		children foreach { _ accept visitor }
 	}
 }
-
-class TaasBlock(block: List[TExpr]) extends MutableBlockVertex(block)
 
 //
 // You are here.
@@ -435,6 +431,11 @@ case class TIf2(op: TaasBinop, lhs: TValue, rhs: TValue) extends TExpr {
 	override def toString = "if("+lhs.toString+" "+op.toString+" "+rhs.toString+")"
 	override def defines(index: Int) = false
 	override def uses(index: Int) = (lhs matches index) || (rhs matches index)
+}
+
+case class TJump() extends TExpr {
+	override def defines(index: Int) = false
+	override def uses(index: Int) = false
 }
 
 case class TNop() extends TExpr {
