@@ -37,7 +37,7 @@ object AbcSolver {
 	def getProperty(`type`: TaasNominalType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = getProperty(`type`.nominal, name)
 
 	def getProperty(nominal: TaasNominal, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = nominal match {
-		case TaasInterface(_, _, base, methods) => {
+		case TaasInterface(_, _, base, methods, _) => {
 			name match {
 				case AbcQName(symbol, _) => methods find { _.name == symbol } match {
 					case Some(result) => Some(result)
@@ -49,7 +49,7 @@ object AbcSolver {
 				case _ => error("QName expected.")
 			}
 		}
-		case TaasClass(_, _, _, _, _, _, base, methods, fields) => {
+		case TaasClass(_, _, _, _, _, _, base, methods, fields, _) => {
 			name match {
 				case AbcQName(symbol, _) => methods find { _.name == symbol } match {
 					case Some(result) => Some(result)
@@ -83,7 +83,7 @@ object AbcSolver {
 		case qname: AbcQName => {
 			qname.namespace match {
 				case AbcNamespace(_, Symbol("")) => scope match {
-					case TaasClass(_, _, _, _, _, _, base, methods, fields) => {
+					case TaasClass(_, _, _, _, _, _, base, methods, fields, _) => {
 						methods find { method => method.name == qname.name && method.isStatic == static } match {
 							case Some(result) => Some(result)
 							case None => fields find { field => field.name == qname.name && field.isStatic == static } match {
