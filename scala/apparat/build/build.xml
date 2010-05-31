@@ -25,6 +25,7 @@
 	<property name="dir.build" value="${basedir}/build"/>
 	<property name="dir.assets" value="${dir.build}/assets"/>
 	<property name="dir.src" value="${basedir}/src"/>
+        <property name="dir.lib" value="${basedir}/lib"/>
 	<property name="dir.bin" value="${dir.build}/bin"/>
 	<property name="dir.jar" value="${dir.build}/jar"/>
 	<property name="dir.zip" value="${dir.build}/zip"/>
@@ -105,6 +106,9 @@
 	<!-- Global Libraries -->
 	<path id="library.scala_sdk.classpath">
 		<fileset dir="${scala.home}/lib">
+			<patternset refid="library.patterns"/>
+		</fileset>
+		<fileset dir="${dir.lib}">
 			<patternset refid="library.patterns"/>
 		</fileset>
 	</path>
