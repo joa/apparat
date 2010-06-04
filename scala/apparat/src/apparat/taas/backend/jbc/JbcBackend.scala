@@ -22,10 +22,12 @@ package apparat.taas.backend.jbc
 
 import apparat.taas.backend.TaasBackend
 import apparat.taas.analysis.TaasDependencyGraphBuilder
-import org.objectweb.asm.{Opcodes => JOpcodes, ClassWriter => JClassWriter}
-import apparat.taas.ast._
+import apparat.taas.graph._
 import java.io.{PrintWriter => JPrintWriter}
-import org.objectweb.asm.util.{CheckClassAdapter, TraceClassVisitor => JTraceClassVisitor}
+import collection.mutable.ListBuffer
+import apparat.taas.ast._
+import org.objectweb.asm.util.{CheckClassAdapter => JCheckClassAdapter, TraceClassVisitor => JTraceClassVisitor}
+import org.objectweb.asm.{ClassReader => JClassReader, ClassVisitor => JClassVisitor, Opcodes => JOpcodes, ClassWriter => JClassWriter}
 
 /**
  * @author Joa Ebert
@@ -36,9 +38,10 @@ class JbcBackend extends TaasBackend {
 	override def emit(ast: TaasAST) = {
 		for(nominal <- TaasDependencyGraphBuilder(ast).topsort) {
 			val cw = new JClassWriter(JClassWriter.COMPUTE_FRAMES)
-			val cv = new CheckClassAdapter(new JTraceClassVisitor(cw, new JPrintWriter(System.out)), true)
+			val cv = new JTraceClassVisitor(cw, new JPrintWriter(System.out))
+
 			cv.visit(
-				JOpcodes.V1_6,
+				JOpcodes.V1_5,
 				visibilityOf(nominal) + (nominal match {
 					case i: TaasInterface => JOpcodes.ACC_INTERFACE
 					case _ => JOpcodes.ACC_SUPER
@@ -54,16 +57,22 @@ class JbcBackend extends TaasBackend {
 				},
 				null//Array.empty[String]//TODO map to interface names...
 			)
-			val mv = cv.visitMethod(JOpcodes.ACC_PUBLIC, "<init>", "()V", null, null);
-			mv.visitCode();
-			mv.visitVarInsn(JOpcodes.ALOAD, 0);
-			mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-			mv.visitInsn(JOpcodes.RETURN);
-			mv.visitMaxs(1, 1);
-			mv.visitEnd();
-			cv.visitEnd()
 
-			classMap += nominal.qualifiedName -> cw.toByteArray()
+			nominal match {
+				case TaasClass(_, _, _, _, init, ctor, _, _, _, _) => {
+					emitMethod(ctor, cv, "<init>", "V")
+				}
+				case _ =>
+			}
+
+			for(method <- nominal.methods if !method.isStatic) {
+				emitMethod(method, cv)
+			}			
+
+			val bytes = cw.toByteArray()
+			cv.visitEnd()
+			classMap += nominal.qualifiedName -> bytes
+			JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(System.out))
 		}
 
 		val cl = new JbcClassLoader(classMap)
@@ -72,7 +81,212 @@ class JbcBackend extends TaasBackend {
 		println(Class.forName("Test00", true, cl).newInstance())
 	}
 
-	private def toJavaName(qname: String) = qname.replaceAll("\\.", "\\/")
+	@inline private def methodDesc(returnType: String, parameters: ListBuffer[TaasParameter]): String = "("+(parameters map { _.`type` } map { toJavaType } mkString ",")+")"+returnType
+	@inline private def methodDesc(returnType: TaasType, parameters: ListBuffer[TaasParameter]): String = methodDesc(toJavaType(returnType), parameters)
+	@inline private def methodDesc(method: TaasMethod): String = methodDesc(toJavaType(method.`type`), method.parameters)
+
+	private def emitMethod(method: TaasMethod, cv: JClassVisitor): Unit = emitMethod(method, cv, method.name.name, toJavaType(method.`type`))
+
+	private def emitMethod(method: TaasMethod, cv: JClassVisitor, name: String, returnType: String): Unit = {
+		val mv = cv.visitMethod(visibilityOf(method), name, methodDesc(returnType, method.parameters), null, null)
+		var maxL = 0
+		@inline def load(value: TValue) = {
+			value match {
+				case TInt(value) => value match {
+					case -1 => mv.visitInsn(JOpcodes.ICONST_M1)
+					case 0 => mv.visitInsn(JOpcodes.ICONST_0)
+					case 1 => mv.visitInsn(JOpcodes.ICONST_1)
+					case 2 => mv.visitInsn(JOpcodes.ICONST_2)
+					case 3 => mv.visitInsn(JOpcodes.ICONST_3)
+					case 4 => mv.visitInsn(JOpcodes.ICONST_4)
+					case 5 => mv.visitInsn(JOpcodes.ICONST_5)
+					case b if b < 0x80 && b >= -0x80 => mv.visitIntInsn(JOpcodes.BIPUSH, b)
+					case si if si < 0x8000 && si >= -0x8000 => mv.visitIntInsn(JOpcodes.SIPUSH, si)
+					case i => mv.visitLdcInsn(JOpcodes.LDC, i)
+				}
+				case TLong(value) => value match {
+					case 0L => mv.visitInsn(JOpcodes.LCONST_0)
+					case 1L => mv.visitInsn(JOpcodes.LCONST_1)
+					case l => mv.visitLdcInsn(JOpcodes.LDC, l)
+				}
+				case TBool(value) => value match {
+					case true => mv.visitInsn(JOpcodes.ICONST_1)
+					case false => mv.visitInsn(JOpcodes.ICONST_0)
+				}
+				case TString(value) => mv.visitLdcInsn(JOpcodes.LDC, value.name)
+				case TDouble(value) => value match {
+					case 0.0 => mv.visitInsn(JOpcodes.DCONST_0)
+					case 1.0 => mv.visitInsn(JOpcodes.DCONST_1)
+					case d => mv.visitLdcInsn(JOpcodes.LDC, d)
+				}
+				case TLexical(definition) => definition match {
+					case method: TaasMethod => {
+						if(method.isStatic) {
+							error("static method")
+						} else {
+							mv.visitVarInsn(JOpcodes.ALOAD, 0)
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, toJavaName(ownerOf(method)), method.name.name, methodDesc(method))
+						}
+					}
+					case klass: TaasClass => //nothing to do here!
+				}
+				case reg: TReg => {
+					if(reg.index+1 > maxL) {
+						maxL = reg.index+1
+					}
+
+					reg.`type` match {
+						case TaasAnyType | TaasObjectType | TaasStringType | TaasFunctionType | _: TaasNominalType => mv.visitVarInsn(JOpcodes.ALOAD, reg.index)
+						case TaasBooleanType | TaasIntType => mv.visitVarInsn(JOpcodes.ILOAD, reg.index)
+						case TaasDoubleType => mv.visitVarInsn(JOpcodes.DLOAD, reg.index)
+						case TaasLongType => mv.visitVarInsn(JOpcodes.LLOAD, reg.index)
+						case TaasVoidType => error("Cannot store void in register.")
+					}
+				}
+			}
+		}
+
+		@inline def storeByValue(value: TValue, reg: TReg): Unit = storeByType(value.`type`, reg)
+		@inline def storeByType(value: TaasType, reg: TReg): Unit = {
+			if(reg.index+1 > maxL) {
+				maxL = reg.index+1
+			}
+
+			//TODO check if this is valid
+			reg typeAs value
+			
+			value match {
+				case TaasAnyType | TaasObjectType | TaasStringType | TaasFunctionType | _: TaasNominalType => mv.visitVarInsn(JOpcodes.ASTORE, reg.index)
+				case TaasBooleanType | TaasIntType => mv.visitVarInsn(JOpcodes.ISTORE, reg.index)
+				case TaasDoubleType => mv.visitVarInsn(JOpcodes.DSTORE, reg.index)
+				case TaasLongType => mv.visitVarInsn(JOpcodes.LSTORE, reg.index)
+				case TaasVoidType => error("Cannot store void in register.")
+			}
+		}
+
+		@inline def unop(op: TaasUnop, value: TValue) = {
+			op match {
+				case TOp_Nothing =>
+				case _ => error("TODO "+op)
+			}
+		}
+
+		@inline def implicitCast(from: TaasType, to: TaasType) = if(from != to) {
+			from match {
+				case TaasIntType => to match {
+					case TaasDoubleType => mv.visitInsn(JOpcodes.I2D)
+					case n: TaasNominalType => n.nominal.qualifiedName match {
+						case "Number" => mv.visitInsn(JOpcodes.I2D)
+						case other => error("Unexpected name "+other+".")
+					}
+				}
+				case other =>
+			}
+		}
+
+		mv.visitCode()
+
+		method.code match {
+			case Some(code) => {
+				val lin = new TaasGraphLinearizer(code.graph)
+				val ops = lin.list
+				for(op <- ops) op match {
+					case T2(TOp_Nothing, TLexical(t: TaasClass), _) =>
+					case T2(operator, rhs, result) => {
+						load(rhs)
+						unop(operator, rhs)
+						storeByValue(rhs, result)
+					}
+					case TCall(t, method, arguments, result) => {
+						var i = 0
+						var n = arguments.length
+						var m = method.parameters.length
+
+						load(t)
+
+						if(n < m) { error("optional parameters")}
+						else if(n == m) {
+							while(i < n) {
+								load(arguments(i))
+								implicitCast(arguments(i).`type`, method.parameters(i).`type`)
+								i += 1
+							}
+						} else if(m == 0 && n == 1) {
+							//assume setter method
+							println("[WARNING]: "+method+" should have been resolved to its setter.")
+							load(arguments(0))
+							implicitCast(arguments(0).`type`, method.`type`)
+						} else {
+							error("Invalid op "+op+".")
+						}
+
+						mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, toJavaName(ownerOf(method)), method.name.name, methodDesc(method))
+						result match {
+							case Some(result) => {
+								storeByType(method.`type`, result)
+							}
+							case None =>
+						}
+					}
+					case TLoad(obj, field, result) => {
+						mv.visitFieldInsn(JOpcodes.GETSTATIC, toJavaName(ownerOf(field)), field.name.name, toJavaType(field.`type`))
+						storeByType(field.`type`, result)
+
+					}
+					case TSuper(base, arguments) => {
+						load(base)
+						arguments foreach load
+						mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, toJavaName(base.`type` match {
+							case n: TaasNominalType => n.nominal.base match {
+								case Some(base) => base
+								case None => TaasObjectType
+							}
+						}), "<init>", "()V")//TODO!
+					}
+					case TReturn(TVoid) => mv.visitInsn(JOpcodes.RETURN) 
+				}
+			}
+			case None =>
+		}
+
+		mv.visitMaxs(1, 1)//4, maxL)
+		mv.visitEnd()
+	}
+
+	private def toJavaType(`type`: TaasType) = `type` match {
+		case TaasAnyType | TaasObjectType => "Ljava/lang/Object;"
+		case TaasVoidType => "V"
+		case TaasBooleanType => "Z"
+		case TaasDoubleType => "D"
+		case TaasIntType => "I"
+		case TaasLongType => "J"
+		case TaasStringType => "Ljava/lang/String;"
+		case TaasFunctionType => "Las3/Function"
+		case t: TaasNominalType => toJavaName(t.nominal.qualifiedName) match {
+			case "Number" => "D"
+			case "String" => "Ljava/lang/String;"
+			case other => "L"+other+";"
+		}
+	}
+
+	private def toJavaName(`type`: TaasType): String = `type` match {
+		case TaasAnyType | TaasObjectType => "java/lang/Object"
+		case TaasVoidType => error("Void has no name.")
+		case TaasBooleanType => "java/lang/Boolean"
+		case TaasDoubleType => "java/lang/Double"
+		case TaasIntType => "java/lang/Integer"
+		case TaasLongType => "java/lang/Long"
+		case TaasStringType => "java/lang/String"
+		case TaasFunctionType => "as3/Function"
+		case t: TaasNominalType => toJavaName(t.nominal.qualifiedName) match {
+			case "Number" => "java/lang/Double"
+			case "String" => "java/lang/String"
+			case other => other
+		}
+	}
+
+	private def toJavaName(qname: String): String = qname.replaceAll("\\.", "\\/")
+	
 	private def visibilityOf(somethingWithNamespace: {def namespace: TaasNamespace}) = {
 		somethingWithNamespace.namespace match {
 			case TaasPublic => JOpcodes.ACC_PUBLIC
@@ -80,6 +294,18 @@ class JbcBackend extends TaasBackend {
 			case TaasProtected => JOpcodes.ACC_PROTECTED
 			case TaasPrivate => JOpcodes.ACC_PRIVATE
 			case TaasExplicit(_) => JOpcodes.ACC_PUBLIC
+		}
+	}
+
+	private def ownerOf(element: TaasDefinition) = {
+		element.parent match {
+			case Some(parent) => parent match {
+				case p: TaasPackage => element.qualifiedName
+				case k: TaasClass => k.qualifiedName
+				case i: TaasInterface => i.qualifiedName
+				case _ => error("Unexpected parent "+parent+".")
+			}
+			case None => error("No parent for "+element+".")
 		}
 	}
 }

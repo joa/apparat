@@ -367,12 +367,12 @@ sealed trait TArgumentList {
 	}
 }
 
-case object TVoid extends TValue { override def `type` = TaasVoid }
-case class TInt(value: Int) extends TValue { override def `type` = TaasInt }
-case class TLong(value: Long) extends TValue { override def `type` = TaasLong }
-case class TBool(value: Boolean) extends TValue { override def `type` = TaasBoolean }
-case class TString(value: Symbol) extends TValue { override def `type` = TaasString }
-case class TDouble(value: Double) extends TValue { override def `type` = TaasDouble }
+case object TVoid extends TValue { override def `type` = TaasVoidType }
+case class TInt(value: Int) extends TValue { override def `type` = TaasIntType }
+case class TLong(value: Long) extends TValue { override def `type` = TaasLongType }
+case class TBool(value: Boolean) extends TValue { override def `type` = TaasBooleanType }
+case class TString(value: Symbol) extends TValue { override def `type` = TaasStringType }
+case class TDouble(value: Double) extends TValue { override def `type` = TaasDoubleType }
 case class TClass(value: TaasType) extends TValue { override def `type` = value }
 case class TInstance(value: TaasType) extends TValue { override def `type` = value }
 case class TLexical(value: TaasDefinition) extends TValue {
@@ -386,7 +386,7 @@ case class TLexical(value: TaasDefinition) extends TValue {
 	}
 }
 case class TReg(index: Int) extends TValue {
-	private var _type: TaasType = TaasAny
+	private var _type: TaasType = TaasAnyType
 
 	def typeAs(`type`: TaasType) = _type = `type`
 
@@ -399,8 +399,8 @@ case class TReg(index: Int) extends TValue {
 case class T2(op: TaasUnop, rhs: TValue, result: TReg) extends TExpr {
 	result typeAs (op match {
 		case TOp_Nothing => rhs.`type`
-		case TOp_~ => TaasInt
-		case TOp_! | TOp_true | TOp_false => TaasBoolean
+		case TOp_~ => TaasIntType
+		case TOp_! | TOp_true | TOp_false => TaasBooleanType
 		case TConvert(t) => t
 		case TCoerce(t) => t
 	})

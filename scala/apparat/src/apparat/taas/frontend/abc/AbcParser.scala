@@ -170,11 +170,11 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 	}
 
 	private implicit def name2type(name: AbcName): TaasType = {
-		if(name == AbcConstantPool.EMPTY_NAME) TaasAny
+		if(name == AbcConstantPool.EMPTY_NAME) TaasAnyType
 		else {
 			name match {
 				case AbcQName(name, namespace) => {
-					if(name == 'void && namespace.name.name.length == 0) TaasVoid
+					if(name == 'void && namespace.name.name.length == 0) TaasVoidType
 					else AbcTypes fromQName (name, namespace)
 				}
 				case AbcTypename(name, parameters) => AbcTypes fromTypename (name, parameters)

@@ -43,7 +43,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 
 	val scopeType = scope match {
 		case Some(scope) => AbcTypes.fromQName(scope.inst.name)
-		case None => TaasAny
+		case None => TaasAnyType
 	}
 
 	var numRegisters = 0
@@ -160,7 +160,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 					case CallPropVoid(property, numArguments) => {
 						val args = arguments(numArguments)
 						val obj = pop()
-						val method = AbcSolver.getProperty(obj.`type`, property) match {
+						val method = AbcSolver.property(obj.`type`, property, numArguments) match {
 							case Some(method: TaasMethod) => method
 							case _ => error("Could not find property "+property+" on "+obj.`type`)
 						}
@@ -174,13 +174,13 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 						case qname: AbcQName => unop(TCoerce(AbcTypes fromQName qname))
 						case other => error("Unexpected Coerce("+other+").")
 					}
-					case CoerceAny() => unop(TCoerce(TaasAny))
-					case CoerceBoolean() => unop(TCoerce(TaasBoolean))
-					case CoerceDouble() => unop(TCoerce(TaasDouble))
-					case CoerceInt() => unop(TCoerce(TaasInt))
-					case CoerceObject() => unop(TCoerce(TaasObject))
-					case CoerceString() => unop(TCoerce(TaasString))
-					case CoerceUInt() => unop(TCoerce(TaasLong))
+					case CoerceAny() => unop(TCoerce(TaasAnyType))
+					case CoerceBoolean() => unop(TCoerce(TaasBooleanType))
+					case CoerceDouble() => unop(TCoerce(TaasDoubleType))
+					case CoerceInt() => unop(TCoerce(TaasIntType))
+					case CoerceObject() => unop(TCoerce(TaasObjectType))
+					case CoerceString() => unop(TCoerce(TaasStringType))
+					case CoerceUInt() => unop(TCoerce(TaasLongType))
 					case Construct(numArguments) => {
 						val args = arguments(numArguments)
 						TConstruct(pop(), args)
@@ -190,12 +190,12 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 						val args = arguments(numArguments)
 						TSuper(pop(), args)
 					}
-					case ConvertBoolean() => unop(TConvert(TaasBoolean))
-					case ConvertDouble() => unop(TConvert(TaasDouble))
-					case ConvertInt() => unop(TConvert(TaasInt))
-					case ConvertObject() => unop(TConvert(TaasObject))
-					case ConvertString() => unop(TConvert(TaasString))
-					case ConvertUInt() => unop(TConvert(TaasLong))
+					case ConvertBoolean() => unop(TConvert(TaasBooleanType))
+					case ConvertDouble() => unop(TConvert(TaasDoubleType))
+					case ConvertInt() => unop(TConvert(TaasIntType))
+					case ConvertObject() => unop(TConvert(TaasObjectType))
+					case ConvertString() => unop(TConvert(TaasStringType))
+					case ConvertUInt() => unop(TConvert(TaasLongType))
 					case Debug(kind, name, register, extra) => TODO(op)
 					case DebugFile(file) => ignored
 					case DebugLine(line) => ignored
@@ -303,7 +303,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 					case SetProperty(property) => {
 						val arg = pop()
 						val obj = pop()
-						AbcSolver.getProperty(obj.`type`, property) match {
+						AbcSolver.setProperty(obj.`type`, property) match {
 							case Some(method: TaasMethod) => TCall(obj, method, arg :: Nil, None)
 							case Some(field: TaasField) => TStore(obj, field, arg)
 							case _ => error("Could not find property "+property+" on "+obj.`type`)

@@ -29,17 +29,35 @@ import apparat.abc.{AbcNamespace, AbcNominalType, AbcQName, AbcName}
 object AbcSolver {
 	def getProperty(`type`: TaasType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
 		`type` match {
-			case nominalType: TaasNominalType => getProperty(nominalType.nominal, name)
+			case nominalType: TaasNominalType => property(nominalType.nominal, name, 0)
 			case _ => error("Nominal type expected.")
 		}
 	}
 
-	def getProperty(`type`: TaasNominalType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = getProperty(`type`.nominal, name)
+	def getProperty(`type`: TaasNominalType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = property(`type`.nominal, name, 0)
 
-	def getProperty(nominal: TaasNominal, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = nominal match {
+	def setProperty(`type`: TaasType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
+		`type` match {
+			case nominalType: TaasNominalType => property(nominalType.nominal, name, 1)
+			case _ => error("Nominal type expected.")
+		}
+	}
+
+	def setProperty(`type`: TaasNominalType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = property(`type`.nominal, name, 1)
+
+	def property(`type`: TaasType, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = {
+		`type` match {
+			case nominalType: TaasNominalType => property(nominalType.nominal, name, numParameters)
+			case _ => error("Nominal type expected.")
+		}
+	}
+
+	def property(`type`: TaasNominalType, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = property(`type`.nominal, name, numParameters)
+
+	def property(nominal: TaasNominal, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = nominal match {
 		case TaasInterface(_, _, base, methods, _) => {
 			name match {
-				case AbcQName(symbol, _) => methods find { _.name == symbol } match {
+				case AbcQName(symbol, _) => methods find { m => m.name == symbol && m.parameters.length == numParameters } match {
 					case Some(result) => Some(result)
 					case None => base match {
 						case Some(base) => getProperty(base, name)
@@ -51,7 +69,7 @@ object AbcSolver {
 		}
 		case TaasClass(_, _, _, _, _, _, base, methods, fields, _) => {
 			name match {
-				case AbcQName(symbol, _) => methods find { _.name == symbol } match {
+				case AbcQName(symbol, _) => methods find { m => m.name == symbol && m.parameters.length == numParameters } match {
 					case Some(result) => Some(result)
 					case None => fields find { _.name == symbol } match {
 						case Some(result) => Some(result)

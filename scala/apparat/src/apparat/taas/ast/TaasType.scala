@@ -28,44 +28,44 @@ sealed trait TaasType
 object TaasType {
 	def widen(a: TaasType, b: TaasType): TaasType = {
 		if(a == b) { a
-		} else if(a == TaasString || b == TaasString) { TaasString
-		} else if(a == TaasDouble || b == TaasDouble) { TaasDouble
-		} else if((a == TaasLong && b != TaasLong) || (a != TaasLong && b == TaasLong)) { TaasDouble
-		} else if(a == TaasInt || b == TaasInt) { TaasInt
+		} else if(a == TaasStringType || b == TaasStringType) { TaasStringType
+		} else if(a == TaasDoubleType || b == TaasDoubleType) { TaasDoubleType
+		} else if((a == TaasLongType && b != TaasLongType) || (a != TaasLongType && b == TaasLongType)) { TaasDoubleType
+		} else if(a == TaasIntType || b == TaasIntType) { TaasIntType
 		} else { error("Cannot widen types "+a+" and "+b+".")
 		}
 	}
 }
 
-object TaasAny extends TaasType {
+object TaasAnyType extends TaasType {
 	override def toString = "TaasType(*)"
 }
 
-object TaasVoid extends TaasType {
+object TaasVoidType extends TaasType {
 	override def toString = "TaasType(void)"
 }
 
-object TaasBoolean extends TaasType {
+object TaasBooleanType extends TaasType {
 	override def toString = "TaasType(boolean)"
 }
 
-object TaasDouble extends TaasType {
+object TaasDoubleType extends TaasType {
 	override def toString = "TaasType(double)"
 }
 
-object TaasInt extends TaasType {
+object TaasIntType extends TaasType {
 	override def toString = "TaasType(int)"
 }
 
-object TaasObject extends TaasType {
+object TaasObjectType extends TaasType {
 	override def toString = "TaasType(object)"
 }
 
-object TaasString extends TaasType {
+object TaasStringType extends TaasType {
 	override def toString = "TaasType(string)"
 }
 
-object TaasLong extends TaasType {
+object TaasLongType extends TaasType {
 	override def toString = "TaasType(long)"
 }
 
