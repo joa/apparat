@@ -43,14 +43,11 @@ package apparat.math {
 			// http://lab.polygonal.de/wp-content/articles/fast_trig/fastTrig.as
 			//
 
-			if(angleRadians < -3.14159265) {
-				angleRadians += 6.28318531
-			} else if(angleRadians > 3.14159265) {
-				angleRadians -= 6.28318531
-			}
-
-			angleRadians = (angleRadians < 0.0) ? (1.27323954 * angleRadians + .405284735 * angleRadians * angleRadians) : (1.27323954 * angleRadians - 0.405284735 * angleRadians * angleRadians)
-			return (angleRadians < 0.0) ? (0.225 * (angleRadians *-angleRadians - angleRadians) + angleRadians) : (0.225 * (angleRadians * angleRadians - angleRadians) + angleRadians)
+			angleRadians += (6.28318531 * Number(angleRadians < -3.14159265)) - 6.28318531 * Number(angleRadians > 3.14159265);
+			var sign:Number = (1.0 - (int(angleRadians > 0.0) << 1));
+			angleRadians = (angleRadians * (1.27323954 + sign * 0.405284735 * angleRadians));
+			sign = (1.0 - (int(angleRadians < 0.0) << 1));
+			return angleRadians * (sign * 0.225 * (angleRadians - sign) + 1.0);			
 		}
 
 		/**
@@ -68,19 +65,14 @@ package apparat.math {
 			// http://lab.polygonal.de/wp-content/articles/fast_trig/fastTrig.as
 			//
 
-			if(angleRadians < -3.14159265) {
-				angleRadians += 6.28318531
-			} else if(angleRadians > 3.14159265) {
-				angleRadians -= 6.28318531
-			}
-
+			angleRadians += (6.28318531 * Number(angleRadians < -3.14159265)) - 6.28318531 * Number(angleRadians > 3.14159265);
 			angleRadians += 1.57079632;
-			if(angleRadians > 3.14159265) {
-				angleRadians -= 6.28318531
-			}
+			angleRadians -= 6.28318531 * Number(angleRadians > 3.14159265);
 
-			angleRadians = (angleRadians < 0.0) ? (1.27323954 * angleRadians + .405284735 * angleRadians * angleRadians) : (1.27323954 * angleRadians - 0.405284735 * angleRadians * angleRadians)
-			return (angleRadians < 0.0) ? (0.225 * (angleRadians *-angleRadians - angleRadians) + angleRadians) : (0.225 * (angleRadians * angleRadians - angleRadians) + angleRadians)
+			var sign:Number = (1.0 - (int(angleRadians > 0.0) << 1));
+			angleRadians = (angleRadians * (1.27323954 + sign * 0.405284735 * angleRadians));
+			sign = (1.0 - (int(angleRadians < 0.0) << 1));
+			return angleRadians * (sign * 0.225 * (angleRadians - sign) + 1.0);
 		}
 
 		/**
@@ -90,7 +82,17 @@ package apparat.math {
 		 * @return The absolute value of the specified parameter.
 		 */
 		public static function abs(value: Number): Number {
-			return (value > 0.0) ? value : -value
+			return value * (1.0 - (int(value < 0.0) << 1));
+		}
+
+		/**
+		 * Computes and returns the sign of the value.
+		 *
+		 * @param value The number whose sign value is returned.
+		 * @return The -1.0 if value<0.0 or 1.0 if value >=0.0 .
+		 */
+		public static function sign(value: Number): Number {
+			return (1.0 - (int(value < 0.0) << 1));
 		}
 
 		/**
@@ -243,13 +245,17 @@ package apparat.math {
 		 * @return The number casted to an integer with respect to its sign.
 		 */
 		public static function rint(value: Number): int {
-			if(value > 0.0) {
-				return value + 0.5
-			} else if(value < 0.0) {
-				return -int(-value + 0.5)
-			} else {
-				return 0
-			}
+			return int(value + 0.5 - Number(value < 0));
 		}
+
+		/**
+		 * Test if a Number is not a Number.
+		 *
+		 * @param value A number.
+		 * @return true if value is not a Number.
+		 */
+		public static function isNaN(n:Number):Boolean {
+			return n != n;
+		}		
 	}
 }
