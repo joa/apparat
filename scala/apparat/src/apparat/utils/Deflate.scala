@@ -40,7 +40,7 @@ import apparat.utils.IO._
 object Deflate {
 	private var _7z = System.getProperty("apparat.7z.enabled", "true").toLowerCase == "true"
 	private val _7zexe = System.getProperty("apparat.7z.path", "7z" + (System getProperty "os.name" indexOf "Windows" match {
-		case -1 => ""
+		case -1 => "a"
 		case _ => ".exe"
 	}))
 

@@ -34,17 +34,34 @@ import java.io.{
 }
 import java.util.zip.{Inflater => JInflater}
 import scala.annotation.tailrec
-import apparat.utils.Deflate
-
+import apparat.utils.{Dumpable, Deflate, IndentingPrintWriter}
 
 object Swf {
 	def fromFile(file: JFile): Swf = {
-		if (file.getName() endsWith "swc") {
+		val name = file.getName.toLowerCase
+
+		if(name endsWith ".swc") {
 			fromSwc(Swc fromFile file)
-		} else {
+		} else if(name endsWith ".swf") {
 			val swf = new Swf
 			swf read file
 			swf
+		} else {
+			using(new JFileInputStream(file)) {
+				input => {
+					val b0 = input.read()
+
+					if(('F' == b0 || 'C' == b0) && 'W' == input.read() && 'S' == input.read()) {
+						val swf = new Swf
+						swf read file
+						swf
+					} else if ('P' == b0 && 'K' == input.read()) {
+						fromSwc(Swc fromFile file)
+					} else {
+						error("Unknown file "+file.getAbsolutePath+".")
+					}
+				}
+			}
 		}
 	}
 
@@ -63,7 +80,7 @@ object Swf {
 	}
 }
 
-final class Swf {
+final class Swf extends Dumpable {
 	var compressed: Boolean = true
 	var version: Int = 10
 	var frameSize: Rect = new Rect(0, 20000, 0, 20000)
@@ -210,5 +227,23 @@ final class Swf {
 		val baos = new JByteArrayOutputStream()
 		using(baos) { write _ }
 		baos.toByteArray
+	}
+
+	override def dump(writer: IndentingPrintWriter) = {
+		writer <= "Swf:"
+		writer withIndent {
+			writer <= "Compressed: "+compressed
+			writer <= "Version: "+version
+			writer <= "Framesize:"+frameSize
+			writer <= "Framerate:"+frameRate
+			writer <= "Framecount:"+frameCount
+			writer <= "Tags:"
+			writer withIndent {
+				for(tag <- tags) tag match {
+					case dumpable: Dumpable => dumpable dump writer
+					case other => writer <= other.toString
+				}
+			}
+		}
 	}
 }

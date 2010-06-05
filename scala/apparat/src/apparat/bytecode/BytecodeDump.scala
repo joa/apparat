@@ -24,6 +24,10 @@ import apparat.abc.AbcMethodBody
 import apparat.utils.{Dumpable, IndentingPrintWriter}
 import operations.AbstractOp
 
+object BytecodeDump {
+	var `type`: BytecodeDumpType = BytecodeDumpTypeDefault
+}
+
 class BytecodeDump(val ops: Seq[AbstractOp], val markers: MarkerManager, val exceptions: Array[BytecodeExceptionHandler], val body: Option[AbcMethodBody]) extends Dumpable {
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Bytecode:"

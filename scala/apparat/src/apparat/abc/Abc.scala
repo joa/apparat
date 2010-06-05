@@ -606,20 +606,6 @@ class Abc extends Dumpable {
 		}
 	}
 
-	/*
-	private def readPooledInt()(implicit input: AbcInputStream) = cpool.ints(input.readU30())
-
-	private def writePooledInt(value: Int)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
-
-	private def readPooledUInt()(implicit input: AbcInputStream) = cpool.uints(input.readU30())
-
-	private def writePooledUInt(value: Long)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
-
-	private def readPooledDouble()(implicit input: AbcInputStream) = cpool.doubles(input.readU30())
-
-	private def writePooledDouble(value: Double)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
-	*/
-
 	private def readPooledString()(implicit input: AbcInputStream): Symbol = cpool.strings(input.readU30())
 
 	private def writePooledString(value: Symbol)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)

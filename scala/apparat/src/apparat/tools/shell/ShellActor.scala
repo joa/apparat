@@ -27,6 +27,7 @@ import apparat.tools.reducer.Reducer
 import apparat.tools.concrete.Concrete
 import apparat.tools.coverage.Coverage
 import apparat.tools.tdsi.TurboDieselSportInjection
+import apparat.tools.dump.Dump
 
 /**
  * @author Joa Ebert
@@ -45,6 +46,8 @@ class ShellActor extends Actor {
 					Concrete.main(createArguments(command drop "concrete ".length))
 				} else if(command startsWith "tdsi ") {
 					TurboDieselSportInjection.main(createArguments(command drop "tdsi ".length))
+				} else if(command startsWith "dump ") {
+					Dump.main(createArguments(command drop "dump ".length))
 				} else if(command startsWith "help ") {
 					(command drop "help ".length) match {
 						case "reducer" => "reducer -i input [-o output] [-q quality]"
@@ -52,6 +55,7 @@ class ShellActor extends Actor {
 						case "tdsi" => "tdsi -i input [-o output]"
 						case "coverage" => "coverage -i input [-o output]"
 						case "concrete" => "concrete -i input"
+						case "dump" => "dump -i input [-o output] [-uml] [-swf] [-abc] [-bc (raw|cfg|default)]"
 						case "help" | "exit" | "quit" | "stop" => "No detail help available."
 						case other => "Error: Unknown command \"" + other + "\""
 					}
@@ -62,7 +66,8 @@ tdsi - Inline Alchemy operations
 reducer - Convert lossless to lossy graphics
 stripper - Strip traces and debug operations
 concrete - Checks that [Abstract] methods are implemented
-coverage - Inject coverage analytics"""
+coverage - Inject coverage analytics
+dump - Swf information"""
 				} else {
 					"Error: Unknown command \""+command+"\""
 				}

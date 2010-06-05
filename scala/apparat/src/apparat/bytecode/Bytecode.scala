@@ -26,6 +26,7 @@ import combinator.{Failure, Success, BytecodeChain}
 import operations.AbstractOp
 import annotation.tailrec
 import operations.Nop
+import apparat.graph.immutable.BytecodeControlFlowGraphBuilder
 
 object Bytecode {
 	def fromMethod(method: AbcMethod)(implicit abc: Abc) = method.body match {
@@ -39,7 +40,10 @@ object Bytecode {
 }
 
 class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var exceptions: Array[BytecodeExceptionHandler], var body: Option[AbcMethodBody]) extends Dumpable {
-	override def dump(writer: IndentingPrintWriter) = new BytecodeDump(ops, markers, exceptions, body) dump writer
+	override def dump(writer: IndentingPrintWriter) = BytecodeDump.`type` match {
+		case BytecodeDumpTypeDefault => new BytecodeDump(ops, markers, exceptions, body) dump writer
+		case BytecodeDumpTypeCFG => BytecodeControlFlowGraphBuilder(this).dotExport to writer
+	}
 
 	def storeIn(body: AbcMethodBody)(implicit abc: Abc) = {
 		val (code, exceptions) = BytecodeEncoder(this)

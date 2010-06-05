@@ -35,7 +35,7 @@ class TagContainer {
 		case None => {}
 	}
 
-	private def strategyFor(file: JFile) = file.getName() match {
+	private def strategyFor(file: JFile) = file.getName.toLowerCase match {
 		case x if x endsWith ".swf" => Some(new SwfStrategy)
 		case x if x endsWith ".swc" => Some(new SwcStrategy)
 		case x => {
