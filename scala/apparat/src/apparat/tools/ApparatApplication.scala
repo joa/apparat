@@ -11,6 +11,7 @@ object ApparatApplication {
 			if(!apparat.actors.Actor.threadsEnabled) {
 				ApparatLog.warn("Warning: Apparat actors running in single-thread mode")
 			}
+
 			val config = new ApparatConfiguration
 			var valid = args.length > 0
 
