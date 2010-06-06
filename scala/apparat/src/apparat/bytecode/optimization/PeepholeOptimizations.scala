@@ -40,6 +40,7 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 		var target = List.empty[AbstractOp]
 		val n = source.length
 		var modified = false
+		val markers = bytecode.markers
 		var i = 0
 
 		@inline def nextOp(): Unit = {
@@ -54,6 +55,8 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 				if(source.tail.head.opCode == Op.iffalse) {
 					val ifFalse = source.tail.head.asInstanceOf[IfFalse]
 					target = Jump(ifFalse.marker) :: target
+					markers.forwardMarker(ifFalse, target.head)
+					markers.forwardMarker(op, target.head)
 					modified = true
 					nextOp()
 				} else {
@@ -63,6 +66,8 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 				if(source.tail.head.opCode == Op.iftrue) {
 					val ifTrue = source.tail.head.asInstanceOf[IfTrue]
 					target = Jump(ifTrue.marker) :: target
+					markers.forwardMarker(ifTrue, target.head)
+					markers.forwardMarker(op, target.head)
 					modified = true
 					nextOp()
 				} else {
@@ -74,6 +79,7 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 
 					if(getProperty.property == op.asInstanceOf[FindPropStrict].property) {
 						target = GetLex(getProperty.property) :: target
+						markers.forwardMarker(op, target.head)
 						modified = true
 					} else {
 						target = getProperty :: op :: target
