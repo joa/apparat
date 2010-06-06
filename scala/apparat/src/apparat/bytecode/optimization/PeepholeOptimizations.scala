@@ -26,12 +26,127 @@ import apparat.bytecode.operations._
 import apparat.bytecode.Bytecode
 
 object PeepholeOptimizations extends (Bytecode => Bytecode) {
-	def apply(bytecode: Bytecode) = {
+	/*def apply(bytecode: Bytecode) = {
 		bytecode rewrite whileLoop
 		bytecode rewrite getLex
 		bytecode rewrite unnecessaryIntCast
 		bytecode rewrite ifFalse
 		bytecode rewrite ifTrue
+		bytecode
+	}*/
+
+	def apply(bytecode: Bytecode): Bytecode = {
+		var source = bytecode.ops
+		var target = List.empty[AbstractOp]
+		val n = source.length
+		var modified = false
+		var i = 0
+
+		@inline def nextOp(): Unit = {
+			i += 1
+			source = source.tail
+		}
+
+		while(i < n) {
+			val op = source.head
+			val opCode = op.opCode
+			if(Op.pushfalse == opCode) {
+				if(source.tail.head.opCode == Op.iffalse) {
+					val ifFalse = source.tail.head.asInstanceOf[IfFalse]
+					target = Jump(ifFalse.marker) :: target
+					modified = true
+					nextOp()
+				} else {
+					target = op :: target
+				}
+			} else if(Op.pushtrue == opCode) {
+				if(source.tail.head.opCode == Op.iftrue) {
+					val ifTrue = source.tail.head.asInstanceOf[IfTrue]
+					target = Jump(ifTrue.marker) :: target
+					modified = true
+					nextOp()
+				} else {
+					target = op :: target
+				}
+			} else if(Op.findpropstrict == opCode) {
+				if(source.tail.head.opCode == Op.getproperty) {
+					val getProperty = source.tail.head.asInstanceOf[GetProperty]
+
+					if(getProperty.property == op.asInstanceOf[FindPropStrict].property) {
+						target = GetLex(getProperty.property) :: target
+						modified = true
+					} else {
+						target = getProperty :: op :: target
+					}
+
+					nextOp()
+				} else {
+					target = op :: target
+				}
+			} else if(Op.add_i == opCode ||
+				Op.subtract_i == opCode ||
+				Op.multiply_i == opCode) {
+				if(source.tail.head.opCode == Op.convert_i) {
+					modified = true
+					nextOp()
+				}
+
+				target = op :: target
+			} else if(Op.getlocal == opCode ||
+				Op.getlocal0 == opCode ||
+				Op.getlocal1 == opCode ||
+				Op.getlocal2 == opCode ||
+				Op.getlocal3 == opCode) {
+				var tail = source.tail
+				val op2 = tail.head
+				if(op2.opCode == Op.increment_i || op2.opCode == Op.decrement_i) {
+					nextOp()
+					tail = tail.tail
+					val op3 = tail.head
+					if(op3.opCode == Op.dup) {
+						nextOp()
+						tail = tail.tail
+						val op4 = tail.head
+						if(op4.opCode == Op.convert_i) {
+							nextOp()
+							tail = tail.tail
+							val op5 = tail.head
+							val opCode5 = op5.opCode
+							if(opCode5 == Op.setlocal ||
+								opCode5 == Op.setlocal0 ||
+								opCode5 == Op.setlocal1 ||
+								opCode5 == Op.setlocal2 ||
+								opCode5 == Op.setlocal3) {
+								nextOp()
+								val setLocal = op5.asInstanceOf[SetLocal]
+								if(setLocal.register == op.asInstanceOf[GetLocal].register) {
+									target = op :: (if(op2.opCode == Op.increment_i) IncLocalInt(setLocal.register) else DecLocalInt(setLocal.register)) :: target
+								} else {
+									target = op5 :: op4 :: op3 :: op2 :: op :: target
+								}
+							} else {
+								target = op4 :: op3 :: op2 :: op :: target
+							}
+						} else {
+							target = op3 :: op2 :: op :: target
+						}
+					} else {
+						target = op2 :: op :: target
+					}
+				} else {
+					target = op :: target
+				}
+			} else {
+				target = op :: target
+			}
+
+			nextOp()
+		}
+
+		if(modified) {
+			bytecode.ops = target.reverse
+		}
+
 		bytecode
 	}
 

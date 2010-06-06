@@ -93,7 +93,7 @@ object TurboDieselSportInjection {
 									if(inline) {
 										inlineExpansion.get expand bytecode
 									}
-									
+
 									if(macros) {
 										macroExpansion.get expand bytecode
 									}

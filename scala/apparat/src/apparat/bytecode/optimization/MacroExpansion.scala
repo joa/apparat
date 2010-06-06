@@ -29,7 +29,8 @@ import apparat.tools.ApparatLog
 /**
  * @author Joa Ebert
  */
-class MacroExpansion(abcs: List[Abc]) {
+class
+MacroExpansion(abcs: List[Abc]) {
 	lazy val apparatMacro = AbcQName('Macro, AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.inline")))
 	lazy val voidName = AbcQName('void, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 	lazy val macros: Map[AbcName, AbcNominalType] = {
@@ -136,7 +137,7 @@ class MacroExpansion(abcs: List[Abc]) {
 											case Debug(kind, name, x, extra) => Debug(kind, name, registerOf(parameters(x - 1)), extra)
 
 											case other => other.opCopy()
-										}) ::: List(Nop()) ::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
+										}) ::: List(Nop()) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
 
 										//
 										// Switch debug file back into place.

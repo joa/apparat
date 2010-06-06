@@ -123,7 +123,7 @@ class InlineExpansion(abcs: List[Abc]) {
 											case ReturnVoid() => if(nopReturn) Nop() else Jump(markers mark gathering)
 											
 											case other => other.opCopy()
-										}) ::: List(gathering) ::: ((0 until newLocals) map { register => Kill(localCount + register) } toList)
+										}) ::: List(gathering) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
 
 										//
 										// Switch debug file back into place.
