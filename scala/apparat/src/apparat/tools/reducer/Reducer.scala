@@ -19,8 +19,8 @@ object Reducer {
 	class ReducerTool extends ApparatTool {
 		var deblock = 0.0f
 		var quality = 0.99f
-		var input = ""
-		var output = ""
+		var input: JFile = _
+		var output: JFile = _
 
 		override def name: String = "Reducer"
 
@@ -29,25 +29,23 @@ object Reducer {
   -d [float]	Strength of deblocking filter (optional)
   -q [float]	Quality from 0.0 to 1.0 (optional)"""
 
-		override def configure(config: ApparatConfiguration) = {
-			deblock = java.lang.Float parseFloat config("-d").getOrElse("0.0")
-			quality = java.lang.Float parseFloat config("-q").getOrElse("0.99")
-			input = config("-i") getOrElse error("Input is required.")
-			output = config("-o") getOrElse input
-			assert(new JFile(input) exists, "Input has to exist.")
+		override def configure(config: ApparatConfiguration): Unit = configure(ReducerConfigurationFactory fromConfiguration config)
+		
+		def configure(config: ReducerConfiguration): Unit = {
+			input = config.input
+			output = config.output
+			quality = config.quality
+			deblock = config.deblock
 		}
 
 		override def run() = {
 			SwfTags.tagFactory = (kind: Int) => kind match {
-			/*case SwfTags.DefineBitsJPEG2 => Some(new DefineBitsJPEG2)
-							case SwfTags.DefineBitsJPEG3 => Some(new DefineBitsJPEG3)
-							case SwfTags.DefineBitsJPEG4 => Some(new DefineBitsJPEG4)*/
 				case SwfTags.DefineBitsLossless2 => Some(new DefineBitsLossless2)
 				case SwfTags.FileAttributes => Some(new FileAttributes)
 				case _ => None
 			}
-			val source = new JFile(input)
-			val target = new JFile(output)
+			val source = input
+			val target = output
 			val l0 = source length
 			val cont = TagContainer fromFile source
 			cont.tags = cont.tags filterNot (tag => tag.kind == SwfTags.Metadata || tag.kind == SwfTags.ProductInfo) map reduce
@@ -59,15 +57,12 @@ object Reducer {
 
 		private def reduce(tag: SwfTag) = tag.kind match {
 			case SwfTags.DefineBitsLossless2 => {
-				val f = future {
-					val dbl2 = tag.asInstanceOf[DefineBitsLossless2]
-					if (5 == dbl2.bitmapFormat && (dbl2.bitmapWidth * dbl2.bitmapHeight) > 1024) {
-						lossless2jpg(dbl2)
-					} else {
-						dbl2
-					}
+				val dbl2 = tag.asInstanceOf[DefineBitsLossless2]
+				if (5 == dbl2.bitmapFormat && (dbl2.bitmapWidth * dbl2.bitmapHeight) > 1024) {
+					lossless2jpg(dbl2)
+				} else {
+					dbl2
 				}
-				f()
 			}
 			case SwfTags.FileAttributes => {
 				val fileAttributes = tag.asInstanceOf[FileAttributes]

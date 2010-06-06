@@ -36,10 +36,7 @@ import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphL
 protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: Option[AbcNominalType], isStatic: Boolean) extends TaasCode {
 	implicit private val implicitAST = ast
 
-	lazy val graph = {
-		val f = future { computeGraph() }
-		f()
-	}
+	lazy val graph = computeGraph()
 
 	val scopeType = scope match {
 		case Some(scope) => AbcTypes.fromQName(scope.inst.name)
