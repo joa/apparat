@@ -20,7 +20,19 @@
  */
 package apparat.tools.stripper
 
+import apparat.tools.{ApparatConfiguration, ApparatConfigurationFactory}
+import java.io.{File => JFile}
+
 /**
  * @author Joa Ebert
  */
-object StripperConfigurationFactory 
+object StripperConfigurationFactory extends ApparatConfigurationFactory[StripperConfiguration] {
+	override def fromConfiguration(config: ApparatConfiguration): StripperConfiguration = {
+		val input = new JFile(config("-i") getOrElse error("Input is required."))
+		val output = config("-o") map { pathname => new JFile(pathname) } getOrElse input
+
+		assert(input.exists, "Input has to exist.")
+
+		new StripperConfigurationImpl(input, output)
+	}
+}

@@ -79,18 +79,19 @@ object Stripper {
 			}
 		}
 
-		var input = ""
-		var output = ""
+		var input: JFile = _
+		var output: JFile = _
 		
 		override def name = "Stripper"
 
 		override def help = """  -i [file]	Input file
   -o [file]	Output file (optional)"""
 
-		override def configure(config: ApparatConfiguration) = {
-			input = config("-i") getOrElse error("Input is required.")
-			output = config("-o") getOrElse input
-			assert(new JFile(input) exists, "Input has to exist.")
+		override def configure(config: ApparatConfiguration): Unit = configure(StripperConfigurationFactory fromConfiguration config)
+
+		def configure(config: StripperConfiguration): Unit = {
+			input = config.input
+			output = config.output
 		}
 
 		override def run() = {
@@ -100,56 +101,51 @@ object Stripper {
 				case _ => None
 			}
 
-			val source = new JFile(input)
-			val target = new JFile(output)
-			val cont = TagContainer fromFile source
+			val cont = TagContainer fromFile input
 			cont.tags = cont.tags map strip
-			cont write target
+			cont write output
 		}
 
 		private def strip(tag: SwfTag) = tag match {
 			case doABC: DoABC => {
-				val f = future {
-					val abc = Abc fromDoABC doABC
-	
-					abc.loadBytecode()
+				val abc = Abc fromDoABC doABC
 
-					for(method <- abc.methods) {
-						method.body match {
-							case Some(body) => {
-								body.bytecode match {
-									case Some(bytecode) => {
-										//
-										// Strip all debug information.
-										//
+				abc.loadBytecode()
 
-										bytecode removeAll {
-											_.opCode match {
-												case Op.debug | Op.debugfile | Op.debugline => true
-												case _ => false
-											}
+				for(method <- abc.methods) {
+					method.body match {
+						case Some(body) => {
+							body.bytecode match {
+								case Some(bytecode) => {
+									//
+									// Strip all debug information.
+									//
+
+									bytecode removeAll {
+										_.opCode match {
+											case Op.debug | Op.debugfile | Op.debugline => true
+											case _ => false
 										}
-
-										//
-										// Strip all traces.
-										//
-
-										bytecode rewrite traceVoid
-										bytecode rewrite trace
 									}
-									case None =>
+
+									//
+									// Strip all traces.
+									//
+
+									bytecode rewrite traceVoid
+									bytecode rewrite trace
 								}
+								case None =>
 							}
-							case None =>
 						}
+						case None =>
 					}
-
-					abc.saveBytecode()
-					abc write doABC
-
-					doABC
 				}
-				f()
+
+				abc.saveBytecode()
+				abc write doABC
+
+				doABC
 			}
 			case _ => tag
 		}

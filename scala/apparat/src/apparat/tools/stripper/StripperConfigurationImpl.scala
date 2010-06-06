@@ -20,7 +20,11 @@
  */
 package apparat.tools.stripper
 
+import java.io.{File => JFile}
+
 /**
  * @author Joa Ebert
  */
-class StripperConfigurationImpl
+protected[stripper] class StripperConfigurationImpl(
+		val input: JFile,
+		val output: JFile) extends StripperConfiguration

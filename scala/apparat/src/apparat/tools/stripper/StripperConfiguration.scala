@@ -20,7 +20,19 @@
  */
 package apparat.tools.stripper
 
+import java.io.{File => JFile}
+
 /**
  * @author Joa Ebert
  */
-trait StripperConfiguration 
+trait StripperConfiguration {
+	/**
+	 * The input file.
+	 */
+	def input: JFile
+
+	/**
+	 * The output file.
+	 */
+	def output: JFile
+}
