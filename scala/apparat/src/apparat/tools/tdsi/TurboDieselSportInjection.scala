@@ -111,7 +111,7 @@ object TurboDieselSportInjection {
 				abc.saveBytecode()
 				abc write doABC
 			}
-d
+
 			cont write target
 		}
 	}
