@@ -123,6 +123,9 @@
 	<property name="scalac.task.sdk" value="library.scala_sdk.classpath"/>
 	<taskdef name="scalac" classname="scala.tools.ant.Scalac" classpathref="${scalac.task.sdk}"/>
 
+	<!-- GoogleCode definitions -->
+	<taskdef classname="net.bluecow.googlecode.ant.GoogleCodeUploadTask" classpath="${dir.build}/ant-googlecode-0.0.2.jar" name="gcupload"/>
+	
 	<path id="classpath">
 		<pathelement location="${dir.bin}"/>
 		<path refid="library.scala_sdk.classpath"/>
@@ -145,6 +148,20 @@
 				<type type="file"/>
 			</fileset>
 		</copy>
+	</target>
+	
+	<target name="deploy" depends="all" description="Deploy Apparat to GoogleCode">
+		<property file="${dir.build}/build.credentials.properties"/>
+		<fail unless="gc.username" message="Missing property 'gc.username' from file 'build.credentials.properties'."/>
+		<fail unless="gc.password" message="Missing property 'gc.password' from file 'build.credentials.properties'."/>
+		<gcupload
+			username="${gc.username}" 
+            password="${gc.password}" 
+			projectname="apparat" 
+			filename="${dir.zip}/apparat.zip" 
+			targetfilename="apparat.zip"
+			summary="apparat-1.0-SNAPSHOT"
+			labels="Featured, Type-Package, OpSys-All, scala2.8-RC3"/>
 	</target>
 
 	<target name="apparat" depends="compile"
