@@ -1,8 +1,3 @@
-package apparat.embedding.ant.tdsi
-
-import apparat.embedding.ant.{OutParameter, ApparatTask}
-import apparat.tools.tdsi.TurboDieselSportInjection
-
 /*
  * This file is part of Apparat.
  * 
@@ -27,4 +22,15 @@ import apparat.tools.tdsi.TurboDieselSportInjection
  * Time: 17:40:35
  */
 
-sealed class TDSITask extends ApparatTask(TurboDieselSportInjection, "tdsi") with OutParameter
+package apparat.embedding.ant.tdsi
+
+import apparat.embedding.ant.{OutParameter, ApparatTask}
+import apparat.tools.tdsi.TurboDieselSportInjection
+
+sealed class TDSITask extends ApparatTask(TurboDieselSportInjection, "tdsi") with OutParameter {
+	def setAlchemy(value: String) = setArgument("a", value)
+
+	def setInline(value: String) = setArgument("e", value)
+
+	def setMacro(value: String) = setArgument("m", value)
+}
