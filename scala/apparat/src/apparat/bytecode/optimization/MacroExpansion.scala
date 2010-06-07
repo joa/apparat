@@ -25,6 +25,7 @@ import apparat.bytecode.operations._
 import apparat.bytecode.analysis.{StackAnalysis, LocalCount}
 import apparat.abc._
 import apparat.tools.ApparatLog
+import annotation.tailrec
 
 /**
  * @author Joa Ebert
@@ -64,7 +65,7 @@ MacroExpansion(abcs: List[Abc]) {
 		case _ => error("Unexpected "+op+".")
 	}
 
-	def expand(bytecode: Bytecode): Bytecode = {
+	@tailrec final def expand(bytecode: Bytecode, haveBeenModified:Boolean=false): Boolean = {
 		var modified = false
 		var balance = 0
 		var removes = List.empty[AbstractOp]
@@ -246,9 +247,9 @@ MacroExpansion(abcs: List[Abc]) {
 				case None => ApparatLog warn "Bytecode body missing. Cannot adjust stack/locals."
 			}
 
-			expand(bytecode)
+			expand(bytecode, true)
 		} else {
-			bytecode
+			haveBeenModified
 		}
 	}
 }

@@ -25,7 +25,7 @@ import apparat.bytecode.combinator._
 import apparat.bytecode.operations._
 import apparat.bytecode.Bytecode
 
-object PeepholeOptimizations extends (Bytecode => Bytecode) {
+object PeepholeOptimizations extends (Bytecode => Boolean) {
 	/*def apply(bytecode: Bytecode) = {
 		bytecode rewrite whileLoop
 		bytecode rewrite getLex
@@ -35,7 +35,7 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 		bytecode
 	}*/
 
-	def apply(bytecode: Bytecode): Bytecode = {
+	def apply(bytecode: Bytecode): Boolean = {
 		var source = bytecode.ops
 		var target = List.empty[AbstractOp]
 		val n = source.length
@@ -51,7 +51,25 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 		while(i < n) {
 			val op = source.head
 			val opCode = op.opCode
-			if(Op.pushfalse == opCode) {
+			if (Op.nop == opCode) {
+				val tail=source.tail
+				if (tail.nonEmpty) {
+					markers.forwardMarker(op, tail.head)
+				}
+				modified = true
+			} else if (Op.jump == opCode) {
+				val tail = source.tail
+				if (tail.nonEmpty){
+					op.asInstanceOf[Jump].marker.op match {
+						case Some(marker) if (marker == tail.head) => {
+							modified = true
+						}
+						case _ => target = op :: target
+					}
+				} else {
+					target = op :: target
+				}
+			} else if(Op.pushfalse == opCode) {
 				if(source.tail.head.opCode == Op.iffalse) {
 					val ifFalse = source.tail.head.asInstanceOf[IfFalse]
 					target = Jump(ifFalse.marker) :: target
@@ -153,7 +171,7 @@ object PeepholeOptimizations extends (Bytecode => Bytecode) {
 			bytecode.ops = target.reverse
 		}
 
-		bytecode
+		modified
 	}
 
 	lazy val ifFalse = (PushFalse() ~ partial {case ifFalse: IfFalse => ifFalse}) ^^ {
