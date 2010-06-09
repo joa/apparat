@@ -30,6 +30,7 @@ import apparat.bytecode.combinator._
 import apparat.bytecode.combinator.BytecodeChains._
 import apparat.swf._
 import apparat.bytecode.optimization.{InlineExpansion, MacroExpansion, PeepholeOptimizations, InlineMemory}
+import annotation.tailrec
 
 /**
  * @author Joa Ebert
@@ -85,21 +86,27 @@ object TurboDieselSportInjection {
 						case Some(body) => {
 							body.bytecode match {
 								case Some(bytecode) => {
-									//TODO to do this right, we need to repeat this steps
-									//until the code keeps changing!
-									if(inline) {
-										inlineExpansion.get expand bytecode
-									}
+									@tailrec def modifyBytecode(counter:Int):Unit={
+										var modified = false
 
-									if(macros) {
-										macroExpansion.get expand bytecode
-									}
+										if(inline) {
+											modified |= inlineExpansion.get expand bytecode
+										}
 
-									if(alchemy) {
-										InlineMemory(bytecode)
-									}
+										if(macros) {
+											modified |= macroExpansion.get expand bytecode
+										}
 
-									PeepholeOptimizations(bytecode)
+										if(alchemy) {
+											modified |= InlineMemory(bytecode)
+										}
+
+										modified |= PeepholeOptimizations(bytecode)
+
+										if (modified && (counter < 31))
+											modifyBytecode(counter + 1)
+									}
+									modifyBytecode(0)
 								}
 								case None =>
 							}
