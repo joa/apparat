@@ -1,11 +1,23 @@
 package apparat.tools
 
+import scala.util.Properties
+
 object ApparatApplication {
 	def apply(tool: ApparatTool, args: Array[String]): Int = {
 		val t0 = System.currentTimeMillis()
 		var result = 0
 		try {
 			ApparatLog("Apparat -- http://apparat.googlecode.com/")
+
+			Properties.versionString match {
+				case "version 2.8.0.RC3" =>
+				case other => {
+					ApparatLog err "Apparat requires Scala version 2.8.0.RC3"
+					ApparatLog err "Download it here: http://www.scala-lang.org/downloads"
+					return -1
+				}
+			}
+
 			ApparatLog("Launching tool: " + tool.name)
 
 			if(!apparat.actors.Actor.threadsEnabled) {
