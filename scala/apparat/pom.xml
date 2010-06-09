@@ -10,6 +10,7 @@
   </parent>
 
   <artifactId>apparat</artifactId>
+  <packaging>jar</packaging>
 
   <build>
     <testSourceDirectory>spec</testSourceDirectory>
