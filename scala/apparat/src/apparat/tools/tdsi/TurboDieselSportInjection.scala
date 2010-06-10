@@ -101,12 +101,13 @@ object TurboDieselSportInjection {
 											modified |= InlineMemory(bytecode)
 										}
 
-										modified |= PeepholeOptimizations(bytecode)
-
 										if (modified && (counter < 31))
 											modifyBytecode(counter + 1)
 									}
+									
 									modifyBytecode(0)
+									
+									PeepholeOptimizations(bytecode)
 								}
 								case None =>
 							}

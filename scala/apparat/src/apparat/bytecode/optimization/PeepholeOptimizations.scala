@@ -57,19 +57,20 @@ object PeepholeOptimizations extends (Bytecode => Boolean) {
 					markers.forwardMarker(op, tail.head)
 				}
 				modified = true
-			} else if (Op.jump == opCode) {
-				val tail = source.tail
+			} /*else if (Op.jump == opCode) {
+			<	val tail = source.tail
 				if (tail.nonEmpty){
 					op.asInstanceOf[Jump].marker.op match {
 						case Some(markedOp) if (markedOp == tail.head) => {
 							modified = true
+							target = markedOp :: target
 						}
 						case _ => target = op :: target
 					}
 				} else {
 					target = op :: target
 				}
-			} else if(Op.pushfalse == opCode) {
+			}*/ else if(Op.pushfalse == opCode) {
 				if(source.tail.head.opCode == Op.iffalse) {
 					val ifFalse = source.tail.head.asInstanceOf[IfFalse]
 					target = Jump(ifFalse.marker) :: target
