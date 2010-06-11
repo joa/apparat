@@ -80,7 +80,7 @@ object TurboDieselSportInjection {
 
 			for((doABC, abc) <- allABC.iterator) {
 				abc.loadBytecode()
-
+				
 				for(method <- abc.methods) {
 					method.body match {
 						case Some(body) => {
@@ -101,13 +101,15 @@ object TurboDieselSportInjection {
 											modified |= InlineMemory(bytecode)
 										}
 
+										modified |= PeepholeOptimizations(bytecode)
+
 										if (modified && (counter < 31))
 											modifyBytecode(counter + 1)
 									}
-									
+
 									modifyBytecode(0)
 									
-									PeepholeOptimizations(bytecode)
+									
 								}
 								case None =>
 							}
