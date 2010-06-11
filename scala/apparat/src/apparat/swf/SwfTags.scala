@@ -228,6 +228,10 @@ abstract class SwfTag(val kind: Int) {
 	def read(header: Recordheader)(implicit input: SwfInputStream): Unit
 
 	def write(implicit output: SwfOutputStream): Unit
+
+	def foreach(body: this.type => Unit) = body(this)
+
+	def map[T](f: this.type => T) = f(this)
 }
 
 class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLengthTag

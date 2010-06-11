@@ -88,6 +88,8 @@ final class Swf extends Dumpable {
 	var frameCount: Int = 1
 	var tags: List[SwfTag] = Nil
 
+	def foreach(body: SwfTag => Unit) = tags foreach body
+
 	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x1000))(read(_, file length))
 
 	def read(pathname: String): Unit = read(new JFile(pathname))
@@ -192,7 +194,7 @@ final class Swf extends Dumpable {
 				output write bytes
 			}
 
-			output flush ();
+			output.flush()
 		}
 		finally {
 			if (null != buffer) {

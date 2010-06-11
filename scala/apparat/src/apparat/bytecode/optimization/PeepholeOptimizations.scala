@@ -58,7 +58,7 @@ object PeepholeOptimizations extends (Bytecode => Boolean) {
 				}
 				modified = true
 			} /*else if (Op.jump == opCode) {
-			<	val tail = source.tail
+				val tail = source.tail
 				if (tail.nonEmpty){
 					op.asInstanceOf[Jump].marker.op match {
 						case Some(markedOp) if (markedOp == tail.head) => {
