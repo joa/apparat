@@ -12,7 +12,7 @@ object Concrete {
 	def main(args: Array[String]): Unit = ApparatApplication(new ConcreteTool, args)
 
 	class ConcreteTool extends ApparatTool {
-		var libraries = List.empty[String]
+		var libraries = List.empty[JFile]
 
 		var cache = Map.empty[AbcQName, AbcNominalType]
 
@@ -22,12 +22,10 @@ object Concrete {
 
 		override def help = "  -i [file0"+JFile.pathSeparatorChar+"file1"+JFile.pathSeparatorChar+"..."+JFile.pathSeparatorChar+"fileN]	Input file(s)"
 
-		override def configure(config: ApparatConfiguration) = {
-			libraries = config("-i") map { _ split JFile.pathSeparatorChar toList } getOrElse List.empty[String]
+		override def configure(config: ApparatConfiguration): Unit = configure(ConcreteConfigurationFactory fromConfiguration config)
 
-			for(library <- libraries) {
-				assert(new JFile(library) exists, "Input file has to exist.")
-			}
+		def configure(config: ConcreteConfiguration): Unit = {
+			libraries = config.libraries
 		}
 
 		override def run() = {

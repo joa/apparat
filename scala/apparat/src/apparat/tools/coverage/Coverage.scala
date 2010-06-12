@@ -22,8 +22,8 @@ object Coverage {
 		val coverageScope = GetLex(coverageQName)
 		val coverageMethod = CallPropVoid(coverageOnSample, 2)
 		
-		var input = ""
-		var output = ""
+		var input: JFile = _
+		var output: JFile = _
 		var sourcePath = List.empty[String]
 
 		var observers = List.empty[CoverageObserver]
@@ -34,11 +34,12 @@ object Coverage {
   -o [file]	Output file (optional)
   -s [dir]	Source path to instrument"""
 
-		override def configure(config: ApparatConfiguration) = {
-			input = config("-i") getOrElse error("Input is required.")
-			output = config("-o") getOrElse input
-			sourcePath = config("-s") map { _ split JFile.pathSeparatorChar toList } getOrElse List.empty[String]
-			assert(new JFile(input) exists, "Input has to exist.")
+		override def configure(config: ApparatConfiguration): Unit = configure(CoverageConfigurationFactory fromConfiguration config)
+
+		def configure(config: CoverageConfiguration): Unit = {
+			input = config.input
+			output = config.output
+			sourcePath = config.sourcePath
 		}
 		
 		override def run() = {
@@ -48,11 +49,9 @@ object Coverage {
 				case _ => None
 			}
 
-			val source = new JFile(input)
-			val target = new JFile(output)
-			val cont = TagContainer fromFile source
+			val cont = TagContainer fromFile input
 			cont.tags = cont.tags map coverage
-			cont write target
+			cont write output
 		}
 
 		def addObserver(observer: CoverageObserver) = {

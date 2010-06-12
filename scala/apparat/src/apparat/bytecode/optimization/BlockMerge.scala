@@ -22,6 +22,7 @@ package apparat.bytecode.optimization
 
 import apparat.bytecode.Bytecode
 import apparat.graph.mutable.{MutableAbstractOpBlockVertex, MutableBytecodeControlFlowGraph, MutableBytecodeControlFlowGraphBuilder}
+import scala.math.min
 
 /**
  * @author Joa Ebert
@@ -37,14 +38,15 @@ object BlockMerge {
 			visited = visited updated (vertex, true)
 			
 			val predecessors = (cfg predecessorsOf vertex).toList
-			val ops = predecessors map { _.block.toArray }
 			val numPredecessors = predecessors.length
 
 			if(numPredecessors == 2) {
+				val ops = predecessors map { _.block.toArray }
+				
 				val b0 = ops(0)
 				val b1 = ops(1)
 
-				var n = b0.length - 1
+				var n = min(b0.length, b1.length) - 1
 				var i = 0
 
 				while(n > -1) {

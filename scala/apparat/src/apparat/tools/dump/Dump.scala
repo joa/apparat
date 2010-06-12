@@ -35,7 +35,7 @@ object Dump {
 	def main(args: Array[String]): Unit = ApparatApplication(new DumpTool, args)
 
 	class DumpTool extends ApparatTool {
-		var input = ""
+		var input: JFile = _
 		var output: Option[JFile] = None
 
 		var exportSWF = false
@@ -55,18 +55,15 @@ object Dump {
 	-abc					Detailed ABC information
 	-bc [raw|cfg|default] Bytecode format (raw bytes, graphs, default)"""
 
-		override def configure(config: ApparatConfiguration) = {
-			input = config("-i") getOrElse error("Input is required.")
-			output = config("-o") map { path => new JFile(path) }
-			exportSWF = (config("-swf") getOrElse "false").toBoolean
-			exportUML = (config("-uml") getOrElse "false").toBoolean
-			exportABC = (config("-abc") getOrElse "false").toBoolean
-			bytecodeFormat = config("-bc") getOrElse "default" match {
-				case "raw" => DumpBytecodeAsRaw
-				case "cfg" => DumpBytecodeAsGraph
-				case "default" => DumpBytecodeAsDefault
-				case _ => error("Bytecode format must be either \"raw\", \"cfg\", or \"default\".")
-			}
+		override def configure(config: ApparatConfiguration): Unit = configure(DumpConfigurationFactory fromConfiguration config)
+
+		def configure(config: DumpConfiguration) = {
+			input = config.input
+			output = config.output
+			exportSWF = config.exportSWF
+			exportUML = config.exportUML
+			exportABC = config.exportABC
+			bytecodeFormat = config.bytecodeFormat
 		}
 
 		override def run() = {
@@ -74,7 +71,7 @@ object Dump {
 				ApparatLog warn "Nothing specified to export. Try the -h option for help."
 			}
 			
-			val source = new JFile(input)
+			val source = input
 
 			output match {
 				case Some(dir) => {
