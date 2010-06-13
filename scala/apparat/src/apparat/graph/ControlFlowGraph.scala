@@ -126,6 +126,9 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 					case '"' => sb append "\\\""
 					case '>' => sb append "&gt;"
 					case '<' => sb append "&lt;"
+					case '\r' => sb append "\\r"
+					case '\t' => sb append "\\t"
+					case '\n' => sb append "\\n"
 					case c => sb append c
 				}
 				loop(sb, strIndex + 1)
