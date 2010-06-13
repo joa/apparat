@@ -341,9 +341,37 @@ case object TOp_false extends TaasUnop("false ==")
 case class TConvert(`type`: TaasType) extends TaasUnop("(convert "+`type`+")")
 case class TCoerce(`type`: TaasType) extends TaasUnop("("+`type`+")")
 
-sealed trait TExpr {
+sealed trait TExpr extends Product {
 	def defines(index: Int): Boolean
 	def uses(index: Int): Boolean
+
+	override def equals(that: Any) = that match {
+		case expr: TExpr => expr eq this
+		case _ => false
+	}
+
+	def ~==(that: TExpr): Boolean = {
+		if(productArity == that.productArity) {
+			var i = 0
+			val n = productArity
+
+			while(i < n) {
+				if(this.productElement(i) != that.productElement(i)) {
+					return false
+				}
+
+				i += 1
+			}
+
+			true
+		} else {
+			false
+		}
+	}
+}
+
+sealed trait TDef extends TExpr {
+	def register: Int
 }
 
 sealed trait TValue extends TExpr with TaasTyped {
@@ -396,7 +424,7 @@ case class TReg(index: Int) extends TValue {
 }
 
 //result = op operand1
-case class T2(op: TaasUnop, rhs: TValue, result: TReg) extends TExpr {
+case class T2(op: TaasUnop, rhs: TValue, result: TReg) extends TDef {
 	result typeAs (op match {
 		case TOp_Nothing => rhs.`type`
 		case TOp_~ => TaasIntType
@@ -408,15 +436,17 @@ case class T2(op: TaasUnop, rhs: TValue, result: TReg) extends TExpr {
 	override def toString = result.toString+" = "+op.toString+rhs.toString
 	override def defines(index: Int) = result.index == index
 	override def uses(index: Int) = rhs matches index
+	override def register = result.index
 }
 
 //result = operand1 op operand2
-case class T3(op: TaasBinop, lhs: TValue, rhs: TValue, result: TReg) extends TExpr {
+case class T3(op: TaasBinop, lhs: TValue, rhs: TValue, result: TReg) extends TDef {
 	result typeAs TaasType.widen(lhs.`type`, rhs.`type`)
 
 	override def toString = result.toString+" = "+lhs.toString+" "+op.toString+" "+rhs.toString
 	override def defines(index: Int) = result.index == index
 	override def uses(index: Int) = (lhs matches index) || (rhs matches index)
+	override def register = result.index
 }
 
 //branch if: op rhs
@@ -459,15 +489,17 @@ case class TSuper(base: TValue, arguments: List[TValue]) extends TExpr with TSid
 	override def uses(index: Int) = (base matches index) || argumentMatches(index)
 }
 
-case class TCall(`this`: TValue, method: TaasMethod, arguments: List[TValue], result: Option[TReg]) extends TExpr with TSideEffect with TArgumentList {
+case class TCall(`this`: TValue, method: TaasMethod, arguments: List[TValue], result: Option[TReg]) extends TDef with TSideEffect with TArgumentList {
 	override def defines(index: Int) = if(result.isDefined) { result.get.index == index } else { false }
 	override def uses(index: Int) = (`this` matches index) || argumentMatches(index)
+	override def register = if(result.isDefined) result.get.index else -1
 }
 
-case class TLoad(`object`: TValue, field: TaasField, result: TReg) extends TExpr {
+case class TLoad(`object`: TValue, field: TaasField, result: TReg) extends TDef {
 	result typeAs field.`type`
 	override def defines(index: Int) = result.index == index
 	override def uses(index: Int) = `object` matches index
+	override def register = result.index
 }
 
 case class TStore(`object`: TValue, field: TaasField, value: TValue) extends TExpr {

@@ -122,7 +122,7 @@ class InlineExpansion(abcs: List[Abc]) {
 											//
 											case ReturnValue() => if(nopReturn) Nop() else Jump(markers mark gathering)
 											case ReturnVoid() => if(nopReturn) Nop() else Jump(markers mark gathering)
-											
+
 											case other => other.opCopy()
 										}) ::: List(gathering) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
 

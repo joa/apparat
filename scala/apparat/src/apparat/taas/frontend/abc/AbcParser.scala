@@ -175,6 +175,13 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			name match {
 				case AbcQName(name, namespace) => {
 					if(name == 'void && namespace.name.name.length == 0) TaasVoidType
+					else if(name == 'int && namespace.name.name.length == 0) TaasIntType
+					else if(name == 'uint && namespace.name.name.length == 0) TaasLongType
+					else if(name == 'Number && namespace.name.name.length == 0) TaasDoubleType
+					else if(name == 'String && namespace.name.name.length == 0) TaasStringType
+					else if(name == 'Boolean && namespace.name.name.length == 0) TaasBooleanType
+					else if(name == 'Function && namespace.name.name.length == 0) TaasFunctionType
+					else if(name == 'Object && namespace.name.name.length == 0) TaasObjectType
 					else AbcTypes fromQName (name, namespace)
 				}
 				case AbcTypename(name, parameters) => AbcTypes fromTypename (name, parameters)

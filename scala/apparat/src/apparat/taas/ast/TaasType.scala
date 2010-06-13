@@ -76,7 +76,7 @@ object TaasFunctionType extends TaasType {
 trait TaasNominalType extends TaasType  {
 	def nominal: TaasNominal
 	override def toString = {
-		"TaasType(" + nominal.qualifiedName + ")"
+		"TaasType(\"" + nominal.qualifiedName + "\")"
 	}
 }
 

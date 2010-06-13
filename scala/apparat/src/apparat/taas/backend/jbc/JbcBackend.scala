@@ -27,7 +27,7 @@ import java.io.{PrintWriter => JPrintWriter}
 import collection.mutable.ListBuffer
 import apparat.taas.ast._
 import org.objectweb.asm.util.{CheckClassAdapter => JCheckClassAdapter, TraceClassVisitor => JTraceClassVisitor}
-import org.objectweb.asm.{ClassReader => JClassReader, ClassVisitor => JClassVisitor, Opcodes => JOpcodes, ClassWriter => JClassWriter}
+import org.objectweb.asm.{Opcodes => JOpcodes, Label => JLabel, ClassWriter => JClassWriter, ClassVisitor => JClassVisitor, ClassReader => JClassReader}
 
 /**
  * @author Joa Ebert
@@ -37,7 +37,7 @@ class JbcBackend extends TaasBackend {
 
 	override def emit(ast: TaasAST) = {
 		for(nominal <- TaasDependencyGraphBuilder(ast).topsort) {
-			val cw = new JClassWriter(JClassWriter.COMPUTE_FRAMES)
+			val cw = new JClassWriter(JClassWriter.COMPUTE_MAXS)//COMPUTE_FRAMES)
 			val cv = new JTraceClassVisitor(cw, new JPrintWriter(System.out))
 
 			cv.visit(
@@ -78,7 +78,7 @@ class JbcBackend extends TaasBackend {
 		val cl = new JbcClassLoader(classMap)
 		Thread.currentThread.setContextClassLoader(cl)
 
-		println(Class.forName("Test00", true, cl).newInstance())
+		println(Class.forName("Test", true, cl).newInstance())
 	}
 
 	@inline private def methodDesc(returnType: String, parameters: ListBuffer[TaasParameter]): String = "("+(parameters map { _.`type` } map { toJavaType } mkString ",")+")"+returnType
@@ -102,7 +102,8 @@ class JbcBackend extends TaasBackend {
 					case 5 => mv.visitInsn(JOpcodes.ICONST_5)
 					case b if b < 0x80 && b >= -0x80 => mv.visitIntInsn(JOpcodes.BIPUSH, b)
 					case si if si < 0x8000 && si >= -0x8000 => mv.visitIntInsn(JOpcodes.SIPUSH, si)
-					case i => mv.visitLdcInsn(JOpcodes.LDC, i)
+					case i  if i < 0x800000 && i >= -0x800000 => mv.visitLdcInsn(JOpcodes.LDC,i)
+					case l => mv.visitLdcInsn(JOpcodes.LDC, l.toLong)
 				}
 				case TLong(value) => value match {
 					case 0L => mv.visitInsn(JOpcodes.LCONST_0)
@@ -129,6 +130,7 @@ class JbcBackend extends TaasBackend {
 						}
 					}
 					case klass: TaasClass => //nothing to do here!
+					case fun: TaasFunction => 
 				}
 				case reg: TReg => {
 					if(reg.index+1 > maxL) {
@@ -143,6 +145,20 @@ class JbcBackend extends TaasBackend {
 						case TaasVoidType => error("Cannot store void in register.")
 					}
 				}
+			}
+		}
+
+		@inline def loadArray(list: List[TValue], `type`: TaasType) = {
+			load(TInt(list.length))
+			mv.visitTypeInsn(JOpcodes.ANEWARRAY, toJavaName(`type`))
+			var i = 0
+			for(value <- list) {
+				mv.visitInsn(JOpcodes.DUP)
+				load(TInt(i))
+				load(value)
+				implicitCast(value.`type`, `type`)
+				mv.visitInsn(JOpcodes.AASTORE)
+				i += 1
 			}
 		}
 
@@ -167,18 +183,29 @@ class JbcBackend extends TaasBackend {
 		@inline def unop(op: TaasUnop, value: TValue) = {
 			op match {
 				case TOp_Nothing =>
+				case TConvert(toType) => if(value.`type` != toType) println(value.`type`+" -> "+toType)
 				case _ => error("TODO "+op)
 			}
 		}
+
+		@inline def binop(op: TaasBinop, lhs: TValue, rhs: TValue): Unit = binopWithType(op, lhs, rhs,
+			TaasType.widen(lhs.`type`, rhs.`type`))
+
+		@inline def binopWithType(op: TaasBinop, lhs: TValue, rhs: TValue, `type`: TaasType): Unit = {
+			`type` match {
+				case TaasIntType => op match {
+					case TOp_+ => mv.visitInsn(JOpcodes.IADD)
+					case TOp_- => mv.visitInsn(JOpcodes.ISUB)
+				}
+			}
+		}
+
 
 		@inline def implicitCast(from: TaasType, to: TaasType) = if(from != to) {
 			from match {
 				case TaasIntType => to match {
 					case TaasDoubleType => mv.visitInsn(JOpcodes.I2D)
-					case n: TaasNominalType => n.nominal.qualifiedName match {
-						case "Number" => mv.visitInsn(JOpcodes.I2D)
-						case other => error("Unexpected name "+other+".")
-					}
+					case TaasObjectType => mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;");
 				}
 				case other =>
 			}
@@ -190,60 +217,121 @@ class JbcBackend extends TaasBackend {
 			case Some(code) => {
 				val lin = new TaasGraphLinearizer(code.graph)
 				val ops = lin.list
-				for(op <- ops) op match {
-					case T2(TOp_Nothing, TLexical(t: TaasClass), _) =>
-					case T2(operator, rhs, result) => {
-						load(rhs)
-						unop(operator, rhs)
-						storeByValue(rhs, result)
+				val labels = generateLabels(lin.map)
+				val jumps = lin.map
+				for(op <- ops) {
+					(labels get op) match {
+						case Some(label) => mv.visitLabel(label)
+						case None =>
 					}
-					case TCall(t, method, arguments, result) => {
-						var i = 0
-						var n = arguments.length
-						var m = method.parameters.length
+					
+					op match {
+						case _: TNop =>
+						case T2(TOp_Nothing, TLexical(t: TaasClass), _) =>
+						case T2(TOp_Nothing, TLexical(t: TaasFunction), _) =>
+						case T2(operator, rhs, result) => {
+							load(rhs)
+							unop(operator, rhs)
+							storeByValue(rhs, result)
+						}
+						case T3(operator, lhs, rhs, result) => {
+							load(lhs)
+							load(rhs)
+							val t = TaasType.widen(lhs.`type`, rhs.`type`)
+							binopWithType(operator, lhs, rhs, t)
+							storeByType(t, result)
+						}
+						case if2 @ TIf2(op, lhs, rhs) => {
+							load(lhs)
+							load(rhs)
 
-						load(t)
-
-						if(n < m) { error("optional parameters")}
-						else if(n == m) {
-							while(i < n) {
-								load(arguments(i))
-								implicitCast(arguments(i).`type`, method.parameters(i).`type`)
-								i += 1
+							op match {
+								case TOp_< => mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
 							}
-						} else if(m == 0 && n == 1) {
-							//assume setter method
-							println("[WARNING]: "+method+" should have been resolved to its setter.")
-							load(arguments(0))
-							implicitCast(arguments(0).`type`, method.`type`)
-						} else {
-							error("Invalid op "+op+".")
 						}
 
-						mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, toJavaName(ownerOf(method)), method.name.name, methodDesc(method))
-						result match {
-							case Some(result) => {
-								storeByType(method.`type`, result)
-							}
-							case None =>
+						case jump: TJump => {
+							mv.visitJumpInsn(JOpcodes.GOTO, labels(jumps(jump)(0)))
 						}
-					}
-					case TLoad(obj, field, result) => {
-						mv.visitFieldInsn(JOpcodes.GETSTATIC, toJavaName(ownerOf(field)), field.name.name, toJavaType(field.`type`))
-						storeByType(field.`type`, result)
 
-					}
-					case TSuper(base, arguments) => {
-						load(base)
-						arguments foreach load
-						mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, toJavaName(base.`type` match {
-							case n: TaasNominalType => n.nominal.base match {
-								case Some(base) => base
-								case None => TaasObjectType
+						case TCall(t, method, arguments, result) => {
+							var i = 0
+							var n = arguments.length
+							var m = method.parameters.length
+							var varargs = false
+
+							method.parent match {
+									case Some(parent) => parent match {
+										case _: TaasClass | _: TaasInterface => load(t)
+										case _: TaasFunction =>
+									}
 							}
-						}), "<init>", "()V")//TODO!
+
+							if(n < m) { error("optional parameters")}
+							else if(n == m) {
+								while(i < n) {
+									load(arguments(i))
+									implicitCast(arguments(i).`type`, method.parameters(i).`type`)
+									i += 1
+								}
+							} else if(m == 0 && n == 1) {
+								method.parent match {
+									case Some(parent) => parent match {
+										case _: TaasClass | _: TaasInterface => {
+											//assume setter method
+											println("[WARNING]: "+method+" should have been resolved to its setter.")
+											load(arguments(0))
+											implicitCast(arguments(0).`type`, method.`type`)
+										}
+										case _: TaasFunction => {
+											println("[WARNING]: Method "+method+" has variable arguments.")
+											varargs = true
+											loadArray(arguments, TaasObjectType)
+										}
+									}
+									case None => error("Method without parent.")
+								}
+							} else {
+								error("Invalid op "+op+".")
+							}
+
+							method.parent match {
+								case Some(parent) => parent match {
+									case k: TaasClass => mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, toJavaName(ownerOf(method)), method.name.name, methodDesc(method))
+									case i: TaasInterface => mv.visitMethodInsn(JOpcodes.INVOKEINTERFACE, toJavaName(ownerOf(method)), method.name.name, methodDesc(method))
+									case f: TaasFunction => mv.visitMethodInsn(
+										JOpcodes.INVOKESTATIC,
+										toJavaName(ownerOf(method)),
+										"callStatic",
+										if(varargs) "([Ljava/lang/Object;)V" else methodDesc(method))
+								}
+								case None => error("Method without parent.")
+							}
+
+							result match {
+								case Some(result) => {
+									storeByType(method.`type`, result)
+								}
+								case None =>
+							}
+						}
+						case TLoad(obj, field, result) => {
+							mv.visitFieldInsn(JOpcodes.GETSTATIC, toJavaName(ownerOf(field)), field.name.name, toJavaType(field.`type`))
+							storeByType(field.`type`, result)
+
+						}
+						case TSuper(base, arguments) => {
+							load(base)
+							arguments foreach load
+							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, toJavaName(base.`type` match {
+								case n: TaasNominalType => n.nominal.base match {
+									case Some(base) => base
+									case None => TaasObjectType
+								}
+							}), "<init>", "()V")//TODO!
+						}
+						case TReturn(TVoid) => mv.visitInsn(JOpcodes.RETURN)
 					}
-					case TReturn(TVoid) => mv.visitInsn(JOpcodes.RETURN) 
 				}
 			}
 			case None =>
@@ -262,11 +350,7 @@ class JbcBackend extends TaasBackend {
 		case TaasLongType => "J"
 		case TaasStringType => "Ljava/lang/String;"
 		case TaasFunctionType => "Las3/Function"
-		case t: TaasNominalType => toJavaName(t.nominal.qualifiedName) match {
-			case "Number" => "D"
-			case "String" => "Ljava/lang/String;"
-			case other => "L"+other+";"
-		}
+		case t: TaasNominalType => "L"+toJavaName(t.nominal.qualifiedName)+";"
 	}
 
 	private def toJavaName(`type`: TaasType): String = `type` match {
@@ -278,11 +362,7 @@ class JbcBackend extends TaasBackend {
 		case TaasLongType => "java/lang/Long"
 		case TaasStringType => "java/lang/String"
 		case TaasFunctionType => "as3/Function"
-		case t: TaasNominalType => toJavaName(t.nominal.qualifiedName) match {
-			case "Number" => "java/lang/Double"
-			case "String" => "java/lang/String"
-			case other => other
-		}
+		case t: TaasNominalType => toJavaName(t.nominal.qualifiedName)
 	}
 
 	private def toJavaName(qname: String): String = qname.replaceAll("\\.", "\\/")
@@ -303,9 +383,25 @@ class JbcBackend extends TaasBackend {
 				case p: TaasPackage => element.qualifiedName
 				case k: TaasClass => k.qualifiedName
 				case i: TaasInterface => i.qualifiedName
+				case f: TaasFunction => f.qualifiedName
 				case _ => error("Unexpected parent "+parent+".")
 			}
 			case None => error("No parent for "+element+".")
 		}
+	}
+
+	private def generateLabels(map: Map[TExpr, ListBuffer[TExpr]]) = {
+		import scala.collection.mutable.HashMap
+
+		var result = HashMap.empty[TExpr, JLabel]
+
+		for {
+			values <- map.valuesIterator
+			expr <- values if !(result contains expr)
+		} {
+			result += expr -> new JLabel()
+		}
+
+		result
 	}
 }

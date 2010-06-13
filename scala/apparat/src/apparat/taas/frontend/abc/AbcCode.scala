@@ -29,6 +29,7 @@ import apparat.bytecode.operations._
 import apparat.abc.{Abc, AbcMethod, AbcNominalType, AbcQName}
 import apparat.graph.Edge
 import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer}
+import apparat.taas.optimization._
 
 /**
  * @author Joa Ebert
@@ -75,11 +76,20 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 				result += Edge.transpose(edge, mapping(edge.startVertex), mapping(edge.endVertex))
 			}
 
-			result.dotExport to Console.out
+			val taasGraph = new TaasGraph(result, TaasEntry, TaasExit)
+			var modified = false
+
+			do {
+				modified = DeadCodeElimination(taasGraph)
+				modified |= StrengthReduction(taasGraph)
+			} while(modified)
+
+			taasGraph.dotExport to Console.out
 			println("-------------------------------------------------")
-			new TaasGraphLinearizer(new TaasGraph(result, TaasEntry, TaasExit)).list foreach println
+			new TaasGraphLinearizer(taasGraph).list foreach println
 			println("=================================================")
-			new TaasGraph(result, TaasEntry, TaasExit)
+
+			taasGraph
 		} catch {
 			case e => {
 				e.printStackTrace
@@ -152,7 +162,15 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 					case Breakpoint() | BreakpointLine() => ignored
 					case Call(numArguments) => TODO(op)
 					case CallMethod(index, numArguments) => TODO(op)
-					case CallProperty(property, numArguments) => TODO(op)
+					case CallProperty(property, numArguments) => {
+						val args = arguments(numArguments)
+						val obj = pop()
+						val method = AbcSolver.property(obj.`type`, property, numArguments) match {
+							case Some(method: TaasMethod) => method
+							case _ => error("Could not find property "+property+" on "+obj.`type`)
+						}
+						TCall(obj, method, args, Some(nextOperand))
+					}
 					case CallPropLex(property, numArguments) => TODO(op)
 					case CallPropVoid(property, numArguments) => {
 						val args = arguments(numArguments)
@@ -323,7 +341,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 				
 				result
 			}
-		} filterNot { _ == TNop() })
+		} filterNot { _ ~== TNop() })//TODO optimize me
 	}
 
 	private def TODO(op: AbstractOp) = error("TODO "+op)
