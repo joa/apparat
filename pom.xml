@@ -52,8 +52,8 @@
   </contributors>
   
   <scm>
-    <connection>scm:hg:http://apparat.googlecode.com/hg/</connection>
-    <developerConnection>scm:hg:https://apparat.googlecode.com/hg/</developerConnection>
+    <connection>scm:hg:http://velobr-apparat.googlecode.com/hg/</connection>
+    <developerConnection>scm:hg:https://velobr-apparat.googlecode.com/hg/</developerConnection>
     <url>http://code.google.com/p/apparat/source/browse/</url>
   </scm>
 
