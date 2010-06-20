@@ -27,6 +27,7 @@ import apparat.bytecode.operations._
 import annotation.tailrec
 import apparat.bytecode.{Marker, Bytecode}
 import apparat.graph._
+import immutable.BytecodeControlFlowGraphBuilder
 
 object MutableBytecodeControlFlowGraphBuilder extends (Bytecode => MutableBytecodeControlFlowGraph) {
 	def apply(bytecode: Bytecode) = {
@@ -84,7 +85,10 @@ object MutableBytecodeControlFlowGraphBuilder extends (Bytecode => MutableByteco
 			marker.op map {
 				op => vertexMap.view.find(_._2 contains op) match {
 					case Some((vertexBlock, ops)) => graph += edgeFactory(startBlock, vertexBlock)
-					case _ => error("op not found into graph : " + marker.op.toString + "=>" + vertexMap)
+					case _ => {
+						println(vertexMap.view.mkString("\n"));
+						error("op not found into graph : " + op.toString + "=>" + vertexMap)
+					}
 				}
 			}
 		}
@@ -134,7 +138,7 @@ object MutableBytecodeControlFlowGraphBuilder extends (Bytecode => MutableByteco
 					exceptions.filter(exc => {
 						startOpIndex >= ops.indexOf(exc.from.op.get) &&
 								endOpIndex <= ops.indexOf(exc.to.op.get) &&
-								ops.view(startOpIndex, endOpIndex).exists(_.canThrow)
+								ops.view(startOpIndex, endOpIndex).exists(op=>op.canThrow && !op.isInstanceOf[DebugOp])
 					}).foreach(exc => createVertexFromMarker(currentBlock, exc.target, ThrowEdge[V]))
 				}
 				buildEdge()
@@ -144,4 +148,5 @@ object MutableBytecodeControlFlowGraphBuilder extends (Bytecode => MutableByteco
 
 		graph.optimized
 	}
+	
 } 

@@ -66,7 +66,7 @@ final class DOTExport[V](val graph: GraphLike[V],
 			writer withIndent {
 				writer <= "fontname=\"" + fontName + "\", "
 				writer <= "fontsize=" + fontSize + ","
-				writer <= "shape=\"box\""
+				writer <= "shape=\"record\""
 			}
 			writer <= "];"
 

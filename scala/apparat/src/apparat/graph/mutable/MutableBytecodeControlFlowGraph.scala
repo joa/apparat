@@ -137,7 +137,7 @@ class MutableBytecodeControlFlowGraph extends MutableControlFlowGraph[AbstractOp
 
 		// get all catch and also finally blocks
 		val catchBlocks = {
-			def f[T](l: Iterable[T]) = {
+			@inline def f[T](l: Iterable[T]) = {
 				l.filter(_.isInstanceOf[ThrowEdge[_]]).size == l.size
 			}
 			// all catch block have only incoming throw edge
@@ -148,19 +148,25 @@ class MutableBytecodeControlFlowGraph extends MutableControlFlowGraph[AbstractOp
 		var workList = List.empty[TryBlock]
 		var tryCatchList = List.empty[TryBlock]
 
-		def sortThrowBlock(x: (Int, Edge[V]), y: (Int, Edge[V])) = x._1 > y._1
+		@inline def sortThrowBlock(x: (Int, Edge[V]), y: (Int, Edge[V])) = x._1 > y._1
 
 		// adjust end block index when terminating a try/catch/finaly block
 		@tailrec def terminateTryBlock(from: Int, to: Int) {
 			workList.headOption match {
 				case Some(head) if (head.catchIdx < to) => {
-					if (from > head.catchIdx)
-						error("Internal error : a try can't end after a catch block")
-
-					head.endIdx = from
-					tryCatchList = head :: tryCatchList
-					workList = workList.tail
-					terminateTryBlock(from, to)
+					if (from > head.catchIdx) {
+						//						if (from <= head.startIdx) {
+						head.endIdx = to
+						tryCatchList = head :: tryCatchList
+						workList = workList.tail
+						terminateTryBlock(from, to)
+						//						}
+					} else {
+						head.endIdx = from
+						tryCatchList = head :: tryCatchList
+						workList = workList.tail
+						terminateTryBlock(from, to)
+					}
 				}
 				case _ =>
 			}
@@ -172,15 +178,22 @@ class MutableBytecodeControlFlowGraph extends MutableControlFlowGraph[AbstractOp
 				for (block <- throws) {
 					workList.find(_.catchIdx == block._1) match {
 						case Some(tb) =>
-						case _ => workList = new TryBlock(verticesIndexMap(v), block._1) :: workList
+						case _ => {
+							if (!tryCatchList.exists(_.catchIdx == block._1))
+								workList = new TryBlock(verticesIndexMap(v), block._1) :: workList
+						}
 					}
 				}
 			} else {
 				// check if we have a jump outside of a catch block
 				// if so this is the end of try block
-				for (jumpEdge <- newGraph.outgoingOf(v).filter(_.isInstanceOf[JumpEdge[_]])) {
-					terminateTryBlock(verticesIndexMap(jumpEdge.startVertex), verticesIndexMap(jumpEdge.endVertex))
-				}
+				newGraph.outgoingOf(v).map(_ match {
+					case JumpEdge(startV, endV) => terminateTryBlock(verticesIndexMap(startV), verticesIndexMap(endV))
+					case TrueEdge(startV, endV) => terminateTryBlock(verticesIndexMap(startV), verticesIndexMap(endV))
+					case FalseEdge(startV, endV) => terminateTryBlock(verticesIndexMap(startV), verticesIndexMap(endV))
+					case ReturnEdge(startV, endV) => terminateTryBlock(verticesIndexMap(startV), vertices.length)
+					case _ =>
+				})
 			}
 		}
 
@@ -189,7 +202,7 @@ class MutableBytecodeControlFlowGraph extends MutableControlFlowGraph[AbstractOp
 		}
 
 		// check if a block immediately follow the other one
-		def inSequence(v1: V, v2: V) = {
+		@inline def inSequence(v1: V, v2: V) = {
 			verticesIndexMap.get(v2) match {
 				case Some(i) => (i - verticesIndexMap(v1)) == 1
 				case _ => true
@@ -330,5 +343,30 @@ class MutableBytecodeControlFlowGraph extends MutableControlFlowGraph[AbstractOp
 				error("Internal error : Missing new catch op")
 		}
 		new Bytecode(elms.reverse.flatMap(ops => ops), markers, exceptionHandlers.toArray, None)
+	}
+
+	override def edgeToString(edge: E) = {
+		def headLabel(vertex: V) = " headlabel=\"" + ({
+			if (vertex.length == 0)
+				""
+			else {
+				vertex.last match {
+					case op: OpWithMarker => op.marker.toString
+					case _ => ""
+				}
+			}
+		}) + "\""
+
+		"[" + (edge match {
+			case DefaultEdge(x, y) => label("")
+			case JumpEdge(x, y) => label("  jump  ")
+			case TrueEdge(x, y) => label("  true  ")
+			case FalseEdge(x, y) => label("  false  ")
+			case DefaultCaseEdge(x, y) => label("  default  ")
+			case CaseEdge(x, y) => label("  case  ")
+			case NumberedCaseEdge(x, y, n) => label("  case " + n)
+			case ThrowEdge(x, y) => label("  throw  ") + " style=\"dashed\""
+			case ReturnEdge(x, y) => label("  return  ")
+		}) + "]"
 	}
 }

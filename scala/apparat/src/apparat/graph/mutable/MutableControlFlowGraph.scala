@@ -133,6 +133,9 @@ abstract class MutableControlFlowGraph[T, V <: BlockVertex[T]] extends MutableGr
 					case '"' => sb append "\\\""
 					case '>' => sb append "&gt;"
 					case '<' => sb append "&lt;"
+					case '\r' => sb append "\\r"
+					case '\n' => sb append "\\n"
+					case '\t' => sb append "\\t"
 					case c => sb append c
 				}
 				loop(sb, strIndex + 1)

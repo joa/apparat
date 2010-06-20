@@ -140,10 +140,11 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 		@tailrec def terminateTryBlock(from: Int, to: Int) {
 			workList.headOption match {
 				case Some(head) if (head.catchIdx < to) => {
-					if (from > head.catchIdx)
-						error("Internal error : a try can't end after a catch block")
-
-					head.endIdx = from
+					if (from > head.catchIdx) {
+						head.endIdx = to
+					} else {
+						head.endIdx = from
+					}
 					tryCatchList = head :: tryCatchList
 					workList = workList.tail
 					terminateTryBlock(from, to)
@@ -158,15 +159,22 @@ class BytecodeControlFlowGraph[V <: BlockVertex[AbstractOp]](graph: GraphLike[V]
 				for (block <- throws) {
 					workList.find(_.catchIdx == block._1) match {
 						case Some(tb) =>
-						case _ => workList = new TryBlock(verticesIndexMap(v), block._1) :: workList
+						case _ => {
+							if (!tryCatchList.exists(_.catchIdx == block._1))
+								workList = new TryBlock(verticesIndexMap(v), block._1) :: workList
+						}
 					}
 				}
 			} else {
 				// check if we have a jump outside of a catch block
 				// if so this is the end of try block
-				for (jumpEdge <- newGraph.outgoingOf(v).filter(_.isInstanceOf[JumpEdge[_]])) {
-					terminateTryBlock(verticesIndexMap(jumpEdge.startVertex), verticesIndexMap(jumpEdge.endVertex))
-				}
+				newGraph.outgoingOf(v).map(_ match {
+					case JumpEdge(startV, endV) => terminateTryBlock(verticesIndexMap(startV), verticesIndexMap(endV))
+					case TrueEdge(startV, endV) => terminateTryBlock(verticesIndexMap(startV), verticesIndexMap(endV))
+					case FalseEdge(startV, endV) => terminateTryBlock(verticesIndexMap(startV), verticesIndexMap(endV))
+					case ReturnEdge(startV, endV) => terminateTryBlock(verticesIndexMap(startV), vertices.length)
+					case _ =>
+				})
 			}
 		}
 
