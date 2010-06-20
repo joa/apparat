@@ -48,7 +48,7 @@ object AbcSolver {
 	def property(`type`: TaasType, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = {
 		`type` match {
 			case nominalType: TaasNominalType => property(nominalType.nominal, name, numParameters)
-			case _ => error("Nominal type expected.")
+			case _ => error("Nominal type expected, got "+`type`+".")
 		}
 	}
 

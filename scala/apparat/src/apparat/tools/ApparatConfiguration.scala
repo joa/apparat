@@ -2,14 +2,6 @@ package apparat.tools
 
 import scala.collection.mutable.HashMap
 
-/*object ApparatConfiguration {
-  def fromArgs(args: Array[String]) = {
-    val cfg = new ApparatConfiguration
-    cfg parse args
-    cfg
-  }
-}*/
-
 class ApparatConfiguration {
 	private val options = new HashMap[String, String]
 

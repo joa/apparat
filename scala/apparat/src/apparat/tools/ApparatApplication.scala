@@ -3,6 +3,7 @@ package apparat.tools
 import scala.util.Properties
 
 object ApparatApplication {
+	val scalaVersionString = "version 2.8.0.RC5"
 	def apply(tool: ApparatTool, args: Array[String]): Int = {
 		val t0 = System.currentTimeMillis()
 		var result = 0
@@ -10,9 +11,9 @@ object ApparatApplication {
 			ApparatLog("Apparat -- http://apparat.googlecode.com/")
 
 			Properties.versionString match {
-				case "version 2.8.0.RC3" =>
+				case x if x == scalaVersionString =>
 				case other => {
-					ApparatLog err "Apparat requires Scala version 2.8.0.RC3"
+					ApparatLog err "Apparat requires Scala "+scalaVersionString
 					ApparatLog err "Download it here: http://www.scala-lang.org/downloads"
 					return -1
 				}

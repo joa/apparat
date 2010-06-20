@@ -74,11 +74,11 @@ object TurboDieselSportInjection {
 			val source = input
 			val target = output
 			val cont = TagContainer fromFile source
-			val allABC = Map((for(doABC <- cont.tags collect { case doABC: DoABC => doABC }) yield (doABC -> (Abc fromDoABC doABC))):_*)
+			val allABC = (for(doABC <- cont.tags collect { case doABC: DoABC => doABC }) yield (doABC -> (Abc fromDoABC doABC))).toMap
 			val macroExpansion = if(macros) Some(new MacroExpansion(allABC.valuesIterator.toList)) else None
 			val inlineExpansion = if(inline) Some(new InlineExpansion(allABC.valuesIterator.toList)) else None
 
-			for((doABC, abc) <- allABC.iterator) {
+			for((doABC, abc) <- allABC) {
 				abc.loadBytecode()
 				
 				for(method <- abc.methods) {

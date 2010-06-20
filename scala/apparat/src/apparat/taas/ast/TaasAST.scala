@@ -345,6 +345,8 @@ sealed trait TExpr extends Product {
 	def defines(index: Int): Boolean
 	def uses(index: Int): Boolean
 
+	def isConst: Boolean = false
+	
 	override def equals(that: Any) = that match {
 		case expr: TExpr => expr eq this
 		case _ => false
@@ -374,13 +376,18 @@ sealed trait TDef extends TExpr {
 	def register: Int
 }
 
+sealed trait TConst extends TExpr {
+	final override def isConst: Boolean = true
+}
+
 sealed trait TValue extends TExpr with TaasTyped {
-	override def defines(index: Int) = false
-	override def uses(index: Int) = false
+	final override def defines(index: Int) = false
+	final override def uses(index: Int) = false
 	def matches(index: Int) = false
 }
 
 sealed trait TSideEffect
+
 sealed trait TArgumentList {
 	def arguments: List[TValue]
 	def argumentMatches(index: Int): Boolean = {
@@ -395,15 +402,15 @@ sealed trait TArgumentList {
 	}
 }
 
-case object TVoid extends TValue { override def `type` = TaasVoidType }
-case class TInt(value: Int) extends TValue { override def `type` = TaasIntType }
-case class TLong(value: Long) extends TValue { override def `type` = TaasLongType }
-case class TBool(value: Boolean) extends TValue { override def `type` = TaasBooleanType }
-case class TString(value: Symbol) extends TValue { override def `type` = TaasStringType }
-case class TDouble(value: Double) extends TValue { override def `type` = TaasDoubleType }
-case class TClass(value: TaasType) extends TValue { override def `type` = value }
-case class TInstance(value: TaasType) extends TValue { override def `type` = value }
-case class TLexical(value: TaasDefinition) extends TValue {
+case object TVoid extends TValue with TConst { override def `type` = TaasVoidType }
+case class TInt(value: Int) extends TValue with TConst  { override def `type` = TaasIntType }
+case class TLong(value: Long) extends TValue with TConst  { override def `type` = TaasLongType }
+case class TBool(value: Boolean) extends TValue with TConst  { override def `type` = TaasBooleanType }
+case class TString(value: Symbol) extends TValue with TConst  { override def `type` = TaasStringType }
+case class TDouble(value: Double) extends TValue with TConst  { override def `type` = TaasDoubleType }
+case class TClass(value: TaasType) extends TValue with TConst  { override def `type` = value }
+case class TInstance(value: TaasType) extends TValue with TConst  { override def `type` = value }
+case class TLexical(value: TaasDefinition) extends TValue with TConst  {
 	override def `type` = value match {
 		case klass: TaasClass => TaasNominalTypeInstance(klass)
 		case interface: TaasInterface => TaasNominalTypeInstance(interface)
@@ -413,7 +420,7 @@ case class TLexical(value: TaasDefinition) extends TValue {
 		case _ => error("Unexpected lexical "+value+".")
 	}
 }
-case class TReg(index: Int) extends TValue {
+case class TReg(index: Int) extends TValue with TConst {
 	private var _type: TaasType = TaasAnyType
 
 	def typeAs(`type`: TaasType) = _type = `type`
@@ -437,6 +444,7 @@ case class T2(op: TaasUnop, rhs: TValue, result: TReg) extends TDef {
 	override def defines(index: Int) = result.index == index
 	override def uses(index: Int) = rhs matches index
 	override def register = result.index
+	override def isConst: Boolean = rhs.isConst
 }
 
 //result = operand1 op operand2
@@ -447,6 +455,7 @@ case class T3(op: TaasBinop, lhs: TValue, rhs: TValue, result: TReg) extends TDe
 	override def defines(index: Int) = result.index == index
 	override def uses(index: Int) = (lhs matches index) || (rhs matches index)
 	override def register = result.index
+	override def isConst = lhs.isConst && rhs.isConst
 }
 
 //branch if: op rhs
@@ -454,6 +463,7 @@ case class TIf1(op: TaasUnop, rhs: TValue) extends TExpr {
 	override def toString = "if("+op.toString+" "+rhs.toString+")"
 	override def defines(index: Int) = false
 	override def uses(index: Int) = rhs matches index
+	override def isConst: Boolean = rhs.isConst
 }
 
 //branch if: lhs op rhs
@@ -461,6 +471,7 @@ case class TIf2(op: TaasBinop, lhs: TValue, rhs: TValue) extends TExpr {
 	override def toString = "if("+lhs.toString+" "+op.toString+" "+rhs.toString+")"
 	override def defines(index: Int) = false
 	override def uses(index: Int) = (lhs matches index) || (rhs matches index)
+	override def isConst = lhs.isConst && rhs.isConst
 }
 
 case class TJump() extends TExpr {

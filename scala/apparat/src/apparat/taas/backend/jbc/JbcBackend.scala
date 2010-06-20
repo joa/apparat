@@ -37,7 +37,7 @@ class JbcBackend extends TaasBackend {
 
 	override def emit(ast: TaasAST) = {
 		for(nominal <- TaasDependencyGraphBuilder(ast).topsort) {
-			val cw = new JClassWriter(JClassWriter.COMPUTE_MAXS)//COMPUTE_FRAMES)
+			val cw = new JClassWriter(JClassWriter.COMPUTE_MAXS)
 			val cv = new JTraceClassVisitor(cw, new JPrintWriter(System.out))
 
 			cv.visit(
@@ -72,7 +72,7 @@ class JbcBackend extends TaasBackend {
 			val bytes = cw.toByteArray()
 			cv.visitEnd()
 			classMap += nominal.qualifiedName -> bytes
-			JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(System.out))
+			//JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(System.out))
 		}
 
 		val cl = new JbcClassLoader(classMap)
@@ -102,23 +102,22 @@ class JbcBackend extends TaasBackend {
 					case 5 => mv.visitInsn(JOpcodes.ICONST_5)
 					case b if b < 0x80 && b >= -0x80 => mv.visitIntInsn(JOpcodes.BIPUSH, b)
 					case si if si < 0x8000 && si >= -0x8000 => mv.visitIntInsn(JOpcodes.SIPUSH, si)
-					case i  if i < 0x800000 && i >= -0x800000 => mv.visitLdcInsn(JOpcodes.LDC,i)
-					case l => mv.visitLdcInsn(JOpcodes.LDC, l.toLong)
+					case i => mv.visitLdcInsn(new java.lang.Integer(i))
 				}
 				case TLong(value) => value match {
 					case 0L => mv.visitInsn(JOpcodes.LCONST_0)
 					case 1L => mv.visitInsn(JOpcodes.LCONST_1)
-					case l => mv.visitLdcInsn(JOpcodes.LDC, l)
+					case l => mv.visitLdcInsn(new java.lang.Long(l))
 				}
 				case TBool(value) => value match {
 					case true => mv.visitInsn(JOpcodes.ICONST_1)
 					case false => mv.visitInsn(JOpcodes.ICONST_0)
 				}
-				case TString(value) => mv.visitLdcInsn(JOpcodes.LDC, value.name)
+				case TString(value) => mv.visitLdcInsn(value.name)
 				case TDouble(value) => value match {
 					case 0.0 => mv.visitInsn(JOpcodes.DCONST_0)
 					case 1.0 => mv.visitInsn(JOpcodes.DCONST_1)
-					case d => mv.visitLdcInsn(JOpcodes.LDC, d)
+					case d => mv.visitLdcInsn(new java.lang.Double(d))
 				}
 				case TLexical(definition) => definition match {
 					case method: TaasMethod => {
@@ -234,6 +233,10 @@ class JbcBackend extends TaasBackend {
 							unop(operator, rhs)
 							storeByValue(rhs, result)
 						}
+						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => mv.visitIincInsn(result.index, -n)
+						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => mv.visitIincInsn(result.index, -n)
+						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => mv.visitIincInsn(result.index, n)
+						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => mv.visitIincInsn(result.index, n)
 						case T3(operator, lhs, rhs, result) => {
 							load(lhs)
 							load(rhs)
@@ -242,11 +245,24 @@ class JbcBackend extends TaasBackend {
 							storeByType(t, result)
 						}
 						case if2 @ TIf2(op, lhs, rhs) => {
+							val t = TaasType.widen(lhs.`type`, rhs.`type`)
+
 							load(lhs)
+							implicitCast(lhs.`type`, t)
+
 							load(rhs)
+							implicitCast(rhs.`type`, t)
 
 							op match {
-								case TOp_< => mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
+								case TOp_< => {
+									t match {
+										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
+										case TaasDoubleType => {
+											mv.visitInsn(JOpcodes.DCMPG)
+											mv.visitJumpInsn(JOpcodes.IFLT, labels(jumps(if2)(0)))
+										}
+									}
+								}
 							}
 						}
 

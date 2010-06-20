@@ -28,7 +28,7 @@ import apparat.graph.immutable.{Graph, BytecodeControlFlowGraphBuilder}
 import apparat.bytecode.operations._
 import apparat.abc.{Abc, AbcMethod, AbcNominalType, AbcQName}
 import apparat.graph.Edge
-import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer}
+import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer, LivenessAnalysis}
 import apparat.taas.optimization._
 
 /**
@@ -76,19 +76,28 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 				result += Edge.transpose(edge, mapping(edge.startVertex), mapping(edge.endVertex))
 			}
 
-			val taasGraph = new TaasGraph(result, TaasEntry, TaasExit)
+			var taasGraph = new TaasGraph(result, TaasEntry, TaasExit)
 			var modified = false
 
+			//new TaasGraphLinearizer(taasGraph).list foreach println
+			//println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+			
 			do {
-				modified = DeadCodeElimination(taasGraph)
+				modified = false
+				modified |= CopyPropagation(taasGraph)
+				modified |= DeadCodeElimination(taasGraph)
 				modified |= StrengthReduction(taasGraph)
+				/*if(modified) {
+					new TaasGraphLinearizer(taasGraph).list foreach println
+					println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+				}*/
 			} while(modified)
 
-			taasGraph.dotExport to Console.out
+			//taasGraph.dotExport to Console.out
 			println("-------------------------------------------------")
-			new TaasGraphLinearizer(taasGraph).list foreach println
+			new TaasGraphLinearizer(taasGraph).dump()
 			println("=================================================")
-
+			
 			taasGraph
 		} catch {
 			case e => {

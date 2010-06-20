@@ -90,23 +90,23 @@ final class Swf extends Dumpable {
 
 	def foreach(body: SwfTag => Unit) = tags foreach body
 
-	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x1000))(read(_, file length))
+	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x1000))(read(_, file.length))
 
 	def read(pathname: String): Unit = read(new JFile(pathname))
 
 	def read(input: JInputStream, inputLength: Long): Unit = using(new SwfInputStream(input))(read(_, inputLength))
 
-	def read(data: Array[Byte]): Unit = using(new JByteArrayInputStream(data))(read(_, data length))
+	def read(data: Array[Byte]): Unit = using(new JByteArrayInputStream(data))(read(_, data.length))
 
 	def read(swc: Swc): Unit = {
 		swc.library match {
 			case Some(data) => read(data)
-			case None => {}
+			case None =>
 		}
 	}
 
 	def read(input: SwfInputStream, inputLength: Long): Unit = {
-		(input readUI08, input readUI08, input readUI08) match {
+		(input.readUI08(), input.readUI08(), input.readUI08()) match {
 			case (x, 'W', 'S') => compressed = x match {
 				case 'C' => true
 				case 'F' => false
@@ -115,9 +115,9 @@ final class Swf extends Dumpable {
 			case _ => error("Not a SWF file.")
 		}
 
-		version = input readUI08
+		version = input.readUI08()
 
-		val uncompressedLength = input readUI32
+		val uncompressedLength = input.readUI32()
 		val uncompressed = compressed match {
 			case true => {
 				assert(version > 5)
@@ -127,9 +127,9 @@ final class Swf extends Dumpable {
 		}
 
 		try {
-			frameSize = uncompressed readRECT;
-			frameRate = uncompressed readFIXED8;
-			frameCount = uncompressed readUI16
+			frameSize = uncompressed.readRECT()
+			frameRate = uncompressed.readFIXED8()
+			frameCount = uncompressed.readUI16()
 
 			assert(frameSize.minX == 0 && frameSize.minY == 0)
 			assert(frameRate >= 0)
@@ -137,20 +137,23 @@ final class Swf extends Dumpable {
 
 			tags = tagsOf(uncompressed)
 		} finally {
-			if (compressed) {
-				try {uncompressed close ()} catch {case _ => {}}
+			if(compressed) {
+				try {
+					uncompressed.close()
+				} catch {
+					case _ =>
+				}
 			}
 		}
 	}
 
 	private def tagsOf(implicit input: SwfInputStream): List[SwfTag] = {
 		@tailrec def loop(tag: SwfTag, acc: List[SwfTag]): List[SwfTag] = {
-			val result = acc ::: List(tag)
-
-			if (tag.kind == SwfTags.End) result
-			else loop(input.readTAG(), result)
+			val result = tag :: acc
+			if(tag.kind == SwfTags.End) result else loop(input.readTAG(), result)
 		}
-		loop(input.readTAG(), List())
+
+		loop(input.readTAG(), List.empty).reverse
 	}
 
 	def write(file: JFile): Unit = using(new JFileOutputStream(file))(write _)
@@ -160,33 +163,40 @@ final class Swf extends Dumpable {
 	def write(output: JOutputStream): Unit = using(new SwfOutputStream(output))(write _)
 
 	def write(swc: Swc): Unit = {
-		val baos = new JByteArrayOutputStream()
+		val byteArrayOutputStream = new JByteArrayOutputStream()
+
 		try {
-			write(baos)
-			swc.library = Some(baos toByteArray)
+			write(byteArrayOutputStream)
+			swc.library = Some(byteArrayOutputStream.toByteArray)
 		} finally {
-			try {baos.close()} catch {case _ => {}}
+			try {
+				byteArrayOutputStream.close()
+			} catch {
+				case _ =>
+			}
 		}
 	}
 
 	def write(output: SwfOutputStream): Unit = {
-		val baos = new JByteArrayOutputStream(0x08 + (tags.length << 0x03))
-		val buffer = new SwfOutputStream(baos)
+		val byteArrayOutputStream = new JByteArrayOutputStream(0x08 + (tags.length << 0x03))
+		val buffer = new SwfOutputStream(byteArrayOutputStream)
+
 		try {
-			buffer writeRECT (frameSize)
-			buffer writeFIXED8 (frameRate)
-			buffer writeUI16 (frameCount)
-			buffer.flush()
-			tags foreach (buffer writeTAG (_))
+			buffer.writeRECT(frameSize)
+			buffer.writeFIXED8(frameRate)
+			buffer.writeUI16(frameCount)
 			buffer.flush()
 
-			val bytes = baos.toByteArray
+			tags foreach { buffer writeTAG _ }
+			buffer.flush()
+
+			val bytes = byteArrayOutputStream.toByteArray
 
 			buffer.close()
 
-			output write (List[Byte](if (compressed) 'C' else 'F', 'W', 'S') toArray)
-			output writeUI08 version
-			output writeUI32 (8 + bytes.length)
+			output.write(Array[Byte](if (compressed) 'C' else 'F', 'W', 'S'))
+			output.writeUI08(version)
+			output.writeUI32(8 + bytes.length)
 
 			if (compressed) {
 				Deflate.compress(bytes, output)
@@ -195,17 +205,19 @@ final class Swf extends Dumpable {
 			}
 
 			output.flush()
-		}
-		finally {
+		} finally {
 			if (null != buffer) {
-				try {buffer.close()}
-				catch {case _ => {}}
+				try {
+					buffer.close()
+				} catch {
+					case _ =>
+				}
 			}
 		}
 	}
 
 	def uncompress(inputLength: Long, uncompressedLength: Long)(implicit input: JInputStream) = {
-		val totalBytes = (inputLength - 8).asInstanceOf[Int]
+		val totalBytes = (inputLength - 8).asInstanceOf[Int]//magic 8 is static part of header length
 		val inflater = new JInflater()
 		val bufferIn = new Array[Byte](totalBytes)
 		val bufferOut = new Array[Byte]((uncompressedLength - 8).asInstanceOf[Int])
@@ -222,13 +234,13 @@ final class Swf extends Dumpable {
 			}
 		}
 
-		new SwfInputStream(new JByteArrayInputStream(bufferOut));
+		new SwfInputStream(new JByteArrayInputStream(bufferOut))
 	}
 
 	def toByteArray = {
-		val baos = new JByteArrayOutputStream()
-		using(baos) { write _ }
-		baos.toByteArray
+		val byteArrayOutputStream = new JByteArrayOutputStream()
+		using(byteArrayOutputStream) { write _ }
+		byteArrayOutputStream.toByteArray
 	}
 
 	override def dump(writer: IndentingPrintWriter) = {

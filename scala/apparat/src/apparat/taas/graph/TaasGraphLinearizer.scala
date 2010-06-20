@@ -23,11 +23,12 @@ package apparat.taas.graph
 import collection.mutable.ListBuffer
 import apparat.taas.ast.{TJump, TIf1, TIf2, TExpr}
 import apparat.graph.{JumpEdge, DefaultEdge, FalseEdge, TrueEdge}
+import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 /**
  * @author Joa Ebert
  */
-class TaasGraphLinearizer(graph: TaasGraph) {
+class TaasGraphLinearizer(graph: TaasGraph) extends Dumpable {
 	var list = ListBuffer.empty[TExpr]
 	var map = Map.empty[TExpr, ListBuffer[TExpr]]
 	private var visited = graph vertexMap { v => false }
@@ -88,6 +89,44 @@ class TaasGraphLinearizer(graph: TaasGraph) {
 						case other => "Expected jump edge, got "+other+"."
 					}
 				}
+			}
+		}
+	}
+
+	private def sources(element: TExpr): List[TExpr] = {
+		var r = List.empty[TExpr]
+		
+		for((key, value) <- map) {
+			if(value contains element) {
+				r = key :: r
+			}
+		}
+
+		r
+	}
+
+	def dump(writer: IndentingPrintWriter): Unit = {
+		val keyList = map.keySet.toList
+
+		writer.println(list) {
+			element => {
+				val elementString = element.toString
+				val builder = new StringBuilder(elementString.length + 6)
+
+				for(source <- sources(element)) {
+					builder append "L"+(keyList indexOf source)+" "
+				}
+
+				while(builder.length < 6) builder append ' '
+
+				builder append elementString
+
+				(keyList indexOf element) match {
+					case -1 =>
+					case n => builder append (" -> L"+n)
+				}
+				
+				builder.toString
 			}
 		}
 	}

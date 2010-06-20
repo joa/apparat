@@ -20,8 +20,8 @@
  */
 package apparat.taas.optimization
 
-import apparat.taas.graph.TaasGraph
 import apparat.taas.ast._
+import apparat.taas.graph.{TaasBlock, LivenessAnalysis, TaasGraph}
 
 /**
  * @author Joa Ebert
@@ -33,12 +33,51 @@ object DeadCodeElimination {
 		for(vertex <- graph.verticesIterator) {
 			val (m, r) = removeDeadDefs(vertex.block)
 			vertex.block = r
-			modified = m || modified
+			modified |= m
 		}
+
+		val liveness = new LivenessAnalysis(graph)
+
+		for(vertex <- graph.verticesIterator) {
+			val (m, r) = removeDeadDefsInFlow(vertex, liveness)
+			vertex.block = r
+			modified |= m
+		}
+
+		//val (m, r) = removeDeadVerts(graph)
+		//(m || modified, r)
 
 		modified
 	}
 
+	/*error: type mismatch;
+	found   : apparat.graph.ControlFlowGraph[apparat.taas.ast.TExpr,apparat.taas.graph.TaasBlock]
+	required: apparat.taas.graph.TaasGraph
+	result -= vertex*/
+	/*private def removeDeadVerts(graph: TaasGraph) = {
+		var visited = graph vertexMap { vertex => false }
+		var S = List(graph.entryVertex)
+		var modified = false
+
+		while (S.nonEmpty) {
+			val v = S.head
+			S = S.tail
+			if (!visited(v)) {
+				visited = visited updated (v, true)
+				S = (graph successorsOf v filterNot { visited(_) }).toList ::: S
+			}
+		}
+
+		var result = graph
+
+		for((vertex, alive) <- visited.elements if !alive && !graph.isEntry(vertex)) {
+			modified = true
+			result -= vertex
+		}
+
+		(modified, result)
+	}*/
+	
 	private def removeDeadDefs(block: List[TExpr]) = {
 		var r = List.empty[TDef]
 		var h = List.empty[TDef]
@@ -53,6 +92,27 @@ object DeadCodeElimination {
 				}
 				case o => h = h filterNot { o uses _.register }
 			}
+		}
+
+		if(r.nonEmpty) {
+			(true, block filterNot { r contains _ })
+		} else {
+			(false, block)
+		}
+	}
+
+	private def removeDeadDefsInFlow(vertex: TaasBlock, liveness: LivenessAnalysis) = {
+		val block = vertex.block
+		var r = List.empty[TDef]
+
+		for(op <- block) op match {
+			case d: TDef => d match {
+				case wse: TSideEffect =>
+				case o => if(!(block exists { _ uses d.register }) && !(liveness liveOut vertex contains d.register)) {
+					r = d :: r
+				}
+			}
+			case o =>
 		}
 
 		if(r.nonEmpty) {

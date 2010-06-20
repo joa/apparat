@@ -234,10 +234,9 @@ abstract class SwfTag(val kind: Int) {
 	def map[T](f: this.type => T) = f(this)
 }
 
-class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLengthTag
-{
-	private var data: Option[Array[Byte]] = None;
-	private var header: Option[Recordheader] = None;
+class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLengthTag {
+	private var data: Option[Array[Byte]] = None
+	private var header: Option[Recordheader] = None
 
 	override def length = data match {
 		case Some(x) => x.length
@@ -250,8 +249,8 @@ class GenericTag(override val kind: Int) extends SwfTag(kind) with KnownLengthTa
 	}
 
 	override def write(implicit output: SwfOutputStream) = data match {
-		case Some(x) => output write (x)
-		case None => {}
+		case Some(x) => output write x
+		case None =>
 	}
 
 	override def toString() = "[" + (SwfTags toString kind) + "]"

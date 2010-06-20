@@ -177,7 +177,7 @@ object Deflate {
 			bufferPos += 1
 		}
 
-		if(0!= (flags & (1 << 4))) {
+		if(0 != (flags & (1 << 4))) {
 			while(gzipBuffer(bufferPos) != 0x00) {
 				bufferPos += 1
 			}

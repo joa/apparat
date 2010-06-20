@@ -103,7 +103,7 @@ private class SwfStrategy extends TagContainerStrategy {
 
 	override def tags_=(value: List[SwfTag]) = swf match {
 		case Some(x) => x.tags = value
-		case None => {}
+		case None =>
 	}
 
 	override def read(input: JInputStream, length: Long) = {
@@ -113,7 +113,7 @@ private class SwfStrategy extends TagContainerStrategy {
 	override def write(output: JOutputStream) = {
 		swf match {
 			case Some(x) => x write output
-			case None => {}
+			case None =>
 		}
 	}
 }
@@ -129,7 +129,7 @@ private class SwcStrategy extends TagContainerStrategy {
 
 	override def tags_=(value: List[SwfTag]) = swf match {
 		case Some(x) => x.tags = value
-		case None => {}
+		case None =>
 	}
 
 	override def read(input: JInputStream, length: Long) = {

@@ -103,9 +103,11 @@ class SwfInputStream(val input: JInputStream) extends JInputStream {
 		t
 	}
 
+	//List.tabulate(n) { i => bitAt(n - 1 - i) } reduceLeft { _ | _ }
+	//or: while(n > -1) { result |= bitAt(n); n -= 1 }
 	def readUB(n: Int) = ((n - 1) to 0 by -1) map bitAt reduceLeft (_ | _)
 
-	def readUI08() = aligned {read}
+	def readUI08() = aligned { read }
 
 	def readUI16() = aligned {
 		val b0 = readUI08
@@ -123,9 +125,9 @@ class SwfInputStream(val input: JInputStream) extends JInputStream {
 	}
 
 	def readUI64(): BigInt = aligned {
-		val data: Array[Byte] = new Array[Byte](8);
+		val data: Array[Byte] = new Array[Byte](8)
 		assume(read(data) == 8)
-		new BigInt(new java.math.BigInteger(1, data reverse))
+		new BigInt(new java.math.BigInteger(1, data.reverse))
 	}
 
 	def readSB(n: Int) = signed(1 << n, readUB(n))
@@ -138,17 +140,17 @@ class SwfInputStream(val input: JInputStream) extends JInputStream {
 
 	def readSI32() = signed(0x80000000L, readUI32)
 
-	override def available() = input available
+	override def available() = input.available
 
-	override def close() = input close ()
+	override def close() = input.close()
 
-	override def read() = input read ()
+	override def read() = input.read()
 
-	override def read(b: Array[Byte]) = input read (b)
+	override def read(b: Array[Byte]) = input read b
 
-	override def read(b: Array[Byte], off: Int, len: Int) = input read (b, off, len)
+	override def read(b: Array[Byte], off: Int, len: Int) = input.read(b, off, len)
 
-	override def reset() = input reset ()
+	override def reset() = input.reset()
 
 	override def skip(n: Long) = input skip n
 }

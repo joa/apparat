@@ -38,7 +38,11 @@ class ManagedReader[T <: { def close(); def readLine(): String }](resource: T) {
 		try {
 			readAll(f)
 		} finally {
-			resource.close()
+			try {
+				resource.close()
+			} catch {
+				case _ =>
+			}
 		}
 	}
 }

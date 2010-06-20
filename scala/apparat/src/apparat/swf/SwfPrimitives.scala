@@ -20,8 +20,7 @@
  */
 package apparat.swf
 
-object SwfPrimitives
-{
+object SwfPrimitives {
 	implicit def tuple2Recordheader(a: (Int, Int)) = new Recordheader(a._1, a._2)
 
 	implicit def tuple2RGB(a: (Int, Int, Int)) = new RGB(a._1, a._2, a._3)
