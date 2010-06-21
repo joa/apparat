@@ -8,7 +8,9 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>apparat</artifactId>
+  <name>Apparat core framework</name>
+  <description>The core framework of Apparat.</description>
+  <artifactId>apparat-core</artifactId>
   <packaging>jar</packaging>
 
   <build>
