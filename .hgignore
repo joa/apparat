@@ -10,3 +10,6 @@
 java/Apparat.Core/assets/
 scala/apparat/assets/
 scala/apparat/src/Main.scala
+glob:.settings/*
+glob:.classpath
+glob:.project
