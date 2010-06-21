@@ -115,6 +115,15 @@
                 <sourceDir>tests</sourceDir>
               </configuration>
             </execution>
+	    <execution>
+              <id>doc</id>
+              <goals>
+                <goal>doc</goal>
+              </goals>
+              <configuration>
+                <sourceDir>src</sourceDir>
+              </configuration>
+            </execution>
           </executions>
           <configuration>
             <scalaVersion>${scala.version}</scalaVersion>
