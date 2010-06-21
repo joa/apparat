@@ -13,3 +13,4 @@ scala/apparat/src/Main.scala
 glob:.settings/*
 glob:.classpath
 glob:.project
+glob:pom.xml.releaseBackup
