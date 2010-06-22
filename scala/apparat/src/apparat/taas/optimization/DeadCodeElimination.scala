@@ -26,8 +26,17 @@ import apparat.taas.graph.{TaasBlock, LivenessAnalysis, TaasGraph}
 /**
  * @author Joa Ebert
  */
-object DeadCodeElimination {
-	def apply(graph: TaasGraph) = {
+object DeadCodeElimination extends TaasOptimization {
+	def optimize(context: TaasOptimizationContext) = apply(context.
+			code.method map { _.parameters.length } getOrElse -1,
+			context.code.graph) match {
+		case true => context.copy(modified = true)
+		case false => context
+	}
+
+	def apply(graph: TaasGraph): Boolean = apply(-1, graph)
+	
+	def apply(numParameters: Int, graph: TaasGraph): Boolean = {
 		var modified: Boolean = false
 
 		for(vertex <- graph.verticesIterator) {
@@ -36,12 +45,14 @@ object DeadCodeElimination {
 			modified |= m
 		}
 
-		val liveness = new LivenessAnalysis(graph)
+		if(numParameters >= 0) {
+			val liveness = new LivenessAnalysis(numParameters, graph)
 
-		for(vertex <- graph.verticesIterator) {
-			val (m, r) = removeDeadDefsInFlow(vertex, liveness)
-			vertex.block = r
-			modified |= m
+			for(vertex <- graph.verticesIterator) {
+				val (m, r) = removeDeadDefsInFlow(vertex, liveness)
+				vertex.block = r
+				modified |= m
+			}
 		}
 
 		//val (m, r) = removeDeadVerts(graph)
@@ -105,10 +116,9 @@ object DeadCodeElimination {
 		val block = vertex.block
 		var r = List.empty[TDef]
 
-		for(op <- block) op match {
-			case d: TDef => d match {
-				case wse: TSideEffect =>
-				case o => if(!(block exists { _ uses d.register }) && !(liveness liveOut vertex contains d.register)) {
+		for(op <- block if !op.hasSideEffect) op match {
+			case d: TDef => {
+				if(!(block exists { _ uses d.register }) && !(liveness liveOut vertex contains d.register)) {
 					r = d :: r
 				}
 			}

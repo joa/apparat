@@ -21,12 +21,17 @@
 package apparat.taas.optimization
 
 import apparat.taas.graph.TaasGraph
-import apparat.taas.ast.{T2, TConvert, TExpr}
+import apparat.taas.ast._
 
 /**
  * @author Joa Ebert
  */
-object StrengthReduction {
+object StrengthReduction extends TaasOptimization {
+	def optimize(context: TaasOptimizationContext) = apply(context.code.graph) match {
+		case true => context.copy(modified = true)
+		case false => context
+	}
+	
 	def apply(graph: TaasGraph): Boolean = {
 		var modified = false
 
@@ -43,9 +48,33 @@ object StrengthReduction {
 		var result = List.empty[TExpr]
 		var modified: Boolean = false
 
-		for(op <- block) op match {
-			case t2 @ T2(TConvert(t), rhs, result) if t == rhs.`type` => modified = true
-			case o => result = o :: result		
+		for(op <- block) {
+			var default = false
+			op match {
+				// x:type = (type)x ->
+				case t2 @ T2(TConvert(t), rhs, result) if t == rhs.`type` =>
+
+				// x = y:int + y:int -> x = y << 1
+				case T3(TOp_+, lhs: TReg, rhs: TReg, r) if lhs.index == rhs.index && lhs.`type` == TaasIntType => {
+					result = T3(TOp_<<, lhs, TInt(1), r) :: result
+				}
+
+				// x = y - y -> x = 0
+				case t3 @ T3(TOp_-, lhs: TReg, rhs: TReg, r) if lhs.index == rhs.index => {
+					lhs.`type` match {
+						case TaasIntType => result = T2(TOp_Nothing, TInt(0), r) :: result
+						case TaasLongType => result = T2(TOp_Nothing, TLong(0L), r) :: result
+						case TaasDoubleType => result = T2(TOp_Nothing, TDouble(0.0), r) :: result
+						case _ => { default = true; result = t3 :: result }
+					}
+				}
+
+				case o => { default = true; result = o :: result }
+			}
+
+			if(!default) {
+				modified = true
+			}
 		}
 
 		if(modified) {

@@ -20,13 +20,15 @@
  */
 package apparat.taas.graph
 
-import apparat.taas.ast.TDef
 import scala.collection.SortedSet
+import apparat.taas.ast.{TaasCode, TaasMethod, TDef}
 
 /**
  * @author Joa Ebert
  */
-class LivenessAnalysis(graph: TaasGraph) {
+class LivenessAnalysis(numParameters: Int, graph: TaasGraph) {
+	require(numParameters >= 0)
+	
 	def liveIn(vertex: TaasBlock) = inSet(vertex)
 	def liveOut(vertex: TaasBlock) = outSet(vertex)
 	
@@ -53,7 +55,6 @@ class LivenessAnalysis(graph: TaasGraph) {
 
 		var changed = false
 
-		var max = 0
 		do {
 			changed = false
 
@@ -86,9 +87,6 @@ class LivenessAnalysis(graph: TaasGraph) {
 
 				inSet += block -> useSet
 			}
-
-			max += 1
-			if(max == 100) error("100 iterations")
 		} while(changed)
 	}
 
@@ -116,8 +114,7 @@ class LivenessAnalysis(graph: TaasGraph) {
 
 	private def `def`(vertex: TaasBlock) = {
 		if(graph isEntry vertex) {
-			//TODO mark all parameters live!
-			SortedSet(0)
+			SortedSet((0 to numParameters):_*)
 		} else {
 			var result = SortedSet.empty[Int]
 			var i = 0

@@ -37,11 +37,11 @@ class JbcBackend extends TaasBackend {
 
 	override def emit(ast: TaasAST) = {
 		for(nominal <- TaasDependencyGraphBuilder(ast).topsort) {
-			val cw = new JClassWriter(JClassWriter.COMPUTE_MAXS)
+			val cw = new JClassWriter(JClassWriter.COMPUTE_FRAMES)
 			val cv = new JTraceClassVisitor(cw, new JPrintWriter(System.out))
 
 			cv.visit(
-				JOpcodes.V1_5,
+				JOpcodes.V1_6,
 				visibilityOf(nominal) + (nominal match {
 					case i: TaasInterface => JOpcodes.ACC_INTERFACE
 					case _ => JOpcodes.ACC_SUPER
@@ -195,6 +195,7 @@ class JbcBackend extends TaasBackend {
 				case TaasIntType => op match {
 					case TOp_+ => mv.visitInsn(JOpcodes.IADD)
 					case TOp_- => mv.visitInsn(JOpcodes.ISUB)
+					case TOp_<< => mv.visitInsn(JOpcodes.ISHL)
 				}
 			}
 		}

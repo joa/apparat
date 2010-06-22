@@ -22,15 +22,21 @@ package apparat.taas.optimization
 
 import apparat.taas.ast._
 import apparat.taas.graph.TaasGraph
+import annotation.tailrec
 
 /**
  * @author Joa Ebert
  */
-object CopyPropagation {
+object CopyPropagation extends TaasOptimization {
+	def optimize(context: TaasOptimizationContext) = apply(context.code.graph) match {
+		case true => context.copy(modified = true)
+		case false => context
+	}
+
 	def apply(graph: TaasGraph): Boolean = {
 		var modified = false
 		for(vertex <- graph.verticesIterator) {
-			val (m, r) = apply(vertex.block)
+			val (m, r) = propagateValuesAndExpressions(vertex.block)
 			modified |= m
 			vertex.block = r
 		}
@@ -38,7 +44,12 @@ object CopyPropagation {
 		modified
 	}
 
-	def apply(block: List[TExpr]): (Boolean, List[TExpr]) = {
+	def propagateValuesAndExpressions(block: List[TExpr]): (Boolean, List[TExpr]) = {
+		var modified = false
+		var r = List.empty[TExpr]
+		var values = Map.empty[Int, TValue]
+		var exprs = Map.empty[Int, T3]
+
 		@inline def usesValue(register: Int)(t: (Int, TValue)) = t._2 match {
 			case TReg(index) if register == index => true
 			case _ => false
@@ -50,10 +61,17 @@ object CopyPropagation {
 			case _ => false
 		}
 
-		var modified = false
-		var r = List.empty[TExpr]
-		var values = Map.empty[Int, TValue]
-		var exprs = Map.empty[Int, T3]
+		@inline def update(index: Int, valuef: Map[Int, TValue] => Map[Int, TValue], exprf: Map[Int, T3] => Map[Int, T3]): Unit = {
+			values = valuef(values filterNot { usesValue(index) _ })
+			exprs = exprf(exprs filterNot { usesExpr(index) _ })
+		}
+
+		@inline def map(original: TExpr): TExpr = {
+			val (m, n) = copy(original, values)
+			modified |= m
+			r = n :: r
+			n
+		}
 
 		for(op <- block) {
 			op match {
@@ -61,46 +79,31 @@ object CopyPropagation {
 					(exprs get rhs.index) match {
 						case Some(expr) => {
 							val n = T3(expr.op, expr.lhs, expr.rhs, result)
+
 							modified = true
 							r = n :: r
-							values = (values filterNot { usesValue(result.index) _ }) - result.index
-							exprs = (exprs filterNot { usesExpr(result.index) _ }) + (result.index -> n)
+
+							update(result.index, _ - result.index, _ + (result.index -> n))
 						}
 						case None => {
-							val (m, n) = copy(t2, values)
-							modified |= m
-							r = n :: r
-							values = (values filterNot { usesValue(result.index) _ }) + (result.index -> n.asInstanceOf[T2].rhs)
-							exprs = (exprs filterNot { usesExpr(result.index) _ }) - result.index
+							val n = map(t2)
+							update(result.index, _ + (result.index -> n.asInstanceOf[T2].rhs), _ - result.index)
 						}
 					}
 				}
 				case t2 @ T2(op, rhs, result) if op == TOp_Nothing => {
-					val (m, n) = copy(t2, values)
-					modified |= m
-					r = n :: r
-					values = (values filterNot { usesValue(result.index) _ }) + (result.index -> n.asInstanceOf[T2].rhs)
-					exprs = (exprs filterNot { usesExpr(result.index) _ }) - result.index
+					val n = map(t2)
+					update(result.index, _ + (result.index -> n.asInstanceOf[T2].rhs), _ - result.index)
 				}
 				case t3 @ T3(op, lhs, rhs, result) => {
-					val (m, n) = copy(t3, values)
-					modified |= m
-					r = n :: r
-					values = (values filterNot { usesValue(result.index) _ }) - result.index
-					exprs = (exprs filterNot { usesExpr(result.index) _ }) + (result.index -> n.asInstanceOf[T3])
+					val n = map(t3)
+					update(result.index, _ - result.index, _ + (result.index -> n.asInstanceOf[T3]))
 				}
 				case tdef: TDef => {
-					val (m, n) = copy(tdef, values)
-					modified |= m
-					r = n :: r
-					values = (values filterNot { usesValue(tdef.register) _ }) - tdef.register
-					exprs = (exprs filterNot { usesExpr(tdef.register) _ }) - tdef.register
+					map(tdef)
+					update(tdef.register, _ - tdef.register, _ - tdef.register)
 				}
-				case o => {
-					val (m, n) = copy(o, values)
-					modified |= m
-					r = n :: r
-				}
+				case o => map(o)
 			}
 		}
 

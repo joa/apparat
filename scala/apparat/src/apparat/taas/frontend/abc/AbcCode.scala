@@ -85,7 +85,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 			do {
 				modified = false
 				modified |= CopyPropagation(taasGraph)
-				modified |= DeadCodeElimination(taasGraph)
+				modified |= DeadCodeElimination(method.parameters.length, taasGraph)
 				modified |= StrengthReduction(taasGraph)
 				/*if(modified) {
 					new TaasGraphLinearizer(taasGraph).list foreach println

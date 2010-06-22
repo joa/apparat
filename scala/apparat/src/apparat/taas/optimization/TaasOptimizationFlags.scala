@@ -18,31 +18,12 @@
  * http://www.joa-ebert.com/
  *
  */
-package apparat.taas
-
-import ast._
-import backend.TaasBackend
-import frontend.TaasFrontend
-import optimization.{CopyPropagation, DeadCodeElimination, StrengthReduction, TaasOptimizer}
+package apparat.taas.optimization
 
 /**
  * @author Joa Ebert
  */
-class TaasCompiler(val frontend: TaasFrontend, val backend: TaasBackend) {
-	def compile() = backend emit transform(frontend.getAST)
-
-	def transform(ast: TaasAST) = {
-		def loop(tree: TaasTree): Unit = tree match {
-			case method: TaasMethod => optimizer optimize method
-			case parent: TaasParent => parent.children foreach loop
-			case _ =>
-		}
-		ast.units collect { case target: TaasTarget => target } foreach loop
-		ast
-	}
-
-	val optimizer = new TaasOptimizer(
-		CopyPropagation :: DeadCodeElimination :: StrengthReduction :: Nil,
-		0
-	)
+object TaasOptimizationFlags {
+	val NONE = 0
+	val SSA = 1 << 0
 }

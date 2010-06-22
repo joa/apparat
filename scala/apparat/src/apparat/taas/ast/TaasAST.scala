@@ -28,7 +28,7 @@ import apparat.taas.graph.TaasGraph
  * @author Joa Ebert
  */
 sealed trait TaasTree extends Dumpable {
-	override def dump(writer: IndentingPrintWriter) = {
+	override def dump(writer: IndentingPrintWriter): Unit = {
 		writer <= toString
 		this match {
 			case parent: TaasParent => {
@@ -214,6 +214,14 @@ case class TaasMethod(
 		visitor visit this
 		children foreach { _ accept visitor }
 	}
+
+	override def setParent(parent: TaasParent) = {
+		super.setParent(parent)
+		code match {
+			case Some(code) => code.method = Some(this)
+			case None =>
+		}
+	}
 }
 
 abstract class TaasCode extends Dumpable {
@@ -225,6 +233,8 @@ abstract class TaasCode extends Dumpable {
 			graph dump writer
 		}
 	}
+
+	var method: Option[TaasMethod] = None
 }
 
 case class TaasParameter(
@@ -346,7 +356,8 @@ sealed trait TExpr extends Product {
 	def uses(index: Int): Boolean
 
 	def isConst: Boolean = false
-	
+	def hasSideEffect: Boolean = false
+
 	override def equals(that: Any) = that match {
 		case expr: TExpr => expr eq this
 		case _ => false
@@ -386,7 +397,9 @@ sealed trait TValue extends TExpr with TaasTyped {
 	def matches(index: Int) = false
 }
 
-sealed trait TSideEffect
+sealed trait TSideEffect extends TExpr {
+	final override def hasSideEffect: Boolean = true
+}
 
 sealed trait TArgumentList {
 	def arguments: List[TValue]
@@ -420,7 +433,7 @@ case class TLexical(value: TaasDefinition) extends TValue with TConst  {
 		case _ => error("Unexpected lexical "+value+".")
 	}
 }
-case class TReg(index: Int) extends TValue with TConst {
+case class TReg(index: Int) extends TValue {
 	private var _type: TaasType = TaasAnyType
 
 	def typeAs(`type`: TaasType) = _type = `type`
