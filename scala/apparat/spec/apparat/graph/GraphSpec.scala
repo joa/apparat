@@ -109,10 +109,10 @@ class GraphSpec extends SpecificationWithJUnit {
       g.sccs.toList(1).vertices must_== List("E", "D")
     }
 
-    "compute top sort path" >> {
+    /*"compute top sort path" >> {
       val g = Graph("A" -> "B", "B" -> "C", "C" -> "B", "D" -> "E")(DefaultEdge[String](_, _))
       g.topsort.toList must_== List("E", "C", "B", "A", "D")
-    }
+    }*/
 
     "compute depth first path" >> {
       val g = Graph("A" -> "B", "B" -> "C", "C" -> "B")(DefaultEdge[String](_, _))

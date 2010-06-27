@@ -1,17 +1,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>2</version>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.googlecode.apparat</groupId>
   <artifactId>apparat-aggregator</artifactId>
-  <name>apparat</name>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <name>Apparat Aggregator</name>
   <description>A framework to optimize ABC, SWC and SWF files.</description>
   <url>http://code.google.com/p/apparat/</url>
   
   <issueManagement>
     <system>google</system>
-	<url>http://code.google.com/p/apparat/issues/list</url>
+    <url>http://code.google.com/p/apparat/issues/list</url>
   </issueManagement>
   
   <distributionManagement>
@@ -20,6 +25,11 @@
       <name>Sonatype Nexus Snapshots</name>
       <url>http://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
+    <repository> 
+      <id>sonatype-nexus-staging</id> 
+      <name>Nexus Release Repository</name> 
+      <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url> 
+    </repository> 
   </distributionManagement>
 	
   <developers>
@@ -52,8 +62,8 @@
   </contributors>
   
   <scm>
-    <connection>http://apparat.googlecode.com/hg/</connection>
-    <developerConnection>https://apparat.googlecode.com/hg/</developerConnection>
+    <connection>scm:hg:http://apparat.googlecode.com/hg/</connection>
+    <developerConnection>scm:hg:https://apparat.googlecode.com/hg/</developerConnection>
     <url>http://code.google.com/p/apparat/source/browse/</url>
   </scm>
 
@@ -105,11 +115,20 @@
                 <sourceDir>tests</sourceDir>
               </configuration>
             </execution>
+	    <execution>
+              <id>doc</id>
+              <goals>
+                <goal>doc</goal>
+              </goals>
+              <configuration>
+                <sourceDir>src</sourceDir>
+              </configuration>
+            </execution>
           </executions>
           <configuration>
             <scalaVersion>${scala.version}</scalaVersion>
-			<jvmArgs>
-              <arg>-Xmx512M</arg>
+	    <jvmArgs>
+	      <arg>-Xmx512M</arg>
               <arg>-Xss2M</arg>
             </jvmArgs> 
           </configuration>
