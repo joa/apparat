@@ -101,7 +101,11 @@ object DeadCodeElimination extends TaasOptimization {
 				case d: TDef => {
 					val p = h partition { h => h.register == d.register && !(d uses h.register) }
 					r = p._1 ::: r
-					h = d :: (p._2 filterNot { d uses _.register })
+					if(!d.hasSideEffect) {
+						h = d :: (p._2 filterNot { d uses _.register })
+					} else {
+						h = p._2 filterNot { d uses _.register }
+					}
 				}
 				case o => h = h filterNot { o uses _.register }
 			}
