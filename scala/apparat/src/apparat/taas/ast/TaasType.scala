@@ -26,15 +26,21 @@ package apparat.taas.ast
 sealed trait TaasType
 
 object TaasType {
-	def widen(a: TaasType, b: TaasType): TaasType = {
-		if(a == b) { a
-		} else if(a == TaasStringType || b == TaasStringType) { TaasStringType
-		} else if(a == TaasDoubleType || b == TaasDoubleType) { TaasDoubleType
-		} else if((a == TaasLongType && b != TaasLongType) || (a != TaasLongType && b == TaasLongType)) { TaasDoubleType
-		} else if(a == TaasIntType || b == TaasIntType) { TaasIntType
-		} else { error("Cannot widen types "+a+" and "+b+".")
+	def widenOption(a: TaasTyped, b: TaasTyped): Option[TaasType] = widenOption(a.`type`, b.`type`)
+
+	def widenOption(a: TaasType, b: TaasType): Option[TaasType] = {
+		if(a == b) { Some(a)
+		} else if(a == TaasStringType || b == TaasStringType) { Some(TaasStringType)
+		} else if(a == TaasDoubleType || b == TaasDoubleType) { Some(TaasDoubleType)
+		} else if((a == TaasLongType && b != TaasLongType) || (a != TaasLongType && b == TaasLongType)) { Some(TaasDoubleType)
+		} else if(a == TaasIntType || b == TaasIntType) { Some(TaasIntType)
+		} else { None
 		}
 	}
+
+	def widen(a: TaasTyped, b: TaasTyped): TaasType = widen(a.`type`, b.`type`)
+
+	def widen(a: TaasType, b: TaasType): TaasType = widenOption(a, b) getOrElse error("Cannot widen types "+a+" and "+b+".")
 }
 
 object TaasAnyType extends TaasType {

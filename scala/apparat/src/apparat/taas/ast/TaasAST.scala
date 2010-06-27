@@ -348,6 +348,36 @@ case object TOp_!   extends TaasUnop("!")
 case object TOp_true extends TaasUnop("true ==")
 case object TOp_false extends TaasUnop("false ==")
 
+/*
+for a match on all binops:
+
+op match {
+	case TOp_+   =>
+	case TOp_-   =>
+	case TOp_*   =>
+	case TOp_/   =>
+	case TOp_%   =>
+	case TOp_&   =>
+	case TOp_^   =>
+	case TOp_|   =>
+	case TOp_<<  =>
+	case TOp_>>  =>
+	case TOp_>>> =>
+	case TOp_==  =>
+	case TOp_>=  =>
+	case TOp_>   =>
+	case TOp_<=  =>
+	case TOp_<   =>
+	case TOp_!=  =>
+	case TOp_!>= =>
+	case TOp_!>  =>
+	case TOp_!<= =>
+	case TOp_!<  =>
+	case TOp_=== =>
+	case TOp_!== =>
+}
+*/
+
 case class TConvert(`type`: TaasType) extends TaasUnop("(convert "+`type`+")")
 case class TCoerce(`type`: TaasType) extends TaasUnop("("+`type`+")")
 
@@ -387,14 +417,15 @@ sealed trait TDef extends TExpr {
 	def register: Int
 }
 
-sealed trait TConst extends TExpr {
-	final override def isConst: Boolean = true
-}
-
 sealed trait TValue extends TExpr with TaasTyped {
 	final override def defines(index: Int) = false
 	final override def uses(index: Int) = false
 	def matches(index: Int) = false
+}
+
+sealed trait TConst extends TValue {
+	final override def isConst: Boolean = true
+	final override def hasSideEffect: Boolean = false
 }
 
 sealed trait TSideEffect extends TExpr {
@@ -415,15 +446,15 @@ sealed trait TArgumentList {
 	}
 }
 
-case object TVoid extends TValue with TConst { override def `type` = TaasVoidType }
-case class TInt(value: Int) extends TValue with TConst  { override def `type` = TaasIntType }
-case class TLong(value: Long) extends TValue with TConst  { override def `type` = TaasLongType }
-case class TBool(value: Boolean) extends TValue with TConst  { override def `type` = TaasBooleanType }
-case class TString(value: Symbol) extends TValue with TConst  { override def `type` = TaasStringType }
-case class TDouble(value: Double) extends TValue with TConst  { override def `type` = TaasDoubleType }
-case class TClass(value: TaasType) extends TValue with TConst  { override def `type` = value }
-case class TInstance(value: TaasType) extends TValue with TConst  { override def `type` = value }
-case class TLexical(value: TaasDefinition) extends TValue with TConst  {
+case object TVoid extends TValue { override def `type` = TaasVoidType }
+case class TInt(value: Int) extends TConst { override def `type` = TaasIntType }
+case class TLong(value: Long) extends TConst { override def `type` = TaasLongType }
+case class TBool(value: Boolean) extends TConst { override def `type` = TaasBooleanType }
+case class TString(value: Symbol) extends TConst { override def `type` = TaasStringType }
+case class TDouble(value: Double) extends TConst { override def `type` = TaasDoubleType }
+case class TClass(value: TaasType) extends TConst { override def `type` = value }
+case class TInstance(value: TaasType) extends TConst { override def `type` = value }
+case class TLexical(value: TaasDefinition) extends TValue {
 	override def `type` = value match {
 		case klass: TaasClass => TaasNominalTypeInstance(klass)
 		case interface: TaasInterface => TaasNominalTypeInstance(interface)
@@ -462,7 +493,7 @@ case class T2(op: TaasUnop, rhs: TValue, result: TReg) extends TDef {
 
 //result = operand1 op operand2
 case class T3(op: TaasBinop, lhs: TValue, rhs: TValue, result: TReg) extends TDef {
-	result typeAs TaasType.widen(lhs.`type`, rhs.`type`)
+	result typeAs TaasType.widen(lhs, rhs)
 
 	override def toString = result.toString+" = "+lhs.toString+" "+op.toString+" "+rhs.toString
 	override def defines(index: Int) = result.index == index

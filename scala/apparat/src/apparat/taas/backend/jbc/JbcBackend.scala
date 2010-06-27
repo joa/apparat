@@ -188,7 +188,7 @@ class JbcBackend extends TaasBackend {
 		}
 
 		@inline def binop(op: TaasBinop, lhs: TValue, rhs: TValue): Unit = binopWithType(op, lhs, rhs,
-			TaasType.widen(lhs.`type`, rhs.`type`))
+			TaasType.widen(lhs, rhs))
 
 		@inline def binopWithType(op: TaasBinop, lhs: TValue, rhs: TValue, `type`: TaasType): Unit = {
 			`type` match {
@@ -241,12 +241,12 @@ class JbcBackend extends TaasBackend {
 						case T3(operator, lhs, rhs, result) => {
 							load(lhs)
 							load(rhs)
-							val t = TaasType.widen(lhs.`type`, rhs.`type`)
+							val t = TaasType.widen(lhs, rhs)
 							binopWithType(operator, lhs, rhs, t)
 							storeByType(t, result)
 						}
 						case if2 @ TIf2(op, lhs, rhs) => {
-							val t = TaasType.widen(lhs.`type`, rhs.`type`)
+							val t = TaasType.widen(lhs, rhs)
 
 							load(lhs)
 							implicitCast(lhs.`type`, t)
