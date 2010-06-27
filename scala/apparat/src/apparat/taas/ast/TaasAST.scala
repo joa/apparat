@@ -470,7 +470,7 @@ case class TReg(index: Int) extends TValue {
 	def typeAs(`type`: TaasType) = _type = `type`
 
 	override def `type` = _type
-	override def toString = "r"+index
+	override def toString = "r"+index+":"+_type
 	override def matches(index: Int) = this.index == index
 }
 

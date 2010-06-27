@@ -124,9 +124,11 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 	}
 	
 	private def mapVertex[V <: BlockVertex[AbstractOp]](vertex: V, stack: (Int, Int))(implicit registers: List[TReg]) = {
+		var r = List.empty[TExpr]
 		var operandStack = stack._1
 		var scopeStack = stack._2
 
+		@inline def pp(expr: TExpr) = r = expr :: r
 		@inline def register(i: Int): TReg = registers(i)
 		@inline def operand(i: Int): TReg = registers(i + numRegisters)
 		@inline def push(value: TValue): TExpr = { val o = operandStack; operandStack += 1; T2(TOp_Nothing, value, operand(o)) }
@@ -152,205 +154,214 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 			TIf2(op, lhs, rhs)
 		}
 		@inline def arguments(n: Int): List[TReg] = List.fill(n) { pop() }.reverse
-		@inline def ignored = TNop()
 
-		new TaasBlock(vertex.block map {
-			op => {
-				val operandStackBefore = operandStack
-				val scopeStackBefore = scopeStack
-				
-				val result = op match {
-					case Add() | AddInt() => binop(TOp_+)
-					case ApplyType(numArguments) => TODO(op)
-					case AsType(typeName) => TODO(op)
-					case AsTypeLate() => TODO(op)
-					case BitAnd() => binop(TOp_&)
-					case BitNot() => unop(TOp_~)
-					case BitOr() => binop(TOp_|)
-					case BitXor() => binop(TOp_^)
-					case Breakpoint() | BreakpointLine() => ignored
-					case Call(numArguments) => TODO(op)
-					case CallMethod(index, numArguments) => TODO(op)
-					case CallProperty(property, numArguments) => {
-						val args = arguments(numArguments)
-						val obj = pop()
-						val method = AbcSolver.property(obj.`type`, property, numArguments) match {
-							case Some(method: TaasMethod) => method
-							case _ => error("Could not find property "+property+" on "+obj.`type`)
-						}
-						TCall(obj, method, args, Some(nextOperand))
-					}
-					case CallPropLex(property, numArguments) => TODO(op)
-					case CallPropVoid(property, numArguments) => {
-						val args = arguments(numArguments)
-						val obj = pop()
-						val method = AbcSolver.property(obj.`type`, property, numArguments) match {
-							case Some(method: TaasMethod) => method
-							case _ => error("Could not find property "+property+" on "+obj.`type`)
-						}
-						TCall(obj, method, args, None)
-					}
-					case CallStatic(method, numArguments) => TODO(op)
-					case CallSuper(property, numArguments) => TODO(op)
-					case CallSuperVoid(property, numArguments) => TODO(op)
-					case CheckFilter() => TODO(op)
-					case Coerce(typeName) => typeName match {
-						case qname: AbcQName => unop(TCoerce(AbcTypes fromQName qname))
-						case other => error("Unexpected Coerce("+other+").")
-					}
-					case CoerceAny() => unop(TCoerce(TaasAnyType))
-					case CoerceBoolean() => unop(TCoerce(TaasBooleanType))
-					case CoerceDouble() => unop(TCoerce(TaasDoubleType))
-					case CoerceInt() => unop(TCoerce(TaasIntType))
-					case CoerceObject() => unop(TCoerce(TaasObjectType))
-					case CoerceString() => unop(TCoerce(TaasStringType))
-					case CoerceUInt() => unop(TCoerce(TaasLongType))
-					case Construct(numArguments) => {
-						val args = arguments(numArguments)
-						TConstruct(pop(), args)
-					}
-					case ConstructProp(property, numArguments) => TODO(op)
-					case ConstructSuper(numArguments) => {
-						val args = arguments(numArguments)
-						TSuper(pop(), args)
-					}
-					case ConvertBoolean() => unop(TConvert(TaasBooleanType))
-					case ConvertDouble() => unop(TConvert(TaasDoubleType))
-					case ConvertInt() => unop(TConvert(TaasIntType))
-					case ConvertObject() => unop(TConvert(TaasObjectType))
-					case ConvertString() => unop(TConvert(TaasStringType))
-					case ConvertUInt() => unop(TConvert(TaasLongType))
-					case Debug(kind, name, register, extra) => TODO(op)
-					case DebugFile(file) => ignored
-					case DebugLine(line) => ignored
-					case DecLocal(index) => T3(TOp_-, register(index), TInt(1), register(index))
-					case DecLocalInt(index) => T3(TOp_-, register(index), TInt(1), register(index))
-					case Decrement() | DecrementInt() => {
-						val lhs = pop()
-						val result = operand(operandStack)
-						operandStack += 1
-						T3(TOp_-, lhs, TInt(1), result)
-					}
-					case DeleteProperty(property) => TODO(op)
-					case Divide() => binop(TOp_/)
-					case Dup() => TODO(op)
-					case DefaultXMLNamespace(uri) => TODO(op)
-					case DefaultXMLNamespaceLate() => TODO(op)
-					case Equals() => TODO(op)
-					case EscapeXMLAttribute() => TODO(op)
-					case EscapeXMLElement() => TODO(op)
-					case FindProperty(property) => TODO(op)
-					case FindPropStrict(property) => property match {
-						case qname: AbcQName => push(TLexical((AbcTypes fromQName qname).nominal))
-						case _ => error("QName expected.")
-					}
-					case GetDescendants(property) => TODO(op)
-					case GetGlobalScope() => TODO(op)
-					case GetGlobalSlot(slot) => TODO(op)
-					case GetLex(typeName) => push(TLexical(AbcSolver getLexical (scopeType, isStatic, typeName) getOrElse error("Could not solve "+typeName+" on "+scopeType+".")))
-					case GetLocal(index: Int) => push(register(index))
-					case GetProperty(property) => {
-						val obj = pop()
-						AbcSolver.getProperty(obj.`type`, property) match {
-							case Some(method: TaasMethod) => TCall(obj, method, List.empty, Some(nextOperand))
-							case Some(field: TaasField) => TLoad(obj, field, nextOperand)
-							case _ => error("Could not find property "+property+" on "+obj.`type`)
-						}
-					}
-					case GetScopeObject(index) => TODO(op)
-					case GetSlot(slot) => TODO(op)
-					case GetSuper(property) => TODO(op)
-					case GreaterEquals() | GreaterThan() => TODO(op)
-					case HasNext() => TODO(op)
-					case HasNext2(objectRegister, indexRegister) => TODO(op)
-					case IfEqual(marker) => if2(TOp_==)
-					case IfFalse(marker) => if1(TOp_false)
-					case IfGreaterEqual(marker) => if2(TOp_>=)
-					case IfGreaterThan(marker) => if2(TOp_>)
-					case IfLessEqual(marker) => if2(TOp_<=)
-					case IfLessThan(marker) => if2(TOp_<)
-					case IfNotEqual(marker) => if2(TOp_!=)
-					case IfNotGreaterEqual(marker) => if2(TOp_!>=)
-					case IfNotGreaterThan(marker) => if2(TOp_!>)
-					case IfNotLessEqual(marker) => if2(TOp_!<=)
-					case IfNotLessThan(marker) => if2(TOp_!<)
-					case IfStrictEqual(marker) => if2(TOp_===)
-					case IfStrictNotEqual(marker) => if2(TOp_!==)
-					case IfTrue(marker) => if1(TOp_true)
-					case In() => TODO(op)
-					case IncLocal(index) => T3(TOp_+, register(index), TInt(1), register(index))
-					case IncLocalInt(index) => T3(TOp_+, register(index), TInt(1), register(index))
-					case Increment() | IncrementInt() => {
-						val lhs = pop()
-						val result = operand(operandStack)
-						operandStack += 1
-						T3(TOp_+, lhs, TInt(1), result)
-					}
-					case InitProperty(property) => TODO(op)
-					case InstanceOf() => TODO(op)
-					case IsType(typeName) => TODO(op)
-					case IsTypeLate() => TODO(op)
-					case Jump(marker) => ignored
-					case Kill(register) => ignored
-					case Label() => ignored
-					case LessEquals() | LessThan() => TODO(op)
-					case LookupSwitch(defaultCase, cases) => TODO(op)
-					case ShiftLeft() => TODO(op)
-					case Modulo() => binop(TOp_%)
-					case Multiply() | MultiplyInt() => binop(TOp_*)
-					case Negate() | NegateInt() => TODO(op)
-					case NewActivation() => TODO(op)
-					case NewArray(numArguments) => TODO(op)
-					case NewCatch(exceptionHandler) => TODO(op)
-					case NewClass(nominalType) => TODO(op)
-					case NewFunction(function) => TODO(op)
-					case NewObject(numArguments) => TODO(op)
-					case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() => TODO(op)
-					case PushByte(value) => push(TInt(value))
-					case PushDouble(value) => push(TDouble(value))
-					case PushFalse() => push(TBool(false))
-					case PushInt(value) => push(TInt(value))
-					case PushNamespace(value) => TODO(op)
-					case PushNaN() => push(TDouble(Double.NaN))
-					case PushNull() => TODO(op)
-					case PushScope() => { pop(); ignored }
-					case PushShort(value) => push(TInt(value))
-					case PushString(value) => push(TString(value))
-					case PushTrue() => push(TBool(true))
-					case PushUInt(value) => push(TLong(value))
-					case PushUndefined() | PushWith() => TODO(op)
-					case ReturnValue() => TReturn(pop())
-					case ReturnVoid() => TReturn(TVoid)
-					case ShiftRight() => TODO(op)
-					case SetLocal(index) => T2(TOp_Nothing, pop(), register(index))
-					case SetGlobalSlot(slot) => TODO(op)
-					case SetProperty(property) => {
-						val arg = pop()
-						val obj = pop()
-						AbcSolver.setProperty(obj.`type`, property) match {
-							case Some(method: TaasMethod) => TCall(obj, method, arg :: Nil, None)
-							case Some(field: TaasField) => TStore(obj, field, arg)
-							case _ => error("Could not find property "+property+" on "+obj.`type`)
-						}
-					}
-					case SetSlot(slot) => TODO(op)
-					case SetSuper(property) => TODO(op)
-					case StrictEquals() => TODO(op)
-					case Subtract() | SubtractInt() => binop(TOp_-)
-					case Swap() => TODO(op)
-					case Throw() | TypeOf() | ShiftRightUnsigned() => TODO(op)
-					case SetByte() | SetShort() | SetInt() | SetFloat() | SetDouble() => TODO(op)
-					case GetByte() | GetShort() | GetInt() | GetFloat() | GetDouble() => TODO(op)
-					case Sign1() | Sign8() | Sign16() => TODO(op)
-				}
+		for(op <- vertex.block) {
+			val operandStackBefore = operandStack
+			val scopeStackBefore = scopeStack
 
-				if((operandStackBefore + op.operandDelta) != operandStack) {
-					error("Wrong operand-stack delta for "+op+". Got "+operandStackBefore+" -> "+operandStack+", expected "+operandStackBefore+" -> "+(operandStackBefore + op.operandDelta))
+			op match {
+				case Add() | AddInt() => pp(binop(TOp_+))
+				case ApplyType(numArguments) => TODO(op)
+				case AsType(typeName) => TODO(op)
+				case AsTypeLate() => TODO(op)
+				case BitAnd() => pp(binop(TOp_&))
+				case BitNot() => pp(unop(TOp_~))
+				case BitOr() => pp(binop(TOp_|))
+				case BitXor() => pp(binop(TOp_^))
+				case Breakpoint() | BreakpointLine() =>
+				case Call(numArguments) => TODO(op)
+				case CallMethod(index, numArguments) => TODO(op)
+				case CallProperty(property, numArguments) => {
+					val args = arguments(numArguments)
+					val obj = pop()
+					val method = AbcSolver.property(obj.`type`, property, numArguments) match {
+						case Some(method: TaasMethod) => method
+						case _ => error("Could not find property "+property+" on "+obj.`type`)
+					}
+					pp(TCall(obj, method, args, Some(nextOperand)))
 				}
-				
-				result
+				case CallPropLex(property, numArguments) => TODO(op)
+				case CallPropVoid(property, numArguments) => {
+					val args = arguments(numArguments)
+					val obj = pop()
+					val method = AbcSolver.property(obj.`type`, property, numArguments) match {
+						case Some(method: TaasMethod) => method
+						case _ => error("Could not find property "+property+" on "+obj.`type`)
+					}
+					pp(TCall(obj, method, args, None))
+				}
+				case CallStatic(method, numArguments) => TODO(op)
+				case CallSuper(property, numArguments) => TODO(op)
+				case CallSuperVoid(property, numArguments) => TODO(op)
+				case CheckFilter() => TODO(op)
+				case Coerce(typeName) => typeName match {
+					case qname: AbcQName => pp(unop(TCoerce(AbcTypes fromQName qname)))
+					case other => error("Unexpected Coerce("+other+").")
+				}
+				case CoerceAny() => pp(unop(TCoerce(TaasAnyType)))
+				case CoerceBoolean() => pp(unop(TCoerce(TaasBooleanType)))
+				case CoerceDouble() => pp(unop(TCoerce(TaasDoubleType)))
+				case CoerceInt() => pp(unop(TCoerce(TaasIntType)))
+				case CoerceObject() => pp(unop(TCoerce(TaasObjectType)))
+				case CoerceString() => pp(unop(TCoerce(TaasStringType)))
+				case CoerceUInt() => pp(unop(TCoerce(TaasLongType)))
+				case Construct(numArguments) => {
+					val args = arguments(numArguments)
+					pp(TConstruct(pop(), args))
+				}
+				case ConstructProp(property, numArguments) => TODO(op)
+				case ConstructSuper(numArguments) => {
+					val args = arguments(numArguments)
+					pp(TSuper(pop(), args))
+				}
+				case ConvertBoolean() => pp(unop(TConvert(TaasBooleanType)))
+				case ConvertDouble() => pp(unop(TConvert(TaasDoubleType)))
+				case ConvertInt() => pp(unop(TConvert(TaasIntType)))
+				case ConvertObject() => pp(unop(TConvert(TaasObjectType)))
+				case ConvertString() => pp(unop(TConvert(TaasStringType)))
+				case ConvertUInt() => pp(unop(TConvert(TaasLongType)))
+				case Debug(kind, name, register, extra) =>
+				case DebugFile(file) =>
+				case DebugLine(line) =>
+				case DecLocal(index) => pp(T3(TOp_-, register(index), TInt(1), register(index)))
+				case DecLocalInt(index) => pp(T3(TOp_-, register(index), TInt(1), register(index)))
+				case Decrement() | DecrementInt() => {
+					val lhs = pop()
+					val result = operand(operandStack)
+					operandStack += 1
+					pp(T3(TOp_-, lhs, TInt(1), result))
+				}
+				case DeleteProperty(property) => TODO(op)
+				case Divide() => {
+					val rhs = pop()
+					val lhs = pop()
+					val result = operand(operandStack)
+					operandStack += 1
+					pp(T2(TConvert(TaasDoubleType), lhs, lhs))
+					pp(T2(TConvert(TaasDoubleType), rhs, rhs))
+					pp(T3(TOp_/, lhs, rhs, result))
+				}
+				case Dup() => {
+					val reg = pop()
+					pp(push(reg))
+					pp(push(reg))
+				}
+				case DefaultXMLNamespace(uri) => TODO(op)
+				case DefaultXMLNamespaceLate() => TODO(op)
+				case Equals() => TODO(op)
+				case EscapeXMLAttribute() => TODO(op)
+				case EscapeXMLElement() => TODO(op)
+				case FindProperty(property) => TODO(op)
+				case FindPropStrict(property) => property match {
+					case qname: AbcQName => pp(push(TLexical((AbcTypes fromQName qname).nominal)))
+					case _ => error("QName expected.")
+				}
+				case GetDescendants(property) => TODO(op)
+				case GetGlobalScope() => TODO(op)
+				case GetGlobalSlot(slot) => TODO(op)
+				case GetLex(typeName) => pp(push(TLexical(AbcSolver getLexical (scopeType, isStatic, typeName) getOrElse error("Could not solve "+typeName+" on "+scopeType+"."))))
+				case GetLocal(index: Int) => pp(push(register(index)))
+				case GetProperty(property) => {
+					val obj = pop()
+					AbcSolver.getProperty(obj.`type`, property) match {
+						case Some(method: TaasMethod) => pp(TCall(obj, method, List.empty, Some(nextOperand)))
+						case Some(field: TaasField) => pp(TLoad(obj, field, nextOperand))
+						case _ => error("Could not find property "+property+" on "+obj.`type`)
+					}
+				}
+				case GetScopeObject(index) => TODO(op)
+				case GetSlot(slot) => TODO(op)
+				case GetSuper(property) => TODO(op)
+				case GreaterEquals() | GreaterThan() => TODO(op)
+				case HasNext() => TODO(op)
+				case HasNext2(objectRegister, indexRegister) => TODO(op)
+				case IfEqual(marker) => pp(if2(TOp_==))
+				case IfFalse(marker) => pp(if1(TOp_false))
+				case IfGreaterEqual(marker) => pp(if2(TOp_>=))
+				case IfGreaterThan(marker) => pp(if2(TOp_>))
+				case IfLessEqual(marker) => pp(if2(TOp_<=))
+				case IfLessThan(marker) => pp(if2(TOp_<))
+				case IfNotEqual(marker) => pp(if2(TOp_!=))
+				case IfNotGreaterEqual(marker) => pp(if2(TOp_!>=))
+				case IfNotGreaterThan(marker) => pp(if2(TOp_!>))
+				case IfNotLessEqual(marker) => pp(if2(TOp_!<=))
+				case IfNotLessThan(marker) => pp(if2(TOp_!<))
+				case IfStrictEqual(marker) => pp(if2(TOp_===))
+				case IfStrictNotEqual(marker) => pp(if2(TOp_!==))
+				case IfTrue(marker) => pp(if1(TOp_true))
+				case In() => TODO(op)
+				case IncLocal(index) => pp(T3(TOp_+, register(index), TInt(1), register(index)))
+				case IncLocalInt(index) => pp(T3(TOp_+, register(index), TInt(1), register(index)))
+				case Increment() | IncrementInt() => {
+					val lhs = pop()
+					val result = operand(operandStack)
+					operandStack += 1
+					pp(T3(TOp_+, lhs, TInt(1), result))
+				}
+				case InitProperty(property) => TODO(op)
+				case InstanceOf() => TODO(op)
+				case IsType(typeName) => TODO(op)
+				case IsTypeLate() => TODO(op)
+				case Jump(marker) =>
+				case Kill(register) =>
+				case Label() =>
+				case LessEquals() | LessThan() => TODO(op)
+				case LookupSwitch(defaultCase, cases) => TODO(op)
+				case ShiftLeft() => TODO(op)
+				case Modulo() => pp(binop(TOp_%))
+				case Multiply() | MultiplyInt() => pp(binop(TOp_*))
+				case Negate() | NegateInt() => TODO(op)
+				case NewActivation() => TODO(op)
+				case NewArray(numArguments) => TODO(op)
+				case NewCatch(exceptionHandler) => TODO(op)
+				case NewClass(nominalType) => TODO(op)
+				case NewFunction(function) => TODO(op)
+				case NewObject(numArguments) => TODO(op)
+				case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() => TODO(op)
+				case PushByte(value) => pp(push(TInt(value)))
+				case PushDouble(value) => pp(push(TDouble(value)))
+				case PushFalse() => pp(push(TBool(false)))
+				case PushInt(value) => pp(push(TInt(value)))
+				case PushNamespace(value) => TODO(op)
+				case PushNaN() => pp(push(TDouble(Double.NaN)))
+				case PushNull() => TODO(op)
+				case PushScope() => pop()
+				case PushShort(value) => pp(push(TInt(value)))
+				case PushString(value) => pp(push(TString(value)))
+				case PushTrue() => pp(push(TBool(true)))
+				case PushUInt(value) => pp(push(TLong(value)))
+				case PushUndefined() | PushWith() => TODO(op)
+				case ReturnValue() => pp(TReturn(pop()))
+				case ReturnVoid() => pp(TReturn(TVoid))
+				case ShiftRight() => TODO(op)
+				case SetLocal(index) => pp(T2(TOp_Nothing, pop(), register(index)))
+				case SetGlobalSlot(slot) => TODO(op)
+				case SetProperty(property) => {
+					val arg = pop()
+					val obj = pop()
+					AbcSolver.setProperty(obj.`type`, property) match {
+						case Some(method: TaasMethod) => pp(TCall(obj, method, arg :: Nil, None))
+						case Some(field: TaasField) => pp(TStore(obj, field, arg))
+						case _ => error("Could not find property "+property+" on "+obj.`type`)
+					}
+				}
+				case SetSlot(slot) => TODO(op)
+				case SetSuper(property) => TODO(op)
+				case StrictEquals() => TODO(op)
+				case Subtract() | SubtractInt() => pp(binop(TOp_-))
+				case Swap() => TODO(op)
+				case Throw() | TypeOf() | ShiftRightUnsigned() => TODO(op)
+				case SetByte() | SetShort() | SetInt() | SetFloat() | SetDouble() => TODO(op)
+				case GetByte() | GetShort() | GetInt() | GetFloat() | GetDouble() => TODO(op)
+				case Sign1() | Sign8() | Sign16() => TODO(op)
 			}
-		} filterNot { _ ~== TNop() })//TODO optimize me
+
+			if((operandStackBefore + op.operandDelta) != operandStack) {
+				error("Wrong operand-stack delta for "+op+". Got "+operandStackBefore+" -> "+operandStack+", expected "+operandStackBefore+" -> "+(operandStackBefore + op.operandDelta))
+			}
+		}
+
+		new TaasBlock(r.reverse)
 	}
 
 	private def TODO(op: AbstractOp) = error("TODO "+op)

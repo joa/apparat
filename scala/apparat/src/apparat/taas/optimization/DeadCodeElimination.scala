@@ -27,6 +27,8 @@ import apparat.taas.graph.{TaasBlock, LivenessAnalysis, TaasGraph}
  * @author Joa Ebert
  */
 object DeadCodeElimination extends TaasOptimization {
+	def name = "DeadCodeElimination"
+	
 	def optimize(context: TaasOptimizationContext) = apply(context.
 			code.method map { _.parameters.length } getOrElse -1,
 			context.code.graph) match {

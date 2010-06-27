@@ -28,6 +28,8 @@ import annotation.tailrec
  * @author Joa Ebert
  */
 object CopyPropagation extends TaasOptimization {
+	def name = "Copy Propagation"
+	
 	def optimize(context: TaasOptimizationContext) = apply(context.code.graph) match {
 		case true => context.copy(modified = true)
 		case false => context

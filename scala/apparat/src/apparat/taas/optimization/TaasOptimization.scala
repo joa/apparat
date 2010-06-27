@@ -25,4 +25,5 @@ package apparat.taas.optimization
  */
 trait TaasOptimization {
 	def optimize(context: TaasOptimizationContext): TaasOptimizationContext
+	def name: String
 }

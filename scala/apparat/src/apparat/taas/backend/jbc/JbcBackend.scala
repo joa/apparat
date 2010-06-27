@@ -182,7 +182,17 @@ class JbcBackend extends TaasBackend {
 		@inline def unop(op: TaasUnop, value: TValue) = {
 			op match {
 				case TOp_Nothing =>
-				case TConvert(toType) => if(value.`type` != toType) println(value.`type`+" -> "+toType)
+				case TConvert(toType) => if(value.`type` != toType) {
+					value.`type` match {
+						case TaasIntType => toType match {
+							case TaasDoubleType => mv.visitInsn(JOpcodes.I2D)
+							case TaasBooleanType => mv.visitInsn(JOpcodes.I2B)
+							case TaasLongType => mv.visitInsn(JOpcodes.I2L)
+							case TaasStringType => mv.visitInsn(JOpcodes.I2S)
+							case other => error("Cannot convert from TaasIntType to "+toType+".")
+						}
+					}
+				}
 				case _ => error("TODO "+op)
 			}
 		}
@@ -196,6 +206,7 @@ class JbcBackend extends TaasBackend {
 					case TOp_+ => mv.visitInsn(JOpcodes.IADD)
 					case TOp_- => mv.visitInsn(JOpcodes.ISUB)
 					case TOp_<< => mv.visitInsn(JOpcodes.ISHL)
+					case TOp_/ => mv.visitInsn(JOpcodes.IDIV)
 				}
 			}
 		}
@@ -205,9 +216,13 @@ class JbcBackend extends TaasBackend {
 			from match {
 				case TaasIntType => to match {
 					case TaasDoubleType => mv.visitInsn(JOpcodes.I2D)
-					case TaasObjectType => mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;");
+					case TaasObjectType => mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;")
 				}
-				case other =>
+				case TaasDoubleType => to match {
+					case TaasIntType => mv.visitInsn(JOpcodes.D2I)
+					case TaasObjectType => mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;")
+				}
+				case other => error("TODO implicit cast from "+from+" to "+to)
 			}
 		}
 

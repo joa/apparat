@@ -27,6 +27,8 @@ import apparat.taas.ast.{TaasMethod, TaasCode}
  * @author Joa Ebert
  */
 class TaasOptimizer(optimizations: List[TaasOptimization], level: Int) {
+	val MAX_ITERATIONS = 10
+	
 	def optimize(method: TaasMethod): Unit = method.code match {
 		case Some(code) => optimize(code)
 		case None =>
@@ -34,18 +36,32 @@ class TaasOptimizer(optimizations: List[TaasOptimization], level: Int) {
 
 	def optimize(code: TaasCode): Unit = {
 		@tailrec def next(optimizations: List[TaasOptimization], context: TaasOptimizationContext): TaasOptimizationContext = optimizations match {
-			case x :: xs => next(xs, x optimize context)
+			case x :: xs => next(xs, debug(x, context) { x optimize context } )
 			case Nil => context
 		}
 
-		@tailrec def loop(context: TaasOptimizationContext): Unit = {
-			next(optimizations, context) match {
-				case newContext @ TaasOptimizationContext(_, true, _, _) => loop(newContext)
-				case _ =>
+		@tailrec def loop(context: TaasOptimizationContext, iteration: Int): Unit = {
+			if(iteration < MAX_ITERATIONS) {
+				next(optimizations, context) match {
+					case newContext @ TaasOptimizationContext(_, true, _, _) => loop(newContext.copy(modified = false), iteration + 1)
+					case _ =>
+				}
+			} else {
+				error("Potential error detected: MAX_ITERATIONS reached.")
 			}
-
 		}
 
-		loop(TaasOptimizationContext(code, false, level, TaasOptimizationFlags.NONE))
+		loop(TaasOptimizationContext(code, false, level, TaasOptimizationFlags.NONE), 0)
+	}
+
+	def debug(optimizer: TaasOptimization, context: TaasOptimizationContext)(f: => TaasOptimizationContext) = {
+		if(0 != (context.flags & TaasOptimizationFlags.DEBUG)) {
+			val modified = context.modified
+			val result = f
+			println(optimizer.name+": "+modified+" -> "+result.modified)
+			result
+		} else {
+			f
+		}
 	}
 }

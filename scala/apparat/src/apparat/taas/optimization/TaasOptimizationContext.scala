@@ -21,8 +21,18 @@
 package apparat.taas.optimization
 
 import apparat.taas.ast.TaasCode
+import apparat.utils.{IndentingPrintWriter, Dumpable}
+import apparat.taas.graph.TaasGraphLinearizer
 
 /**
  * @author Joa Ebert
  */
-case class TaasOptimizationContext(code: TaasCode, modified: Boolean, level: Int, flags: Int)
+case class TaasOptimizationContext(code: TaasCode, modified: Boolean, level: Int, flags: Int) extends Dumpable {
+	override def dump(writer: IndentingPrintWriter): Unit = {
+		writer <= "TaasOptimizationContext:"
+		writer withIndent {
+			writer <= "Modified: " + modified
+			new TaasGraphLinearizer(code.graph) dump writer
+		}
+	}
+}

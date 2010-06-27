@@ -23,7 +23,7 @@ package apparat.taas
 import ast._
 import backend.TaasBackend
 import frontend.TaasFrontend
-import optimization.{CopyPropagation, DeadCodeElimination, StrengthReduction, TaasOptimizer}
+import optimization._
 
 /**
  * @author Joa Ebert
@@ -42,7 +42,7 @@ class TaasCompiler(val frontend: TaasFrontend, val backend: TaasBackend) {
 	}
 
 	val optimizer = new TaasOptimizer(
-		CopyPropagation :: DeadCodeElimination :: StrengthReduction :: Nil,
+		CopyPropagation :: ConstantFolding :: DeadCodeElimination :: StrengthReduction :: Nil,
 		0
 	)
 }

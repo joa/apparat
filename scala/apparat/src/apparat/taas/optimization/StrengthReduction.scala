@@ -27,6 +27,7 @@ import apparat.taas.ast._
  * @author Joa Ebert
  */
 object StrengthReduction extends TaasOptimization {
+	def name = "StrengthReduction"
 	def optimize(context: TaasOptimizationContext) = apply(context.code.graph) match {
 		case true => context.copy(modified = true)
 		case false => context

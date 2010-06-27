@@ -26,4 +26,5 @@ package apparat.taas.optimization
 object TaasOptimizationFlags {
 	val NONE = 0
 	val SSA = 1 << 0
+	val DEBUG = 1 << 1
 }
