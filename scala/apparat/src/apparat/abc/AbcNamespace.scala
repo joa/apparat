@@ -33,6 +33,7 @@ object AbcNamespaceKind {
 sealed case class AbcNamespace(kind: Int, name: Symbol) {
 	override def equals(that: Any) = {
 		that match {
+			case that if this == that => true
 			case AbcNamespace(AbcNamespaceKind.Private, thatName) => false
 			case AbcNamespace(thatKind, thatName) => thatKind == kind && thatName == name
 			case _ => false
