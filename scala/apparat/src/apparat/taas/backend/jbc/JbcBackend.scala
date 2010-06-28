@@ -239,6 +239,12 @@ class JbcBackend extends TaasBackend {
 				val ops = lin.list
 				val labels = generateLabels(lin.map)
 				val jumps = lin.map
+
+				if(JbcBackend.DEBUG) {
+					println("Emitting TAAS code:")
+					lin.dump()
+				}
+
 				for(op <- ops) {
 					(labels get op) match {
 						case Some(label) => mv.visitLabel(label)
