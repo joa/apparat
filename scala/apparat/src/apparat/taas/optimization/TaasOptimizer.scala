@@ -22,6 +22,7 @@ package apparat.taas.optimization
 
 import annotation.tailrec
 import apparat.taas.ast.{TaasMethod, TaasCode}
+import apparat.utils.Performance
 
 /**
  * @author Joa Ebert
@@ -56,10 +57,12 @@ class TaasOptimizer(optimizations: List[TaasOptimization], level: Int) {
 
 	def debug(optimizer: TaasOptimization, context: TaasOptimizationContext)(f: => TaasOptimizationContext) = {
 		if(0 != (context.flags & TaasOptimizationFlags.DEBUG)) {
-			val modified = context.modified
-			val result = f
-			println(optimizer.name+": "+modified+" -> "+result.modified)
-			result
+			Performance.measure(optimizer.name+" time") {
+				val modified = context.modified
+				val result = f
+				println(optimizer.name+" transformation: "+modified+" -> "+result.modified)
+				result
+			}
 		} else {
 			f
 		}

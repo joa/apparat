@@ -27,7 +27,6 @@ import java.lang.String
  */
 class JbcClassLoader(map: Map[String, Array[Byte]]) extends ClassLoader {
 	override protected def findClass(name: String): Class[_] = {
-		println("findClass: "+name)
 		(map get name) match {
 			case Some(result) => defineClass(name, result, 0, result.length)
 			case None => super.findClass(name)

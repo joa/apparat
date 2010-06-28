@@ -28,12 +28,16 @@ import apparat.graph.immutable.{Graph, BytecodeControlFlowGraphBuilder}
 import apparat.bytecode.operations._
 import apparat.abc.{Abc, AbcMethod, AbcNominalType, AbcQName}
 import apparat.graph.Edge
-import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer, LivenessAnalysis}
+import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer}
 import apparat.taas.optimization._
 
 /**
  * @author Joa Ebert
  */
+protected[abc] object AbcCode {
+	val DEBUG = false
+}
+
 protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: Option[AbcNominalType], isStatic: Boolean) extends TaasCode {
 	implicit private val implicitAST = ast
 
@@ -76,27 +80,30 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 				result += Edge.transpose(edge, mapping(edge.startVertex), mapping(edge.endVertex))
 			}
 
-			var taasGraph = new TaasGraph(result, TaasEntry, TaasExit)
+			val taasGraph = new TaasGraph(result, TaasEntry, TaasExit)
 			var modified = false
 
-			//new TaasGraphLinearizer(taasGraph).list foreach println
-			//println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-			
+			if(AbcCode.DEBUG) {
+				println("Code after initial parse step:")
+				new TaasGraphLinearizer(taasGraph).dump()
+			}
+
 			do {
 				modified = false
 				modified |= CopyPropagation(taasGraph)
+				modified |= ConstantFolding(taasGraph)
 				modified |= DeadCodeElimination(method.parameters.length, taasGraph)
-				modified |= StrengthReduction(taasGraph)
+
 				/*if(modified) {
 					new TaasGraphLinearizer(taasGraph).list foreach println
 					println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 				}*/
 			} while(modified)
 
-			//taasGraph.dotExport to Console.out
-			println("-------------------------------------------------")
-			new TaasGraphLinearizer(taasGraph).dump()
-			println("=================================================")
+			if(AbcCode.DEBUG) {
+				println("Code after CP/CF/DCE:")
+				new TaasGraphLinearizer(taasGraph).dump()
+			}
 			
 			taasGraph
 		} catch {

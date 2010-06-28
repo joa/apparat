@@ -32,13 +32,20 @@ import org.objectweb.asm.{Opcodes => JOpcodes, Label => JLabel, ClassWriter => J
 /**
  * @author Joa Ebert
  */
+object JbcBackend {
+	val DEBUG = true
+}
+
+/**
+ * @author Joa Ebert
+ */
 class JbcBackend extends TaasBackend {
 	var classMap = Map.empty[String, Array[Byte]]
 
 	override def emit(ast: TaasAST) = {
 		for(nominal <- TaasDependencyGraphBuilder(ast).topsort) {
 			val cw = new JClassWriter(JClassWriter.COMPUTE_FRAMES)
-			val cv = new JTraceClassVisitor(cw, new JPrintWriter(System.out))
+			val cv = if(JbcBackend.DEBUG) new JTraceClassVisitor(cw, new JPrintWriter(System.out)) else cw
 
 			cv.visit(
 				JOpcodes.V1_6,
@@ -72,13 +79,11 @@ class JbcBackend extends TaasBackend {
 			val bytes = cw.toByteArray()
 			cv.visitEnd()
 			classMap += nominal.qualifiedName -> bytes
-			//JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(System.out))
+
+			if(JbcBackend.DEBUG) {
+				JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(System.out))
+			}
 		}
-
-		val cl = new JbcClassLoader(classMap)
-		Thread.currentThread.setContextClassLoader(cl)
-
-		println(Class.forName("Test", true, cl).newInstance())
 	}
 
 	@inline private def methodDesc(returnType: String, parameters: ListBuffer[TaasParameter]): String = "("+(parameters map { _.`type` } map { toJavaType } mkString ",")+")"+returnType
