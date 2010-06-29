@@ -167,16 +167,39 @@ object CopyPropagation extends TaasOptimization {
 			// x = y.method(arguments) -> x = f(y).method(arguments)
 			// y.method(arguments) -> f(y).method(arguments)
 			case call @ TCall(t: TReg, method, arguments, result) => (available get t.index) match {
-				case Some(value) => (true, TCall(value, method, arguments, result))
-				case None => (false, call)
+				case Some(value) => {
+					(true, TCall(value, method, copy(arguments, available)._2, result))
+				}
+				case None => copy(arguments, available) match {
+					case (true, na) => (true, TCall(t, method, na, result))
+					case _ => (false, call)
+				}
 			}
 
 			case tsuper @ TSuper(base: TReg, arguments) => (available get base.index) match {
-				case Some(value) => (true, TSuper(value, arguments))
-				case None => (false, tsuper)
+				case Some(value) => (true, TSuper(value, copy(arguments, available)._2))
+				case None => copy(arguments, available) match {
+					case (true, na) => (true, TSuper(base, na))
+					case _ => (false, tsuper)
+				}
 			}
 
 			case other => (false, other)
 		}
+	}
+
+	def copy(list: List[TValue], available: Map[Int, TValue]): (Boolean, List[TValue]) = {
+		var m = false
+		val r = list map {
+			_ match {
+				case reg: TReg => (available get reg.index) match {
+					case Some(value) => { m = true; value }
+					case None => reg
+				}
+				case o => o
+			}
+		}
+
+		(m, r)
 	}
 }

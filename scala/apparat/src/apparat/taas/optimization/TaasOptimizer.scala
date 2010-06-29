@@ -28,7 +28,7 @@ import apparat.utils.Performance
  * @author Joa Ebert
  */
 class TaasOptimizer(optimizations: List[TaasOptimization], level: Int) {
-	val MAX_ITERATIONS = 10
+	val MAX_ITERATIONS = 0x20
 	
 	def optimize(method: TaasMethod): Unit = method.code match {
 		case Some(code) => optimize(code)
