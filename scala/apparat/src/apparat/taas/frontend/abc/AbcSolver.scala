@@ -89,7 +89,7 @@ object AbcSolver {
 	def getLexical(scope: TaasType, static: Boolean, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
 		scope match {
 			case nominalType: TaasNominalType => getLexical(nominalType.nominal, static, name)
-			case _ => error("Nominal type expected.")
+			case other => error("Nominal type expected, got "+other+".")
 		}
 	}
 
