@@ -4,7 +4,9 @@
     <artifactId>oss-parent</artifactId>
     <version>2</version>
   </parent>
+  
   <modelVersion>4.0.0</modelVersion>
+  
   <groupId>com.googlecode.apparat</groupId>
   <artifactId>apparat-aggregator</artifactId>
   <version>1.0-SNAPSHOT</version>
@@ -61,6 +63,16 @@
 	</contributor>
   </contributors>
   
+  <mailingLists>
+    <mailingList>
+      <name>Apparat Framework Discussion Group</name>
+      <archive>http://groups.google.com/group/apparat-framework</archive>
+      <post>apparat-framework@googlegroups.com</post>
+      <subscribe>apparat-framework+subscribe@googlegroups.com</subscribe>
+      <unsubscribe>apparat-framework+unsubscribe@googlegroups.com</unsubscribe>
+    </mailingList>
+  </mailingLists>
+  
   <scm>
     <connection>scm:hg:http://apparat.googlecode.com/hg/</connection>
     <developerConnection>scm:hg:https://apparat.googlecode.com/hg/</developerConnection>
@@ -75,7 +87,9 @@
   </licenses>
   
   <properties>
-    <scala.version>2.8.0.RC6</scala.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+    <scala.version>2.8.0.RC7</scala.version>
   </properties>
 
   <build>
@@ -115,7 +129,7 @@
                 <sourceDir>tests</sourceDir>
               </configuration>
             </execution>
-	    <execution>
+	        <execution>
               <id>doc</id>
               <goals>
                 <goal>doc</goal>
@@ -127,16 +141,11 @@
           </executions>
           <configuration>
             <scalaVersion>${scala.version}</scalaVersion>
-	    <jvmArgs>
-	      <arg>-Xmx512M</arg>
+	        <jvmArgs>
+	          <arg>-Xmx512M</arg>
               <arg>-Xss2M</arg>
             </jvmArgs> 
           </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.sonatype.flexmojos</groupId>
-          <artifactId>flexmojos-maven-plugin</artifactId>
-          <version>3.5.0</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -145,7 +154,7 @@
         <groupId>org.sonatype.flexmojos</groupId>
         <artifactId>flexmojos-maven-plugin</artifactId>
         <extensions>true</extensions>
-	<version>3.6.1</version>
+	    <version>3.6.1</version>
       </plugin>
     </plugins>
   </build>
