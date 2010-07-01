@@ -62,6 +62,7 @@ package apparat.memory
 		 * @param value The value to write.
 		 */
 		public static function writeByte(value: int, address: int): void {
+			Memory.writeByte(value, address);
 			var domainMemory: ByteArray = applicationDomain.domainMemory;
 
 			domainMemory.position = address;
