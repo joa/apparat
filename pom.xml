@@ -153,6 +153,7 @@
 
   <modules>
     <module>apparat-anttasks</module>
+    <module>apparat-archetypes</module>
     <module>apparat-core</module>
     <module>apparat-ersatz</module>
     <module>apparat-jitb</module>
