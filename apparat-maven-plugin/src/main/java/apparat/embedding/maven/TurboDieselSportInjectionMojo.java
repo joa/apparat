@@ -15,7 +15,7 @@ import java.io.File;
  * @phase package
  * @goal tdsi
  */
-public final class TDSIMojo extends AbstractMojo {
+public final class TurboDieselSportInjectionMojo extends AbstractMojo {
 	private final class Configuration implements TDSIConfiguration {
 		private final File _input;
 		private final File _output;
@@ -32,30 +32,11 @@ public final class TDSIMojo extends AbstractMojo {
 			_inlineExpansion = inlineExpansion;
 		}
 
-		@Override
-		public File input() {
-			return _input;
-		}
-
-		@Override
-		public File output() {
-			return _output;
-		}
-
-		@Override
-		public boolean alchemyExpansion() {
-			return _alchemyExpansion;
-		}
-
-		@Override
-		public boolean macroExpansion() {
-			return _macroExpansion;
-		}
-
-		@Override
-		public boolean inlineExpansion() {
-			return _inlineExpansion;
-		}
+		@Override public File input() { return _input; }
+		@Override public File output() { return _output; }
+		@Override public boolean alchemyExpansion() { return _alchemyExpansion; }
+		@Override public boolean macroExpansion() { return _macroExpansion; }
+		@Override public boolean inlineExpansion() { return _inlineExpansion; }
 	}
 
 	/**
@@ -97,15 +78,15 @@ public final class TDSIMojo extends AbstractMojo {
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		for(final Artifact artifact : project.getAttachedArtifacts()) {
-			final String artifactFileName = artifact.getFile().getName().toLowerCase();
+			final String artifactType = artifact.getType();
 
-			if(artifactFileName.endsWith("swc") || artifactFileName.endsWith("swf")) {
+			if(artifactType.equals("swc") || artifactType.equals("swf")) {
 				final TDSITool tool = new TDSITool();
 				final Configuration config = new Configuration(artifact.getFile(), artifact.getFile(),
 						alchemyExpansion, macroExpansion, inlineExpansion);
-				tool.configure(config);
 
 				try {
+					tool.configure(config);
 					tool.run();
 				} catch(final Throwable cause) {
 					throw new MojoExecutionException("TurboDieselSportInjection failed.", cause);
