@@ -3,7 +3,7 @@ package apparat.tools
 import scala.util.Properties
 
 object ApparatApplication {
-	val scalaVersionString = "version 2.8.0.RC5"
+	val scalaVersionString = "version 2.8.0.RC7"
 	def apply(tool: ApparatTool, args: Array[String]): Int = {
 		val t0 = System.currentTimeMillis()
 		var result = 0
