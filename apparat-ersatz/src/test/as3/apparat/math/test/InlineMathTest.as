@@ -48,27 +48,26 @@ package apparat.math.test {
 		}
 
 		//
-		// Need FlexMojos integration test support before we can actually test
-		// those methods. Otherwise the source code will not be processed by
-		// TDSI and we get a stack overflow for the infinite recursion in
-		// Memory.writeFloat
+		// Note: The testSqrt() and testInverseSqrt() tests will work only
+		// when the SWF/SWC has been processed by TDSI. This is the case
+		// if you run "mvn test".
 		//
-		
-		/*public function testSqrt(): void {
+
+		public function testSqrt(): void {
 			FastMath.initMemory()
 			
 			for(var i: Number = 1.0; i < 16.0; i+=0.25) {
 				assertNumberEquals(Math.sqrt(i), FastMath.sqrt(i))
 			}
-		}*/
+		}
 
-		/*public function testInverseSqrt(): void {
+		public function testInverseSqrt(): void {
 			FastMath.initMemory()
 
 			for(var i: Number = 1.0; i < 16.0; i+=0.25) {
 				assertNumberEquals(1.0 / Math.sqrt(i), FastMath.rsqrt(i))
 			}
-		}*/
+		}
 
 		public function testRInt(): void {
 			assertEquals(-1, FastMath.rint(-0.5))

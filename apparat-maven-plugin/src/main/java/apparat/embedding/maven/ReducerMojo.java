@@ -2,11 +2,6 @@ package apparat.embedding.maven;
 
 import apparat.tools.reducer.Reducer;
 import apparat.tools.reducer.ReducerConfiguration;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 
@@ -16,7 +11,7 @@ import java.io.File;
  * @goal reducer
  * @threadSafe
  */
-public final class ReducerMojo extends AbstractMojo {
+public final class ReducerMojo extends AbstractApparatMojo {
 	/**
 	 * The JPEG compression quality.
 	 *
@@ -35,39 +30,17 @@ public final class ReducerMojo extends AbstractMojo {
 	 */
 	private float deblock;
 
-	/**
-	 * The Maven project.
-	 *
-	 * @parameter expression="${project}"
-	 * @required
-	 * @readonly
-	 */
-	private MavenProject project;
-
 	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
-		final Artifact artifact = project.getArtifact();
-		final String artifactType = artifact.getType();
+	protected void processFile(final File file) {
+		final Reducer.ReducerTool tool = new Reducer.ReducerTool();
+		final ReducerConfiguration config = new ReducerConfiguration() {
+			@Override public File input() { return file; }
+			@Override public File output() { return file; }
+			@Override public float quality() { return quality; }
+			@Override public float deblock() { return deblock; }
+		};
 
-		if(artifactType.equals("swc") || artifactType.equals("swf")) {
-			if(getLog().isDebugEnabled()) {
-				getLog().debug("Running "+artifact.getFile()+" through Reducer ...");
-			}
-
-			final Reducer.ReducerTool tool = new Reducer.ReducerTool();
-			final ReducerConfiguration config = new ReducerConfiguration() {
-				@Override public File input() { return artifact.getFile(); }
-				@Override public File output() { return artifact.getFile(); }
-				@Override public float quality() { return quality; }
-				@Override public float deblock() { return deblock; }
-			};
-
-			try {
-				tool.configure(config);
-				tool.run();
-			} catch(final Throwable cause) {
-				throw new MojoExecutionException("Apparat Reducer failed.", cause);
-			}
-		}
+		tool.configure(config);
+		tool.run();
 	}
 }

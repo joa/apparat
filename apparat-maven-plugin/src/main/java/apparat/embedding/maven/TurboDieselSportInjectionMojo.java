@@ -2,11 +2,8 @@ package apparat.embedding.maven;
 
 import apparat.tools.tdsi.TDSIConfiguration;
 import apparat.tools.tdsi.TurboDieselSportInjection;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 
@@ -16,7 +13,7 @@ import java.io.File;
  * @goal tdsi
  * @threadSafe
  */
-public final class TurboDieselSportInjectionMojo extends AbstractMojo {
+public final class TurboDieselSportInjectionMojo extends AbstractApparatMojo {
 	/**
 	 * Whether or not to expand Alchemy instructions.
 	 *
@@ -44,45 +41,32 @@ public final class TurboDieselSportInjectionMojo extends AbstractMojo {
 	 */
 	private boolean inlineExpansion;
 
-	/**
-	 * The Maven project.
-	 *
-	 * @parameter expression="${project}"
-	 * @required
-	 * @readonly
-	 */
-	private MavenProject project;
-
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if(!alchemyExpansion && !macroExpansion && !inlineExpansion) {
 			getLog().warn("TurboDieselSportInjection has been disabled since all its features are turned off.");
 			return;
 		}
-		
-		final Artifact artifact = project.getArtifact();
-		final String artifactType = artifact.getType();
 
-		if(artifactType.equals("swc") || artifactType.equals("swf")) {
-			if(getLog().isDebugEnabled()) {
-				getLog().debug("Running "+artifact.getFile()+" through TurboDieselSportInjection ...");
-			}
+		super.execute();
+	}
 
-			final TurboDieselSportInjection.TDSITool tool = new TurboDieselSportInjection.TDSITool();
-			final TDSIConfiguration config = new TDSIConfiguration() {
-				@Override public File input() { return artifact.getFile(); }
-				@Override public File output() { return artifact.getFile(); }
-				@Override public boolean alchemyExpansion() { return alchemyExpansion; }
-				@Override public boolean macroExpansion() { return macroExpansion; }
-				@Override public boolean inlineExpansion() { return inlineExpansion; }
-			};
-
-			try {
-				tool.configure(config);
-				tool.run();
-			} catch(final Throwable cause) {
-				throw new MojoExecutionException("Apparat TurboDieselSportInjection failed.", cause);
-			}
+	@Override
+	protected void processFile(final File file) {
+		if(getLog().isDebugEnabled()) {
+			getLog().debug("Running "+file+" through TurboDieselSportInjection ...");
 		}
+
+		final TurboDieselSportInjection.TDSITool tool = new TurboDieselSportInjection.TDSITool();
+		final TDSIConfiguration config = new TDSIConfiguration() {
+			@Override public File input() { return file; }
+			@Override public File output() { return file;}
+			@Override public boolean alchemyExpansion() { return alchemyExpansion; }
+			@Override public boolean macroExpansion() { return macroExpansion; }
+			@Override public boolean inlineExpansion() { return inlineExpansion; }
+		};
+
+		tool.configure(config);
+		tool.run();
 	}
 }
