@@ -21,7 +21,7 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Apparat Aggregator</name>
+  <name>apparat-aggregator</name>
   <description>A framework to optimize ABC, SWC and SWF files.</description>
   <url>http://code.google.com/p/apparat/</url>
   
