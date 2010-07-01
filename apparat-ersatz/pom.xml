@@ -17,6 +17,27 @@
   <build>
     <sourceDirectory>src/main/as3</sourceDirectory>
     <testSourceDirectory>src/test/as3</testSourceDirectory>
+
+    <plugins>
+      <plugin>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>apparat-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>package</id>
+            <goals>
+              <goal>tdsi</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <alchemyExpansion>true</alchemyExpansion>
+          <inlineExpansion>false</inlineExpansion>
+          <macroExpansion>false</macroExpansion>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
   
   <dependencies>

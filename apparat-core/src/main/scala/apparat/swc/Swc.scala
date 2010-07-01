@@ -57,6 +57,7 @@ object Swc {
 class Swc {
 	var catalog: Option[Array[Byte]] = None
 	var library: Option[Array[Byte]] = None
+	var unknown: Map[String, Array[Byte]] = Map.empty
 
 	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x1000))(read _)
 
@@ -90,6 +91,11 @@ class Swc {
 	def write(output: JZipOutputStream): Unit = {
 		write(output, catalog, "catalog.xml")
 		write(output, library, "library.swf")
+
+		for((name, bytes) <- unknown) {
+			write(output, Some(bytes), name)
+		}
+
 		output flush ()
 	}
 
@@ -113,6 +119,7 @@ class Swc {
 			name match {
 				case "catalog.xml" => catalog = Some(extractBytes(size.asInstanceOf[Int]))
 				case "library.swf" => library = Some(extractBytes(size.asInstanceOf[Int]))
+				case other => unknown += other -> extractBytes(size.asInstanceOf[Int])
 			}
 
 			extract(input)
