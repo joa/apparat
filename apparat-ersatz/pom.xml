@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -5,22 +6,24 @@
     <groupId>com.googlecode.apparat</groupId>
     <artifactId>apparat-aggregator</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>apparat-library</artifactId>
+  <name>apparat-ersatz</name>
+  <description>Apparat ActionScript 3 compatibility layer.</description>
+  <artifactId>apparat-ersatz</artifactId>
   <packaging>swc</packaging>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
+    <sourceDirectory>src/main/as3</sourceDirectory>
+    <testSourceDirectory>src/test/as3</testSourceDirectory>
   </build>
   
   <dependencies>
     <dependency>
       <groupId>com.adobe.flex.framework</groupId>
       <artifactId>flex-framework</artifactId>
-      <version>3.2.0.3958</version>
+      <version>${flex.version}</version>
       <type>pom</type>
       <exclusions>
         <exclusion>
@@ -33,7 +36,7 @@
       <groupId>com.adobe.flex.framework</groupId>
       <artifactId>playerglobal</artifactId>
       <classifier>10</classifier>
-      <version>3.2.0.3958</version>
+      <version>${flex.version}</version>
       <type>swc</type>
     </dependency>
     <dependency>

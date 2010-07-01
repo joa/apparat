@@ -11,7 +11,7 @@ import org.specs.SpecificationWithJUnit
  */
 
 class SwcSpec extends SpecificationWithJUnit {
-  val swc = Swc.fromFile("spec/asset/ApparatTest.swc")
+  val swc = Swc.fromFile("target/test-classes/ApparatTest.swc")
 
   "SWC is a zip file that" should {
     "contain catalog.xml" >> {

@@ -1,11 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
     <version>2</version>
   </parent>
-  
-  <modelVersion>4.0.0</modelVersion>
+    
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+    <scala.version>2.8.0.RC7</scala.version>
+    <flex.version>3.2.0.3958</flex.version>
+    <maven.version>3.0-beta-1</maven.version>
+  </properties>
   
   <groupId>com.googlecode.apparat</groupId>
   <artifactId>apparat-aggregator</artifactId>
@@ -85,25 +93,16 @@
       <url>http://www.gnu.org/licenses/lgpl.html</url>
     </license>
   </licenses>
-  
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
-    <scala.version>2.8.0.RC7</scala.version>
-  </properties>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>tests</testSourceDirectory>
-
     <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
-            <source>1.5</source>
-            <target>1.5</target>
+            <source>1.6</source>
+            <target>1.6</target>
           </configuration>
         </plugin>
         <plugin>
@@ -116,33 +115,33 @@
               <goals>
                 <goal>compile</goal>
               </goals>
-              <configuration>
+              <!--configuration>
                 <sourceDir>src</sourceDir>
-              </configuration>
+              </configuration-->
             </execution>
             <execution>
               <id>testCompile</id>
               <goals>
                 <goal>testCompile</goal>
               </goals>
-              <configuration>
+              <!--configuration>
                 <sourceDir>tests</sourceDir>
-              </configuration>
+              </configuration-->
             </execution>
-	        <execution>
+            <execution>
               <id>doc</id>
               <goals>
                 <goal>doc</goal>
               </goals>
-              <configuration>
+              <!--configuration>
                 <sourceDir>src</sourceDir>
-              </configuration>
+              </configuration-->
             </execution>
           </executions>
           <configuration>
             <scalaVersion>${scala.version}</scalaVersion>
-	        <jvmArgs>
-	          <arg>-Xmx512M</arg>
+            <jvmArgs>
+              <arg>-Xmx512M</arg>
               <arg>-Xss2M</arg>
             </jvmArgs> 
           </configuration>
@@ -160,10 +159,11 @@
   </build>
 
   <modules>
-    <!--<module>java/Apparat.Core</module>-->
-    <module>scala/apparat</module>
-    <!--<module>as3/Apparat.Library.AS3</module>
-    <module>as3/Apparat.Tests.AS3</module>-->
+    <module>apparat-anttasks</module>
+    <module>apparat-core</module>
+    <module>apparat-ersatz</module>
+    <module>apparat-maven-plugin</module>
+    <module>apparat-playerglobal</module>
   </modules>
 
   <repositories>

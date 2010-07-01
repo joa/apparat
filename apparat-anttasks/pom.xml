@@ -9,9 +9,9 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <name>apparat-core</name>
-  <description>The core framework of Apparat.</description>
-  <artifactId>apparat-core</artifactId>
+  <name>apparat-anttasks</name>
+  <description>Ant task implementations.</description>
+  <artifactId>apparat-anttasks</artifactId>
   <packaging>jar</packaging>
 
   <build>
@@ -38,24 +38,14 @@
 
   <dependencies>
     <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm</artifactId>
-      <version>3.2</version>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-core</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm-commons</artifactId>
-      <version>3.2</version>
-    </dependency>
-    <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm-util</artifactId>
-      <version>3.2</version>
-    </dependency>
-    <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm-analysis</artifactId>
-      <version>3.2</version>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.7.0</version>
     </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>

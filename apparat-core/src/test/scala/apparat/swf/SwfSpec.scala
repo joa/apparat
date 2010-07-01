@@ -15,14 +15,14 @@ import java.util.Date
 class SwfSpec extends SpecificationWithJUnit {
   "SWF file" should {
 
-    var swf = Swf.fromFile("spec/asset/myFunction.swf")
+    var swf = Swf.fromFile("target/test-classes/myFunction.swf")
 
     "contain Flash player version" >> {
       "9" >> {
         swf.version must_== 9
       }
       "10" >> {
-        swf = Swf.fromFile("spec/asset/Fp10App.swf")
+        swf = Swf.fromFile("target/test-classes/Fp10App.swf")
         swf.version must_== 10
       }
     }
@@ -180,7 +180,7 @@ class SwfSpec extends SpecificationWithJUnit {
     }
 
     "be compiled in debug mode in order to have DebugID tag" >> {
-      swf = Swf.fromFile("spec/asset/myFunctionInDebug.swf")
+      swf = Swf.fromFile("target/test-classes/myFunctionInDebug.swf")
       var idx = swf.tags.findIndexOf(_.kind == SwfTags.DebugID)
       idx must_!= -1
     }
