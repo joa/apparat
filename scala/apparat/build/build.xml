@@ -161,7 +161,7 @@
 			filename="${dir.zip}/apparat.zip" 
 			targetfilename="apparat.zip"
 			summary="apparat-1.0-SNAPSHOT"
-			labels="Featured, Type-Package, OpSys-All, scala2.8-RC6"/>
+			labels="Featured, Type-Package, OpSys-All, scala2.8-RC7"/>
 	</target>
 
 	<target name="apparat" depends="compile"
