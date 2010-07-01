@@ -55,6 +55,7 @@ object TaasDependencyGraphBuilder extends (TaasAST => GraphLike[TaasNominal]) {
 							graph += new DefaultEdge(t.nominal, nominal)
 						}
 					}
+					case TaasObjectType =>
 					case _ => error("TaasNominalType expected, got "+base+".")
 				}
 				case None =>
