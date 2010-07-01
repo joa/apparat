@@ -44,7 +44,7 @@ package apparat.memory
 		 * The current application domain.
 		 * @private
 		 */
-		private static const applicationDomain: ApplicationDomain = ApplicationDomain.currentDomain;
+		private static const applicationDomain: ApplicationDomain = ApplicationDomain.currentDomain
 
 		/**
 		 * Selects a ByteArray object as the current memory.
@@ -52,7 +52,7 @@ package apparat.memory
 		 * @param byteArray The ByteArray object to work with.
 		 */
 		public static function select(byteArray: ByteArray): void {
-			applicationDomain.domainMemory = byteArray;
+			applicationDomain.domainMemory = byteArray
 		}
 		
 		/**
@@ -62,11 +62,7 @@ package apparat.memory
 		 * @param value The value to write.
 		 */
 		public static function writeByte(value: int, address: int): void {
-			Memory.writeByte(value, address);
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			domainMemory.writeByte(value);
+			Memory.writeByte(value, address)
 		}
 		
 		/**
@@ -76,10 +72,7 @@ package apparat.memory
 		 * @param value The value to write.
 		 */
 		public static function writeShort(value: int, address: int): void {
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			domainMemory.writeShort(value);
+			Memory.writeShort(value, address)
 		}
 		
 		/**
@@ -89,10 +82,7 @@ package apparat.memory
 		 * @param value The value to write.
 		 */
 		public static function writeInt(value: int, address: int): void {
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			domainMemory.writeInt(value);
+			Memory.writeInt(value, address)
 		}
 		
 		/**
@@ -102,10 +92,7 @@ package apparat.memory
 		 * @param value The value to write.
 		 */
 		public static function writeFloat(value: Number, address: int): void {
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			domainMemory.writeFloat(value);
+			Memory.writeFloat(value, address)
 		}
 		
 		/**
@@ -115,10 +102,7 @@ package apparat.memory
 		 * @param value The value to write.
 		 */
 		public static function writeDouble(value: Number, address: int): void {
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			domainMemory.writeDouble(value);
+			Memory.writeDouble(value, address)
 		}
 		
 		/**
@@ -128,10 +112,7 @@ package apparat.memory
 		 * @return Unsigned byte at given address in memory.
 		 */
 		public static function readUnsignedByte(address: int): int {
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			return domainMemory.readUnsignedByte();
+			return Memory.readUnsignedByte(address)
 		}
 		
 		/**
@@ -141,10 +122,7 @@ package apparat.memory
 		 * @return Unsigned short at given address in memory.
 		 */
 		public static function readUnsignedShort(address: int): int {
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			return domainMemory.readUnsignedShort();
+			return Memory.readUnsignedShort(address)
 		}
 		
 		/**
@@ -154,10 +132,7 @@ package apparat.memory
 		 * @return Signed integer at given address in memory.
 		 */
 		public static function readInt(address: int): int {
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			return domainMemory.readInt();
+			return Memory.readInt(address)
 		}
 		
 		/**
@@ -167,10 +142,7 @@ package apparat.memory
 		 * @return Float at given address in memory.
 		 */
 		public static function readFloat(address: int): Number {
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			return domainMemory.readFloat();
+			return Memory.readFloat(address)
 		}
 		
 		/**
@@ -180,10 +152,7 @@ package apparat.memory
 		 * @return Double at given address in memory.
 		 */
 		public static function readDouble(address: int): Number {
-			var domainMemory: ByteArray = applicationDomain.domainMemory;
-
-			domainMemory.position = address;
-			return domainMemory.readDouble();
+			return Memory.readDouble(address)
 		}
 		
 		/**
@@ -193,12 +162,7 @@ package apparat.memory
 		 * @return The extended value.
 		 */
 		public static function signExtend1(value: int): int {
-			if(0 != (value & 0x1)) {
-				value &= 0x0;
-				value -= 0x1;
-			}
-			
-			return value;
+			return Memory.signExtend1(value)
 		}
 		
 		/**
@@ -208,12 +172,7 @@ package apparat.memory
 		 * @return The extended value.
 		 */
 		public static function signExtend8(value: int): int {
-			if(0 != (value & 0x80)) {
-				value &= 0x7f;
-				value -= 0x80;
-			}
-			
-			return value;
+			return Memory.signExtend8(value)
 		}
 		
 		/**
@@ -223,12 +182,7 @@ package apparat.memory
 		 * @return The extended value.
 		 */
 		public static function signExtend16(value: int): int {
-			if(0 != (value & 0x8000)) {
-				value &= 0x7fff;
-				value -= 0x8000;
-			}
-			
-			return value;
+			return Memory.signExtend16(value)
 		}
 		
 		/**
