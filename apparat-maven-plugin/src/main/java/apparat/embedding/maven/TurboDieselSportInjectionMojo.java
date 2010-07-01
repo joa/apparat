@@ -1,7 +1,7 @@
 package apparat.embedding.maven;
 
 import apparat.tools.tdsi.TDSIConfiguration;
-import apparat.tools.tdsi.TurboDieselSportInjection.TDSITool;
+import apparat.tools.tdsi.TurboDieselSportInjection;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -14,6 +14,7 @@ import java.io.File;
  * @author Joa Ebert
  * @phase package
  * @goal tdsi
+ * @threadSafe
  */
 public final class TurboDieselSportInjectionMojo extends AbstractMojo {
 	/**
@@ -64,10 +65,10 @@ public final class TurboDieselSportInjectionMojo extends AbstractMojo {
 
 		if(artifactType.equals("swc") || artifactType.equals("swf")) {
 			if(getLog().isDebugEnabled()) {
-				getLog().debug("Running "+artifact.getFile()+"through TurboDieselSportInjection ...");
+				getLog().debug("Running "+artifact.getFile()+" through TurboDieselSportInjection ...");
 			}
 
-			final TDSITool tool = new TDSITool();
+			final TurboDieselSportInjection.TDSITool tool = new TurboDieselSportInjection.TDSITool();
 			final TDSIConfiguration config = new TDSIConfiguration() {
 				@Override public File input() { return artifact.getFile(); }
 				@Override public File output() { return artifact.getFile(); }
@@ -80,7 +81,7 @@ public final class TurboDieselSportInjectionMojo extends AbstractMojo {
 				tool.configure(config);
 				tool.run();
 			} catch(final Throwable cause) {
-				throw new MojoExecutionException("TurboDieselSportInjection failed.", cause);
+				throw new MojoExecutionException("Apparat TurboDieselSportInjection failed.", cause);
 			}
 		}
 	}

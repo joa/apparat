@@ -42,6 +42,12 @@
   
   <dependencies>
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-maven-plugin</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
       <groupId>com.adobe.flex.framework</groupId>
       <artifactId>flex-framework</artifactId>
       <version>${flex.version}</version>
