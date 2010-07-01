@@ -30,8 +30,7 @@ public final class ReducerMojo extends AbstractApparatMojo {
 	 */
 	private float deblock;
 
-	@Override
-	protected void processFile(final File file) {
+	@Override protected void processFile(final File file) {
 		final Reducer.ReducerTool tool = new Reducer.ReducerTool();
 		final ReducerConfiguration config = new ReducerConfiguration() {
 			@Override public File input() { return file; }

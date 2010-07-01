@@ -41,18 +41,17 @@ public final class TurboDieselSportInjectionMojo extends AbstractApparatMojo {
 	 */
 	private boolean inlineExpansion;
 
-	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
+	@Override public void execute() throws MojoExecutionException, MojoFailureException {
 		if(!alchemyExpansion && !macroExpansion && !inlineExpansion) {
-			getLog().warn("TurboDieselSportInjection has been disabled since all its features are turned off.");
+			getLog().warn("TurboDieselSportInjection has been disabled since all its " +
+					"features are turned off.");
 			return;
 		}
 
 		super.execute();
 	}
 
-	@Override
-	protected void processFile(final File file) {
+	@Override protected void processFile(final File file) {
 		if(getLog().isDebugEnabled()) {
 			getLog().debug("Running "+file+" through TurboDieselSportInjection ...");
 		}

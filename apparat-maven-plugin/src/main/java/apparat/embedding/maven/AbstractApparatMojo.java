@@ -11,7 +11,7 @@ import java.io.File;
 /**
  * @author Joa Ebert
  */
-public abstract class AbstractApparatMojo extends AbstractMojo {
+abstract class AbstractApparatMojo extends AbstractMojo {
 	/**
 	 * The Maven project.
 	 *
@@ -27,8 +27,7 @@ public abstract class AbstractApparatMojo extends AbstractMojo {
 	 */
 	protected File overrideArtifact;
 
-	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
+	@Override public void execute() throws MojoExecutionException, MojoFailureException {
 		if(null == overrideArtifact) {
 			final Artifact artifact = project.getArtifact();
 			final String artifactType = artifact.getType();
