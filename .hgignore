@@ -7,9 +7,9 @@
 /zip$
 /out$
 /classes$
-java/Apparat.Core/assets/
-scala/apparat/assets/
-scala/apparat/src/Main.scala
+deprecated/java/Apparat.Core/assets/
+apparat-core/assets/
+apparat-core/src/Main.scala
 glob:.settings/*
 glob:.classpath
 glob:.project
