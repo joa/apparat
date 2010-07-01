@@ -115,27 +115,18 @@
               <goals>
                 <goal>compile</goal>
               </goals>
-              <!--configuration>
-                <sourceDir>src</sourceDir>
-              </configuration-->
             </execution>
             <execution>
               <id>testCompile</id>
               <goals>
                 <goal>testCompile</goal>
               </goals>
-              <!--configuration>
-                <sourceDir>tests</sourceDir>
-              </configuration-->
             </execution>
             <execution>
               <id>doc</id>
               <goals>
                 <goal>doc</goal>
               </goals>
-              <!--configuration>
-                <sourceDir>src</sourceDir>
-              </configuration-->
             </execution>
           </executions>
           <configuration>
@@ -164,6 +155,7 @@
     <module>apparat-ersatz</module>
     <module>apparat-maven-plugin</module>
     <module>apparat-playerglobal</module>
+    <module>apparat-taas</module>
   </modules>
 
   <repositories>
