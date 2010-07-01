@@ -96,7 +96,7 @@ package apparat.memory.strategies
 			var position: int = _chunkSize;
 			
 			//
-			// Start from 1 since the first chunk is non-persisten space. 
+			// Start from 1 since the first chunk is non-persistent space. 
 			//
 			
 			for( var i: int = 1; i < numChunks; ++i )

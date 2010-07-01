@@ -1,0 +1,73 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>\${groupId}</groupId>
+  <artifactId>\${artifactId}</artifactId>
+  <version>\${version}</version>
+  <name>\${artifactId} TDSI Application</name>
+  <packaging>swc</packaging>
+  
+  <build>
+    <sourceDirectory>src/main/as3</sourceDirectory>
+    <testSourceDirectory>src/test/as3</testSourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.sonatype.flexmojos</groupId>
+        <artifactId>flexmojos-maven-plugin</artifactId>
+        <version>${flexmojos.version}</version>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>apparat-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>tdsi-package</id>
+            <goals>
+              <goal>tdsi</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>tdsi-test</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>tdsi</goal>
+            </goals>
+            <configuration>
+              <overrideArtifact>\${project.build.testOutputDirectory}/${flexmojos.testrunner}</overrideArtifact>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <alchemyExpansion>true</alchemyExpansion>
+          <inlineExpansion>true</inlineExpansion>
+          <macroExpansion>true</macroExpansion>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-ersatz</artifactId>
+      <version>${project.version}</version>
+      <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.flex.framework</groupId>
+      <artifactId>flex-framework</artifactId>
+      <version>${flex.version}</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.flexunit</groupId>
+      <artifactId>flexunit</artifactId>
+      <version>0.85</version>
+      <type>swc</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>
