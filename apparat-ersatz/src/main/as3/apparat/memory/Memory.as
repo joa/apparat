@@ -40,6 +40,15 @@ package apparat.memory
 	 * @author Joa Ebert
 	 */
 	public final class Memory {
+		//
+		// NOTE: This class works now only if the library has been processed
+		// with TurboDieselSportInjection and alchemyExpansion turned on.
+		//
+		// The code might look completely wrong, but note that TDSI will replace
+		// the calls like Memory.writeByte(address, value) with an Alchemy operation.
+		// Therefore all methods are not recursive after processing the SWC with TDSI.
+		//
+		
 		/**
 		 * The current application domain.
 		 * @private
