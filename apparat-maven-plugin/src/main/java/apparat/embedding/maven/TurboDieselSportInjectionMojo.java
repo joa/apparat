@@ -16,29 +16,6 @@ import java.io.File;
  * @goal tdsi
  */
 public final class TurboDieselSportInjectionMojo extends AbstractMojo {
-	private final class Configuration implements TDSIConfiguration {
-		private final File _input;
-		private final File _output;
-		private final boolean _alchemyExpansion;
-		private final boolean _macroExpansion;
-		private final boolean _inlineExpansion;
-
-		public Configuration(final File input, final File output, final boolean alchemyExpansion,
-							 final boolean macroExpansion, final boolean inlineExpansion) {
-			_input = input;
-			_output = output;
-			_alchemyExpansion = alchemyExpansion;
-			_macroExpansion = macroExpansion;
-			_inlineExpansion = inlineExpansion;
-		}
-
-		@Override public File input() { return _input; }
-		@Override public File output() { return _output; }
-		@Override public boolean alchemyExpansion() { return _alchemyExpansion; }
-		@Override public boolean macroExpansion() { return _macroExpansion; }
-		@Override public boolean inlineExpansion() { return _inlineExpansion; }
-	}
-
 	/**
 	 * Whether or not to expand Alchemy instructions.
 	 *
@@ -82,8 +59,13 @@ public final class TurboDieselSportInjectionMojo extends AbstractMojo {
 
 			if(artifactType.equals("swc") || artifactType.equals("swf")) {
 				final TDSITool tool = new TDSITool();
-				final Configuration config = new Configuration(artifact.getFile(), artifact.getFile(),
-						alchemyExpansion, macroExpansion, inlineExpansion);
+				final TDSIConfiguration config = new TDSIConfiguration() {
+					@Override public File input() { return artifact.getFile(); }
+					@Override public File output() { return artifact.getFile(); }
+					@Override public boolean alchemyExpansion() { return alchemyExpansion; }
+					@Override public boolean macroExpansion() { return macroExpansion; }
+					@Override public boolean inlineExpansion() { return inlineExpansion; }
+				};
 
 				try {
 					tool.configure(config);
