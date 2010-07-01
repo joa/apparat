@@ -58,6 +58,7 @@ class JbcBackend extends TaasBackend {
 				nominal.base match {
 					case Some(base) => base match {
 						case t: TaasNominalType => toJavaName(t.nominal.qualifiedName)
+						case TaasObjectType => "java/lang/Object"
 						case _ => error("Expected TaasNominalType, got "+base)
 					}
 					case None => "java/lang/Object"
