@@ -9,7 +9,7 @@
 /classes$
 deprecated/java/Apparat.Core/assets/
 apparat-core/assets/
-apparat-core/src/Main.scala
+apparat-core/src/main/scala/Main.scala
 glob:.settings/*
 glob:.classpath
 glob:.project
