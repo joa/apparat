@@ -29,8 +29,8 @@ import apparat.bytecode.operations._
 import apparat.bytecode.combinator._
 import apparat.bytecode.combinator.BytecodeChains._
 import apparat.swf._
-import apparat.bytecode.optimization.{InlineExpansion, MacroExpansion, PeepholeOptimizations, InlineMemory}
 import annotation.tailrec
+import apparat.bytecode.optimization._
 
 /**
  * @author Joa Ebert
@@ -101,6 +101,10 @@ object TurboDieselSportInjection {
 
 										if(alchemy) {
 											modified |= InlineMemory(bytecode)
+										}
+
+										if(fixAlchemy) {
+											modified |= AlchemyOptimizations(bytecode)
 										}
 
 										modified |= PeepholeOptimizations(bytecode)

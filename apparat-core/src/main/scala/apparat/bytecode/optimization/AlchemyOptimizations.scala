@@ -28,20 +28,6 @@ import apparat.bytecode.operations._
  * @author Joa Ebert
  */
 object AlchemyOptimizations extends (Bytecode => Boolean) {
-	private val public = AbcNamespace(22, Symbol(""))
-	val _mr32 = AbcQName('_mr32, public)
-	val _mru16 = AbcQName('_mru16, public)      
-	val _mrs16 = AbcQName('_mrs16, public)
-	val _mru8 = AbcQName('_mru8, public)
-	val _mrs8 = AbcQName('_mrs8, public)
-	val _mrf = AbcQName('_mrf, public)
-	val _mrd = AbcQName('_mrd, public)
-	val _mw32 = AbcQName('_mw32, public)
-	val _mw16 = AbcQName('_mw16, public)
-	val _mw8 = AbcQName('_mw8, public)
-	val _mwd = AbcQName('_mwd, public)
-	val _mrf = AbcQName('_mwf, public)
-	
 	override def apply(bytecode: Bytecode): Boolean = {
 		var result = List.empty[AbstractOp]
 		var modified = false
@@ -52,20 +38,20 @@ object AlchemyOptimizations extends (Bytecode => Boolean) {
 					// We ignore the object for the original code. The original code was something
 					// like mstate._mr32(address), therefore we insert an extra Pop() to get rid
 					// of mstate.
-					case CallProperty(_mr32, 1) => result = Pop() :: GetInt() :: result; modified = true
-					case CallProperty(_mru16, 1) => result = Pop() :: GetShort() :: result; modified = true
-					case CallProperty(_mrs16, 1) => result = Pop() :: GetShort() :: result; modified = true
-					case CallProperty(_mru8, 1) => result = Pop() :: GetByte() :: result; modified = true
-					case CallProperty(_mrs8, 1) => result = Pop() :: GetByte() :: result; modified = true
-					case CallProperty(_mrf, 1) => result = Pop() :: GetFloat() :: result; modified = true
-					case CallProperty(_mrd, 1) => result = Pop() :: GetDouble() :: result; modified = true
+					case CallProperty(AbcQName('_mr32, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetInt() :: result; modified = true
+					case CallProperty(AbcQName('_mru16, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetShort() :: result; modified = true
+					case CallProperty(AbcQName('_mrs16, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetShort() :: result; modified = true
+					case CallProperty(AbcQName('_mru8, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetByte() :: result; modified = true
+					case CallProperty(AbcQName('_mrs8, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetByte() :: result; modified = true
+					case CallProperty(AbcQName('_mrf, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetFloat() :: result; modified = true
+					case CallProperty(AbcQName('_mrd, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetDouble() :: result; modified = true
 					// ASC inserts an extra Pop() after CallProperty() since those methods
 					// are typed void. Because of this we do not have to add an extra Pop()
-					case CallProperty(_mw32, 2) => result = WriteInt() :: result; modified = true
-					case CallProperty(_mw16, 2) => result = WriteShort() :: result; modified = true
-					case CallProperty(_mw8, 2) => result = WriteByte() :: result; modified = true
-					case CallProperty(_mwd, 2) => result = WriteDouble() :: result; modified = true
-					case CallProperty(_mwf, 2) => result = WriteFloat() :: result; modified = true
+					case CallProperty(AbcQName('_mw32, AbcNamespace(22, Symbol(""))), 2) => result = SetInt() :: result; modified = true
+					case CallProperty(AbcQName('_mw16, AbcNamespace(22, Symbol(""))), 2) => result = SetShort() :: result; modified = true
+					case CallProperty(AbcQName('_mw8, AbcNamespace(22, Symbol(""))), 2) => result = SetByte() :: result; modified = true
+					case CallProperty(AbcQName('_mwd, AbcNamespace(22, Symbol(""))), 2) => result = SetDouble() :: result; modified = true
+					case CallProperty(AbcQName('_mwf, AbcNamespace(22, Symbol(""))), 2) => result = SetFloat() :: result; modified = true
 					case o => result = o :: result
 				}
 			} else {
