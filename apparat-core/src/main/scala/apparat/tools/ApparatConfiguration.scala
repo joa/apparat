@@ -2,6 +2,14 @@ package apparat.tools
 
 import scala.collection.mutable.HashMap
 
+object ApparatConfiguration {
+	def fromArray(args: Array[String]) = {
+		val config = new ApparatConfiguration()
+		config parse args
+		config
+	}
+}
+
 class ApparatConfiguration {
 	private val options = new HashMap[String, String]
 
