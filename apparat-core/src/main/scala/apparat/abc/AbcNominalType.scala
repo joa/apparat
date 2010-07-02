@@ -2,7 +2,7 @@ package apparat.abc
 
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
-class AbcNominalType(val inst: AbcInstance) extends Dumpable {
+class AbcNominalType(var inst: AbcInstance) extends Dumpable {
 	var klass: AbcClass = _//TODO replace with `class` and Option[AbcClass]
 	
 	def accept(visitor: AbcVisitor) = {

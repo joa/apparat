@@ -3,7 +3,7 @@ package apparat.abc
 import apparat.bytecode.Bytecode
 import apparat.utils.{IO, IndentingPrintWriter, Dumpable}
 
-class AbcMethodParameter(val typeName: AbcName) extends Dumpable {
+class AbcMethodParameter(var typeName: AbcName) extends Dumpable {
 	var name: Option[Symbol] = None
 	var optional = false
 	var optionalType: Option[Int] = None
@@ -27,10 +27,10 @@ class AbcMethodParameter(val typeName: AbcName) extends Dumpable {
 	}
 }
 
-class AbcMethod(val parameters: Array[AbcMethodParameter], val returnType: AbcName,
-				val name: Symbol, val needsArguments: Boolean, val needsActivation: Boolean, val needsRest: Boolean,
-				val hasOptionalParameters: Boolean, val ignoreRest: Boolean, val isNative: Boolean,
-				val setsDXNS: Boolean, val hasParameterNames: Boolean) extends Dumpable {
+class AbcMethod(var parameters: Array[AbcMethodParameter], var returnType: AbcName,
+				var name: Symbol, var needsArguments: Boolean, var needsActivation: Boolean, var needsRest: Boolean,
+				var hasOptionalParameters: Boolean, var ignoreRest: Boolean, var isNative: Boolean,
+				var setsDXNS: Boolean, var hasParameterNames: Boolean) extends Dumpable {
 	var body: Option[AbcMethodBody] = None
 	var anonymous = true
 	
@@ -72,9 +72,9 @@ class AbcMethod(val parameters: Array[AbcMethodParameter], val returnType: AbcNa
 	}
 }
 
-class AbcMethodBody(var maxStack: Int, var localCount: Int, val initScopeDepth: Int,
+class AbcMethodBody(var maxStack: Int, var localCount: Int, var initScopeDepth: Int,
 					var maxScopeDepth: Int, var code: Array[Byte], var exceptions: Array[AbcExceptionHandler],
-					val traits: Array[AbcTrait], var bytecode: Option[Bytecode] = None) extends Dumpable with HasTraits
+					var traits: Array[AbcTrait], var bytecode: Option[Bytecode] = None) extends Dumpable with HasTraits
 {
 	def accept(visitor: AbcVisitor) = {
 		visitor visit this
@@ -102,6 +102,6 @@ class AbcMethodBody(var maxStack: Int, var localCount: Int, val initScopeDepth: 
 	}
 }
 
-class AbcExceptionHandler(val from: Int, val to: Int, val target: Int, val typeName: AbcName, val varName: AbcName) {
+class AbcExceptionHandler(var from: Int, var to: Int, var target: Int, var typeName: AbcName, var varName: AbcName) {
 	def accept(visitor: AbcVisitor) = visitor visit this
 }

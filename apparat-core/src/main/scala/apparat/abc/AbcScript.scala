@@ -2,7 +2,7 @@ package apparat.abc
 
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
-class AbcScript(val init: AbcMethod, val traits: Array[AbcTrait]) extends Dumpable with HasTraits {
+class AbcScript(var init: AbcMethod, var traits: Array[AbcTrait]) extends Dumpable with HasTraits {
 	init.anonymous = false
 	
 	def accept(visitor: AbcVisitor) = visitor visit this

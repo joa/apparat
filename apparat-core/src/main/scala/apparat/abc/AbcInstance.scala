@@ -3,16 +3,16 @@ package apparat.abc
 import apparat.utils.{Dumpable, IndentingPrintWriter}
 
 class AbcInstance(
-		val name: AbcQName,
-		val base: Option[AbcName],
-		val isSealed: Boolean,
-		val isFinal: Boolean,
-		val isInterface: Boolean,
-		val nonNullable: Boolean,
-		val protectedNs: Option[AbcNamespace],
-		val interfaces: Array[AbcName],
-		val init: AbcMethod,
-		val traits: Array[AbcTrait]
+		var name: AbcQName,
+		var base: Option[AbcName],
+		var isSealed: Boolean,
+		var isFinal: Boolean,
+		var isInterface: Boolean,
+		var nonNullable: Boolean,
+		var protectedNs: Option[AbcNamespace],
+		var interfaces: Array[AbcName],
+		var init: AbcMethod,
+		var traits: Array[AbcTrait]
 		) extends Dumpable with HasTraits {
 	init.anonymous = false
 	
