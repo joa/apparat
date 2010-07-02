@@ -64,6 +64,7 @@ object TurboDieselSportInjection {
 			alchemy = config.alchemyExpansion
 			macros = config.macroExpansion
 			inline = config.inlineExpansion
+			fixAlchemy = config.fixAlchemy
 		}
 
 		override def run() = {
