@@ -20,4 +20,4 @@
 # http://www.joa-ebert.com/
 #
 
-scala -cp apparat.jar apparat.tools.shell.ApparatShell
+scala -cp `dirname "$0"`/apparat-core-${project.version}.jar apparat.tools.tdsi.TurboDieselSportInjection $*
