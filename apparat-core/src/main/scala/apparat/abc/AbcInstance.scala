@@ -15,6 +15,11 @@ class AbcInstance(
 		var traits: Array[AbcTrait]
 		) extends Dumpable with HasTraits {
 	init.anonymous = false
+
+	lazy val privateNs: AbcNamespace =  traits find { _.name.kind == AbcNamespaceKind.Private } match {
+		case Some(t) => t.name.namespace
+		case None => AbcNamespace(AbcNamespaceKind.Private, Symbol(""))
+	}
 	
 	def accept(visitor: AbcVisitor) = {
 		visitor visit this

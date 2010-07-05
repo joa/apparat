@@ -4,6 +4,12 @@ import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 class AbcNominalType(var inst: AbcInstance) extends Dumpable {
 	var klass: AbcClass = _//TODO replace with `class` and Option[AbcClass]
+
+	def name = inst.name
+
+	def protectedNs = inst.protectedNs
+
+	def privateNs = inst.privateNs
 	
 	def accept(visitor: AbcVisitor) = {
 		visitor visit this
