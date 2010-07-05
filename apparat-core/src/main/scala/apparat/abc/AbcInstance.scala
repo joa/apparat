@@ -16,7 +16,7 @@ class AbcInstance(
 		) extends Dumpable with HasTraits {
 	init.anonymous = false
 
-	lazy val privateNs: AbcNamespace =  traits find { _.name.kind == AbcNamespaceKind.Private } match {
+	lazy val privateNs: AbcNamespace =  traits find { _.name.namespace.kind == AbcNamespaceKind.Private } match {
 		case Some(t) => t.name.namespace
 		case None => AbcNamespace(AbcNamespaceKind.Private, Symbol(""))
 	}
