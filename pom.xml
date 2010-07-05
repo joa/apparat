@@ -51,6 +51,8 @@
 	  <roles>
 	    <role>owner</role>
 	  </roles>
+	  <organization>Des Pudels Kern GmbH</organization>
+	  <organizationUrl>http://www.despudelskern.de/</organizationUrl>
 	</developer>
 	<developer>
 	  <name>Patrick Le Clec'h</name>
@@ -70,6 +72,8 @@
     <contributor>
 	  <name>Marvin Froeder</name>
 	  <email>velo.br@gmail.com</email>
+	  <organization>Sonatype Inc.</organization>
+	  <organizationUrl>http://www.sonatype.com/</organizationUrl>
 	</contributor>
   </contributors>
   
@@ -98,7 +102,17 @@
 
   <build>
     <pluginManagement>
-      <plugins>
+	  <plugins>
+	    <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.2-beta-5</version>
+		  <configuration>
+            <descriptors>
+              <descriptor>src/main/assembly/bin.xml</descriptor>
+            </descriptors>
+          </configuration>
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -154,7 +168,7 @@
   <modules>
     <module>apparat-anttasks</module>
     <module>apparat-archetypes</module>
-    <module>apparat-core</module>
+	<module>apparat-core</module>
     <module>apparat-ersatz</module>
     <module>apparat-jitb</module>
     <module>apparat-maven-plugin</module>

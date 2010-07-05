@@ -19,4 +19,4 @@
 ::
 
 @echo off
-scala -cp apparat.jar apparat.tools.concrete.Concrete %*
+scala -cp %~dp0\apparat-core-${project.version}.jar apparat.tools.concrete.Concrete %*
