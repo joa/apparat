@@ -38,13 +38,13 @@ object AlchemyOptimizations extends (Bytecode => Boolean) {
 					// We ignore the object for the original code. The original code was something
 					// like mstate._mr32(address), therefore we insert an extra Pop() to get rid
 					// of mstate.
-					case CallProperty(AbcQName('_mr32, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetInt() :: result; modified = true
-					case CallProperty(AbcQName('_mru16, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetShort() :: result; modified = true
-					case CallProperty(AbcQName('_mrs16, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: Sign16() :: GetShort() :: result; modified = true
-					case CallProperty(AbcQName('_mru8, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetByte() :: result; modified = true
-					case CallProperty(AbcQName('_mrs8, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: Sign8() :: GetByte() :: result; modified = true
-					case CallProperty(AbcQName('_mrf, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetFloat() :: result; modified = true
-					case CallProperty(AbcQName('_mrd, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: GetDouble() :: result; modified = true
+					case CallProperty(AbcQName('_mr32, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: Swap() :: GetInt() :: result; modified = true
+					case CallProperty(AbcQName('_mru16, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: Swap() :: GetShort() :: result; modified = true
+					case CallProperty(AbcQName('_mrs16, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: Swap() :: Sign16() :: GetShort() :: result; modified = true
+					case CallProperty(AbcQName('_mru8, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: Swap() :: GetByte() :: result; modified = true
+					case CallProperty(AbcQName('_mrs8, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: Swap() :: Sign8() :: GetByte() :: result; modified = true
+					case CallProperty(AbcQName('_mrf, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: Swap() :: GetFloat() :: result; modified = true
+					case CallProperty(AbcQName('_mrd, AbcNamespace(22, Symbol(""))), 1) => result = Pop() :: Swap() :: GetDouble() :: result; modified = true
 					// ASC inserts an extra Pop() after CallProperty() since those methods
 					// are typed void. Because of this we do not have to add an extra Pop()
 					case CallProperty(AbcQName('_mw32, AbcNamespace(22, Symbol(""))), 2) => result = SetInt() :: Swap() :: result; modified = true
