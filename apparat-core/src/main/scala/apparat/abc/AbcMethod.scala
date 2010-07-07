@@ -15,12 +15,13 @@ class AbcMethodParameter(var typeName: AbcName) extends Dumpable {
 		writer <= "Parameter: "
 		writer withIndent {
 			name match {
-				case Some(name) => writer <= "Name: " + name.name
+				case Some(name) => writer <= "Name: "+name.name
 				case None =>
 			}
-			writer <= "Optional: " + optional
+			writer <= "Type: "+typeName
+			writer <= "Optional: "+optional
 			optionalVal match {
-				case Some(value) => writer <= "Default: " + value
+				case Some(value) => writer <= "Default: "+value
 				case None =>
 			}
 		}
@@ -45,21 +46,21 @@ class AbcMethod(var parameters: Array[AbcMethodParameter], var returnType: AbcNa
 		}
 	}
 
-	override def toString = "[AbcMethod name: " + name.toString() + "]"
+	override def toString = "[AbcMethod name: "+name.toString()+"]"
 
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= (if(!anonymous) "Method:" else "Function:")
 		writer withIndent {
-			if(null != name.name) writer <= "Name: " + name.name
-			writer <= "Return Type: " + returnType
-			writer <= "Needs Arguments: " + needsArguments
-			writer <= "Needs Rest: " + needsRest
-			writer <= "Needs Activation: " + needsActivation
-			writer <= "Has Optional Parameters: " + hasOptionalParameters
-			writer <= "Ignore Rest: " + ignoreRest
-			writer <= "Is Native: " + isNative
-			writer <= "DXNS: " + setsDXNS
-			writer <= "Has Parameter Names: " + hasParameterNames
+			if(null != name.name) writer <= "Name: "+name.name
+			writer <= "Return Type: "+returnType
+			writer <= "Needs Arguments: "+needsArguments
+			writer <= "Needs Rest: "+needsRest
+			writer <= "Needs Activation: "+needsActivation
+			writer <= "Has Optional Parameters: "+hasOptionalParameters
+			writer <= "Ignore Rest: "+ignoreRest
+			writer <= "Is Native: "+isNative
+			writer <= "DXNS: "+setsDXNS
+			writer <= "Has Parameter Names: "+hasParameterNames
 			writer <= "Parameters:"
 			writer withIndent {
 				parameters foreach (_ dump writer)
@@ -85,10 +86,10 @@ class AbcMethodBody(var maxStack: Int, var localCount: Int, var initScopeDepth: 
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Method Body:"
 		writer withIndent {
-			writer <= "Max Stack: " + maxStack
-			writer <= "Locals: " + localCount
-			writer <= "InitScopeDepth: " + initScopeDepth
-			writer <= "MaxScopeDepth: " + maxScopeDepth
+			writer <= "Max Stack: "+maxStack
+			writer <= "Locals: "+localCount
+			writer <= "InitScopeDepth: "+initScopeDepth
+			writer <= "MaxScopeDepth: "+maxScopeDepth
 			dumpTraits(writer)
 			bytecode match {
 				case Some(bytecode) => bytecode dump writer

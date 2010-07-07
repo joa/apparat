@@ -89,7 +89,7 @@ object TurboDieselSportInjection {
 						case Some(body) => {
 							body.bytecode match {
 								case Some(bytecode) => {
-									@tailrec def modifyBytecode(counter:Int):Unit={
+									@tailrec def modifyBytecode(counter: Int): Unit = {
 										var modified = false
 
 										if(inline) {
@@ -110,8 +110,9 @@ object TurboDieselSportInjection {
 
 										modified |= PeepholeOptimizations(bytecode)
 
-										if (modified && (counter < 31))
+										if (modified && (counter < 31)) {
 											modifyBytecode(counter + 1)
+										}
 									}
 
 									modifyBytecode(0)
