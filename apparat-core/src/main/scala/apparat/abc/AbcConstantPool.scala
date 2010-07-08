@@ -38,6 +38,16 @@ class AbcConstantPool(
 		val namespaces: Array[AbcNamespace],
 		val nssets: Array[AbcNSSet],
 		val names: Array[AbcName]) extends Dumpable {
+
+	def +(that: AbcConstantPool) = new AbcConstantPool(
+		(ints.toList ::: (that.ints.toList drop 1)).distinct.toArray,
+		(uints.toList ::: (that.uints.toList drop 1)).distinct.toArray,
+		(doubles.toList ::: (that.doubles.toList drop 1)).distinct.toArray,
+		(strings.toList ::: (that.strings.toList drop 1)).distinct.toArray,
+		(namespaces.toList ::: (that.namespaces.toList drop 1)).distinct.toArray,
+		(nssets.toList ::: (that.nssets.toList drop 1)).distinct.toArray,
+		(names.toList ::: (that.names.toList drop 1)).distinct.toArray)
+
 	def accept(visitor: AbcVisitor) = visitor visit this
 	
 	def constant(kind: Some[Int], index: Int): Any = constant(kind.get, index)

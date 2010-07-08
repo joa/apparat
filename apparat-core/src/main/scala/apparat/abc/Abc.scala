@@ -82,7 +82,20 @@ class Abc extends Dumpable {
 	var metadata = new Array[AbcMetadata](0)
 	var types = new Array[AbcNominalType](0)
 	var scripts = new Array[AbcScript](0)
+
 	var bytecodeAvailable = false
+
+	def +(that: Abc) = {
+		val result = new Abc()
+
+		//result.cpool = this.cpool + that.cpool
+		result.methods = this.methods ++ that.methods
+		result.metadata = this.metadata ++ that.metadata
+		result.types = this.types ++ that.types
+		result.scripts = this.scripts ++ that.scripts
+
+		result
+	}
 
 	def accept(visitor: AbcVisitor) = {
 		visitor visit this

@@ -29,4 +29,5 @@ protected[reducer] class ReducerConfigurationImpl(
 		val input: JFile,
 		val output: JFile,
 		val quality: Float,
-		val deblock: Float) extends ReducerConfiguration
+		val deblock: Float,
+		val mergeABC: Boolean) extends ReducerConfiguration

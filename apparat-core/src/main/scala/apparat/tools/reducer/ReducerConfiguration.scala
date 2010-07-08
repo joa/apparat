@@ -45,4 +45,9 @@ trait ReducerConfiguration {
 	 * Strength of the Flash Player deblocking filter.
 	 */
 	def deblock: Float
+
+	/**
+	 * Whether or not to merge ABC files into a single one.
+	 */
+	def mergeABC: Boolean
 }

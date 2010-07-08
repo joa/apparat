@@ -32,9 +32,10 @@ object ReducerConfigurationFactory extends ApparatConfigurationFactory[ReducerCo
 		val output = config("-o") map { pathname => new JFile(pathname) } getOrElse input
 		val deblock = java.lang.Float parseFloat config("-d").getOrElse("0.0")
 		val quality = java.lang.Float parseFloat config("-q").getOrElse("0.99")
+		val merge = (config("-m") getOrElse "false").toBoolean
 		
 		assert(input.exists, "Input has to exist.")
 
-		new ReducerConfigurationImpl(input, output, quality, deblock)
+		new ReducerConfigurationImpl(input, output, quality, deblock, merge)
 	}
 }

@@ -12,6 +12,8 @@ import java.util.zip.{Inflater => JInflater}
 import java.util.zip.{Deflater => JDeflater}
 import apparat.actors.Futures._
 import java.io.{File => JFile, ByteArrayOutputStream => JByteArrayOutputStream, ByteArrayInputStream => JByteArrayInputStream}
+import apparat.abc.Abc
+import apparat.abc.analysis.AbcConstantPoolBuilder
 
 object Reducer {
 	def main(args: Array[String]): Unit = ApparatApplication(new ReducerTool, args)
@@ -21,13 +23,15 @@ object Reducer {
 		var quality = 0.99f
 		var input: JFile = _
 		var output: JFile = _
+		var mergeABC: Boolean = false
 
 		override def name: String = "Reducer"
 
 		override def help: String = """  -i [file]	Input file
   -o [file]	Output file (optional)
   -d [float]	Strength of deblocking filter (optional)
-  -q [float]	Quality from 0.0 to 1.0 (optional)"""
+  -q [float]	Quality from 0.0 to 1.0 (optional)
+  -m [true|false] Merge ABC files"""
 
 		override def configure(config: ApparatConfiguration): Unit = configure(ReducerConfigurationFactory fromConfiguration config)
 		
@@ -36,12 +40,15 @@ object Reducer {
 			output = config.output
 			quality = config.quality
 			deblock = config.deblock
+			mergeABC = config.mergeABC
 		}
 
 		override def run() = {
 			SwfTags.tagFactory = (kind: Int) => kind match {
 				case SwfTags.DefineBitsLossless2 => Some(new DefineBitsLossless2)
 				case SwfTags.FileAttributes => Some(new FileAttributes)
+				case SwfTags.DoABC if mergeABC => Some(new DoABC)
+				case SwfTags.DoABC1 if mergeABC => Some(new DoABC)
 				case _ => None
 			}
 			val source = input
@@ -49,6 +56,49 @@ object Reducer {
 			val l0 = source length
 			val cont = TagContainer fromFile source
 			cont.tags = cont.tags filterNot (tag => tag.kind == SwfTags.Metadata || tag.kind == SwfTags.ProductInfo) map reduce
+
+			if(mergeABC) {
+				var buffer: Option[Abc] = None
+				var result = List.empty[SwfTag]
+
+				for(tag <- cont.tags) {
+					tag match {
+						case doABC: DoABC => {
+							val abc = Abc fromDoABC doABC
+							abc.loadBytecode()
+
+							buffer = buffer match {
+								case Some(b) => Some(b + abc)
+								case None => Some(abc)
+							}
+						}
+						case o => {
+							buffer match {
+								case Some(b) => {
+									val doABC = new DoABC()
+
+									doABC.flags = 1
+									doABC.name = "apparat.googlecode.com"
+
+									b.bytecodeAvailable = true
+									ApparatLog("Building new cpool ...")
+									b.cpool = AbcConstantPoolBuilder using b//TODO we have to get rid of this!
+									b.saveBytecode()
+									b write doABC
+
+									result = o :: doABC :: result
+								}
+								case None => result = o :: result
+							}
+							
+							buffer = None
+						}
+					}
+				}
+
+				cont.tags = result.reverse
+			}
+
 			cont write target
 			val delta = l0 - (target length)
 			ApparatLog("Compression ratio: " + ((delta).asInstanceOf[Float] / l0.asInstanceOf[Float]) * 100.0f + "%")
