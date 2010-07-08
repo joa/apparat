@@ -17,7 +17,6 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 	 *
 	 * @parameter expression="${project}"
 	 * @required
-	 * @readonly
 	 */
 	protected MavenProject project;
 

@@ -19,7 +19,6 @@ public final class TurboDieselSportInjectionMojo extends AbstractApparatMojo {
 	 *
 	 * @parameter default-value=true
 	 * @required
-	 * @readonly
 	 */
 	private boolean alchemyExpansion;
 
@@ -28,7 +27,6 @@ public final class TurboDieselSportInjectionMojo extends AbstractApparatMojo {
 	 *
 	 * @parameter default-value=true
 	 * @required
-	 * @readonly
 	 */
 	private boolean macroExpansion;
 
@@ -37,7 +35,6 @@ public final class TurboDieselSportInjectionMojo extends AbstractApparatMojo {
 	 *
 	 * @parameter default-value=true
 	 * @required
-	 * @readonly
 	 */
 	private boolean inlineExpansion;
 
@@ -46,7 +43,6 @@ public final class TurboDieselSportInjectionMojo extends AbstractApparatMojo {
 	 *
 	 * @parameter default-value=false
 	 * @required
-	 * @readonly
 	 */
 	private boolean fixAlchemy;
 
