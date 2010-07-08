@@ -87,10 +87,10 @@ class Abc extends Dumpable {
 	def accept(visitor: AbcVisitor) = {
 		visitor visit this
 		cpool accept visitor
-		methods foreach (_ accept visitor)
-		metadata foreach (_ accept visitor)
-		types foreach (_ accept visitor)
-		scripts foreach (_ accept visitor)
+		methods foreach { _ accept visitor }
+		metadata foreach { _ accept visitor }
+		types foreach { _ accept visitor }
+		scripts foreach { _ accept visitor }
 	}
 
 	def rebuildPool() = cpool = AbcConstantPoolBuilder using this

@@ -170,9 +170,9 @@ class InlineExpansion(abcs: List[Abc]) {
 											case other => other
 										})
 									}
-									case None => error("Bytecode is not loaded.")
+									case None => ApparatLog warn "Bytecode of "+property+" is not available."
 								}
-								case None => error("Method body is not defined.")
+								case None => ApparatLog warn "Method body is not defined."
 							}
 
 							removePop = op.opCode == Op.callproperty && method.returnType == voidName

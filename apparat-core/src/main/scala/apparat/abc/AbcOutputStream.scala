@@ -91,7 +91,7 @@ class AbcOutputStream(val output: JOutputStream) extends JOutputStream {
 		write((value & 0xff00) >> 0x08)
 	}
 
-	def writeU30(value: Int) = { assert(value >= 0 && value <= 0x3fffffff); encodeInt(value & 0x3fffffff) }
+	def writeU30(value: Int) = { assert(value >= 0 && value <= 0x3fffffff, "Illegal value: "+value); encodeInt(value & 0x3fffffff) }
 
 	def writeS30(value: Int) = { assert(value >= -536870912 && value <= 0x1fffffff); encodeInt(value & 0x3fffffff) }
 

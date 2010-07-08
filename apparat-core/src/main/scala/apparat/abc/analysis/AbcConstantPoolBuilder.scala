@@ -2,6 +2,7 @@ package apparat.abc.analysis
 
 import apparat.abc._
 import apparat.bytecode.operations._
+import apparat.tools.ApparatLog
 
 object AbcConstantPoolBuilder {
 	def using(abc: Abc) = {
@@ -335,5 +336,9 @@ class AbcConstantPoolBuilder extends AbcVisitor {
 			}
 			case _ => 
 		}
+	}
+
+	override def visit(value: AbcScript): Unit = {
+		value.traits foreach { _ accept this }
 	}
 }

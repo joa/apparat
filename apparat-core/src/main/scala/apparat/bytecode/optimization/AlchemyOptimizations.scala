@@ -59,6 +59,44 @@ object AlchemyOptimizations extends (Bytecode => Boolean) {
 			}
 		}
 
+		/*
+		+1|-0  GetGlobalScope()
+		+1|-1  GetSlot(32)
+		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
+		+1|-0  GetLocal(1)
+		+0|-2  SetProperty(AbcQName('position,AbcNamespace(22,')))
+		+1|-0  GetGlobalScope()
+		+1|-1  GetSlot(32)
+		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
+		+1|-0  GetLocal(2)
+		+1|-2  CallProperty(AbcQName('readUTFBytes,AbcNamespace(22,')),1)
+
+
+
+		+1|-0  GetGlobalScope()
+		+1|-1  GetSlot(32)
+		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
+		+1|-0  GetLocal(2)
+		+0|-2  SetProperty(AbcQName('position,AbcNamespace(22,')))
+		+1|-0  GetGlobalScope()
+		+1|-1  GetSlot(32)
+		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
+		+1|-1  CallProperty(AbcQName('readInt,AbcNamespace(22,')),0)
+		+1|-1  ConvertInt()
+
+
+		+1|-0  GetGlobalScope()
+		+1|-1  GetSlot(32)
+		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
+		+1|-0  GetLocal(3)
+		+0|-2  SetProperty(AbcQName('position,AbcNamespace(22,')))
+		+1|-0  GetGlobalScope()
+		+1|-1  GetSlot(32)
+		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
+		+1|-1  CallProperty(AbcQName('readInt,AbcNamespace(22,')),0)
+		+1|-1  ConvertInt()
+		*/
+
 		if(modified) {
 			bytecode.ops = result.reverse
 		}

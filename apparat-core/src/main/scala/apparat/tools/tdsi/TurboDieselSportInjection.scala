@@ -20,17 +20,18 @@
  */
 package apparat.tools.tdsi
 
-import apparat.tools.{ApparatConfiguration, ApparatApplication, ApparatTool}
 import java.io.{File => JFile}
 import apparat.utils.TagContainer
 import apparat.actors.Futures._
 import apparat.abc._
+import analysis.AbcConstantPoolBuilder
 import apparat.bytecode.operations._
 import apparat.bytecode.combinator._
 import apparat.bytecode.combinator.BytecodeChains._
 import apparat.swf._
 import annotation.tailrec
 import apparat.bytecode.optimization._
+import apparat.tools.{ApparatLog, ApparatConfiguration, ApparatApplication, ApparatTool}
 
 /**
  * @author Joa Ebert
@@ -81,9 +82,11 @@ object TurboDieselSportInjection {
 			val macroExpansion = if(macros) Some(new MacroExpansion(allABC.valuesIterator.toList)) else None
 			val inlineExpansion = if(inline) Some(new InlineExpansion(allABC.valuesIterator.toList)) else None
 
+			allABC foreach { _._2.loadBytecode() }
+			
 			for((doABC, abc) <- allABC) {
-				abc.loadBytecode()
-				
+				var rebuildCpool = false
+
 				for(method <- abc.methods) {
 					method.body match {
 						case Some(body) => {
@@ -92,12 +95,14 @@ object TurboDieselSportInjection {
 									@tailrec def modifyBytecode(counter: Int): Unit = {
 										var modified = false
 
-										if(inline) {
-											modified |= inlineExpansion.get expand bytecode
+										if(inline && (inlineExpansion.get expand bytecode)) {
+											modified = true
+											rebuildCpool = true
 										}
 
-										if(macros) {
-											modified |= macroExpansion.get expand bytecode
+										if(macros && (macroExpansion.get expand bytecode)) {
+											modified = true
+											rebuildCpool = true
 										}
 
 										if(alchemy) {
@@ -124,6 +129,18 @@ object TurboDieselSportInjection {
 						}
 						case None =>
 					}
+				}
+
+
+				if(rebuildCpool) {
+					//
+					// We have to rebuild the cpool here since both Macro and Inline
+					// expansion could include operations from a different ABC
+					// and in that case its values do not belong to the cpool.
+					//
+
+					ApparatLog info "Rebuilding cpool after inline/macro expansion."
+					abc.cpool = AbcConstantPoolBuilder using abc
 				}
 
 				abc.saveBytecode()
