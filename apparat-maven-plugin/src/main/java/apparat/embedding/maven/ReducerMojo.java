@@ -17,7 +17,6 @@ public final class ReducerMojo extends AbstractApparatMojo {
 	 *
 	 * @parameter default-value=0.96f
 	 * @required
-	 * @readonly
 	 */
 	private float quality;
 
@@ -26,7 +25,6 @@ public final class ReducerMojo extends AbstractApparatMojo {
 	 *
 	 * @parameter default-value=1.0f
 	 * @required
-	 * @readonly
 	 */
 	private float deblock;
 
