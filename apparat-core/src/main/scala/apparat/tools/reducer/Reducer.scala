@@ -60,6 +60,7 @@ object Reducer {
 			if(mergeABC) {
 				var buffer: Option[Abc] = None
 				var result = List.empty[SwfTag]
+				var i = 0
 
 				for(tag <- cont.tags) {
 					tag match {
@@ -81,8 +82,8 @@ object Reducer {
 									doABC.name = "apparat.googlecode.com"
 
 									b.bytecodeAvailable = true
-									ApparatLog("Building new cpool ...")
-									b.cpool = AbcConstantPoolBuilder using b//TODO we have to get rid of this!
+//									ApparatLog("Building new cpool ...")
+//									b.cpool = AbcConstantPoolBuilder using b
 									b.saveBytecode()
 									b write doABC
 

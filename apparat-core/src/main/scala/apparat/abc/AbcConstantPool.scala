@@ -40,13 +40,13 @@ class AbcConstantPool(
 		val names: Array[AbcName]) extends Dumpable {
 
 	def +(that: AbcConstantPool) = new AbcConstantPool(
-		(ints.toList ::: (that.ints.toList drop 1)).distinct.toArray,
-		(uints.toList ::: (that.uints.toList drop 1)).distinct.toArray,
-		(doubles.toList ::: (that.doubles.toList drop 1)).distinct.toArray,
-		(strings.toList ::: (that.strings.toList drop 1)).distinct.toArray,
-		(namespaces.toList ::: (that.namespaces.toList drop 1)).distinct.toArray,
-		(nssets.toList ::: (that.nssets.toList drop 1)).distinct.toArray,
-		(names.toList ::: (that.names.toList drop 1)).distinct.toArray)
+		(0 :: ((ints.toList drop 1) ::: (that.ints.toList drop 1)).distinct).toArray,
+		(0L :: ((uints.toList drop 1) ::: (that.uints.toList drop 1)).distinct).toArray,
+		(Double.NaN :: ((doubles.toList drop 1) ::: (that.doubles.toList drop 1)).distinct).toArray,
+		(AbcConstantPool.EMPTY_STRING :: ((strings.toList drop 1) ::: (that.strings.toList drop 1)).distinct).toArray,
+		(AbcConstantPool.EMPTY_NAMESPACE :: ((namespaces.toList drop 1) ::: (that.namespaces.toList drop 1)).distinct).toArray,
+		(AbcConstantPool.EMPTY_NSSET :: ((nssets.toList drop 1) ::: (that.nssets.toList drop 1)).distinct).toArray,
+		(AbcConstantPool.EMPTY_NAME :: ((names.toList drop 1) ::: (that.names.toList drop 1)).distinct).toArray)
 
 	def accept(visitor: AbcVisitor) = visitor visit this
 	

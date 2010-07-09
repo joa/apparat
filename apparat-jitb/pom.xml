@@ -52,7 +52,7 @@
       <artifactId>apparat-playerglobal</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
@@ -62,7 +62,7 @@
       <artifactId>specs</artifactId>
       <version>1.6.1-2.8.0.Beta1-RC6</version>
       <scope>test</scope>
-    </dependency>
+    </dependency-->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
