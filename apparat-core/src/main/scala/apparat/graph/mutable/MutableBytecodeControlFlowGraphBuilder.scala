@@ -83,7 +83,7 @@ object MutableBytecodeControlFlowGraphBuilder extends (Bytecode => MutableByteco
 
 		def createVertexFromMarker[E <: Edge[V]](startBlock: V, marker: Marker, edgeFactory: (V, V) => E) {
 			marker.op map {
-				op => vertexMap.view.find(_._2 contains op) match {
+				op => vertexMap.view.find(v_op => ((v_op._2 contains op) || (v_op._1 contains op))) match {
 					case Some((vertexBlock, ops)) => graph += edgeFactory(startBlock, vertexBlock)
 					case _ => {
 						println(vertexMap.view.mkString("\n"));

@@ -31,7 +31,7 @@ import annotation.tailrec
 
 object BytecodeControlFlowGraphBuilder extends (Bytecode => BytecodeControlFlowGraph[ImmutableAbstractOpBlockVertex]) {
 	def apply(bytecode: Bytecode) = {
-		import collection.mutable.{Queue}
+		import collection.mutable.Queue
 
 		type V = ImmutableAbstractOpBlockVertex
 
@@ -61,7 +61,7 @@ object BytecodeControlFlowGraphBuilder extends (Bytecode => BytecodeControlFlowG
 
 				//remove jum from block
 				newOpList.lastOption match {
-					case Some(op)  => if (op.isInstanceOf[Jump]) newOpList = newOpList dropRight 1
+					case Some(op) => if (op.isInstanceOf[Jump]) newOpList = newOpList dropRight 1
 					case _ =>
 				}
 
@@ -86,9 +86,9 @@ object BytecodeControlFlowGraphBuilder extends (Bytecode => BytecodeControlFlowG
 
 		def createVertexFromMarker[E <: Edge[V]](startBlock: V, marker: Marker, edgeFactory: (V, V) => E) {
 			marker.op map {
-				op => vertexMap.view.find(_._2 contains op) match {
+				op => vertexMap.view.find(v_op => ((v_op._2 contains op) || (v_op._1 contains op))) match {
 					case Some((vertexBlock, ops)) => edgeMap = edgeMap updated (startBlock, edgeFactory(startBlock, vertexBlock) :: edgeMap(startBlock))
-					case _ => error("op not found into graph : " + marker.op.toString + "=>" + vertexMap)
+					case _ => error("op not found into graph : " + op + "=>" + vertexMap.view.mkString("\n"))
 				}
 			}
 		}
