@@ -29,6 +29,8 @@ import apparat.tools.tdsi.TurboDieselSportInjection
 
 sealed class TDSITask extends ApparatTask(TurboDieselSportInjection, "tdsi") with OutParameter {
 	def setAlchemy(value: String) = setArgument("a", value)
+	
+	def setAlchemyFix(value: String) = setArgument("f", value)
 
 	def setInline(value: String) = setArgument("e", value)
 
