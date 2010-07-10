@@ -519,7 +519,7 @@ case class Kill(register: Int) extends AbstractOp with OpWithRegister { final ov
 case class Label() extends AbstractOp { final override def opCode = Op.label; final override def opCopy() = Label() }
 case class LessEquals() extends AbstractBinaryOp { final override def opCode = Op.lessequals; final override def opCopy() = LessEquals() }
 case class LessThan() extends AbstractBinaryOp { final override def opCode = Op.lessthan; final override def opCopy() = LessThan() }
-case class LookupSwitch(defaultCase: Marker, cases: Array[Marker]) extends AbstractOpWithOperands(0, 1) with OpThatControlsFlow { final override def opCode = Op.lookupswitch; final override def opCopy() = copy() }
+case class LookupSwitch(defaultCase: Marker, cases: Array[Marker]) extends AbstractOpWithOperands(0, 1) with OpThatControlsFlow { final override def opCode = Op.lookupswitch; final override def opCopy() = copy(); override def toString="LookupSwitch("+defaultCase+","+cases.mkString("[",",","]")+")" }
 case class ShiftLeft() extends AbstractBinaryOp { final override def opCode = Op.lshift; final override def opCopy() = ShiftLeft() }
 case class Modulo() extends AbstractBinaryOp { final override def opCode = Op.modulo; final override def opCopy() = Modulo() }
 case class Multiply() extends AbstractBinaryOp { final override def opCode = Op.multiply; final override def opCopy() = Multiply() }
