@@ -15,7 +15,7 @@ public final class ReducerMojo extends AbstractApparatMojo {
 	/**
 	 * The JPEG compression quality.
 	 *
-	 * @parameter default-value=0.96f
+	 * @parameter default-value=0.99f
 	 * @required
 	 */
 	private float quality;
@@ -28,6 +28,13 @@ public final class ReducerMojo extends AbstractApparatMojo {
 	 */
 	private float deblock;
 
+	/**
+	 * Whether or not to merge ABC files into a single one.
+	 * @param default-value=false
+	 * @required
+	 */
+	private boolean mergeABC;
+
 	@Override protected void processFile(final File file) {
 		final Reducer.ReducerTool tool = new Reducer.ReducerTool();
 		final ReducerConfiguration config = new ReducerConfiguration() {
@@ -35,6 +42,7 @@ public final class ReducerMojo extends AbstractApparatMojo {
 			@Override public File output() { return file; }
 			@Override public float quality() { return quality; }
 			@Override public float deblock() { return deblock; }
+			@Override public boolean mergeABC() { return mergeABC; }
 		};
 
 		tool.configure(config);
