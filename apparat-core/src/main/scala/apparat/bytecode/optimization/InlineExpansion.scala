@@ -158,17 +158,17 @@ class InlineExpansion(abcs: List[Abc]) {
 												newOp
 											}
 											case branch:IfTrue => {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfTrue(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfFalse => {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfFalse(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfGreaterEqual =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfGreaterEqual(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
@@ -178,47 +178,47 @@ class InlineExpansion(abcs: List[Abc]) {
 												newOp
 											}
 											case branch:IfLessEqual =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfLessEqual(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfLessThan =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfLessThan(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfNotGreaterEqual =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfNotGreaterEqual(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfNotGreaterThan =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfNotGreaterThan(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfNotLessEqual =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfNotLessEqual(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfNotLessThan =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfNotLessThan(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfNotEqual =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfNotEqual(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfStrictEqual =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfStrictEqual(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
 											case branch:IfStrictNotEqual =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfStrictNotEqual(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
@@ -229,7 +229,6 @@ class InlineExpansion(abcs: List[Abc]) {
 												markers.forwardMarker(lookup, newOp)
 												newOp
 											}
-
 											case other => other
 										})
 									}

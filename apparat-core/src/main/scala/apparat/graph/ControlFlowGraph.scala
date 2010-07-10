@@ -76,14 +76,13 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 		var g = graph
 		var modified = false
 		@tailrec def loop() {
-			var vertices = DepthFirstWithOrder(g).vertices
+			var vertices = g.verticesIterator.filterNot(p => p == entryVertex || p == exitVertex)
 
 			//remove empty block
-			vertices.filter(_.vertex.isEmpty).foreach {
-				indexedVertex =>
-					val emptyVertex = indexedVertex.vertex
+			vertices.filter(_.isEmpty).foreach {
+				emptyVertex =>
 					val out = g.outgoingOf(emptyVertex)
-					if (out.size == 1 && out.head.isInstanceOf[JumpEdge[_]]) {
+					if (out.size == 1 && out.head.kind == EdgeKind.Jump) {
 						val endEdge = out.head
 						g = g - endEdge
 						g.incomingOf(emptyVertex).foreach {
