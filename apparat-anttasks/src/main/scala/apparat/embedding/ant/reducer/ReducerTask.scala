@@ -31,4 +31,6 @@ sealed class ReducerTask extends ApparatTask(Reducer, "reducer") with OutParamet
 	def setDeblock(value: Float) = setArgument("d", value)
 
 	def setQuality(value: Float) = setArgument("q", value)
+
+	def setMergeABC(value: Boolean) = setArgument("m", value)
 }
