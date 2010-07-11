@@ -53,7 +53,7 @@ object StrengthReduction extends TaasOptimization {
 			var default = false
 			op match {
 				// x:type = (type)x ->
-				case t2 @ T2(TConvert(t), rhs, result) if t == rhs.`type` =>
+				case t2 @ T2(TConvert(t), rhs: TReg, result) if t == rhs.`type` && rhs.index == result.index =>
 
 				// x = y:int + y:int -> x = y << 1
 				case T3(TOp_+, lhs: TReg, rhs: TReg, r) if lhs.index == rhs.index && lhs.`type` == TaasIntType => {
