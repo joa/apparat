@@ -2,7 +2,6 @@ package apparat.abc.analysis
 
 import apparat.abc._
 import apparat.bytecode.operations._
-import apparat.tools.ApparatLog
 
 object AbcConstantPoolBuilder {
 	def using(abc: Abc) = {

@@ -88,7 +88,7 @@ class Abc extends Dumpable {
 	def +(that: Abc) = {
 		val result = new Abc()
 
-		//result.cpool = this.cpool + that.cpool
+		result.cpool = this.cpool + that.cpool
 		result.methods = this.methods ++ that.methods
 		result.metadata = this.metadata ++ that.metadata
 		result.types = this.types ++ that.types

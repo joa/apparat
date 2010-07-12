@@ -188,9 +188,10 @@
   <modules>
     <module>apparat-anttasks</module>
     <module>apparat-archetypes</module>
-	<module>apparat-core</module>
+    <module>apparat-core</module>
     <module>apparat-ersatz</module>
     <module>apparat-jitb</module>
+    <module>apparat-log</module>
     <module>apparat-maven-plugin</module>
     <module>apparat-playerglobal</module>
     <module>apparat-taas</module>
