@@ -23,7 +23,7 @@ package apparat.tools.dump
 import apparat.utils.IO._
 import apparat.abc._
 import apparat.abc.analysis.AbcUMLExport
-import apparat.tools.{ApparatLog, ApparatConfiguration, ApparatTool, ApparatApplication}
+import apparat.tools.{ApparatConfiguration, ApparatTool, ApparatApplication}
 import java.io.{File => JFile, PrintWriter => JPrintWriter, FileOutputStream => JFileOutputStream}
 import apparat.swf.{Swf, DoABC}
 import apparat.bytecode.{BytecodeDump, BytecodeDumpTypeCFG, BytecodeDumpTypeDefault}
@@ -68,7 +68,7 @@ object Dump {
 
 		override def run() = {
 			if(!exportSWF && !exportABC && !exportUML) {
-				ApparatLog warn "Nothing specified to export. Try the -h option for help."
+				log.warning("Nothing specified to export. Try the -h option for help.")
 			}
 			
 			val source = input
@@ -91,7 +91,7 @@ object Dump {
 				val swf = Swf fromFile source
 
 				if(exportSWF) {
-					ApparatLog("Writing SWF information ...")
+					log.info("Writing SWF information ...")
 					using(writerFor("info")) { swf dump _ }
 				}
 
@@ -107,7 +107,7 @@ object Dump {
 
 		private def exportAbcs(abcs: List[Abc]) = {
 			if(exportUML) {
-				ApparatLog("Writing UML graph ...")
+				log.info("Writing UML graph ...")
 				using(writerFor("uml")) { new AbcUMLExport(abcs) to _ }
 			}
 
@@ -127,7 +127,7 @@ object Dump {
 				var i = 0
 
 				for(abc <- abcs) {
-					ApparatLog("Writing ABC information ...")
+					log.info("Writing ABC information ...")
 					using(writerFor("abc"+i.toString)) { abc dump _ }
 					i += 1
 				}

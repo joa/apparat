@@ -31,7 +31,7 @@ import apparat.bytecode.combinator.BytecodeChains._
 import apparat.swf._
 import annotation.tailrec
 import apparat.bytecode.optimization._
-import apparat.tools.{ApparatLog, ApparatConfiguration, ApparatApplication, ApparatTool}
+import apparat.tools.{ApparatConfiguration, ApparatApplication, ApparatTool}
 
 /**
  * @author Joa Ebert
@@ -139,7 +139,7 @@ object TurboDieselSportInjection {
 					// and in that case its values do not belong to the cpool.
 					//
 
-					ApparatLog info "Rebuilding cpool after inline/macro expansion."
+					log.info("Rebuilding cpool after inline/macro expansion.")
 					abc.cpool = AbcConstantPoolBuilder using abc
 				}
 

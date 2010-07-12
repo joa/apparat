@@ -38,6 +38,11 @@
 
   <dependencies>
     <dependency>
+	  <groupId>${project.groupId}</groupId>
+	  <artifactId>apparat-log</artifactId>
+	  <version>${project.version}</version>
+	</dependency>
+    <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>

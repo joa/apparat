@@ -1,6 +1,8 @@
 package apparat.tools
 
-trait ApparatTool {
+import apparat.log.SimpleLog
+
+trait ApparatTool extends SimpleLog {
 	def help: String
 
 	def name: String

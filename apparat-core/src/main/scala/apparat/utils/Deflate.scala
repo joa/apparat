@@ -31,13 +31,13 @@ import java.io.{
 	InputStreamReader => JInputStreamReader}
 import java.util.zip.{Deflater => JDeflater, Adler32 => JAdler32}
 import java.lang.{ProcessBuilder => JProcessBuilder}
-import apparat.tools.ApparatLog
 import apparat.utils.IO._
+import apparat.log.SimpleLog
 
 /**
  * @author Joa Ebert
  */
-object Deflate {
+object Deflate extends SimpleLog {
 	private var _7z = System.getProperty("apparat.7z.enabled", "true").toLowerCase == "true"
 	private val _7zexe = System.getProperty("apparat.7z.path", "7z" + (System getProperty "os.name" indexOf "Windows" match {
 		case -1 => "a"
@@ -80,12 +80,12 @@ object Deflate {
 		} catch {
 			case ioException: JIOException => {
 				_7z = false
-				ApparatLog warn "7z is not present on PATH. Fallback to normal compression."
+				log.warning("7z is not present on PATH. Fallback to normal compression.")
 				compressUsingDeflater(bytes, output)
 			}
 			case other => {
 				_7z = false
-				ApparatLog warn "7z failed. Fallback to normal compression."
+				log.warning("7z failed. Fallback to normal compression.")
 				compressUsingDeflater(bytes, output)
 			}
 		}
@@ -103,7 +103,7 @@ object Deflate {
 		val builder = new JProcessBuilder(_7zexe, "a", gzOutput.getAbsolutePath, "-tgzip", "-mx9", gzInput.getAbsolutePath)
 		val process = builder.start()
 
-		ApparatLog("Waiting for 7z ...")
+		log.debug("Waiting for 7z to finish.")
 		assert(0 == process.waitFor())
 
 		val sevenZipOutput = new JFile(gzOutput.getAbsolutePath + ".gz")
@@ -134,7 +134,7 @@ object Deflate {
 		var bytesTotal = 0
 		val byteArrayOutputStream = new JByteArrayOutputStream()
 
-		ApparatLog("Waiting for 7z ...")
+		log.debug("Waiting for 7z to finish")
 		
 		while(inputStream.available != 0) {
 			val bytesRead = inputStream.read(buffer)

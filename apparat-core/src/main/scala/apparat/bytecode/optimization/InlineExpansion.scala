@@ -20,17 +20,17 @@
  */
 package apparat.bytecode.optimization
 
+import apparat.abc._
 import apparat.bytecode.Bytecode
 import apparat.bytecode.operations._
 import apparat.bytecode.analysis.{StackAnalysis, LocalCount}
-import apparat.abc._
-import apparat.tools.ApparatLog
+import apparat.log.SimpleLog
 import annotation.tailrec
 
 /**
  * @author Joa Ebert
  */
-class InlineExpansion(abcs: List[Abc]) {
+class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 	lazy val voidName = AbcQName('void, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 	lazy val apparatMacro = AbcQName('Inlined, AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.inline")))
 	lazy val macros: Map[AbcName, AbcNominalType] = {
@@ -232,9 +232,9 @@ class InlineExpansion(abcs: List[Abc]) {
 											case other => other
 										})
 									}
-									case None => ApparatLog warn "Bytecode of "+property+" is not available."
+									case None => log.warning("Bytecode of %s is not available.", property)
 								}
-								case None => ApparatLog warn "Method body is not defined."
+								case None => log.warning("Method body of %s is not defined.", property)
 							}
 
 							removePop = op.opCode == Op.callproperty && method.returnType == voidName
@@ -283,7 +283,7 @@ class InlineExpansion(abcs: List[Abc]) {
 					body.maxStack = operandStack
 					body.maxScopeDepth = body.initScopeDepth + scopeStack
 				}
-				case None => ApparatLog warn "Bytecode body missing. Cannot adjust stack/locals."
+				case None => log.warning("Bytecode body missing. Cannot adjust stack/locals.")
 			}
 
 			expand(bytecode, true)

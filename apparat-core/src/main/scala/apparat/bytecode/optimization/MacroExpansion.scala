@@ -20,18 +20,17 @@
  */
 package apparat.bytecode.optimization
 
+import apparat.abc._
 import apparat.bytecode.Bytecode
 import apparat.bytecode.operations._
 import apparat.bytecode.analysis.{StackAnalysis, LocalCount}
-import apparat.abc._
-import apparat.tools.ApparatLog
-import annotation.tailrec
+import apparat.log.SimpleLog
+import scala.annotation.tailrec
 
 /**
  * @author Joa Ebert
  */
-class
-MacroExpansion(abcs: List[Abc]) {
+class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 	lazy val apparatMacro = AbcQName('Macro, AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.inline")))
 	lazy val voidName = AbcQName('void, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 	lazy val macros: Map[AbcName, AbcNominalType] = {
@@ -247,9 +246,9 @@ MacroExpansion(abcs: List[Abc]) {
 											case other => other
 										})
 									}
-									case None => error("Bytecode is not loaded.")
+									case None => log.error("Bytecode of %s is not loaded.", property)
 								}
-								case None => error("Method body is not defined.")
+								case None => log.error("Method body of %s is not defined.", property)
 							}
 
 							macroStack = macroStack.tail
@@ -307,7 +306,7 @@ MacroExpansion(abcs: List[Abc]) {
 					body.maxStack = operandStack
 					body.maxScopeDepth = body.initScopeDepth + scopeStack
 				}
-				case None => ApparatLog warn "Bytecode body missing. Cannot adjust stack/locals."
+				case None => log.warning("Bytecode body missing. Cannot adjust stack/locals.")
 			}
 
 			expand(bytecode, true)

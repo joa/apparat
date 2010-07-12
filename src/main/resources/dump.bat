@@ -19,4 +19,4 @@
 ::
 
 @echo off
-scala -cp %~dp0\apparat-core-${project.version}.jar apparat.tools.dump.Dump %*
+scala -cp "%~dp0\apparat-core-${project.version}.jar";"%~dp0\apparat-log-${project.version}.jar" apparat.tools.dump.Dump %*

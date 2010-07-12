@@ -102,8 +102,8 @@ object Reducer {
 
 			cont write target
 			val delta = l0 - (target length)
-			ApparatLog("Compression ratio: " + ((delta).asInstanceOf[Float] / l0.asInstanceOf[Float]) * 100.0f + "%")
-			ApparatLog("Total bytes: " + delta)
+			log.info("Compression ratio: %.2f%%", ((delta).asInstanceOf[Float] / l0.asInstanceOf[Float]) * 100.0f)
+			log.info("Total bytes: %d", delta)
 		}
 
 		private def reduce(tag: SwfTag) = tag.kind match {
@@ -234,7 +234,7 @@ object Reducer {
 			}
 
 			if (newTag.length < tag.length) {
-				ApparatLog succ ("Compressed character " + tag.characterID)
+				log.info("Compressed character %d.", tag.characterID)
 				newTag.characterID = tag.characterID
 				newTag
 			} else {

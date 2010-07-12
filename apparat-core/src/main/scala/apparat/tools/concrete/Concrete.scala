@@ -2,7 +2,7 @@ package apparat.tools.concrete
 
 import apparat.utils.TagContainer
 import apparat.abc._
-import apparat.tools.{ApparatLog, ApparatConfiguration, ApparatTool, ApparatApplication}
+import apparat.tools.{ApparatConfiguration, ApparatTool, ApparatApplication}
 import java.io.{File => JFile}
 import scala.collection.immutable.Stack
 import scala.annotation.tailrec
@@ -63,9 +63,8 @@ object Concrete {
 						case anyMethod: AbcTraitAnyMethod => {
 							if(anyMethod.metadata.isDefined && (anyMethod.metadata.get exists { _.name == 'Abstract })) {
 								if(concretes contains anyMethod) {
-									ApparatLog.err("Error in class "+toPackage(currentType.inst.name)+
-											": Method "+anyMethod.name.name+
-											" has already been marked abstract.")
+									log.error("Error in class %s: Method %s has already been marked abstract.",
+										toPackage(currentType.inst.name), anyMethod.name.name)
 								}
 
 								if(nominalType != currentType) {
@@ -80,7 +79,8 @@ object Concrete {
 				}
 
 				for(error <- abstracts diff concretes) {
-					ApparatLog.err("Class "+toPackage(nominalType.inst.name)+" must implement abstract method "+error.name.name)
+					log.error("Class %s must implement abstract method %s.",
+						toPackage(nominalType.inst.name), error.name.name)
 				}
 			}
 		}
