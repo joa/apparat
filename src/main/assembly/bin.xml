@@ -11,8 +11,9 @@
   <moduleSets>
     <moduleSet>
       <includes>
-		<include>${project.groupId}:apparat-anttasks</include>
+        <include>${project.groupId}:apparat-anttasks</include>
         <include>${project.groupId}:apparat-core</include>
+	<include>${project.groupId}:apparat-log</include>
       </includes>
 	  <binaries>
         <unpack>false</unpack>
