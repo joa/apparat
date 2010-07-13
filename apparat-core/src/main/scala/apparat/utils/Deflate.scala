@@ -81,11 +81,13 @@ object Deflate extends SimpleLog {
 			case ioException: JIOException => {
 				_7z = false
 				log.warning("7z is not present on PATH. Fallback to normal compression.")
+				log ifDebug { ioException.getStackTraceString }
 				compressUsingDeflater(bytes, output)
 			}
 			case other => {
 				_7z = false
 				log.warning("7z failed. Fallback to normal compression.")
+				log ifDebug { other.getStackTraceString }
 				compressUsingDeflater(bytes, output)
 			}
 		}
@@ -99,6 +101,8 @@ object Deflate extends SimpleLog {
 		gzOutput.deleteOnExit
 
 		using(new JFileOutputStream(gzInput)) { _ write bytes }
+
+		log.debug("Invoking \"%s a %s -tgzip -mx9 %s\"", _7zexe, gzOutput.getAbsolutePath, gzInput.getAbsolutePath)
 
 		val builder = new JProcessBuilder(_7zexe, "a", gzOutput.getAbsolutePath, "-tgzip", "-mx9", gzInput.getAbsolutePath)
 		val process = builder.start()
@@ -122,6 +126,7 @@ object Deflate extends SimpleLog {
 	}
 
 	private def compress7zInSTDIO(bytes: Array[Byte], output: JOutputStream) = {
+		log.debug("Invoking \"%s a apparat -tgzip -mx9 -siswf -so\"", _7zexe)
 		val builder = new JProcessBuilder(_7zexe, "a", "apparat", "-tgzip", "-mx9", "-siswf", "-so")
 		val process = builder.start()
 		val outputStream = process.getOutputStream

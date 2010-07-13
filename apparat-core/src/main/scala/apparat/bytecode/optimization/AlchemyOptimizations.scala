@@ -23,11 +23,17 @@ package apparat.bytecode.optimization
 import apparat.bytecode.Bytecode
 import apparat.abc.{AbcQName, AbcNamespace}
 import apparat.bytecode.operations._
+import apparat.log.SimpleLog
 
 /**
  * @author Joa Ebert
  */
-object AlchemyOptimizations extends (Bytecode => Boolean) {
+object AlchemyOptimizations extends (Bytecode => Boolean) with SimpleLog {
+	private val `public` = AbcNamespace(22, Symbol(""))
+	private val readInt = AbcQName('readInt, `public`)
+	private val position = AbcQName('position, `public`)
+	private val ds = AbcQName('ds, `public`)
+
 	override def apply(bytecode: Bytecode): Boolean = {
 		var result = List.empty[AbstractOp]
 		var modified = false
@@ -59,46 +65,135 @@ object AlchemyOptimizations extends (Bytecode => Boolean) {
 			}
 		}
 
-		/*
-		+1|-0  GetGlobalScope()
-		+1|-1  GetSlot(32)
-		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
-		+1|-0  GetLocal(1)
-		+0|-2  SetProperty(AbcQName('position,AbcNamespace(22,')))
-		+1|-0  GetGlobalScope()
-		+1|-1  GetSlot(32)
-		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
-		+1|-0  GetLocal(2)
-		+1|-2  CallProperty(AbcQName('readUTFBytes,AbcNamespace(22,')),1)
-
-
-
-		+1|-0  GetGlobalScope()
-		+1|-1  GetSlot(32)
-		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
-		+1|-0  GetLocal(2)
-		+0|-2  SetProperty(AbcQName('position,AbcNamespace(22,')))
-		+1|-0  GetGlobalScope()
-		+1|-1  GetSlot(32)
-		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
-		+1|-1  CallProperty(AbcQName('readInt,AbcNamespace(22,')),0)
-		+1|-1  ConvertInt()
-
-
-		+1|-0  GetGlobalScope()
-		+1|-1  GetSlot(32)
-		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
-		+1|-0  GetLocal(3)
-		+0|-2  SetProperty(AbcQName('position,AbcNamespace(22,')))
-		+1|-0  GetGlobalScope()
-		+1|-1  GetSlot(32)
-		+1|-1  GetProperty(AbcQName('ds,AbcNamespace(22,')))
-		+1|-1  CallProperty(AbcQName('readInt,AbcNamespace(22,')),0)
-		+1|-1  ConvertInt()
-		*/
-
 		if(modified) {
 			bytecode.ops = result.reverse
+		}
+
+		modified || alchemyPeepholes(bytecode)
+	}
+
+	private def alchemyPeepholes(bytecode: Bytecode): Boolean = {
+		var source = bytecode.ops
+		var target = List.empty[AbstractOp]
+		val n = source.length
+		var modified = false
+		val markers = bytecode.markers
+		var i = 0
+
+		@inline def nextOp(): Unit = {
+			i += 1
+			source = source.tail
+		}
+
+		/*
+		  +1|-0  GetGlobalScope()
+		  +1|-1  GetSlot(32)
+		  +1|-1  GetProperty(AbcQName('ebp,AbcNamespace(22,')))
+		  +1|-0  PushByte(-48)
+		  +1|-2  Add()
+		  +1|-1  ConvertInt()
+		 */
+		
+		while(i < n) {
+			val op = source.head
+			val opCode = op.opCode
+			if(Op.getglobalscope == opCode) {
+				/*
+					GetGlobalScope()
+					GetSlot(x)
+					GetProperty(AbcQName('ds,AbcNamespace(22,')))
+					GetLocal(y)
+					SetProperty(AbcQName('position,AbcNamespace(22,')))
+					GetGlobalScope()
+					GetSlot(x)
+					GetProperty(AbcQName('ds,AbcNamespace(22,')))
+					CallProperty(AbcQName('readInt,AbcNamespace(22,')),0) | readFloat | readDouble | readUnsignedInt | readByte
+					ConvertInt()
+
+					->
+
+					GetLocal(y)
+					GetInt()
+				*/
+				var tail = source.tail
+				val op2 = tail.head
+				if(Op.getslot == op2.opCode) {
+					nextOp()
+					tail = tail.tail
+					val op3 = tail.head
+					if(Op.getproperty == op3.opCode && op3.asInstanceOf[GetProperty].property == ds) {
+						nextOp()
+						tail = tail.tail
+						val op4 = tail.head//<- address pointer
+						val opCode4 = op4.opCode
+						if(opCode4 == Op.getlocal ||
+							opCode4 == Op.getlocal0 ||
+							opCode4 == Op.getlocal1 ||
+							opCode4 == Op.getlocal2 ||
+							opCode4 == Op.getlocal3) {
+							nextOp()
+							tail = tail.tail
+							val op5 = tail.head
+							if(Op.setproperty == op5.opCode && op5.asInstanceOf[SetProperty].property == position) {
+								nextOp()
+								tail = tail.tail
+								val op6 = tail.head
+								if(Op.getglobalscope == op6.opCode) {
+									nextOp()
+									tail = tail.tail
+									val op7 = tail.head
+									if(Op.getslot == op7.opCode) {
+										nextOp()
+										tail = tail.tail
+										val op8 = tail.head
+										if(Op.getproperty == op8.opCode && op8.asInstanceOf[GetProperty].property == ds) {
+											nextOp()
+											tail = tail.tail
+											val op9 = tail.head
+											if(Op.callproperty == op9.opCode &&
+													op9.asInstanceOf[CallProperty].property == readInt) {
+												nextOp()
+												tail = tail.tail
+												val op10 = tail.head
+												if(Op.convert_i == op10.opCode) {
+													nextOp()
+													target = GetInt() :: op4 :: target
+													modified = true
+												} else {
+													target = op9 :: op8 :: op7 :: op6 :: op5 :: op4 :: op3 :: op2 :: op :: target
+												}
+											} else {
+												target = op8 :: op7 :: op6 :: op5 :: op4 :: op3 :: op2 :: op :: target
+											}
+										} else {
+											target = op7 :: op6 :: op5 :: op4 :: op3 :: op2 :: op :: target
+										}
+									} else {
+										target = op6 :: op5 :: op4 :: op3 :: op2 :: op :: target
+									}
+								} else {
+									target = op5 :: op4 :: op3 :: op2 :: op :: target
+								}
+							} else {
+								target = op4 :: op3 :: op2 :: op :: target
+							}
+						} else {
+							target = op3 :: op2 :: op :: target
+						}
+					} else {
+						target = op2 :: op :: target
+					}
+				} else {
+					target = op :: target
+				}
+			} else {
+				target = op :: target
+			}
+			nextOp()
+		}
+
+		if(modified) {
+			bytecode.ops = target.reverse
 		}
 
 		modified
