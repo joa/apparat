@@ -81,13 +81,13 @@ object Deflate extends SimpleLog {
 			case ioException: JIOException => {
 				_7z = false
 				log.warning("7z is not present on PATH. Fallback to normal compression.")
-				log ifDebug { ioException.getStackTraceString }
+				log ifDebug { ioException.getLocalizedMessage+"\n"+ioException.getStackTraceString }
 				compressUsingDeflater(bytes, output)
 			}
 			case other => {
 				_7z = false
 				log.warning("7z failed. Fallback to normal compression.")
-				log ifDebug { other.getStackTraceString }
+				log ifDebug { other.getLocalizedMessage+"\n"+other.getStackTraceString }
 				compressUsingDeflater(bytes, output)
 			}
 		}
