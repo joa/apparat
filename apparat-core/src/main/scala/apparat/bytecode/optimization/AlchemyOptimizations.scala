@@ -86,14 +86,15 @@ object AlchemyOptimizations extends (Bytecode => Boolean) with SimpleLog {
 		}
 
 		/*
+		TODO
 		  +1|-0  GetGlobalScope()
 		  +1|-1  GetSlot(32)
-		  +1|-1  GetProperty(AbcQName('ebp,AbcNamespace(22,')))
+		  +1|-1  GetProperty(AbcQName('ebp,AbcNamespace(22,'))) esp eax
 		  +1|-0  PushByte(-48)
 		  +1|-2  Add()
 		  +1|-1  ConvertInt()
 		 */
-		
+
 		while(i < n) {
 			val op = source.head
 			val opCode = op.opCode

@@ -92,6 +92,17 @@ object PeepholeOptimizations extends (Bytecode => Boolean) {
 				} else {
 					target = op :: target
 				}
+			} else if(Op.getglobalscope == opCode) {
+				if(source.tail.head.opCode == Op.getslot) {
+					val getSlot = source.tail.head.asInstanceOf[GetSlot]
+					target = GetGlobalSlot(getSlot.slot) :: target
+					markers.forwardMarker(getSlot, target.head)
+					markers.forwardMarker(op, target.head)
+					modified = true
+					nextOp()
+				} else {
+					target = op :: target
+				}
 			} else if(Op.findpropstrict == opCode) {
 				if(source.tail.head.opCode == Op.getproperty) {
 					val getProperty = source.tail.head.asInstanceOf[GetProperty]
