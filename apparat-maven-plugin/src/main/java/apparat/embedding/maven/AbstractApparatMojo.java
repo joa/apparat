@@ -26,30 +26,42 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 	 */
 	protected File overrideArtifact;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override public void execute() throws MojoExecutionException, MojoFailureException {
-		if(null == overrideArtifact) {
-			final Artifact artifact = project.getArtifact();
-			final String artifactType = artifact.getType();
+		final MavenLogAdapter logAdapter = new MavenLogAdapter(getLog());
 
-			if(artifactType.equals("swc") || artifactType.equals("swf")) {
+		try {
+			apparat.log.Log.setLevel(logAdapter.getLevel());
+			apparat.log.Log.addOutput(logAdapter);
+
+			if(null == overrideArtifact) {
+				final Artifact artifact = project.getArtifact();
+				final String artifactType = artifact.getType();
+
+				if(artifactType.equals("swc") || artifactType.equals("swf")) {
+					try {
+						processFile(artifact.getFile());
+					} catch(final Throwable cause) {
+						throw new MojoExecutionException("Apparat execution failed.", cause);
+					}
+				} else {
+					getLog().debug("Skipped artifact since its type is "+artifactType+".");
+				}
+			} else {
+				if(!overrideArtifact.exists()) {
+					throw new MojoFailureException("File "+overrideArtifact+" does not exist.");
+				}
+
 				try {
-					processFile(artifact.getFile());
+					processFile(overrideArtifact);
 				} catch(final Throwable cause) {
 					throw new MojoExecutionException("Apparat execution failed.", cause);
 				}
-			} else {
-				getLog().debug("Skipped artifact since its type is "+artifactType+".");
 			}
-		} else {
-			if(!overrideArtifact.exists()) {
-				throw new MojoFailureException("File "+overrideArtifact+" does not exist.");
-			}
-
-			try {
-				processFile(overrideArtifact);
-			} catch(final Throwable cause) {
-				throw new MojoExecutionException("Apparat execution failed.", cause);
-			}
+		} finally {
+			apparat.log.Log.removeOutput(logAdapter);
 		}
 	}
 

@@ -24,5 +24,5 @@ package apparat.log
  * @author Joa Ebert
  */
 trait LogOutput {
-	def log(level: LogLevel, message: String)
+	def log(level: LogLevel, message: String): Unit
 }

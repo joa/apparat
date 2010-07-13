@@ -26,6 +26,8 @@ package apparat.log
 sealed abstract class LogLevel(val priority: Int) {
 	def >=(that: Int): Boolean = priority >= that
 	def >=(that: LogLevel): Boolean = this.priority >= that.priority
+	def matches(that: Int): Boolean = priority == that
+	def matches(that: LogLevel): Boolean = this.priority == that.priority
 }
 
 case object Debug extends LogLevel(0)

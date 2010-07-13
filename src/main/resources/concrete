@@ -20,4 +20,4 @@
 # http://www.joa-ebert.com/
 #
 
-scala -cp `dirname "$0"`/apparat-core-${project.version}.jar apparat.tools.concrete.Concrete $*
+scala -cp `dirname "$0"`/apparat-core-${project.version}.jar:`dirname "$0"`/apparat-log-${project.version}.jar apparat.tools.concrete.Concrete $*

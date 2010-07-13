@@ -80,7 +80,7 @@ class LogSpec extends SpecificationWithJUnit {
 
 			val output = new LogOutput {
 				override def log(level: LogLevel, message: String) = {
-					error(level+", "+message)
+					fail(level+", "+message)
 				}
 			}
 
@@ -90,11 +90,11 @@ class LogSpec extends SpecificationWithJUnit {
 
 				val log = Log.newLogger
 
-				log ifDebug { "debug" }
-				log ifInfo { "info" }
-				log ifWarning { "warning" }
-				log ifError { "error" }
-				log ifFatal { "fatal" }
+				log ifDebug { fail("debug") }
+				log ifInfo { fail("info") }
+				log ifWarning { fail("warning") }
+				log ifError { fail("error") }
+				log ifFatal { fail("fatal") }
 			} finally {
 				Log.level = ApparatInfo
 				Log removeOutput output

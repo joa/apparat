@@ -20,20 +20,20 @@
  */
 package apparat.log
 
+import reflect.BeanProperty
+
 /**
  * @author Joa Ebert
  */
 object Log {
-	private var _level: LogLevel = Info
+	@BeanProperty
+	var level: LogLevel = Info
+	
 	private var _outputs = List.empty[LogOutput]
 
 	def outputs = _outputs
 	
 	def newLogger: Logger = new LoggerImpl(level, _outputs)
-
-	def level_=(value: LogLevel) = _level = value
-	def level = _level
-
 	def addOutput(output: LogOutput) = _outputs = output :: _outputs
 	def removeOutput(output: LogOutput) = _outputs = _outputs filterNot { _ == output }
 }
