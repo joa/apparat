@@ -37,17 +37,10 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 			apparat.log.Log.addOutput(logAdapter);
 
 			if(null == overrideArtifact) {
-				final Artifact artifact = project.getArtifact();
-				final String artifactType = artifact.getType();
+				processArtifact(project.getArtifact());
 
-				if(artifactType.equals("swc") || artifactType.equals("swf")) {
-					try {
-						processFile(artifact.getFile());
-					} catch(final Throwable cause) {
-						throw new MojoExecutionException("Apparat execution failed.", cause);
-					}
-				} else {
-					getLog().debug("Skipped artifact since its type is "+artifactType+".");
+				for(final Artifact artifact : project.getAttachedArtifacts()) {
+					processArtifact(artifact);
 				}
 			} else {
 				if(!overrideArtifact.exists()) {
@@ -62,6 +55,19 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 			}
 		} finally {
 			apparat.log.Log.removeOutput(logAdapter);
+		}
+	}
+
+	private void processArtifact(final Artifact artifact) throws MojoExecutionException {
+		final String artifactType = artifact.getType();
+		if(artifactType.equals("swc") || artifactType.equals("swf")) {
+			try {
+				processFile(artifact.getFile());
+			} catch(final Throwable cause) {
+				throw new MojoExecutionException("Apparat execution failed.", cause);
+			}
+		} else {
+			getLog().debug("Skipped artifact since its type is "+artifactType+".");
 		}
 	}
 
