@@ -65,7 +65,7 @@ class TagContainer {
 					x read (input, file length)
 				})
 			}
-			case None => {}
+			case None =>
 		}
 	}
 
@@ -78,8 +78,13 @@ class TagContainer {
 					x write output
 				})
 			}
-			case None => {}
+			case None =>
 		}
+	}
+
+	def write(output: JOutputStream): Unit = strategy match {
+		case Some(x) => x write output
+		case None =>
 	}
 }
 
@@ -93,7 +98,7 @@ trait TagContainerStrategy {
 	def tags_=(value: List[SwfTag])
 }
 
-private class SwfStrategy extends TagContainerStrategy {
+class SwfStrategy extends TagContainerStrategy {
 	var swf: Option[Swf] = None
 
 	override def tags: List[SwfTag] = swf match {
@@ -118,7 +123,7 @@ private class SwfStrategy extends TagContainerStrategy {
 	}
 }
 
-private class SwcStrategy extends TagContainerStrategy {
+class SwcStrategy extends TagContainerStrategy {
 	var swc: Option[Swc] = None
 	var swf: Option[Swf] = None
 

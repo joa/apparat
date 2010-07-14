@@ -55,7 +55,7 @@ object ApparatApplication extends SimpleLog {
 				case t => {
 					valid = false
 					result = -1
-					log.fatal(t.getLocalizedMessage)
+					log.fatal(t.getMessage)
 					log.debug(t.getStackTraceString)
 				}
 			}
@@ -68,7 +68,8 @@ object ApparatApplication extends SimpleLog {
 			}
 		} catch {
 			case t => {
-				log.fatal(t.getLocalizedMessage)
+				t.printStackTrace()
+				log.fatal(t.getMessage)
 				log.debug(t.getStackTraceString)
 				result = -1
 			}

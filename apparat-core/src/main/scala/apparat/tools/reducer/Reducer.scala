@@ -11,9 +11,9 @@ import javax.imageio.{ImageWriteParam => JImageWriteParam}
 import java.util.zip.{Inflater => JInflater}
 import java.util.zip.{Deflater => JDeflater}
 import apparat.actors.Futures._
-import java.io.{File => JFile, ByteArrayOutputStream => JByteArrayOutputStream, ByteArrayInputStream => JByteArrayInputStream}
 import apparat.abc.Abc
 import apparat.abc.analysis.AbcConstantPoolBuilder
+import java.io.{File => JFile, FileOutputStream => JFileOutputStream, ByteArrayOutputStream => JByteArrayOutputStream, ByteArrayInputStream => JByteArrayInputStream}
 
 object Reducer {
 	def main(args: Array[String]): Unit = ApparatApplication(new ReducerTool, args)
@@ -49,6 +49,7 @@ object Reducer {
 				case SwfTags.FileAttributes => Some(new FileAttributes)
 				case SwfTags.DoABC if mergeABC => Some(new DoABC)
 				case SwfTags.DoABC1 if mergeABC => Some(new DoABC)
+				case SwfTags.DefineBinaryData => Some(new DefineBinaryData)
 				case _ => None
 			}
 			val source = input
@@ -100,7 +101,27 @@ object Reducer {
 				cont.tags = result.reverse
 			}
 
-			cont write target
+			if(true) {
+				//
+				// Create a Matryoshka
+				//
+				cont.strategy match {
+					case Some(swfStrategy: SwfStrategy) => {
+						val matryoshka = new MatryoshkaInjector(swfStrategy.swf.getOrElse(error("No SWF loaded.")).toLZMAByteArray)
+						val outputStream = new JFileOutputStream(target)
+
+						outputStream write matryoshka.toByteArray
+						outputStream.flush()
+						outputStream.close()
+					}
+					case other => {
+						log.warning("Matryoshka works only with SWF files.")
+						cont write target
+					}
+				}
+			} else {
+				cont write target
+			}
 			val delta = l0 - (target length)
 			log.info("Compression ratio: %.2f%%", ((delta).asInstanceOf[Float] / l0.asInstanceOf[Float]) * 100.0f)
 			log.info("Total bytes: %d", delta)
