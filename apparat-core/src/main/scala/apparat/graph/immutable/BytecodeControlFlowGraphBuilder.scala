@@ -137,8 +137,8 @@ object BytecodeControlFlowGraphBuilder extends (Bytecode => BytecodeControlFlowG
 					val endOpIndex = ops indexOf (currentBlock.last)
 					exceptions.filter(exc => {
 						startOpIndex >= ops.indexOf(exc.from.op.get) &&
-								endOpIndex <= ops.indexOf(exc.to.op.get) &&
-								ops.view(startOpIndex, endOpIndex).exists(_.canThrow)
+								endOpIndex <= ops.indexOf(exc.to.op.get) /*&&
+								ops.view(startOpIndex, endOpIndex).exists(_.canThrow)*/
 					}).foreach(exc => createVertexFromMarker(currentBlock, exc.target, ThrowEdge[V]))
 				}
 				buildEdge()

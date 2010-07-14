@@ -1,7 +1,7 @@
 package apparat.graph
 
-import apparat.bytecode.operations.{Label, AbstractOp}
 import apparat.bytecode.{MarkerManager, Bytecode}
+import apparat.bytecode.operations.{Op, AbstractOp}
 /*
  * This file is part of Apparat.
  * 
@@ -30,10 +30,10 @@ class AbstractOpBasicBlockSlicer(elms: List[AbstractOp], val markers: Option[Mar
 	def this(bytecode: Bytecode) = this (bytecode.ops, Some(bytecode.markers))
 
 	def isBeginningOfBlock(elm: AbstractOp) = {
-		elm.isInstanceOf[Label] || {markers map {_ hasMarkerFor elm} getOrElse false}
+		(elm.opCode == Op.label) || {markers map {_ hasMarkerFor elm} getOrElse false}
 	}
 
-	def isEndingOfBlock(elm: AbstractOp) = elm.controlsFlow
+	def isEndingOfBlock(elm: AbstractOp) = elm.controlsFlow || (elm.opCode == Op.newcatch)
 }
 
 object AbstractOpBasicBlockSlicer {

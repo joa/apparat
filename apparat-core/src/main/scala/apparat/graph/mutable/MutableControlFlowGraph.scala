@@ -108,7 +108,7 @@ abstract class MutableControlFlowGraph[T, V <: BlockVertex[T]] extends MutableGr
 			}
 
 			//		// remove dead edge
-			for (edge <- g.edgesIterator.filter(e => g.incomingOf(e.startVertex).isEmpty && !isEntry(e.startVertex))) {
+			for (edge <- g.edgesIterator.filter(e => if (g.contains(e.startVertex)) {g.incomingOf(e.startVertex).isEmpty && !isEntry(e.startVertex)} else false)) {
 				g -= edge
 				g -= edge.startVertex
 

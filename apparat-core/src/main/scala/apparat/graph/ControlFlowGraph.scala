@@ -95,7 +95,7 @@ class ControlFlowGraph[T, V <: BlockVertex[T]](val graph: GraphLike[V], val entr
 			}
 
 			// remove dead edge
-			for (edge <- g.edgesIterator.filter(e => g.incomingOf(e.startVertex).isEmpty && !isEntry(e.startVertex))) {
+			for (edge <- g.edgesIterator.filter(e => if (g.contains(e.startVertex)) {g.incomingOf(e.startVertex).isEmpty && !isEntry(e.startVertex)} else false)) {
 				g = g - edge
 				g = g - edge.startVertex
 
