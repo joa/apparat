@@ -192,6 +192,7 @@
     <module>apparat-ersatz</module>
     <module>apparat-jitb</module>
     <module>apparat-log</module>
+    <module>apparat-lzma</module>
     <module>apparat-maven-plugin</module>
     <module>apparat-playerglobal</module>
     <module>apparat-taas</module>
