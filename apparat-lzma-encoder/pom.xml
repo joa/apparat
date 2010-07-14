@@ -9,9 +9,9 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <name>apparat-core</name>
-  <description>The core framework of Apparat.</description>
-  <artifactId>apparat-core</artifactId>
+  <name>apparat-lzma-encoder</name>
+  <description>A Scala port of the LZMA encoder for Apparat.</description>
+  <artifactId>apparat-lzma-encoder</artifactId>
   <packaging>jar</packaging>
 
   <build>
@@ -37,16 +37,6 @@
   </build>
 
   <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>apparat-log</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>apparat-lzma-encoder</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>

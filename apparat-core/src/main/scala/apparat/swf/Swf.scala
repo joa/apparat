@@ -35,6 +35,7 @@ import java.io.{
 import java.util.zip.{Inflater => JInflater}
 import scala.annotation.tailrec
 import apparat.utils.{Dumpable, Deflate, IndentingPrintWriter}
+import apparat.lzma.LZMA
 
 object Swf {
 	def fromFile(file: JFile): Swf = {
@@ -241,6 +242,26 @@ final class Swf extends Dumpable {
 		val byteArrayOutputStream = new JByteArrayOutputStream()
 		using(byteArrayOutputStream) { write _ }
 		byteArrayOutputStream.toByteArray
+	}
+
+	def toLZMAByteArray = {
+		val oldCompression = compressed
+
+		try {
+			compressed = false
+
+			val swfByteArrayOutputStream = new JByteArrayOutputStream()
+			val lzmaByteArrayOutputStream = new JByteArrayOutputStream()
+
+			using(swfByteArrayOutputStream) { write _ }
+
+			val byteArray = swfByteArrayOutputStream.toByteArray
+
+			LZMA.encode(new JByteArrayInputStream(byteArray), byteArray.length, lzmaByteArrayOutputStream)
+			lzmaByteArrayOutputStream.toByteArray
+		} finally {
+			compressed = oldCompression
+		}
 	}
 
 	override def dump(writer: IndentingPrintWriter) = {

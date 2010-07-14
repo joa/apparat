@@ -9,8 +9,12 @@ package {
 	 * @author Joa Ebert
 	 */
 	public class Main extends Sprite {
+		[Embed(source='../resources/out.lzma', mimeType='application/octet-stream')]
+		private static const BYTES: Class;
+		private static const BYTEARRAY: ByteArray = ByteArray(new BYTES);
+
 		public function Main() {
-			var input: ByteArray = null;
+			var input: ByteArray = BYTEARRAY;
 			var decoder: LZMADecoder = new LZMADecoder()
 			var properties: Vector.<int> = new Vector.<int>(5, true)
 

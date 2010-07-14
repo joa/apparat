@@ -193,6 +193,7 @@
     <module>apparat-jitb</module>
     <module>apparat-log</module>
     <module>apparat-lzma-decoder</module>
+    <module>apparat-lzma-encoder</module>
     <module>apparat-maven-plugin</module>
     <module>apparat-playerglobal</module>
     <module>apparat-taas</module>
