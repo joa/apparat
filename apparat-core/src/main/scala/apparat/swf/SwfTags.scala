@@ -178,6 +178,7 @@ object SwfTags {
 		case DefineBitsJPEG3 => Some(new DefineBitsJPEG3)
 		case DefineBitsJPEG4 => Some(new DefineBitsJPEG4)
 		case DefineBitsLossless2 => Some(new DefineBitsLossless2)
+		case DefineBinaryData => Some(new DefineBinaryData)
 		case _ => None
 	}
 
@@ -190,12 +191,13 @@ object SwfTags {
 
 	def isLongTag(kind: Int) = kind match {
 		case
-		DefineBits
-				| DefineBitsJPEG2
-				| DefineBitsJPEG3
-				| DefineBitsJPEG4
-				| DefineBitsLossless
-				| DefineBitsLossless2 => true
+		  DefineBits
+		| DefineBitsJPEG2
+		| DefineBitsJPEG3
+		| DefineBitsJPEG4
+		| DefineBitsLossless
+		| DefineBitsLossless2
+		| DefineBinaryData => true
 		case _ => false
 	}
 }
@@ -556,4 +558,26 @@ class DefineBitsLossless2 extends SwfTag(SwfTags.DefineBitsLossless2) with Known
 	}
 
 	override def toString = "[DefineBitsLossless2]"
+}
+
+class DefineBinaryData extends SwfTag(SwfTags.DefineBinaryData) with KnownLengthTag with DefineTag {
+	var data = new Array[Byte](0)
+
+	override def length = 6 + data.length
+
+	override def read(header: Recordheader)(implicit input: SwfInputStream) = {
+		super.read(header)
+
+		input.readUI32()
+		data = IO.read(header.length - 6)
+	}
+
+	override def write(implicit output: SwfOutputStream) = {
+		super.write(output)
+
+		output writeUI32 0L
+		output write data
+	}
+
+	override def toString = "[DefineBinaryData]"
 }

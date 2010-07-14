@@ -194,6 +194,7 @@
     <module>apparat-log</module>
     <module>apparat-lzma-decoder</module>
     <module>apparat-lzma-encoder</module>
+    <module>apparat-matryoshkas</module>
     <module>apparat-maven-plugin</module>
     <module>apparat-playerglobal</module>
     <module>apparat-taas</module>
