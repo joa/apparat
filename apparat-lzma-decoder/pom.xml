@@ -9,9 +9,9 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <name>apparat-lzma</name>
+  <name>apparat-lzma-decoder</name>
   <description>Apparat ActionScript 3 LZMA decoder.</description>
-  <artifactId>apparat-lzma</artifactId>
+  <artifactId>apparat-lzma-decoder</artifactId>
   <packaging>swc</packaging>
 
   <build>
