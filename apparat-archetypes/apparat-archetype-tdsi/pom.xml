@@ -4,7 +4,7 @@
   <parent>
     <artifactId>apparat-archetypes</artifactId>
     <groupId>com.googlecode.apparat</groupId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.RC4</version>
   </parent>
   <artifactId>apparat-archetype-tdsi</artifactId>
   <name>apparat-archetype-tdsi</name>
