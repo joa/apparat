@@ -101,7 +101,8 @@ object Reducer {
 				cont.tags = result.reverse
 			}
 
-			if(true) {
+			val debugging = false
+			if(debugging) {
 				//
 				// Create a Matryoshka
 				//
