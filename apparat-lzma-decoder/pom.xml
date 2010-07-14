@@ -17,6 +17,15 @@
   <build>
     <sourceDirectory>src/main/as3</sourceDirectory>
     <testSourceDirectory>src/test/as3</testSourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.sonatype.flexmojos</groupId>
+        <artifactId>flexmojos-maven-plugin</artifactId>
+        <configuration>
+          <debug>false</debug>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
   
   <dependencies>
