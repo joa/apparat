@@ -18,6 +18,12 @@
       </includes>
       <binaries>
         <unpack>false</unpack>
+        <includes>
+          <include>${project.groupId}:apparat-anttasks</include>
+          <include>${project.groupId}:apparat-core</include>
+          <include>${project.groupId}:apparat-log</include>
+          <include>${project.groupId}:apparat-lzma-encoder</include>
+        </includes>
       </binaries>
     </moduleSet>
     <moduleSet>

@@ -102,7 +102,6 @@ class MatryoshkaInjector(source: Swf, matryoshkaType: Int) extends SimpleLog {
 
 		swf.frameRate = source.frameRate
 		swf.frameSize = source.frameSize
-		
 		swf.toByteArray
 	}
 }

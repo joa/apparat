@@ -71,6 +71,8 @@ object Reducer {
 			cont.tags = cont.tags filterNot (tag => tag.kind == SwfTags.Metadata || tag.kind == SwfTags.ProductInfo) map reduce
 
 			if(mergeABC) {
+				log.info("Merging ABC files ...")
+				
 				var buffer: Option[Abc] = None
 				var result = List.empty[SwfTag]
 				var i = 0
