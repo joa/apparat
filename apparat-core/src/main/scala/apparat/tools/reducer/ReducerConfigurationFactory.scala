@@ -33,6 +33,7 @@ object ReducerConfigurationFactory extends ApparatConfigurationFactory[ReducerCo
 		val deblock = java.lang.Float parseFloat config("-d").getOrElse("0.0")
 		val quality = java.lang.Float parseFloat config("-q").getOrElse("0.99")
 		val merge = (config("-m") getOrElse "false").toBoolean
+		val sort = (config("-s") getOrElse "false").toBoolean
 		val lzma = (config("-l") getOrElse "false").toBoolean
 		val matryoshkaType = (config("-t") getOrElse "quiet") match {
 			case "quiet" => MatryoshkaType.QUIET
@@ -44,6 +45,6 @@ object ReducerConfigurationFactory extends ApparatConfigurationFactory[ReducerCo
 			error("Input "+input+" does not exist.")
 		}
 
-		new ReducerConfigurationImpl(input, output, quality, deblock, merge, lzma, matryoshkaType)
+		new ReducerConfigurationImpl(input, output, quality, deblock, merge, sort, lzma, matryoshkaType)
 	}
 }

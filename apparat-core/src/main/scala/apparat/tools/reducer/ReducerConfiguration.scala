@@ -52,6 +52,12 @@ trait ReducerConfiguration {
 	def mergeABC: Boolean
 
 	/**
+	 * Whether or not to sort the constant pool. This option
+	 * is only triggered if mergeABC is specified.
+	 */
+	def sortCPool: Boolean
+
+	/**
 	 * Use advanced LZMA compression.
 	 */
 	def lzma: Boolean

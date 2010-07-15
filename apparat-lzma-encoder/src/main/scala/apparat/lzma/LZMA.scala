@@ -27,11 +27,11 @@ import java.io.{InputStream => JInputStream, OutputStream => JOutputStream}
  * @author Joa Ebert
  */
 object LZMA {
-	private val DictionarySize = 1 << 28
+	private val DictionarySize = 1 << 23
 	private val Lc = 3
 	private val Lp = 0
 	private val Pb = 2
-	private val Fb = 255
+	private val Fb = 128
 	private val Eos = false
 	private val Algorithm = 2
 	private val MatchFinder = 1

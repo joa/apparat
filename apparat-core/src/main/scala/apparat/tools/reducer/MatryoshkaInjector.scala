@@ -21,8 +21,8 @@
 package apparat.tools.reducer
 
 import apparat.utils.IO
-import apparat.swf.{SwfTags, DefineBinaryData, Swf}
 import apparat.log.SimpleLog
+import apparat.swf._
 
 class MatryoshkaInjector(source: Swf, matryoshkaType: Int) extends SimpleLog {
 	lazy val swf = {
@@ -72,6 +72,37 @@ class MatryoshkaInjector(source: Swf, matryoshkaType: Int) extends SimpleLog {
 			case _ => error("Could not find DefineBinaryData tag.")
 		}
 
+		swf.tags find { _.kind == SwfTags.SetBackgroundColor } match {
+			case Some(x: SetBackgroundColor) => source.tags find { _.kind == SwfTags.SetBackgroundColor } match {
+				case Some(y: SetBackgroundColor) => x.color = y.color
+				case _ =>
+			}
+			case _ => error("Could not find SetBackgroundColor tag.")
+		}
+
+		swf.tags find { _.kind == SwfTags.ScriptLimits } match {
+			case Some(x: ScriptLimits) => source.tags find { _.kind == SwfTags.ScriptLimits } match {
+				case Some(y: ScriptLimits) =>
+					x.maxRecursionDepth = y.maxRecursionDepth
+					x.scriptTimeoutSeconds = y.scriptTimeoutSeconds
+				case _ =>
+			}
+			case _ => error("Could not find ScriptLimits tag.")
+		}
+
+		swf.tags find { _.kind == SwfTags.FileAttributes } match {
+			case Some(x: FileAttributes) => source.tags find { _.kind == SwfTags.FileAttributes } match {
+				case Some(y: FileAttributes) =>
+					x.useDirectBlit = y.useDirectBlit
+					x.useNetwork = y.useNetwork
+				case _ =>
+			}
+			case _ => error("Could not find FileAttributes tag.")
+		}
+
+		swf.frameRate = source.frameRate
+		swf.frameSize = source.frameSize
+		
 		swf.toByteArray
 	}
 }

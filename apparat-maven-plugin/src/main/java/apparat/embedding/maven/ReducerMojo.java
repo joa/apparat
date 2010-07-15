@@ -38,6 +38,15 @@ public final class ReducerMojo extends AbstractApparatMojo {
 	private boolean mergeABC;
 
 	/**
+	 * Whether or not to sort the constant pool.
+	 * Only if <code>mergeABC</code> is specified.
+	 * 
+	 * @parameter default-value=false
+	 * @required
+	 */
+	private boolean sortCPool;
+
+	/**
 	 * Whether or not to use LZMA compression. Only available with
 	 * SWF files.
 	 * @parameter default-value=false
@@ -70,6 +79,7 @@ public final class ReducerMojo extends AbstractApparatMojo {
 			@Override public float quality() { return quality; }
 			@Override public float deblock() { return deblock; }
 			@Override public boolean mergeABC() { return mergeABC; }
+			@Override public boolean sortCPool() { return sortCPool; }
 			@Override public boolean lzma() { return lzma; }
 			@Override public int matryoshkaType() {
 				if(matryoshka.equalsIgnoreCase("quiet")) {

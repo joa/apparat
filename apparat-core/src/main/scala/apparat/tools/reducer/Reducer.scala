@@ -24,6 +24,7 @@ object Reducer {
 		var input: JFile = _
 		var output: JFile = _
 		var mergeABC: Boolean = false
+		var sortCPool: Boolean = false
 		var lzma: Boolean = false
 		var matryoshkaType: Int = MatryoshkaType.QUIET
 
@@ -34,6 +35,7 @@ object Reducer {
   -d [float]	Strength of deblocking filter (optional)
   -q [float]	Quality from 0.0 to 1.0 (optional)
   -m [true|false] Merge ABC files
+  -s [true|false] Sort constant pool (only if -m is specified)
   -l [true|false] Use LZMA compression
   -t [quiet|preloader] Matryoshka type (default: quiet)"""
 
@@ -45,6 +47,7 @@ object Reducer {
 			quality = config.quality
 			deblock = config.deblock
 			mergeABC = config.mergeABC
+			sortCPool = config.sortCPool
 			lzma = config.lzma
 			matryoshkaType = config.matryoshkaType
 		}
@@ -56,6 +59,9 @@ object Reducer {
 				case SwfTags.DoABC if mergeABC => Some(new DoABC)
 				case SwfTags.DoABC1 if mergeABC => Some(new DoABC)
 				case SwfTags.DefineBinaryData => Some(new DefineBinaryData)
+				case SwfTags.FileAttributes => Some(new FileAttributes)
+				case SwfTags.ScriptLimits => Some(new ScriptLimits)
+				case SwfTags.SetBackgroundColor => Some(new SetBackgroundColor)
 				case _ => None
 			}
 			val source = input
@@ -89,8 +95,12 @@ object Reducer {
 									doABC.name = "apparat.googlecode.com"
 
 									b.bytecodeAvailable = true
-//									ApparatLog("Building new cpool ...")
-//									b.cpool = AbcConstantPoolBuilder using b
+
+									if(sortCPool) {
+										log.info("Rebuilding constant pool ...")
+										b.cpool = AbcConstantPoolBuilder using b
+									}
+									
 									b.saveBytecode()
 									b write doABC
 

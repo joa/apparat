@@ -37,6 +37,7 @@
         </executions>
         <configuration>
           <mergeABC>true</mergeABC>
+          <sortCPool>true</sortCPool>
         </configuration>
       </plugin>
     </plugins>

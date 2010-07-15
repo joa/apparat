@@ -5,7 +5,7 @@ import apparat.log._
 import output.ConsoleOutput
 
 object ApparatApplication extends SimpleLog {
-	val scalaVersionString = "version 2.8.0.RC7"
+	val scalaVersionString = "version 2.8.0.final"
 	def apply(tool: ApparatTool, args: Array[String]): Int = {
 		val t0 = System.currentTimeMillis()
 		var result = 0
@@ -34,7 +34,7 @@ object ApparatApplication extends SimpleLog {
 			Properties.versionString match {
 				case x if x == scalaVersionString =>
 				case other => {
-					log.error("Apparat requires Scala %s", scalaVersionString)
+					log.error("Apparat requires Scala %s.", scalaVersionString)
 					log.error("Download it here: http://www.scala-lang.org/downloads")
 					return -1
 				}

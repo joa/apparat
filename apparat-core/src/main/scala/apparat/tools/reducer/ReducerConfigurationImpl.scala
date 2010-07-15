@@ -31,5 +31,6 @@ protected[reducer] class ReducerConfigurationImpl(
 		val quality: Float,
 		val deblock: Float,
 		val mergeABC: Boolean,
+		val sortCPool: Boolean,
 		val lzma: Boolean,
 		val matryoshkaType: Int) extends ReducerConfiguration

@@ -41,10 +41,6 @@ class ConsoleOutput extends LogOutput {
 		stringBuilder append ' '
 		stringBuilder append message
 
-		if(level >= Error) {
-			Console.out
-		} else {
-			Console.err
-		} println stringBuilder.toString
+		Console println stringBuilder.toString
 	}
 }
