@@ -35,7 +35,27 @@ public final class ReducerMojo extends AbstractApparatMojo {
 	 */
 	private boolean mergeABC;
 
+	/**
+	 * Whether or not to use LZMA compression. Only available with
+	 * SWF files.
+	 * @param default-value=false
+	 * @required
+	 */
+	private boolean lzma;
+
+	/**
+	 * Which Matryoshka implementation to use. Either "quiet" or "preloader".
+	 *
+	 * @param default-value="quiet"
+	 * @required
+	 */
+	private String matryoshka;
+
 	@Override protected void processFile(final File file) {
+		if(getLog().isDebugEnabled()) {
+			getLog().debug("Running "+file+" through Reducer ...");
+		}
+
 		final Reducer.ReducerTool tool = new Reducer.ReducerTool();
 		final ReducerConfiguration config = new ReducerConfiguration() {
 			@Override public File input() { return file; }

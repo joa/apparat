@@ -13,6 +13,10 @@ import java.io.File;
  */
 public final class StripperMojo extends AbstractApparatMojo {
 	@Override protected void processFile(final File file) {
+		if(getLog().isDebugEnabled()) {
+			getLog().debug("Running "+file+" through Stripper ...");
+		}
+
 		final Stripper.StripperTool tool = new Stripper.StripperTool();
 		final StripperConfiguration config = new StripperConfiguration() {
 			@Override public File input() { return file; }

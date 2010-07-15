@@ -22,6 +22,14 @@
         <configuration>
           <debug>false</debug>
           <sourceFile>Matryoshka.as</sourceFile>
+          <frames>
+            <frame>
+              <label>MC</label>
+              <classNames>
+                <className>MatryoshkaContent</className>
+              </classNames>
+            </frame>
+          </frames>
         </configuration>
       </plugin>
     </plugins>

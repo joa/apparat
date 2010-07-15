@@ -8,6 +8,8 @@ package {
 	import flash.system.LoaderContext;
 	import flash.utils.ByteArray;
 
+	[SWF(backgroundColor='0xffffff', frameRate='16', width='128', height='32')]
+
 	/**
 	 * @author Joa Ebert
 	 */
