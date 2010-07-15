@@ -24,6 +24,8 @@ object Reducer {
 		var input: JFile = _
 		var output: JFile = _
 		var mergeABC: Boolean = false
+		var lzma: Boolean = false
+		var matryoshkaType: Int = MatryoshkaType.QUIET
 
 		override def name: String = "Reducer"
 
@@ -31,7 +33,9 @@ object Reducer {
   -o [file]	Output file (optional)
   -d [float]	Strength of deblocking filter (optional)
   -q [float]	Quality from 0.0 to 1.0 (optional)
-  -m [true|false] Merge ABC files"""
+  -m [true|false] Merge ABC files
+  -l [true|false] Use LZMA compression
+  -t [quiet|preloader] Matryoshka type (default: quiet)"""
 
 		override def configure(config: ApparatConfiguration): Unit = configure(ReducerConfigurationFactory fromConfiguration config)
 		
@@ -41,6 +45,8 @@ object Reducer {
 			quality = config.quality
 			deblock = config.deblock
 			mergeABC = config.mergeABC
+			lzma = config.lzma
+			matryoshkaType = config.matryoshkaType
 		}
 
 		override def run() = {
@@ -101,22 +107,29 @@ object Reducer {
 				cont.tags = result.reverse
 			}
 
-			val debugging = false
-			if(debugging) {
-				//
-				// Create a Matryoshka
-				//
+			if(lzma) {
+				log.info("Creating LZMA compressed file.")
+				
 				cont.strategy match {
-					case Some(swfStrategy: SwfStrategy) => {
-						val matryoshka = new MatryoshkaInjector(swfStrategy.swf.getOrElse(error("No SWF loaded.")).toLZMAByteArray)
-						val outputStream = new JFileOutputStream(target)
+					case Some(swfStrategy: SwfStrategy) => matryoshkaType match {
+						case MatryoshkaType.NONE => IO.using(new JFileOutputStream(target)) {
+							_ write (swfStrategy.swf getOrElse error("No SWF loaded.")).toByteArray
+						}
+						case _ => {
+							//
+							// Create a Matryoshka
+							//
+							val matryoshka = new MatryoshkaInjector(swfStrategy.swf getOrElse error("No SWF loaded."),
+								matryoshkaType)
+							val outputStream = new JFileOutputStream(target)
 
-						outputStream write matryoshka.toByteArray
-						outputStream.flush()
-						outputStream.close()
+							outputStream write matryoshka.toByteArray
+							outputStream.flush()
+							outputStream.close()
+						}
 					}
 					case other => {
-						log.warning("Matryoshka works only with SWF files.")
+						log.warning("LZMA works only with SWF files. You cannot compress a SWC/ABC.")
 						cont write target
 					}
 				}

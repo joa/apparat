@@ -31,7 +31,9 @@ object ConcreteConfigurationFactory extends ApparatConfigurationFactory[Concrete
 		val libraries = config("-i") map { _ split JFile.pathSeparatorChar toList } map { pathname => for(p <- pathname) yield new JFile(p) } getOrElse List.empty[JFile]
 
 		for(library <- libraries) {
-			assert(library.exists, "File "+library.getName+" has to exist.")
+			if(!library.exists) {
+				error("Library "+library+" does not exist.")
+			}
 		}
 
 		new ConcreteConfigurationImpl(libraries)

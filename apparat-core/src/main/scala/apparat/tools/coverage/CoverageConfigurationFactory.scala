@@ -32,7 +32,9 @@ object CoverageConfigurationFactory extends ApparatConfigurationFactory[Coverage
 		val output = config("-o") map { pathname => new JFile(pathname) } getOrElse input
 		val sourcePath = config("-s") map { _ split JFile.pathSeparatorChar toList } getOrElse List.empty[String]
 
-		assert(input.exists, "Input has to exist.")
+		if(!input.exists) {
+			error("Input "+input+" does not exist.")
+		}
 
 		new CoverageConfigurationImpl(input, output, sourcePath)
 	}

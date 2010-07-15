@@ -19,4 +19,4 @@
 ::
 
 @echo off
-scala -cp "%~dp0\*.jar" apparat.tools.tdsi.TurboDieselSportInjection %*
+scala -cp "%~dp0\*" apparat.tools.tdsi.TurboDieselSportInjection %*

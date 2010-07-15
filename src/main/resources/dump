@@ -20,4 +20,4 @@
 # http://www.joa-ebert.com/
 #
 
-scala -cp `dirname "$0"`/*.jar apparat.tools.dump.Dump $*
+scala -cp `dirname "$0"`/\* apparat.tools.dump.Dump $*

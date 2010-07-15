@@ -19,4 +19,4 @@
 ::
 
 @echo off
-scala -cp "%~dp0\*.jar" apparat.tools.concrete.Concrete %*
+scala -cp "%~dp0\*" apparat.tools.concrete.Concrete %*

@@ -40,6 +40,10 @@ object DumpConfigurationFactory extends ApparatConfigurationFactory[DumpConfigur
 			case _ => error("Bytecode format must be either \"raw\", \"cfg\", or \"default\".")
 		}
 
+		if(!input.exists) {
+			error("Input "+input+" does not exist.")
+		}
+		
 		new DumpConfigurationImpl(input, output, exportSWF, exportUML, exportABC, bytecodeFormat)
 	}
 }

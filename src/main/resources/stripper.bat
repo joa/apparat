@@ -19,4 +19,4 @@
 ::
 
 @echo off
-scala -cp "%~dp0\*.jar" apparat.tools.stripper.Stripper %*
+scala -cp "%~dp0\*" apparat.tools.stripper.Stripper %*

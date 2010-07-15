@@ -1,7 +1,9 @@
 package apparat.embedding.maven;
 
+import apparat.tools.reducer.MatryoshkaType;
 import apparat.tools.reducer.Reducer;
 import apparat.tools.reducer.ReducerConfiguration;
+import org.apache.maven.plugin.MojoFailureException;
 
 import java.io.File;
 
@@ -30,7 +32,7 @@ public final class ReducerMojo extends AbstractApparatMojo {
 
 	/**
 	 * Whether or not to merge ABC files into a single one.
-	 * @param default-value=false
+	 * @parameter default-value=false
 	 * @required
 	 */
 	private boolean mergeABC;
@@ -38,7 +40,7 @@ public final class ReducerMojo extends AbstractApparatMojo {
 	/**
 	 * Whether or not to use LZMA compression. Only available with
 	 * SWF files.
-	 * @param default-value=false
+	 * @parameter default-value=false
 	 * @required
 	 */
 	private boolean lzma;
@@ -46,14 +48,19 @@ public final class ReducerMojo extends AbstractApparatMojo {
 	/**
 	 * Which Matryoshka implementation to use. Either "quiet" or "preloader".
 	 *
-	 * @param default-value="quiet"
+	 * @parameter default-value="quiet"
 	 * @required
 	 */
 	private String matryoshka;
 
-	@Override protected void processFile(final File file) {
+	@Override protected void processFile(final File file) throws MojoFailureException {
 		if(getLog().isDebugEnabled()) {
 			getLog().debug("Running "+file+" through Reducer ...");
+		}
+
+		if(!matryoshka.equalsIgnoreCase("quiet") &&
+				!matryoshka.equalsIgnoreCase("preloader")) {
+			throw new MojoFailureException("\""+matryoshka+"\" is an illegal argument for the <matryoshka> node.");
 		}
 
 		final Reducer.ReducerTool tool = new Reducer.ReducerTool();
@@ -63,6 +70,16 @@ public final class ReducerMojo extends AbstractApparatMojo {
 			@Override public float quality() { return quality; }
 			@Override public float deblock() { return deblock; }
 			@Override public boolean mergeABC() { return mergeABC; }
+			@Override public boolean lzma() { return lzma; }
+			@Override public int matryoshkaType() {
+				if(matryoshka.equalsIgnoreCase("quiet")) {
+					return MatryoshkaType.QUIET();
+				} else if(matryoshka.equalsIgnoreCase("preloader")) {
+					return MatryoshkaType.PRELOADER();
+				} else {
+					return MatryoshkaType.NONE();
+				}
+			}
 		};
 
 		tool.configure(config);

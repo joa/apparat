@@ -58,7 +58,7 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 		}
 	}
 
-	private void processArtifact(final Artifact artifact) throws MojoExecutionException {
+	private void processArtifact(final Artifact artifact) throws MojoExecutionException, MojoFailureException {
 		final String artifactType = artifact.getType();
 		if(artifactType.equals("swc") || artifactType.equals("swf")) {
 			try {
@@ -71,5 +71,5 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 		}
 	}
 
-	abstract protected void processFile(final File file);
+	abstract protected void processFile(final File file) throws MojoExecutionException, MojoFailureException;
 }

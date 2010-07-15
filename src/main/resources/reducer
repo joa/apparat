@@ -20,4 +20,4 @@
 # http://www.joa-ebert.com/
 #
 
-scala -cp `dirname "$0"`/*.jar apparat.tools.reducer.Reducer $*
+scala -cp `dirname "$0"`/\* apparat.tools.reducer.Reducer $*

@@ -31,7 +31,9 @@ object StripperConfigurationFactory extends ApparatConfigurationFactory[Stripper
 		val input = new JFile(config("-i") getOrElse error("Input is required."))
 		val output = config("-o") map { pathname => new JFile(pathname) } getOrElse input
 
-		assert(input.exists, "Input has to exist.")
+		if(!input.exists) {
+			error("Input "+input+" does not exist.")
+		}
 
 		new StripperConfigurationImpl(input, output)
 	}

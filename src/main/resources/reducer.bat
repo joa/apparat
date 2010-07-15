@@ -19,4 +19,4 @@
 ::
 
 @echo off
-scala -cp "%~dp0\*.jar" apparat.tools.reducer.Reducer %*
+scala -cp "%~dp0\*" apparat.tools.reducer.Reducer %*

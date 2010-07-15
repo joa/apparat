@@ -50,4 +50,17 @@ trait ReducerConfiguration {
 	 * Whether or not to merge ABC files into a single one.
 	 */
 	def mergeABC: Boolean
+
+	/**
+	 * Use advanced LZMA compression.
+	 */
+	def lzma: Boolean
+
+	/**
+	 * The type of the Matryoshka to use.
+	 * 
+	 * @see MatryoshkaType
+	 */
+	def matryoshkaType: Int
+
 }

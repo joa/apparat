@@ -30,4 +30,6 @@ protected[reducer] class ReducerConfigurationImpl(
 		val output: JFile,
 		val quality: Float,
 		val deblock: Float,
-		val mergeABC: Boolean) extends ReducerConfiguration
+		val mergeABC: Boolean,
+		val lzma: Boolean,
+		val matryoshkaType: Int) extends ReducerConfiguration

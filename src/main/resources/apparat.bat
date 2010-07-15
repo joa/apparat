@@ -19,4 +19,4 @@
 ::
 
 @echo off
-scala -cp "%~dp0\*.jar" apparat.tools.shell.ApparatShell
+scala -cp "%~dp0\*" apparat.tools.shell.ApparatShell
