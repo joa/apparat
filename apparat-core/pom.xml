@@ -72,7 +72,13 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>apparat-matryoshkas</artifactId>
+      <artifactId>apparat-matryoshka-quiet</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-matryoshka-preloader</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
     </dependency>
