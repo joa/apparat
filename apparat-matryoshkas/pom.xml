@@ -22,7 +22,7 @@
   <build>
     <sourceDirectory>src/main/as3</sourceDirectory>
     <testSourceDirectory>src/test/as3</testSourceDirectory>
-    <plugins>
+    <!--plugins>
       <plugin>
         <groupId>${project.groupId}</groupId>
         <artifactId>apparat-maven-plugin</artifactId>
@@ -40,7 +40,7 @@
           <sortCPool>true</sortCPool>
         </configuration>
       </plugin>
-    </plugins>
+    </plugins-->
   </build>
   
   <dependencies>
