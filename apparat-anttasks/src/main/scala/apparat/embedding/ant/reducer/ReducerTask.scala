@@ -1,7 +1,7 @@
 package apparat.embedding.ant.reducer
 
-import apparat.tools.reducer.Reducer
 import apparat.embedding.ant.{OutParameter, ApparatTask}
+import apparat.tools.reducer.{MatryoshkaType, Reducer}
 
 /*
  * This file is part of Apparat.
@@ -33,4 +33,16 @@ sealed class ReducerTask extends ApparatTask(Reducer, "reducer") with OutParamet
 	def setQuality(value: Float) = setArgument("q", value)
 
 	def setMergeABC(value: Boolean) = setArgument("m", value)
+
+	def setSortCPool(value: Boolean) = setArgument("s", value)
+
+	def setLZMA(value: Boolean) = setArgument("l", value)
+
+	def setMatryoshkaType(value: String) = {
+		value match {
+			case "quiet" => setArgument("t", MatryoshkaType.QUIET)
+			case "none" => setArgument("t", MatryoshkaType.NONE)
+			case  _ => setArgument("t", value)
+		}
+	}
 }

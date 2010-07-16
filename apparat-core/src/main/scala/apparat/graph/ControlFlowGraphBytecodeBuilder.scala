@@ -205,8 +205,8 @@ object ControlFlowGraphBytecodeBuilder {
 			if (lsContainer.addCase(startVertex, endVertex, isDefault, index)) {
 				val target = vertexBlockMap(startVertex)
 				val lastOp = target.lastOption
-				target.last match {
-					case op: LookupSwitch => target(target.length - 1) = lsContainer()
+				lastOp match {
+					case Some(op) if (op.opCode == Op.lookupswitch) => target(target.length - 1) = lsContainer()
 					case _ => target += lsContainer()
 				}
 				lookupSwitchBuildMap = lookupSwitchBuildMap - startVertex
@@ -214,10 +214,13 @@ object ControlFlowGraphBytecodeBuilder {
 			}
 		}
 
+		var edgesVisited = Set.empty[Edge[V]]
+
 		vertices.foreach(
 			vertex => {
-				newGraph.outgoingOf(vertex).foreach({
-					edge => edge match {
+				for (edge <- newGraph.outgoingOf(vertex) if (!edgesVisited.contains(edge))) {
+					edgesVisited += edge
+					edge match {
 						case TrueEdge(start, end) => {
 							if (inSequence(start, end)) {
 								// need to invert the condition
@@ -246,7 +249,7 @@ object ControlFlowGraphBytecodeBuilder {
 						case ReturnEdge(start, end) =>
 						case _ => if (!inSequence(edge.startVertex, edge.endVertex)) appendJump(edge.startVertex, edge.endVertex)
 					}
-				})
+				}
 			})
 
 		// mark and patch exception

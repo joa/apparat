@@ -23,6 +23,7 @@ package apparat.bytecode.optimization
 import apparat.bytecode.Bytecode
 import apparat.graph.mutable.{MutableAbstractOpBlockVertex, MutableBytecodeControlFlowGraph, MutableBytecodeControlFlowGraphBuilder}
 import scala.math.min
+import apparat.graph.EdgeKind
 
 /**
  * @author Joa Ebert
@@ -36,42 +37,43 @@ object BlockMerge {
 
 		@inline def loop(vertex: MutableAbstractOpBlockVertex): Unit = if(!visited(vertex)) {
 			visited = visited updated (vertex, true)
-			
-			val predecessors = (cfg predecessorsOf vertex).toList
-			val numPredecessors = predecessors.length
+			val edges = cfg.incomingOf(vertex)
+			val predecessors = edges.map(p => p.startVertex).toList
 
-			if(numPredecessors == 2) {
+			if (predecessors.length==2 && !edges.exists(_.kind match {case EdgeKind.Jump => false; case _ => true})) {
+				// for the moment only merge block that comes from a jump
 				val ops = predecessors map { _.block.toArray }
 				
 				val b0 = ops(0)
 				val b1 = ops(1)
 
-				var n = min(b0.length, b1.length) - 1
+				var n = b0.length - 1
+				var m = b1.length - 1
 				var i = 0
 
-				while(n > -1) {
-					if(b0(n) ~== b1(n)) {
+				while((n > -1) && (m > -1)) {
+					if(b0(n) ~== b1(m)) {
 						i += 1
 					} else {
 						n = 0//a kingdom for a break!
+						m = 0
 					}
-
 					n -= 1
+					m -= 1
 				}
 
 				if(i != 0) {
 					vertex.block = (b0 takeRight i).toList ::: vertex.block
-
 					for(predecessor <- predecessors) {
 						predecessor.block = predecessor.block dropRight i
 					}
 
 					modified = true
 				}
-			}
 
 			for(predecessor <- predecessors) {
 				loop(predecessor)
+			}
 			}
 		}
 

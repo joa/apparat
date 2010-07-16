@@ -1,7 +1,10 @@
 package apparat.graph
 
 import annotation.tailrec
-
+import immutable.ImmutableAbstractOpBlockVertex
+import mutable.MutableAbstractOpBlockVertex
+import apparat.bytecode.operations.{NewCatch, Op}
+import apparat.abc.{AbcNamespace, AbcQName}
 /*
  * This file is part of Apparat.
  * 
@@ -46,6 +49,24 @@ final class GraphVerticesSorter[V](graph: GraphLike[V]) {
 
 	lazy val vertices = getVertices(entry, graph.verticesIterator.toList).filterNot(p => p == entry || p == exit)
 
+	private lazy val globalCatchQName = AbcQName(Symbol(null), AbcNamespace(0, Symbol(null)))
+
+	private def isGlobalCatch(v: V) = v match {
+		case iaobv: ImmutableAbstractOpBlockVertex => {
+			iaobv.block.find(op => op.opCode == Op.newcatch) match {
+				case Some(op: NewCatch) if (op.exceptionHandler.typeName == globalCatchQName) => true
+				case _ => false
+			}
+		}
+		case maobv: MutableAbstractOpBlockVertex => {
+			maobv.block.find(op => op.opCode == Op.newcatch) match {
+				case Some(op: NewCatch) if (op.exceptionHandler.typeName == globalCatchQName) => true
+				case _ => false
+			}
+		}
+		case _ => false
+	}
+
 	private def getVertices(firstVertex: V, verticesToConsider: List[V]): List[V] = {
 		// Sort the vertices using a topological sort and when finding a SCC reapply the algorithm on the SCC
 		// greatly inspired from http://www.woodmann.com/forum/entry.php?95-Control-Flow-Deobfuscation-Part-3
@@ -59,12 +80,12 @@ final class GraphVerticesSorter[V](graph: GraphLike[V]) {
 		var visitedMap = Map.empty[V, Boolean]
 
 		def sortIncomingVertices(l: List[V]) = {
-			@inline def sort(v1:V, v2:V)={
-				if (graph.outgoingOf(v1).view.exists(_.kind==EdgeKind.Throw))
+			@inline def sort(v1: V, v2: V) = {
+				if (graph.outgoingOf(v1).view.exists(_.kind == EdgeKind.Throw))
 					true
-				else if (graph.outgoingOf(v2).view.exists(_.kind==EdgeKind.Throw))
+				else if (graph.outgoingOf(v2).view.exists(_.kind == EdgeKind.Throw))
 					false
-				else if (graph.incomingOf(v1).view.exists(_.kind==EdgeKind.Throw))
+				else if (graph.incomingOf(v1).view.exists(_.kind == EdgeKind.Throw))
 					true
 				else
 					false
@@ -74,9 +95,9 @@ final class GraphVerticesSorter[V](graph: GraphLike[V]) {
 
 		def sortOutgoingVertices(e1: graph.E, e2: graph.E) = {
 			if (e1.kind == EdgeKind.Throw) {
-				if (e2.kind == EdgeKind.Throw)
-					true
-				else {
+				if (e2.kind == EdgeKind.Throw) {
+					isGlobalCatch(e1.endVertex)
+				} else {
 					!graph.successorsOf(e2.endVertex).view.exists(_ == e1.endVertex)
 				}
 			} else if (e2.kind != EdgeKind.Throw) {
