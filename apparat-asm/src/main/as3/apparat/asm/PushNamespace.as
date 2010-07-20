@@ -21,5 +21,5 @@
  */
 
 package apparat.asm {
-	public function NewObject(numArguments:int):void {}
+	public function PushNamespace(abcNamespace:*):void {}
 }

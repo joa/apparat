@@ -1,11 +1,3 @@
-package apparat.bytecode.optimization
-
-import apparat.bytecode.operations._
-import apparat.abc._
-import annotation.tailrec
-import apparat.bytecode.{Marker, Bytecode}
-import apparat.tools.ApparatLog
-import apparat.bytecode.analysis.StackAnalysis
 /*
  * This file is part of Apparat.
  *
@@ -30,7 +22,18 @@ import apparat.bytecode.analysis.StackAnalysis
  * Time: 11:22:31
  */
 
+package apparat.bytecode.optimization
+
+import apparat.bytecode.operations._
+import apparat.abc._
+import annotation.tailrec
+import apparat.bytecode.{Marker, Bytecode}
+import apparat.tools.ApparatLog
+import apparat.bytecode.analysis.StackAnalysis
+
 object AsmExpansion {
+// TODO callMethod,callStatic,debug,hasNext2,lookupSwitch,newCatch,newClass,newFunction,pushNamespace
+
 	private val asmNamespace = AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.asm"))
 	private val __asm = AbcQName('__asm, asmNamespace)
 	private val __as3 = AbcQName('__as3, asmNamespace)
@@ -407,7 +410,7 @@ object AsmExpansion {
 			if (ops.isEmpty) {
 				throwError(opName + " expect a variable name or a register number")
 			} else ops.head match {
-				case cp@CallProperty(abcName, count) if (abcName == abcName) => {
+				case cp@CallProperty(aName, count) if (aName == abcName) => {
 					removes = cp :: removes
 					ops = ops.tail
 					if (ops.isEmpty) {
@@ -460,6 +463,45 @@ object AsmExpansion {
 					}
 				}
 				case _ => throwError(opName + " expect an integer as parameter")
+			}
+		}
+		@inline def readOp_AbcName(opName: Symbol, abcName: AbcName, opFactory: (AbcName) => AbstractOp) {
+			resolveABCName(opName) match {
+				case Some(name) => {
+					expectNextOp("invalid call to " + opName) match {
+						case cp@CallProperty(abcName, 1) => replacements = replacements.updated(cp, List(opFactory(name)))
+						case _ => throwError("invalid call to " + opName)
+					}
+				}
+				case _ =>
+			}
+		}
+		@inline def readOp_AbcName_Int(opName: Symbol, abcName: AbcName, opFactory: (AbcName, Int) => AbstractOp) {
+			resolveABCName(opName) match {
+				case Some(aName) => {
+					expectNextOp(opName + " expect arguments count as second parameter") match {
+						case pb@PushByte(count) => {
+							expectNextOp("invalid call to " + opName) match {
+								case cp@CallProperty(abcName, 2) => {
+									removes = pb :: removes
+									replacements = replacements.updated(cp, List(opFactory(aName, count)))
+								}
+								case x@_ => throwError("invalid call to " + opName)
+							}
+						}
+						case pi@PushInt(count) => {
+							expectNextOp("invalid call to " + opName) match {
+								case cp@CallProperty(abcName, 2) => {
+									removes = pi :: removes
+									replacements = replacements.updated(cp, List(opFactory(aName, count)))
+								}
+								case _ => throwError("invalid call to " + opName)
+							}
+						}
+						case _ => throwError(opName + " expect arguments count as second parameter")
+					}
+				}
+				case _ =>
 			}
 		}
 		def resolveABCName(asmOpName: Symbol): Option[AbcName] = {
@@ -807,7 +849,7 @@ object AsmExpansion {
 									case 'BitNot => {
 										replacements = replacements.updated(gl, List(BitNot()))
 									}
-									case 'Bitxor => {
+									case 'BitXor => {
 										replacements = replacements.updated(gl, List(BitXor()))
 									}
 									case 'Breakpoint => {
@@ -1080,75 +1122,80 @@ object AsmExpansion {
 							case AbcQName(asmOpName, asmNamespace) => {
 								asmOpName match {
 									case 'CallProperty => {
-										resolveABCName(asmOpName) match {
-											case Some(abcName) => {
-												expectNextOp(asmOpName + " expect arguments count") match {
-													case pb@PushByte(count) => {
-														expectNextOp("invalid call to " + asmOpName) match {
-															case cp@CallProperty(callProperty, 2) => {
-																removes = pb :: removes
-																replacements = replacements.updated(cp, List(CallProperty(abcName, count)))
-															}
-															case x@_ => throwError("invalid call to " + asmOpName)
-														}
-													}
-													case pi@PushInt(count) => {
-														expectNextOp("invalid call to " + asmOpName) match {
-															case cp@CallProperty(callProperty, 2) => {
-																removes = pi :: removes
-																replacements = replacements.updated(cp, List(CallProperty(abcName, count)))
-															}
-															case _ => throwError("invalid call to " + asmOpName)
-														}
-													}
-													case _ => throwError(asmOpName + " expect arguments count")
-												}
-												removes = currentOp :: removes
-											}
-											case _ =>
-										}
+										readOp_AbcName_Int(asmOpName, callProperty, (abcName: AbcName, args: Int) => CallProperty(abcName, args))
+										removes = currentOp :: removes
 									}
-
+									case 'CallPropLex => {
+										readOp_AbcName_Int(asmOpName, callPropLex, (abcName: AbcName, args: Int) => CallPropLex(abcName, args))
+										removes = currentOp :: removes
+									}
 									case 'CallPropVoid => {
-										resolveABCName(asmOpName) match {
-											case Some(abcName) => {
-												expectNextOp(asmOpName + " expect arguments count") match {
-													case pb@PushByte(count) => {
-														expectNextOp("invalid call to " + asmOpName) match {
-															case cp@CallProperty(callPropVoid, 2) => {
-																removes = pb :: removes
-																replacements = replacements.updated(cp, List(CallPropVoid(abcName, count)))
-															}
-															case x@_ => throwError("invalid call to " + asmOpName)
-														}
-													}
-													case pi@PushInt(count) => {
-														expectNextOp("invalid call to " + asmOpName) match {
-															case cp@CallProperty(callPropVoid, 2) => {
-																removes = pi :: removes
-																replacements = replacements.updated(cp, List(CallPropVoid(abcName, count)))
-															}
-															case _ => throwError("invalid call to " + asmOpName)
-														}
-													}
-													case _ => throwError(asmOpName + " expect arguments count")
-												}
-												removes = currentOp :: removes
-											}
-											case _ =>
-										}
+										readOp_AbcName_Int(asmOpName, callPropVoid, (abcName: AbcName, args: Int) => CallPropVoid(abcName, args))
+										removes = currentOp :: removes
+									}
+									case 'CallSuperVoid => {
+										readOp_AbcName_Int(asmOpName, callSuperVoid, (abcName: AbcName, args: Int) => CallSuperVoid(abcName, args))
+										removes = currentOp :: removes
+									}
+									case 'ConstructProp => {
+										readOp_AbcName_Int(asmOpName, constructProp, (abcName: AbcName, args: Int) => ConstructProp(abcName, args))
+										removes = currentOp :: removes
+									}
+									case 'CallSuper => {
+										readOp_AbcName_Int(asmOpName, callSuper, (abcName: AbcName, args: Int) => CallSuper(abcName, args))
+										removes = currentOp :: removes
+									}
+									case 'AsType => {
+										readOp_AbcName(asmOpName, asType, (abcName: AbcName) => AsType(abcName))
+										removes = currentOp :: removes
+									}
+									case 'Coerce => {
+										readOp_AbcName(asmOpName, coerce, (abcName: AbcName) => Coerce(abcName))
+										removes = currentOp :: removes
+									}
+									case 'GetLex => {
+										readOp_AbcName(asmOpName, getLex, (abcName: AbcName) => GetLex(abcName))
+										removes = currentOp :: removes
+									}
+									case 'IsType => {
+										readOp_AbcName(asmOpName, isType, (abcName: AbcName) => IsType(abcName))
+										removes = currentOp :: removes
+									}
+									case 'DeleteProperty => {
+										readOp_AbcName(asmOpName, deleteProperty, (abcName: AbcName) => DeleteProperty(abcName))
+										removes = currentOp :: removes
+									}
+									case 'FindProperty => {
+										readOp_AbcName(asmOpName, findProperty, (abcName: AbcName) => FindProperty(abcName))
+										removes = currentOp :: removes
 									}
 									case 'FindPropStrict => {
-										resolveABCName(asmOpName) match {
-											case Some(abcName) => {
-												replacements = replacements.updated(currentOp, List(FindPropStrict(abcName)))
-												expectNextOp("invalid call to " + asmOpName) match {
-													case cp@CallProperty(findPropStrict, 1) => removes = cp :: removes
-													case _ => throwError("invalid call to " + asmOpName)
-												}
-											}
-											case _ =>
-										}
+										readOp_AbcName(asmOpName, findPropStrict, (abcName: AbcName) => FindPropStrict(abcName))
+										removes = currentOp :: removes
+									}
+									case 'GetDescendants => {
+										readOp_AbcName(asmOpName, getDescendants, (abcName: AbcName) => GetDescendants(abcName))
+										removes = currentOp :: removes
+									}
+									case 'GetProperty => {
+										readOp_AbcName(asmOpName, getProperty, (abcName: AbcName) => GetProperty(abcName))
+										removes = currentOp :: removes
+									}
+									case 'GetSuper => {
+										readOp_AbcName(asmOpName, getSuper, (abcName: AbcName) => GetSuper(abcName))
+										removes = currentOp :: removes
+									}
+									case 'InitProperty => {
+										readOp_AbcName(asmOpName, initProperty, (abcName: AbcName) => InitProperty(abcName))
+										removes = currentOp :: removes
+									}
+									case 'SetProperty => {
+										readOp_AbcName(asmOpName, setProperty, (abcName: AbcName) => SetProperty(abcName))
+										removes = currentOp :: removes
+									}
+									case 'SetSuper => {
+										readOp_AbcName(asmOpName, setSuper, (abcName: AbcName) => SetSuper(abcName))
+										removes = currentOp :: removes
 									}
 									case 'GetLocal => {
 										readOp_Register(asmOpName, getLocal, (register: Int) => GetLocal(register))
@@ -1258,18 +1305,6 @@ object AsmExpansion {
 										readOp_Double(asmOpName, pushDouble, (d: Double) => PushDouble(d))
 										removes = currentOp :: removes
 									}
-									case 'GetProperty => {
-										resolveABCName(asmOpName) match {
-											case Some(abcName) => {
-												replacements = replacements.updated(currentOp, List(GetProperty(abcName)))
-												expectNextOp("invalid call to " + asmOpName) match {
-													case cp@CallProperty(getProperty, count) => removes = cp :: removes
-													case _ => throwError("invalid call to " + asmOpName)
-												}
-											}
-											case _ =>
-										}
-									}
 									case 'IfEqual => {
 										readOp_Marker(asmOpName, ifEqual, (marker: Marker) => IfEqual(marker))
 										removes = currentOp :: removes
@@ -1330,6 +1365,11 @@ object AsmExpansion {
 										readOp_Marker(asmOpName, jump, (marker: Marker) => Jump(marker))
 										removes = currentOp :: removes
 									}
+// TODO
+//									case 'HasNext2 => {
+//										readOp_Register_Register(asmOpName, hasNext2, (register1: Int, register2:Int) => HasNext2(register1, register2))
+//										removes = currentOp :: removes
+//									}
 									case '__as3 => {
 										val ops = readUntil(__as3)
 										ops.headOption match {
