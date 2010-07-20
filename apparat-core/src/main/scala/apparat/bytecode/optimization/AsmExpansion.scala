@@ -212,7 +212,7 @@ object AsmExpansion {
 	private lazy val sign8 = AbcQName('Sign8, asmNamespace)
 	private lazy val sign16 = AbcQName('Sign16, asmNamespace)
 
-	def apply(bytecode: Bytecode) : Boolean = {
+	def apply(bytecode: Bytecode): Boolean = {
 		var modified = false
 		var removes = List.empty[AbstractOp]
 		var replacements = Map.empty[AbstractOp, List[AbstractOp]]
@@ -359,18 +359,23 @@ object AsmExpansion {
 		}
 		@inline def readOp_Marker(opName: Symbol, abcName: AbcName, opFactory: (Marker) => AbstractOp) {
 			expectNextOp(opName + " expect a string as parameter") match {
-				case ps@PushString(str) => {
+				case ps@PushString(symbol) => {
+					if (symbol.toString.last == ':') {
+						throwError("the target label " + symbol + " mustn't ended with :")
+					}
+
 					expectNextOp("invalid call to " + opName) match {
 						case cp@CallProperty(abcName, 1) => {
 							removes = ps :: removes
 							var marker = {
-								if (markerMap.contains(str))
-									markerMap(str)
-								else if (unresolveMarkerMap.contains(str)) {
-									unresolveMarkerMap(str)
+								val newSymbol = Symbol(symbol.toString.tail + ":")
+								if (markerMap.contains(newSymbol))
+									markerMap(newSymbol)
+								else if (unresolveMarkerMap.contains(newSymbol)) {
+									unresolveMarkerMap(newSymbol)
 								} else {
 									val marker = markers.mark(Nop())
-									unresolveMarkerMap = unresolveMarkerMap.updated(str, marker)
+									unresolveMarkerMap = unresolveMarkerMap.updated(newSymbol, marker)
 									marker
 								}
 							}
@@ -769,8 +774,10 @@ object AsmExpansion {
 						case GetLocal(0) =>
 						case DebugLine(line) => lineNum = line
 						case PushString(value) => {
-							if (markerMap.contains(value))
-								throwError("can't use more than once the label : " + value)
+							if (value.toString.last != ':') {
+								throwError("label " + value + " have to ended with :")
+							} else if (markerMap.contains(value))
+								throwError("duplicate label " + value)
 							else {
 								val label = Label()
 								if (unresolveMarkerMap.contains(value)) {
@@ -1390,7 +1397,7 @@ object AsmExpansion {
 			bytecode.body match {
 				case Some(body) => {
 					val (operandStack, scopeStack) = StackAnalysis(bytecode)
-//					body.localCount = localCount
+					//					body.localCount = localCount
 					body.maxStack = operandStack
 					body.maxScopeDepth = body.initScopeDepth + scopeStack
 				}
