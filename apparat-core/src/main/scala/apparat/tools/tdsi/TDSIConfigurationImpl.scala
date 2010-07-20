@@ -31,4 +31,5 @@ protected[tdsi] class TDSIConfigurationImpl(
 		val alchemyExpansion: Boolean,
 		val macroExpansion: Boolean,
 		val inlineExpansion: Boolean,
-		val fixAlchemy: Boolean) extends TDSIConfiguration
+		val fixAlchemy: Boolean,
+		val asmExpansion:Boolean) extends TDSIConfiguration

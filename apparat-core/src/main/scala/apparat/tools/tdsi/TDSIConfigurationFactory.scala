@@ -34,11 +34,12 @@ object TDSIConfigurationFactory extends ApparatConfigurationFactory[TDSIConfigur
 		val macros = (config("-m") getOrElse "true").toBoolean
 		val inline = (config("-e") getOrElse "true").toBoolean
 		val fixAlchemy = (config("-f") getOrElse "false").toBoolean
+		val asm = (config("-s") getOrElse "true").toBoolean
 
 		if(!input.exists) {
 			error("Input "+input+" does not exist.")
 		}
 
-		new TDSIConfigurationImpl(input, output, alchemy, macros, inline, fixAlchemy)
+		new TDSIConfigurationImpl(input, output, alchemy, macros, inline, fixAlchemy, asm)
 	}
 }

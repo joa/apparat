@@ -35,4 +35,6 @@ sealed class TDSITask extends ApparatTask(TurboDieselSportInjection, "tdsi") wit
 	def setInline(value: String) = setArgument("e", value)
 
 	def setMacro(value: String) = setArgument("m", value)
+
+	def setAsm(value: String) = setArgument("s", value)
 }

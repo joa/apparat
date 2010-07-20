@@ -198,6 +198,7 @@
     <module>apparat-maven-plugin</module>
     <module>apparat-playerglobal</module>
     <module>apparat-taas</module>
+    <module>apparat-asm</module>
   </modules>
 
   <repositories>
