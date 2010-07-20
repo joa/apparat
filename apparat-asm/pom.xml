@@ -19,40 +19,10 @@
     <testSourceDirectory>src/test/as3</testSourceDirectory>
     <plugins>
       <plugin>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>apparat-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <executions>
-          <!--
-            Run TDSI in its default phase.
-          -->
-          <execution>
-            <id>tdsi-package</id>
-            <goals>
-              <goal>tdsi</goal>
-            </goals>
-          </execution>
-
-          <!--
-            This is a hack we are doing for FlexMojos. In this case
-            the TestRunner.swf is passed to TDSI so that the SWC is
-            processed before it is started.
-          -->
-          <execution>
-            <id>tdsi-test</id>
-            <phase>process-test-classes</phase>
-            <goals>
-              <goal>tdsi</goal>
-            </goals>
-            <configuration>
-              <overrideArtifact>${project.build.testOutputDirectory}/${flexmojos.testrunner}</overrideArtifact>
-            </configuration>
-          </execution>
-        </executions>
+        <groupId>org.sonatype.flexmojos</groupId>
+        <artifactId>flexmojos-maven-plugin</artifactId>
         <configuration>
-          <alchemyExpansion>true</alchemyExpansion>
-          <inlineExpansion>false</inlineExpansion>
-          <macroExpansion>false</macroExpansion>
+          <debug>false</debug>
         </configuration>
       </plugin>
     </plugins>

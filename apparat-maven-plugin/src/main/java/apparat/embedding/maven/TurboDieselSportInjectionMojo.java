@@ -46,8 +46,16 @@ public final class TurboDieselSportInjectionMojo extends AbstractApparatMojo {
 	 */
 	private boolean fixAlchemy;
 
+	/**
+	 * Whether or not to perform asm expansion.
+	 *
+	 * @parameter default-value=true
+	 * @required
+	 */
+	private boolean asmExpansion;
+
 	@Override public void execute() throws MojoExecutionException, MojoFailureException {
-		if(!alchemyExpansion && !macroExpansion && !inlineExpansion && !fixAlchemy) {
+		if(!alchemyExpansion && !macroExpansion && !inlineExpansion && !fixAlchemy && !asmExpansion) {
 			getLog().warn("TurboDieselSportInjection has been disabled since all its " +
 					"features are turned off.");
 			return;
@@ -69,6 +77,7 @@ public final class TurboDieselSportInjectionMojo extends AbstractApparatMojo {
 			@Override public boolean macroExpansion() { return macroExpansion; }
 			@Override public boolean inlineExpansion() { return inlineExpansion; }
 			@Override public boolean fixAlchemy() { return fixAlchemy; }
+			@Override public boolean asmExpansion() { return asmExpansion; }
 		};
 
 		tool.configure(config);
