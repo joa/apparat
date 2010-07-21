@@ -10,7 +10,7 @@
   </parent>
 
   <name>apparat-asm</name>
-  <description>Apparat ActionScript 3 asm lib.</description>
+  <description>Apparat ActionScript 3 ASM library.</description>
   <artifactId>apparat-asm</artifactId>
   <packaging>swc</packaging>
 
