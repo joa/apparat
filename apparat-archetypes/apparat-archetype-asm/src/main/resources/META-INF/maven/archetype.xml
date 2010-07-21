@@ -1,0 +1,6 @@
+<archetype>
+  <id>apparat-archetype-tdsi</id>
+  <sources>
+    <source>src/main/as3/App.as</source>
+  </sources>
+</archetype>

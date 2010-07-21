@@ -16,6 +16,7 @@
   
   <modules>
     <module>apparat-archetype-tdsi</module>
+    <module>apparat-archetype-asm</module>
   </modules>
   
   <build>
