@@ -24,6 +24,18 @@ package {
 			var i3:int;
 
 			__asm(
+				PushByte(-1),
+				LookupSwitch("default", "l0", "l1"),
+			"default:",
+				__as3(trace("default")),
+				Jump("out"),
+			"l0:",
+				__as3(trace("l0")),
+				Jump("out"),
+			"l1:",
+				__as3(trace("l1")),
+			"out:",
+				Pop,
 				this,
 				PushString("is i1<i2:"),
 				__as3(i1<i2),

@@ -32,7 +32,7 @@ import apparat.tools.ApparatLog
 import apparat.bytecode.analysis.StackAnalysis
 
 object AsmExpansion {
-// TODO callMethod,callStatic,debug,hasNext2,lookupSwitch,newCatch,newClass,newFunction,pushNamespace
+	// TODO callMethod,callStatic,debug,hasNext2,newCatch,newClass,newFunction,pushNamespace
 
 	private val asmNamespace = AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.asm"))
 	private val __asm = AbcQName('__asm, asmNamespace)
@@ -46,6 +46,8 @@ object AsmExpansion {
 	private lazy val abcRTQNameLA = AbcQName('AbcRTQNameLA, asmNamespace)
 	private lazy val abcMultiname = AbcQName('AbcMultiname, asmNamespace)
 	private lazy val abcMultinameA = AbcQName('AbcMultinameA, asmNamespace)
+	private lazy val abcMultinameL = AbcQName('AbcMultinameL, asmNamespace)
+	private lazy val abcMultinameLA = AbcQName('AbcMultinameLA, asmNamespace)
 	private lazy val abcNamespace = AbcQName('AbcNamespace, asmNamespace)
 	private lazy val namespaceKind = AbcQName('NamespaceKind, asmNamespace)
 	private lazy val abcNamespaceSet = AbcQName('AbcNamespaceSet, asmNamespace)
@@ -333,7 +335,7 @@ object AsmExpansion {
 								case _ => throwError("missing arguments for abcNamespace")
 							}
 							expectNextOp("invalid call to abcNamespace") match {
-								case cp@CallProperty(abcNamespace, 2) => removes = cp :: removes
+								case cp@CallProperty(aName, 2) if (aName == abcNamespace) => removes = cp :: removes
 								case _ => throwError("invalid call to abcNamespace")
 							}
 						}
@@ -349,7 +351,7 @@ object AsmExpansion {
 			@tailrec def loop(): Unit = {
 				if (stack.nonEmpty) {
 					nextOp() match {
-						case op@CallProperty(abcName, count) => ret = op :: ret
+						case op@CallProperty(aName, count) if (aName == abcName) => ret = op :: ret
 						case _@op => {
 							ret = op :: ret
 							loop()
@@ -360,6 +362,59 @@ object AsmExpansion {
 			loop()
 			ret
 		}
+		def resolveMarker(symbol: Symbol) = {
+			val newSymbol = Symbol(symbol.toString.tail + ":")
+			if (markerMap.contains(newSymbol))
+				markerMap(newSymbol)
+			else if (unresolveMarkerMap.contains(newSymbol)) {
+				unresolveMarkerMap(newSymbol)
+			} else {
+				val marker = markers.mark(Nop())
+				unresolveMarkerMap = unresolveMarkerMap.updated(newSymbol, marker)
+				marker
+			}
+		}
+
+		@inline def readOp_Marker_Markers(opName: Symbol, abcName: AbcName, opFactory: (Marker, Array[Marker]) => AbstractOp) {
+			expectNextOp(opName + " expect a string label as first parameter") match {
+				case ps@PushString(symbol) => {
+					if (symbol.toString.last == ':') {
+						throwError("the target label " + symbol + " mustn't ended with :")
+					}
+
+					val defaultCase = resolveMarker(symbol)
+
+					var cases = List.empty[Marker]
+
+					@tailrec def loop() {
+						if (stack.nonEmpty) {
+							stack.head match {
+								case cp@CallProperty(aName, count) if (aName == abcName) => {
+									removes = cp :: removes
+									nextOp()
+								}
+								case ps@PushString(symbol) => {
+									if (symbol.toString.last == ':') {
+										throwError("the target label " + symbol + " mustn't ended with :")
+									}
+									cases = resolveMarker(symbol) :: cases
+									removes = ps :: removes
+									nextOp()
+									loop()
+								}
+								case _ => throwError("cases arguments have to been of String type into " + opName)
+							}
+						} else
+							throwError("invalid call to " + opName)
+					}
+					loop()
+
+					replacements = replacements.updated(ps, List(opFactory(defaultCase, cases.reverse.toArray)))
+				}
+				case _ => throwError(opName + " is expecting a label as first argument" + opName)
+			}
+		}
+
 		@inline def readOp_Marker(opName: Symbol, abcName: AbcName, opFactory: (Marker) => AbstractOp) {
 			expectNextOp(opName + " expect a string as parameter") match {
 				case ps@PushString(symbol) => {
@@ -368,20 +423,9 @@ object AsmExpansion {
 					}
 
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = ps :: removes
-							var marker = {
-								val newSymbol = Symbol(symbol.toString.tail + ":")
-								if (markerMap.contains(newSymbol))
-									markerMap(newSymbol)
-								else if (unresolveMarkerMap.contains(newSymbol)) {
-									unresolveMarkerMap(newSymbol)
-								} else {
-									val marker = markers.mark(Nop())
-									unresolveMarkerMap = unresolveMarkerMap.updated(newSymbol, marker)
-									marker
-								}
-							}
+							val marker = resolveMarker(symbol)
 							replacements = replacements.updated(cp, List(opFactory(marker)))
 						}
 						case _ => throwError("invalid call to " + opName)
@@ -395,7 +439,7 @@ object AsmExpansion {
 			expectNextOp(opName + " expect a string as parameter") match {
 				case ps@PushString(str) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = ps :: removes
 							replacements = replacements.updated(cp, List(opFactory(str)))
 						}
@@ -437,7 +481,7 @@ object AsmExpansion {
 			expectNextOp(opName + " expect an integer as parameter") match {
 				case pb@PushByte(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pb :: removes
 							replacements = replacements.updated(cp, List(opFactory(value)))
 						}
@@ -446,7 +490,7 @@ object AsmExpansion {
 				}
 				case ps@PushShort(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = ps :: removes
 							replacements = replacements.updated(cp, List(opFactory(value)))
 						}
@@ -455,7 +499,7 @@ object AsmExpansion {
 				}
 				case pi@PushInt(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pi :: removes
 							replacements = replacements.updated(cp, List(opFactory(value)))
 						}
@@ -469,7 +513,7 @@ object AsmExpansion {
 			resolveABCName(opName) match {
 				case Some(name) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => replacements = replacements.updated(cp, List(opFactory(name)))
+						case cp@CallProperty(aName, 1) if (aName == abcName) => replacements = replacements.updated(cp, List(opFactory(name)))
 						case _ => throwError("invalid call to " + opName)
 					}
 				}
@@ -482,7 +526,7 @@ object AsmExpansion {
 					expectNextOp(opName + " expect arguments count as second parameter") match {
 						case pb@PushByte(count) => {
 							expectNextOp("invalid call to " + opName) match {
-								case cp@CallProperty(abcName, 2) => {
+								case cp@CallProperty(thatName, 2) if (thatName == abcName) => {
 									removes = pb :: removes
 									replacements = replacements.updated(cp, List(opFactory(aName, count)))
 								}
@@ -491,7 +535,7 @@ object AsmExpansion {
 						}
 						case pi@PushInt(count) => {
 							expectNextOp("invalid call to " + opName) match {
-								case cp@CallProperty(abcName, 2) => {
+								case cp@CallProperty(thatName, 2) if (thatName == abcName) => {
 									removes = pi :: removes
 									replacements = replacements.updated(cp, List(opFactory(aName, count)))
 								}
@@ -529,7 +573,7 @@ object AsmExpansion {
 									val ns = readABCNamespaceSet("AbcMultinameLA is expecting an abcNamespaceSet as argument into " + asmOpName)
 									ret = Some(AbcMultinameLA(ns))
 									expectNextOp("invalid call to AbcMultinameLA into " + asmOpName) match {
-										case cp@CallProperty(abcMultinameA, 1) => removes = cp :: removes
+										case cp@CallProperty(aName, 1) if (aName == abcMultinameLA) => removes = cp :: removes
 										case _ => throwError("invalid call to AbcMultinameLA into " + asmOpName)
 									}
 								}
@@ -543,7 +587,7 @@ object AsmExpansion {
 									val ns = readABCNamespaceSet("AbcMultinameL is expecting an AbcNamespaceSet as argument into " + asmOpName)
 									ret = Some(AbcMultinameL(ns))
 									expectNextOp("invalid call to AbcMultinameL into " + asmOpName) match {
-										case cp@CallProperty(abcMultinameL, 1) => removes = cp :: removes
+										case cp@CallProperty(aName, 1) if (aName == abcMultinameL) => removes = cp :: removes
 										case _ => throwError("invalid call to AbcMultinameL into " + asmOpName)
 									}
 								}
@@ -560,7 +604,7 @@ object AsmExpansion {
 											val ns = readABCNamespaceSet("AbcMultinameA is expecting an AbcNamespaceSet as it's second argument into " + asmOpName)
 											ret = Some(AbcMultinameA(psValue, ns))
 											expectNextOp("invalid call to abcMultinameA into " + asmOpName) match {
-												case cp@CallProperty(abcMultinameA, 2) => removes = cp :: removes
+												case cp@CallProperty(aName, 2) if (aName == abcMultinameA) => removes = cp :: removes
 												case _ => throwError("invalid call to abcMultinameA into " + asmOpName)
 											}
 										}
@@ -580,7 +624,7 @@ object AsmExpansion {
 											val ns = readABCNamespaceSet("AbcMultiname is expecting an AbcNamespaceSet as it's second argument into " + asmOpName)
 											ret = Some(AbcMultiname(psValue, ns))
 											expectNextOp("invalid call to abcMultiname into " + asmOpName) match {
-												case cp@CallProperty(abcMultiname, 2) => removes = cp :: removes
+												case cp@CallProperty(aName, 2) if (aName == abcMultiname) => removes = cp :: removes
 												case _ => throwError("invalid call to abcMultiname into " + asmOpName)
 											}
 										}
@@ -596,7 +640,7 @@ object AsmExpansion {
 									removes = ps :: removes
 									ret = Some(AbcRTQNameA(psValue))
 									expectNextOp("invalid call to AbcRTQNameA into " + asmOpName) match {
-										case cp@CallProperty(abcRTQNameA, 1) => removes = cp :: removes
+										case cp@CallProperty(aName, 1) if (aName == abcRTQNameA) => removes = cp :: removes
 										case _ => throwError("invalid call to AbcRTQNameA into " + asmOpName)
 									}
 								}
@@ -609,7 +653,7 @@ object AsmExpansion {
 									removes = ps :: removes
 									ret = Some(AbcRTQName(psValue))
 									expectNextOp("invalid call to AbcRTQName into " + asmOpName) match {
-										case cp@CallProperty(abcRTQName, 1) => removes = cp :: removes
+										case cp@CallProperty(aName, 1) if (aName == abcRTQName) => removes = cp :: removes
 										case _ => throwError("invalid call to AbcRTQName into " + asmOpName)
 									}
 								}
@@ -627,7 +671,7 @@ object AsmExpansion {
 												case Some(ns) => {
 													ret = Some(AbcQNameA(psValue, ns))
 													expectNextOp("invalid call to AbcQNameA into " + asmOpName) match {
-														case cp@CallProperty(abcQNameA, 2) => removes = cp :: removes
+														case cp@CallProperty(aName, 2) if (aName == abcQNameA) => removes = cp :: removes
 														case _ => throwError("invalid call to AbcQNameA into " + asmOpName)
 													}
 												}
@@ -651,7 +695,7 @@ object AsmExpansion {
 												case Some(ns) => {
 													ret = Some(AbcQName(psValue, ns))
 													expectNextOp("invalid call to AbcQName into " + asmOpName) match {
-														case cp@CallProperty(abcQName, 2) => removes = cp :: removes
+														case cp@CallProperty(aName, 2) if (aName == abcQName) => removes = cp :: removes
 														case _ => throwError("invalid call to AbcQName into " + asmOpName)
 													}
 												}
@@ -669,7 +713,7 @@ object AsmExpansion {
 							ops.headOption match {
 								case Some(op) => {
 									op match {
-										case CallProperty(__as3, count) => {
+										case CallProperty(aName, count) if (aName == __as3) => {
 											ops = ops.tail
 											ops.headOption match {
 												case Some(gl: GetLex) => {
@@ -706,7 +750,7 @@ object AsmExpansion {
 			expectNextOp(opName + " expect an unsigned integer as parameter") match {
 				case pb@PushByte(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pb :: removes
 							replacements = replacements.updated(cp, List(opFactory(value.toLong)))
 						}
@@ -715,7 +759,7 @@ object AsmExpansion {
 				}
 				case ps@PushShort(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = ps :: removes
 							replacements = replacements.updated(cp, List(opFactory(value.toLong)))
 						}
@@ -724,7 +768,7 @@ object AsmExpansion {
 				}
 				case pi@PushInt(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pi :: removes
 							replacements = replacements.updated(cp, List(opFactory(value.toLong)))
 						}
@@ -733,7 +777,7 @@ object AsmExpansion {
 				}
 				case pu@PushUInt(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pu :: removes
 							replacements = replacements.updated(cp, List(opFactory(value)))
 						}
@@ -742,7 +786,7 @@ object AsmExpansion {
 				}
 				case pd@PushDouble(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pd :: removes
 							replacements = replacements.updated(cp, List(opFactory(value.toLong)))
 						}
@@ -757,7 +801,7 @@ object AsmExpansion {
 			expectNextOp(opName + " expect an unsigned integer as parameter") match {
 				case pb@PushByte(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pb :: removes
 							replacements = replacements.updated(cp, List(opFactory(value.toDouble)))
 						}
@@ -766,7 +810,7 @@ object AsmExpansion {
 				}
 				case ps@PushShort(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = ps :: removes
 							replacements = replacements.updated(cp, List(opFactory(value.toDouble)))
 						}
@@ -775,7 +819,7 @@ object AsmExpansion {
 				}
 				case pi@PushInt(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pi :: removes
 							replacements = replacements.updated(cp, List(opFactory(value.toDouble)))
 						}
@@ -784,7 +828,7 @@ object AsmExpansion {
 				}
 				case pu@PushUInt(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pu :: removes
 							replacements = replacements.updated(cp, List(opFactory(value.toDouble)))
 						}
@@ -793,7 +837,7 @@ object AsmExpansion {
 				}
 				case pd@PushDouble(value) => {
 					expectNextOp("invalid call to " + opName) match {
-						case cp@CallProperty(abcName, 1) => {
+						case cp@CallProperty(aName, 1) if (aName == abcName) => {
 							removes = pd :: removes
 							replacements = replacements.updated(cp, List(opFactory(value)))
 						}
@@ -1365,17 +1409,21 @@ object AsmExpansion {
 										readOp_Marker(asmOpName, jump, (marker: Marker) => Jump(marker))
 										removes = currentOp :: removes
 									}
-// TODO
-//									case 'HasNext2 => {
-//										readOp_Register_Register(asmOpName, hasNext2, (register1: Int, register2:Int) => HasNext2(register1, register2))
-//										removes = currentOp :: removes
-//									}
+									case 'LookupSwitch => {
+										readOp_Marker_Markers(asmOpName, lookupSwitch, (defaultCase: Marker, cases: Array[Marker]) => LookupSwitch(defaultCase, cases))
+										removes = currentOp :: removes
+									}
+									// TODO
+									//									case 'HasNext2 => {
+									//										readOp_Register_Register(asmOpName, hasNext2, (register1: Int, register2:Int) => HasNext2(register1, register2))
+									//										removes = currentOp :: removes
+									//									}
 									case '__as3 => {
 										val ops = readUntil(__as3)
 										ops.headOption match {
 											case Some(op) => {
 												op match {
-													case CallProperty(__as3, count) => {
+													case CallProperty(aName, count) if (aName == __as3) => {
 														removes = currentOp :: op :: removes
 														//														replacements = replacements.updated(op, ops.reverse.dropRight(1))
 													}
