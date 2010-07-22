@@ -1,4 +1,7 @@
 package apparat.math {
+	import apparat.asm.GetLocal;
+	import apparat.asm.SetLocal;
+	import apparat.asm.__asm;
 	import apparat.inline.Macro;
 
 	/**
@@ -13,11 +16,12 @@ package apparat.math {
 		 * @param value0 An integer value.
 		 * @param value1 An integer value.
 		 */
-		public static function swap(value0: int, value1: int): void {
-			value0 ^= value1
-			value1 ^= value0
-			value0 ^= value1
-		}
+		public static function swap(value0: int, value1: int): void { __asm(
+			GetLocal(value0),
+			GetLocal(value1),
+			SetLocal(value0),
+			SetLocal(value1)
+		)}
 
 		/**
 		 * Extract each chanel of a given color into three integers.

@@ -47,11 +47,16 @@
             </goals>
             <configuration>
               <overrideArtifact>${project.build.testOutputDirectory}/${flexmojos.testrunner}</overrideArtifact>
+              <alchemyExpansion>true</alchemyExpansion>
+              <asmExpansion>true</asmExpansion>
+              <inlineExpansion>true</inlineExpansion>
+              <macroExpansion>true</macroExpansion>
             </configuration>
           </execution>
         </executions>
         <configuration>
           <alchemyExpansion>true</alchemyExpansion>
+          <asmExpansion>true</asmExpansion>
           <inlineExpansion>false</inlineExpansion>
           <macroExpansion>false</macroExpansion>
         </configuration>
@@ -65,6 +70,13 @@
       <artifactId>apparat-maven-plugin</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-asm</artifactId>
+      <version>${project.version}</version>
+      <type>swc</type>
+      <scope>external</scope>
     </dependency>
     <dependency>
       <groupId>com.adobe.flex.framework</groupId>

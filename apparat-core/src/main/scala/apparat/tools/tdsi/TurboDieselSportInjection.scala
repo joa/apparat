@@ -24,7 +24,7 @@ import java.io.{File => JFile}
 import apparat.utils.TagContainer
 import apparat.actors.Futures._
 import apparat.abc._
-import analysis.AbcConstantPoolBuilder
+import analysis.QuickAbcConstantPoolBuilder
 import apparat.bytecode.operations._
 import apparat.bytecode.combinator._
 import apparat.bytecode.combinator.BytecodeChains._
@@ -168,15 +168,15 @@ object TurboDieselSportInjection {
 				}
 
 
-				if(rebuildCpool) {
+				if(allABC.size > 1 && rebuildCpool) {
 					//
 					// We have to rebuild the cpool here since both Macro and Inline
 					// expansion could include operations from a different ABC
 					// and in that case its values do not belong to the cpool.
 					//
 
-					log.info("Rebuilding cpool after inline/macro/asm expansion.")
-					abc.cpool = AbcConstantPoolBuilder using abc
+					log.info("Cpool rebuild required.")
+					abc.cpool = QuickAbcConstantPoolBuilder using abc
 				}
 
 				abc.saveBytecode()

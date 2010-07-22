@@ -21,7 +21,11 @@ package apparat.math {
 		 * @return An unsigned integer of the format 0xAARRGGBB.
 		 */
 		public static function toARGB(alpha: int, red: int, green: int, blue: int): uint {
-			return (alpha << 0x18) | (red << 0x10) | (green << 0x08) | blue
+			//
+			// NOTE: We have to make an explicit cast to uint since the method call
+			// does not happen and flash would treat the result as an integer.
+			//
+			return uint((alpha << 0x18) | (red << 0x10) | (green << 0x08) | blue)
 		}
 
 		/**
