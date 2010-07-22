@@ -86,9 +86,44 @@ object TurboDieselSportInjection {
 			val inlineExpansion = if(inline) Some(new InlineExpansion(allABC.valuesIterator.toList)) else None
 
 			allABC foreach { _._2.loadBytecode() }
-			
+
+			var rebuildCpoolSet = Set.empty[Abc]
+
+			if (asm) {
+				for((doABC, abc) <- allABC) {
+
+					for(method <- abc.methods) {
+						method.body match {
+							case Some(body) => {
+								body.bytecode match {
+									case Some(bytecode) => {
+										@tailrec def modifyBytecode(counter: Int): Unit = {
+											var modified = false
+
+											if(AsmExpansion(bytecode)) {
+												modified = true
+												rebuildCpoolSet += abc
+											}
+
+											if (modified && (counter < 31)) {
+												modifyBytecode(counter + 1)
+											}
+										}
+
+										PeepholeOptimizations(bytecode);
+										modifyBytecode(0)
+									}
+									case None =>
+								}
+							}
+							case None =>
+						}
+					}
+				}
+			}
+
 			for((doABC, abc) <- allABC) {
-				var rebuildCpool = false
+				var rebuildCpool = rebuildCpoolSet.contains(abc)
 
 				for(method <- abc.methods) {
 					method.body match {
@@ -122,10 +157,7 @@ object TurboDieselSportInjection {
 											modifyBytecode(counter + 1)
 										}
 									}
-									if (asm) {
-										PeepholeOptimizations(bytecode)
-										rebuildCpool |= AsmExpansion(bytecode)
-									}
+
 									modifyBytecode(0)
 								}
 								case None =>
@@ -143,7 +175,7 @@ object TurboDieselSportInjection {
 					// and in that case its values do not belong to the cpool.
 					//
 
-					log.info("Rebuilding cpool after inline/macro expansion.")
+					log.info("Rebuilding cpool after inline/macro/asm expansion.")
 					abc.cpool = AbcConstantPoolBuilder using abc
 				}
 
