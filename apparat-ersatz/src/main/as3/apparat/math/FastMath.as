@@ -1,9 +1,10 @@
 package apparat.math {
-	import apparat.inline.Inlined;
-	import apparat.memory.Memory;
+	import apparat.asm.*
+	import apparat.inline.Inlined
+	import apparat.memory.Memory
 
-	import flash.system.ApplicationDomain;
-	import flash.utils.ByteArray;
+	import flash.system.ApplicationDomain
+	import flash.utils.ByteArray
 
 	/**
 	 * The FastMath class defines fast functions to work with Numbers.

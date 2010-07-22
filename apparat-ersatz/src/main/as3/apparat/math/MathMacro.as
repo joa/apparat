@@ -1,5 +1,6 @@
 package apparat.math {
-	import apparat.inline.Macro;
+	import apparat.asm.*
+	import apparat.inline.Macro
 
 	public class MathMacro extends Macro {
 

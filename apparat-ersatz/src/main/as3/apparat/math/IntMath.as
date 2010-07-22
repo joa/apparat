@@ -1,21 +1,6 @@
 package apparat.math {
-	import apparat.asm.BitAnd;
-	import apparat.asm.BitXor;
-	import apparat.asm.ConvertBoolean;
-	import apparat.asm.ConvertInt;
-	import apparat.asm.Dup;
-	import apparat.asm.GetLocal;
-	import apparat.asm.GreaterEquals;
-	import apparat.asm.GreaterThan;
-	import apparat.asm.LessThan;
-	import apparat.asm.Not;
-	import apparat.asm.PushByte;
-	import apparat.asm.ReturnValue;
-	import apparat.asm.ShiftRight;
-	import apparat.asm.SubtractInt;
-	import apparat.asm.Swap;
-	import apparat.asm.__asm;
-	import apparat.inline.Inlined;
+	import apparat.asm.*
+	import apparat.inline.Inlined
 
 	/**
 	 * The IntMath class defines fast functions for integer calculus.

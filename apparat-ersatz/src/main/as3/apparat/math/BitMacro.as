@@ -1,8 +1,6 @@
 package apparat.math {
-	import apparat.asm.GetLocal;
-	import apparat.asm.SetLocal;
-	import apparat.asm.__asm;
-	import apparat.inline.Macro;
+	import apparat.asm.*
+	import apparat.inline.Macro
 
 	/**
 	 * The BitMacro class defines common bitwise operations.
