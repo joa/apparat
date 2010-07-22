@@ -798,7 +798,7 @@ object AsmExpansion {
 		}
 
 		@inline def readOp_Double(opName: Symbol, abcName: AbcName, opFactory: (Double) => AbstractOp) {
-			expectNextOp(opName + " expect an unsigned integer as parameter") match {
+			expectNextOp(opName + " expect a number as parameter") match {
 				case pb@PushByte(value) => {
 					expectNextOp("invalid call to " + opName) match {
 						case cp@CallProperty(aName, 1) if (aName == abcName) => {
@@ -844,7 +844,7 @@ object AsmExpansion {
 						case _ => throwError("invalid call to " + opName)
 					}
 				}
-				case _ => throwError(opName + " expect an unsigned integer as parameter")
+				case _ => throwError(opName + " expect a number as parameter")
 			}
 		}
 
