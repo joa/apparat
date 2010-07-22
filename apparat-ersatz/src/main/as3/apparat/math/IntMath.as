@@ -1,4 +1,20 @@
 package apparat.math {
+	import apparat.asm.BitAnd;
+	import apparat.asm.BitXor;
+	import apparat.asm.ConvertBoolean;
+	import apparat.asm.ConvertInt;
+	import apparat.asm.Dup;
+	import apparat.asm.GetLocal;
+	import apparat.asm.GreaterEquals;
+	import apparat.asm.GreaterThan;
+	import apparat.asm.LessThan;
+	import apparat.asm.Not;
+	import apparat.asm.PushByte;
+	import apparat.asm.ReturnValue;
+	import apparat.asm.ShiftRight;
+	import apparat.asm.SubtractInt;
+	import apparat.asm.Swap;
+	import apparat.asm.__asm;
 	import apparat.inline.Inlined;
 
 	/**
@@ -48,9 +64,19 @@ package apparat.math {
 		 * @return <code>true</code> if the given parameter is even; <code>false</code> otherwise.
 		 * @see isOdd
 		 */
-		public static function isEven(value: int): Boolean {
-			return 0 == (value & 1)
-		}
+		public static function isEven(value: int): Boolean { __asm(
+			//
+			// return 0 == (value & 1)
+			//
+
+			GetLocal(value),
+			PushByte(1),
+			BitAnd,
+			ConvertBoolean,
+			Not,
+			ReturnValue
+
+		); return false }
 
 		/**
 		 * Returns whether or not the given parameter is odd.
@@ -59,9 +85,18 @@ package apparat.math {
 		 * @return <code>true</code> if the given parameter is odd; <code>false</code> otherwise.
 		 * @see isEven
 		 */
-		public static function isOdd(value: int): Boolean {
-			return 1 == (value & 1)
-		}
+		public static function isOdd(value: int): Boolean { __asm(
+			//
+			// return 1 == (value & 1)
+			//
+
+			GetLocal(value),
+			PushByte(1),
+			BitAnd,
+			ConvertBoolean,
+			ReturnValue
+
+		); return false }
 
 		/**
 		 * Computes and returns an absolute value.
@@ -69,9 +104,22 @@ package apparat.math {
 		 * @param value The integer whose absolute value is returned.
 		 * @return The absolute value of the specified parameter.
 		 */
-		public static function abs(value: int): int {
-			return (value ^ (value >> 31)) - (value >> 31)
-		}
+		public static function abs(value: int): int { __asm(
+			//
+			// return (value ^ (value >> 31)) - (value >> 31)
+			//
+
+			GetLocal(value),
+			PushByte(31),
+			ShiftRight,
+			Dup,
+			GetLocal(value),
+			BitXor,
+			Swap,
+			SubtractInt,
+			ReturnValue
+			
+		); return 0 }
 
 		/**
 		 * Returns the smallest value of the given parameters.
@@ -103,9 +151,19 @@ package apparat.math {
 		 * @return <code>true</code> if both values have the same sign; <code>false</code> otherwise.
 		 * @see unequalSign
 		 */
-		public static function equalSign(value0: int, value1: int): Boolean {
-			return (value0 ^ value1) >= 0
-		}
+		public static function equalSign(value0: int, value1: int): Boolean { __asm(
+			//
+			// return (value0 ^ value1) >= 0
+			//
+			
+			GetLocal(value0),
+			GetLocal(value1),
+			BitXor,
+			PushByte(0),
+			GreaterEquals,
+			ReturnValue
+
+		); return false }
 
 		/**
 		 * Tests whether or not two values have an unequal sign.
@@ -115,9 +173,20 @@ package apparat.math {
 		 * @return <code>true</code> if both values do not have the same sign; <code>false</code> otherwise.
 		 * @see equalSign
 		 */
-		public static function unequalSign(value0: int, value1: int): Boolean {
-			return (value0 ^ value1) < 0
-		}
+		public static function unequalSign(value0: int, value1: int): Boolean { __asm(
+			//
+			// return (value0 ^ value1) < 0
+			//
+			
+			GetLocal(value0),
+			GetLocal(value1),
+			BitXor,
+			PushByte(0),
+			LessThan,
+			ReturnValue
+
+		); return false }
+
 
 		/**
 		 * Returns the sign of an integer. +1 for any value
@@ -127,9 +196,23 @@ package apparat.math {
 		 * @param value An integer.
 		 * @return +1 if <code>value &gt; 0</code>; 0 if <code>value == 0</code>; -1 if <code>value &lt; 0</code>.
 		 */
-		public static function sign(value: int): int {
-			return int(value > 0) - int(value < 0)
-		}
+		public static function sign(value: int): int { __asm(
+			//
+			// return int(value > 0) - int(value < 0)
+			//
+
+			GetLocal(value),
+			PushByte(0),
+			GreaterThan,
+			ConvertInt,
+			GetLocal(value),
+			PushByte(0),
+			LessThan,
+			ConvertInt,
+			SubtractInt,
+			ReturnValue
+
+		); return 0 }
 
 		/**
 		 * Tests whether or not a given value is a power of two.

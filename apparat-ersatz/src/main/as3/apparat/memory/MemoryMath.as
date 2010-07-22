@@ -21,13 +21,15 @@
 
 package apparat.memory 
 {
+	import apparat.inline.Inlined;
+
 	/**
 	 * The MemoryMath class is a collection of functions
 	 * that are often used when dealing with memory.
 	 * 
 	 * @author Joa Ebert
 	 */
-	public final class MemoryMath 
+	public final class MemoryMath extends Inlined
 	{
 		/**
 		 * Finds the most significant bit for a value that is a power of two.
@@ -80,11 +82,6 @@ package apparat.memory
 			if( value < 2 ) return false;
 			else if( value & ( value - 1 ) ) return false;
 			return true;
-		}
-		
-		public function MemoryMath()
-		{
-			throw new Error();
 		}
 	}
 }
