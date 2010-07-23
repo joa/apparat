@@ -36,6 +36,8 @@ object AsmExpansion {
 
 	private val asmNamespace = AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.asm"))
 	private val __asm = AbcQName('__asm, asmNamespace)
+	private val __maxStack = AbcQName('__maxStack, asmNamespace)
+	private val __dumpAfterASM = AbcQName('__dumpAfterASM, asmNamespace)
 	private val __as3 = AbcQName('__as3, asmNamespace)
 
 	private lazy val abcQName = AbcQName('AbcQName, asmNamespace)
@@ -228,6 +230,8 @@ object AsmExpansion {
 		val markers = bytecode.markers
 		var markerMap = Map.empty[Symbol, Marker]
 		var unresolveMarkerMap = Map.empty[Symbol, Marker]
+		var maxStack = 0L
+		var dumpAfterASM: Option[String] = None
 
 		def nextOp() = {
 			val op = stack.head
@@ -796,7 +800,15 @@ object AsmExpansion {
 				case _ => throwError(opName + " expect an unsigned integer as parameter")
 			}
 		}
-
+		@inline def decode_String(opName: String): String = {
+			expectNextOp(opName + " expect a string as parameter") match {
+				case ps@PushString(str) => {
+					removes = ps :: removes
+					str.toString.tail.toString
+				}
+				case _ => throwError(opName + " expect a string as parameter"); ""
+			}
+		}
 		@inline def readOp_Double(opName: Symbol, abcName: AbcName, opFactory: (Double) => AbstractOp) {
 			expectNextOp(opName + " expect a number as parameter") match {
 				case pb@PushByte(value) => {
@@ -845,6 +857,32 @@ object AsmExpansion {
 					}
 				}
 				case _ => throwError(opName + " expect a number as parameter")
+			}
+		}
+
+		@inline def decode_Long(opName: String): Long = {
+			expectNextOp(opName + " expect an unsigned integer as parameter") match {
+				case pb@PushByte(value) => {
+					removes = pb :: removes
+					value.toLong
+				}
+				case ps@PushShort(value) => {
+					removes = ps :: removes
+					value.toLong
+				}
+				case pi@PushInt(value) => {
+					removes = pi :: removes
+					value.toLong
+				}
+				case pu@PushUInt(value) => {
+					removes = pu :: removes
+					value
+				}
+				case pd@PushDouble(value) => {
+					removes = pd :: removes
+					value.toLong
+				}
+				case _ => throwError(opName + " expect an unsigned integer as parameter"); 0L
 			}
 		}
 
@@ -1450,11 +1488,26 @@ object AsmExpansion {
 
 		var removePop = false
 		for (op <- bytecode.ops) op match {
+			case DebugLine(line) => lineNum = line
 			case Pop() if (removePop) => {
 				removes = op :: removes
 				removePop = false
 			}
 			case FindPropStrict(typeName) if (typeName == __asm) => {
+				balance += 1
+				removes = op :: removes
+			}
+			case FindPropStrict(typeName) if (typeName == __dumpAfterASM) => {
+				if (balance > 0)
+					throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
+
+				balance += 1
+				removes = op :: removes
+			}
+			case FindPropStrict(typeName) if (typeName == __maxStack) => {
+				if (balance > 0)
+					throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
+
 				balance += 1
 				removes = op :: removes
 			}
@@ -1469,8 +1522,35 @@ object AsmExpansion {
 				removes = op :: removes
 				balance -= 1
 			}
+			case CallPropVoid(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
+				dumpAfterASM = Some(decode_String("__dumpAfterASM"))
+				removes = op :: removes
+				removes = stack ::: removes
+				balance -= 1
+			}
+			case CallProperty(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
+				dumpAfterASM = Some(decode_String("__dumpAfterASM"))
+				removePop = true
+				removes = op :: removes
+				removes = stack ::: removes
+				balance -= 1
+			}
+			case CallPropVoid(property, numArguments) if (property == __maxStack) && (balance > 0) => {
+				maxStack = decode_Long("__asmStack")
+				removes = op :: removes
+				removes = stack ::: removes
+				balance -= 1
+			}
+			case CallProperty(property, numArguments) if (property == __maxStack) && (balance > 0) => {
+				maxStack = decode_Long("__asmStack")
+				removePop = true
+				removes = op :: removes
+				removes = stack ::: removes
+				balance -= 1
+			}
 			case _ => if (balance > 0) stack = stack ::: List(op)
 		}
+		if (maxStack > 0) modified = true
 		if (modified) {
 			if (unresolveMarkerMap.nonEmpty) {
 				error("can't resolve label :" + unresolveMarkerMap.map(p => p._1).mkString(", "))
@@ -1486,11 +1566,26 @@ object AsmExpansion {
 				case Some(body) => {
 					val (operandStack, scopeStack) = StackAnalysis(bytecode)
 					//					body.localCount = localCount
+					if (maxStack > 0) {
+						if (maxStack < operandStack)
+							throwError("__maxStack is too low for your method min expected : " + operandStack)
+					} else {
+						maxStack = operandStack
+					}
 					body.maxStack = operandStack
 					body.maxScopeDepth = body.initScopeDepth + scopeStack
+
 				}
 				case None => ApparatLog warn "Bytecode body missing. Cannot adjust stack/locals."
 			}
+		}
+
+		dumpAfterASM match {
+			case Some(msg) => {
+				ApparatLog.info(msg)
+				bytecode.dump()
+			}
+			case _ =>
 		}
 
 		modified

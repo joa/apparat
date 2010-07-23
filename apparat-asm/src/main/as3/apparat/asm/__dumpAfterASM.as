@@ -21,24 +21,17 @@
  */
 
 /**
- * The __asm function is a prototype that allows you to write inline assembler
- * instructions by using ActionScript 3 syntax.
+ * Dump the abc bytecode of the current method after ASM compilation.
  *
- * <p>TDSI will find the __asm method in your code and replace all
- * the instructions with the corresponding bytecode.</p>
+ * <code>
+ * __dumpAfterASM("my message")
+ * </code>
+ *
+ * @param msg Message to output before the dump.
  *
  * @author Patrick Le Clec'h
- * @see __as3
- *
- * @example
- * <pre>
- * __asm(
- *	  FindPropStrict(__as3(trace)),
- *	  PushString('Hello World!'),
- *	  CallPropVoid(__as3(trace), 1)
- * );
- * </pre>
  */
+
 package apparat.asm {
-	public function __asm(...args):void {}
+	public function __dumpAfterASM(msg:String):void {}
 }
