@@ -20,18 +20,17 @@
  * Author : Patrick Le Clec'h
  */
 
-/**
- * Dump the abc bytecode of the current method after ASM compilation.
- *
- * <code>
- * __dumpAfterASM("my message")
- * </code>
- *
- * @param msg Message to output before the dump.
- *
- * @author Patrick Le Clec'h
- */
-
 package apparat.asm {
-	public function __dumpAfterASM(msg:String):void {}
+	/**
+	 * Dump the bytecode of the current method after ASM expansion.
+	 *
+	 * @param message Message to output before the dump.
+	 * @author Patrick Le Clec'h
+	 * 
+	 * @example
+	 * <pre>
+	 * __dumpAfterASM("my message")
+	 * </pre>
+	 */
+	public function __dumpAfterASM(message: String): void {}
 }

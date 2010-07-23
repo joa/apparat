@@ -20,25 +20,26 @@
  * Author : Patrick Le Clec'h
  */
 
-/**
- * The __asm function is a prototype that allows you to write inline assembler
- * instructions by using ActionScript 3 syntax.
- *
- * <p>TDSI will find the __asm method in your code and replace all
- * the instructions with the corresponding bytecode.</p>
- *
- * @author Patrick Le Clec'h
- * @see __as3
- *
- * @example
- * <pre>
- * __asm(
- *	  FindPropStrict(__as3(trace)),
- *	  PushString('Hello World!'),
- *	  CallPropVoid(__as3(trace), 1)
- * );
- * </pre>
- */
 package apparat.asm {
-	public function __asm(...args):void {}
+	/**
+	 * The __asm function is a prototype that allows you to write inline assembler
+	 * instructions by using ActionScript 3 syntax.
+	 *
+	 * <p>TurboDieselSportInjection expands the __asm method in your code and
+	 * replaces all instructions with the corresponding bytecode.</p>
+	 *
+	 * @author Patrick Le Clec'h
+	 * @see __as3
+	 *
+	 * @example
+	 * <pre>
+	 * //trace('Hello World');
+	 * __asm(
+	 *	  FindPropStrict(__as3(trace)),
+	 *	  PushString('Hello World!'),
+	 *	  CallPropVoid(__as3(trace), 1)
+	 * );
+	 * </pre>
+	 */
+	public function __asm(...args): void {}
 }
