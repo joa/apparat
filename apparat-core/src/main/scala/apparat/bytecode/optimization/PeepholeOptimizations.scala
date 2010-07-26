@@ -52,7 +52,7 @@ object PeepholeOptimizations extends (Bytecode => Boolean) {
 			val op = source.head
 			val opCode = op.opCode
 			if (Op.nop == opCode) {
-				val tail=source.tail
+				val tail = source.tail
 				if (tail.nonEmpty) {
 					markers.forwardMarker(op, tail.head)
 				}
@@ -70,7 +70,7 @@ object PeepholeOptimizations extends (Bytecode => Boolean) {
 				} else {
 					target = op :: target
 				}
-			}*/ else if(Op.pushfalse == opCode) {
+			}*//* else if(Op.pushfalse == opCode) {
 				if(source.tail.head.opCode == Op.iffalse) {
 					val ifFalse = source.tail.head.asInstanceOf[IfFalse]
 					target = Jump(ifFalse.marker) :: target
@@ -103,7 +103,7 @@ object PeepholeOptimizations extends (Bytecode => Boolean) {
 				} else {
 					target = op :: target
 				}
-			} else if(Op.findpropstrict == opCode) {
+			}*/ else if(Op.findpropstrict == opCode) {
 				if(source.tail.head.opCode == Op.getproperty) {
 					val getProperty = source.tail.head.asInstanceOf[GetProperty]
 
@@ -119,7 +119,7 @@ object PeepholeOptimizations extends (Bytecode => Boolean) {
 				} else {
 					target = op :: target
 				}
-			} else if(Op.add_i == opCode ||
+			}/* else if(Op.add_i == opCode ||
 				Op.subtract_i == opCode ||
 				Op.multiply_i == opCode) {
 				if(source.tail.head.opCode == Op.convert_i) {
@@ -172,7 +172,7 @@ object PeepholeOptimizations extends (Bytecode => Boolean) {
 				} else {
 					target = op :: target
 				}
-			} else {
+			}*/ else {
 				target = op :: target
 			}
 

@@ -110,7 +110,7 @@ object TurboDieselSportInjection {
 											}
 										}
 
-										PeepholeOptimizations(bytecode);
+										PeepholeOptimizations(bytecode)
 										modifyBytecode(0)
 									}
 									case None =>
