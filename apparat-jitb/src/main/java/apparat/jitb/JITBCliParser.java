@@ -14,7 +14,7 @@ public final class JITBCliParser {
 
 	public JITBConfiguration getConfiguration() throws JITBCliParserException {
 		if(1 != arguments.length) {
-			throw new JITBCliParserException("Expected only one argument.");
+			throw new JITBCliParserException("Expected exactly one argument.");
 		}
 
 		final String pathname = arguments[0];

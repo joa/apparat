@@ -1,5 +1,7 @@
 package apparat.jitb;
 
+import apparat.jitb.renderer.IRenderer;
+import apparat.jitb.renderer.SwingRenderer;
 import apparat.swf.Swf;
 
 /**
@@ -29,6 +31,8 @@ public final class JITB {
 
 	public void run() {
 		final Swf swf = Swf.fromFile(configuration.getFile());
-		//TODO
+		final IRenderer renderer = new SwingRenderer();
+		
+		renderer.prepare(swf);
 	}
 }
