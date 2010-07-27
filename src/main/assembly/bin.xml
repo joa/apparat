@@ -49,6 +49,18 @@
       </binaries>
     </moduleSet>
   </moduleSets>
+  <moduleSet>
+      <includes>
+        <include>${project.groupId}:apparat-asm</include>
+      </includes>
+      <binaries>
+        <unpack>false</unpack>
+        <includes>
+          <include>${project.groupId}:apparat-asm</include>
+        </includes>
+      </binaries>
+    </moduleSet>
+  </moduleSets>
   <fileSets>
     <fileSet>
       <includes>
