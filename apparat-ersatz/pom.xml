@@ -37,17 +37,19 @@
           <inlineExpansion>false</inlineExpansion>
           <macroExpansion>false</macroExpansion>
         </configuration>
+	<dependencies>
+	  <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>apparat-maven-plugin</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>
   
   <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>apparat-maven-plugin</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
-    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>apparat-asm</artifactId>
