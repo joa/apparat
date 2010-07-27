@@ -22,25 +22,6 @@
   <build>
     <sourceDirectory>src/main/as3</sourceDirectory>
     <testSourceDirectory>src/test/as3</testSourceDirectory>
-    <!--plugins>
-      <plugin>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>apparat-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <executions>
-          <execution>
-            <id>reducer</id>
-            <goals>
-              <goal>reducer</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mergeABC>true</mergeABC>
-          <sortCPool>true</sortCPool>
-        </configuration>
-      </plugin>
-    </plugins-->
   </build>
   
   <dependencies>
@@ -56,13 +37,6 @@
       <classifier>${flash.version}</classifier>
       <version>${flex.version}</version>
       <type>swc</type>
-    </dependency>
-    <dependency>
-      <groupId>com.adobe.flexunit</groupId>
-      <artifactId>flexunit</artifactId>
-      <version>0.85</version>
-      <type>swc</type>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

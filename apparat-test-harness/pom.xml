@@ -9,9 +9,9 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <name>apparat-ersatz</name>
-  <description>Apparat ActionScript 3 compatibility layer.</description>
-  <artifactId>apparat-ersatz</artifactId>
+  <name>apparat-test-harness</name>
+  <description>Apparat ActionScript 3 test-harness project.</description>
+  <artifactId>apparat-test-harness</artifactId>
   <packaging>swc</packaging>
 
   <build>
@@ -24,18 +24,41 @@
         <artifactId>apparat-maven-plugin</artifactId>
         <version>${project.version}</version>
         <executions>
+          <!--
+            Run TDSI in its default phase.
+          -->
           <execution>
             <id>tdsi-package</id>
             <goals>
               <goal>tdsi</goal>
             </goals>
           </execution>
+
+          <!--
+            This is a hack we are doing for FlexMojos. In this case
+            the TestRunner.swf is passed to TDSI so that the SWC is
+            processed before it is started.
+          -->
+          <execution>
+            <id>tdsi-test</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>tdsi</goal>
+            </goals>
+            <configuration>
+              <overrideArtifact>${project.build.testOutputDirectory}/${flexmojos.testrunner}</overrideArtifact>
+              <alchemyExpansion>true</alchemyExpansion>
+              <asmExpansion>true</asmExpansion>
+              <inlineExpansion>true</inlineExpansion>
+              <macroExpansion>true</macroExpansion>
+            </configuration>
+          </execution>
         </executions>
         <configuration>
           <alchemyExpansion>true</alchemyExpansion>
           <asmExpansion>true</asmExpansion>
-          <inlineExpansion>false</inlineExpansion>
-          <macroExpansion>false</macroExpansion>
+          <inlineExpansion>true</inlineExpansion>
+          <macroExpansion>true</macroExpansion>
         </configuration>
       </plugin>
     </plugins>
@@ -56,11 +79,36 @@
       <scope>external</scope>
     </dependency>
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-ersatz</artifactId>
+      <version>${project.version}</version>
+      <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.flex.framework</groupId>
+      <artifactId>flex-framework</artifactId>
+      <version>${flex.version}</version>
+      <type>pom</type>
+      <exclusions>
+        <exclusion>
+          <groupId>com.adobe.flex.framework</groupId>
+          <artifactId>playerglobal</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>com.adobe.flex.framework</groupId>
       <artifactId>playerglobal</artifactId>
       <classifier>${flash.version}</classifier>
       <version>${flex.version}</version>
       <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.flexunit</groupId>
+      <artifactId>flexunit</artifactId>
+      <version>0.85</version>
+      <type>swc</type>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
