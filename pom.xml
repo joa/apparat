@@ -11,9 +11,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
     <scala.version>2.8.0</scala.version>
-    <flex.version>3.2.0.3958</flex.version>
+    <flex.version>4.1.0.16076</flex.version>
+    <flash.version>10.0</flash.version>
     <maven.version>3.0-beta-1</maven.version>
-    <flexmojos.version>3.6.1</flexmojos.version>
+    <flexmojos.version>4.0-alpha-4</flexmojos.version>
     <flexmojos.testrunner>TestRunner.swf</flexmojos.testrunner>
   </properties>
 

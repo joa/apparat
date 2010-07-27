@@ -31,20 +31,8 @@
   <dependencies>
     <dependency>
       <groupId>com.adobe.flex.framework</groupId>
-      <artifactId>flex-framework</artifactId>
-      <version>${flex.version}</version>
-      <type>pom</type>
-      <exclusions>
-        <exclusion>
-          <groupId>com.adobe.flex.framework</groupId>
-          <artifactId>playerglobal</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.adobe.flex.framework</groupId>
       <artifactId>playerglobal</artifactId>
-      <classifier>10</classifier>
+      <classifier>10.0</classifier>
       <version>${flex.version}</version>
       <type>swc</type>
     </dependency>
