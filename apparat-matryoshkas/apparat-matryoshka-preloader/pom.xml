@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.googlecode.apparat</groupId>
     <artifactId>apparat-matryoshkas</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.RC6</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
