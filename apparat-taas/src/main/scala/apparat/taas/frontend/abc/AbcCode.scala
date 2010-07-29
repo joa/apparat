@@ -30,13 +30,13 @@ import apparat.abc.{Abc, AbcMethod, AbcNominalType, AbcQName}
 import apparat.graph.Edge
 import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer}
 import apparat.taas.optimization._
-import apparat.log.SimpleLog
+import apparat.log.{SimpleLog, Debug => DebugLogLevel}
 
 /**
  * @author Joa Ebert
  */
 protected[abc] object AbcCode {
-	val DEBUG = false
+	val DEBUG = true
 }
 
 protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
@@ -87,7 +87,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 
 			if(AbcCode.DEBUG) {
 				log.debug("Code after initial parse step:")
-				new TaasGraphLinearizer(taasGraph).dump()
+				new TaasGraphLinearizer(taasGraph).dump(log, DebugLogLevel)
 			}
 
 			do {
@@ -104,14 +104,14 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 
 			if(AbcCode.DEBUG) {
 				log.debug("Code after CP/CF/DCE:")
-				new TaasGraphLinearizer(taasGraph).dump()
+				new TaasGraphLinearizer(taasGraph).dump(log, DebugLogLevel)
 			}
 			
 			taasGraph
 		} catch {
 			case e => {
 				e.printStackTrace()
-				bytecode.dump()
+				bytecode.dump(log, DebugLogLevel)
 				log.debug("-------------------------------------------------")
 				new TaasGraph(new Graph[TaasBlock](), TaasEntry, TaasExit)
 			}
