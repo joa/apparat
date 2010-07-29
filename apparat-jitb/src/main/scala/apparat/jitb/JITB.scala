@@ -22,19 +22,32 @@ package apparat.jitb
 
 import apparat.log.output.ConsoleOutput
 import apparat.log.{SimpleLog, Debug, Info, Log}
+import scala.util.Properties
+import apparat.abc.Abc
+import apparat.utils.IO._
+import apparat.taas.frontend.abc.AbcFrontend
+import apparat.taas.TaasCompiler
+import apparat.taas.backend.jbc.{JbcClassLoader, JbcBackend}
+import java.lang.{Thread => JThread}
+import apparat.swf.{SymbolClass, SwfTags, Swf}
 
 /**
  * @author Joa Ebert
  */
 object JITB {
-	def main(args: Array[String]): Unit = {
+	def main(arguments: Array[String]): Unit = {
 		Log.level = if(System.getProperty("apparat.debug", "false").toLowerCase == "true") Debug else Info
 		Log.addOutput(new ConsoleOutput())
 
 		val log = Log.newLogger
+
+		log.info("Initializing JITB")
+		log.debug("Scala version: %s", Properties.versionString)
+		
 		val jitb = try {
-			val parser = new JITBCliParser(arguments)
+			val parser = new JITBCliParser(arguments) 
 			val configuration = parser.configuration
+			log.debug("File: %s", configuration.file)
 			Some(new JITB(configuration))
 		} catch {
 			case exception @ JITBCliParserException(message) => {
@@ -44,7 +57,7 @@ object JITB {
 				None
 			}
 			case other => {
-				log.debug("Exception:", exception.toString)
+				log.debug("Exception:", other.toString)
 				log.fatal("Error: %s", other.getLocalizedMessage)
 				None
 			}
@@ -59,6 +72,58 @@ object JITB {
 
 class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	def run() = {
-		log << "Hello World."
+		val swf = Swf fromFile configuration.file
+		val mainClass = swf.mainClass getOrElse { throw JITBException("Could not find main class.") }
+
+		log.debug("Main class: %s", mainClass)
+
+		//
+		// TODO
+		// This is incorrect behaviour of course. It is currently only
+		// a test case to support loading of a single ABC from a SWF.
+		// We do not care at this point where the ABC occurs in the SWF.
+		//
+		
+		val loader = new JbcClassLoader(compile(Abc fromSwf swf get))
+		JThread.currentThread setContextClassLoader loader
+
+		log.debug("Creating main class instance ...")
+		log.debug("Result: %s", Class.forName(mainClass, true, loader).newInstance())
+	}
+
+	def compile(abc: Abc) = {
+		val frontend = new AbcFrontend(abc, builtins)
+		val backend = new JbcBackend()
+		val comp = new TaasCompiler(frontend, backend)
+		
+		comp.compile()
+
+		backend.classMap
+	}
+
+	lazy val builtins = {
+		val builtin = getClass getResource "/builtin.abc"
+		val toplevel = getClass getResource "/toplevel.abc"
+		val playerglobal = getClass getResource "/playerglobal.abc"
+
+		if(null == builtin) {
+			log.debug("Failed to load /builtin.abc")
+			true
+		} else if(null == toplevel) {
+			log.debug("Failed to load /toplevel.abc")
+			true
+		} else if(null == playerglobal) {
+			log.debug("Failed to load /playerglobal.abc")
+			true
+		} else { false } match {
+			case true => throw JITBException("Could not load builtins.")
+			case false =>
+		}
+
+		val builtinABC = using(builtin.openStream) { Abc fromInputStream _ }
+		val toplevelABC = using(toplevel.openStream) { Abc fromInputStream _ }
+		val playerglobalABC = using(playerglobal.openStream) { Abc fromInputStream _ }
+
+		builtinABC :: toplevelABC :: playerglobalABC :: Nil
 	}
 }

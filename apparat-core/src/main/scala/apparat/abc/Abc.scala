@@ -71,6 +71,12 @@ object Abc {
 		abc
 	}
 
+	def fromInputStream(inputStream: JInputStream): Abc = {
+		val abc = new Abc()
+		abc read inputStream
+		abc
+	}
+
 	def fromFile(pathname: String): Abc = fromFile(new JFile(pathname))
 }
 
