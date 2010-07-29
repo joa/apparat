@@ -228,6 +228,9 @@ class JbcBackend extends TaasBackend {
 					case TaasIntType => mv.visitInsn(JOpcodes.D2I)
 					case TaasObjectType => mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;")
 				}
+				case TaasStringType => to match {
+					case TaasObjectType => 
+				}
 				case other => error("TODO implicit cast from "+from+" to "+to)
 			}
 		}
