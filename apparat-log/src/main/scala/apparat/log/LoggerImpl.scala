@@ -20,6 +20,8 @@
  */
 package apparat.log
 
+import java.io.{Writer => JWriter}
+
 /**
  * @author Joa Ebert
  */
@@ -30,12 +32,45 @@ class LoggerImpl(level: LogLevel, outputs: List[LogOutput]) extends Logger {
 	override def error(format: String, arguments: Any*) = logIf(errorEnabled, Error, format, arguments: _*)
 	override def fatal(format: String, arguments: Any*) = logIf(fatalEnabled, Fatal, format, arguments: _*)
 
+	override def log(level: LogLevel, message: String): Unit = level match {
+		case Debug => if(debugEnabled) outputs foreach { _.log(level, message) }
+		case Info => if(infoEnabled) outputs foreach { _.log(level, message) }
+		case Warning => if(warningEnabled) outputs foreach { _.log(level, message) }
+		case Error => if(errorEnabled) outputs foreach { _.log(level, message) }
+		case Fatal => if(fatalEnabled) outputs foreach { _.log(level, message) }
+		case Off =>
+	}
+	
 	override val debugEnabled = Debug >= level
 	override val infoEnabled = Info >= level
 	override val warningEnabled = Warning >= level
 	override val errorEnabled = Error >= level
 	override val fatalEnabled = Fatal >= level
 
+	override def asWriterFor(level: LogLevel): JWriter = new JWriter() {
+		override def write(chars: Array[Char], off: Int, len: Int) = {
+			if(len > 0 && (len > 1 || chars(off) != '\n' || chars(off) != '\r')) {
+				val sb = new StringBuilder(len)
+				var i = 0
+
+				while(i < len) {
+					sb append chars(off + i)
+					i += 1
+				}
+
+				val result = sb.toString
+
+				if(result.nonEmpty &&
+						result != "\r" && result != "\n" && result != "\n\r") {
+					log(level, result)
+				}
+			}
+		}
+
+		override def flush() = {}
+		override def close() = {}
+	}
+	
 	private def logIf(condition: Boolean, level: LogLevel, format: String, arguments: Any*) = if(condition) {
 		val message = format.format(arguments: _*)
 		outputs foreach { _.log(level, message) }

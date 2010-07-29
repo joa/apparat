@@ -28,6 +28,7 @@ import collection.mutable.ListBuffer
 import apparat.taas.ast._
 import org.objectweb.asm.util.{CheckClassAdapter => JCheckClassAdapter, TraceClassVisitor => JTraceClassVisitor}
 import org.objectweb.asm.{Opcodes => JOpcodes, Label => JLabel, ClassWriter => JClassWriter, ClassVisitor => JClassVisitor, ClassReader => JClassReader}
+import apparat.log.{Debug, SimpleLog}
 
 /**
  * @author Joa Ebert
@@ -39,7 +40,7 @@ object JbcBackend {
 /**
  * @author Joa Ebert
  */
-class JbcBackend extends TaasBackend {
+class JbcBackend extends TaasBackend with SimpleLog {
 	var classMap = Map.empty[String, Array[Byte]]
 
 	override def emit(ast: TaasAST) = {
@@ -245,8 +246,8 @@ class JbcBackend extends TaasBackend {
 				val jumps = lin.map
 
 				if(JbcBackend.DEBUG) {
-					println("Emitting TAAS code:")
-					lin.dump()
+					log.debug("Emitting TAAS:")
+					lin.dump(log, Debug)
 				}
 
 				for(op <- ops) {
@@ -326,12 +327,12 @@ class JbcBackend extends TaasBackend {
 									case Some(parent) => parent match {
 										case _: TaasClass | _: TaasInterface => {
 											//assume setter method
-											println("[WARNING]: "+method+" should have been resolved to its setter.")
+											log.warning(method+" should have been resolved to its setter.")
 											load(arguments(0))
 											implicitCast(arguments(0).`type`, method.`type`)
 										}
 										case _: TaasFunction => {
-											println("[WARNING]: Method "+method+" has variable arguments.")
+											log.warning(method+" has variable arguments.")
 											varargs = true
 											loadArray(arguments, TaasObjectType)
 										}

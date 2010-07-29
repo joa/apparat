@@ -84,7 +84,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		// We do not care at this point where the ABC occurs in the SWF.
 		//
 		
-		val loader = new JbcClassLoader(compile(Abc fromSwf swf get))
+		val loader = new JbcClassLoader(compile(Abc fromSwf swf get), JThread.currentThread.getContextClassLoader)
 		JThread.currentThread setContextClassLoader loader
 
 		log.debug("Creating main class instance ...")

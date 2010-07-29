@@ -9,6 +9,7 @@
   </formats>
   <dependencySets>
     <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>${project.groupId}:*:jar</include>
         <include>${project.groupId}:*:swc</include>

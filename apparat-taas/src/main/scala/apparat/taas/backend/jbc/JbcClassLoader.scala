@@ -25,11 +25,11 @@ import java.lang.String
 /**
  * @author Joa Ebert
  */
-class JbcClassLoader(map: Map[String, Array[Byte]]) extends ClassLoader {
+class JbcClassLoader(map: Map[String, Array[Byte]], parent: ClassLoader) extends ClassLoader(parent) {
 	override protected def findClass(name: String): Class[_] = {
 		(map get name) match {
 			case Some(result) => defineClass(name, result, 0, result.length)
-			case None => super.findClass(name)
+			case None => parent.loadClass(name)
 		}
 	}
 }

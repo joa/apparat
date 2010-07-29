@@ -20,7 +20,8 @@
  */
 package apparat.utils
 
-import java.io.{PrintWriter => JPrintWriter}
+import java.io.{Writer => JWriter, PrintWriter => JPrintWriter}
+import apparat.log.{LogLevel, Debug, Logger}
 
 trait Dumpable {
 	def dump(): Unit = dump(new JPrintWriter(Console.out))
@@ -29,5 +30,15 @@ trait Dumpable {
 		dump(indentingPrintWriter)
 		indentingPrintWriter.flush()
 	}
+	
+	def dump(log: Logger, level: LogLevel = Debug): Unit = {
+		val indentingPrintWriter = new IndentingPrintWriter(log asWriterFor level)
+
+		dump(indentingPrintWriter)
+		
+		indentingPrintWriter.flush()
+		indentingPrintWriter.close()
+	}
+	
 	def dump(writer: IndentingPrintWriter): Unit
 }

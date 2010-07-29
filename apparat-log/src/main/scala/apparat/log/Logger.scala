@@ -20,6 +20,8 @@
  */
 package apparat.log
 
+import java.io.{Writer => JWriter}
+
 /**
  * @author Joa Ebert
  */
@@ -43,11 +45,13 @@ trait Logger {
 		override def warning(format: String, arguments: Any*): Unit = Logger.this.warning(format, arguments: _*)
 		override def error(format: String, arguments: Any*): Unit = Logger.this.error(format, arguments: _*)
 		override def fatal(format: String, arguments: Any*): Unit = Logger.this.fatal(format, arguments: _*)
+		override def log(level: LogLevel, message: String): Unit = Logger.this.log(level, message)
 		override def debugEnabled: Boolean = Logger.this.debugEnabled
 		override def infoEnabled: Boolean = Logger.this.infoEnabled
 		override def warningEnabled: Boolean = Logger.this.warningEnabled
 		override def errorEnabled: Boolean = Logger.this.errorEnabled
 		override def fatalEnabled: Boolean = Logger.this.fatalEnabled
+		override def asWriterFor(level: LogLevel): JWriter = Logger.this.asWriterFor(level)
 	}
 
 	def debug(format: String, arguments: Any*): Unit
@@ -55,6 +59,7 @@ trait Logger {
 	def warning(format: String, arguments: Any*): Unit
 	def error(format: String, arguments: Any*): Unit
 	def fatal(format: String, arguments: Any*): Unit
+	def log(level: LogLevel, message: String): Unit
 
 	def debugEnabled: Boolean
 	def infoEnabled: Boolean
@@ -67,4 +72,6 @@ trait Logger {
 	def ifWarning(message: => String) = if(warningEnabled) { warning(message) }
 	def ifError(message: => String) = if(errorEnabled) { error(message) }
 	def ifFatal(message: => String) = if(fatalEnabled) { fatal(message) }
+
+	def asWriterFor(level: LogLevel): JWriter
 }
