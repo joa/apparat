@@ -23,11 +23,12 @@ package apparat.taas.optimization
 import annotation.tailrec
 import apparat.taas.ast.{TaasMethod, TaasCode}
 import apparat.utils.Performance
+import apparat.log.SimpleLog
 
 /**
  * @author Joa Ebert
  */
-class TaasOptimizer(optimizations: List[TaasOptimization], level: Int) {
+class TaasOptimizer(optimizations: List[TaasOptimization], level: Int) extends SimpleLog {
 	val MAX_ITERATIONS = 0x20
 	
 	def optimize(method: TaasMethod): Unit = method.code match {
@@ -60,7 +61,7 @@ class TaasOptimizer(optimizations: List[TaasOptimization], level: Int) {
 			Performance.measure(optimizer.name+" time") {
 				val modified = context.modified
 				val result = f
-				println(optimizer.name+" transformation: "+modified+" -> "+result.modified)
+				log.debug(optimizer.name+" transformation: "+modified+" -> "+result.modified)
 				result
 			}
 		} else {

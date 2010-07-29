@@ -30,6 +30,7 @@ import apparat.abc.{Abc, AbcMethod, AbcNominalType, AbcQName}
 import apparat.graph.Edge
 import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer}
 import apparat.taas.optimization._
+import apparat.log.SimpleLog
 
 /**
  * @author Joa Ebert
@@ -38,7 +39,8 @@ protected[abc] object AbcCode {
 	val DEBUG = false
 }
 
-protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: Option[AbcNominalType], isStatic: Boolean) extends TaasCode {
+protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
+							 scope: Option[AbcNominalType], isStatic: Boolean) extends TaasCode with SimpleLog {
 	implicit private val implicitAST = ast
 
 	lazy val graph = computeGraph()
@@ -84,7 +86,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 			var modified = false
 
 			if(AbcCode.DEBUG) {
-				println("Code after initial parse step:")
+				log.debug("Code after initial parse step:")
 				new TaasGraphLinearizer(taasGraph).dump()
 			}
 
@@ -96,21 +98,21 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod, scope: O
 
 				/*if(modified) {
 					new TaasGraphLinearizer(taasGraph).list foreach println
-					println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+					log.debug("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 				}*/
 			} while(modified)
 
 			if(AbcCode.DEBUG) {
-				println("Code after CP/CF/DCE:")
+				log.debug("Code after CP/CF/DCE:")
 				new TaasGraphLinearizer(taasGraph).dump()
 			}
 			
 			taasGraph
 		} catch {
 			case e => {
-				e.printStackTrace
+				e.printStackTrace()
 				bytecode.dump()
-				println("-------------------------------------------------")
+				log.debug("-------------------------------------------------")
 				new TaasGraph(new Graph[TaasBlock](), TaasEntry, TaasExit)
 			}
 		}

@@ -28,8 +28,9 @@ import annotation.tailrec
 import apparat.bytecode.{Marker, Bytecode}
 import apparat.graph._
 import immutable.BytecodeControlFlowGraphBuilder
+import apparat.log.SimpleLog
 
-object MutableBytecodeControlFlowGraphBuilder extends (Bytecode => MutableBytecodeControlFlowGraph) {
+object MutableBytecodeControlFlowGraphBuilder extends (Bytecode => MutableBytecodeControlFlowGraph) with SimpleLog {
 	def apply(bytecode: Bytecode) = {
 		import collection.mutable.{Queue}
 
@@ -86,8 +87,8 @@ object MutableBytecodeControlFlowGraphBuilder extends (Bytecode => MutableByteco
 				op => vertexMap.view.find(v_op => ((v_op._2 contains op) || (v_op._1 contains op))) match {
 					case Some((vertexBlock, ops)) => graph += edgeFactory(startBlock, vertexBlock)
 					case _ => {
-						println(vertexMap.view.mkString("\n"));
-						error("op not found into graph : " + op.toString + "=>" + vertexMap)
+						log.error(vertexMap.view mkString "\n")
+						error("Could not find operation in graph: "+op.toString+"->"+vertexMap)
 					}
 				}
 			}

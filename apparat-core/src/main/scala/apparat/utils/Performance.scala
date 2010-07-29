@@ -20,13 +20,15 @@
  */
 package apparat.utils
 
-object Performance {
+import apparat.log.SimpleLog
+
+object Performance extends SimpleLog {
 	def measure[A](body: => A): A = measure("Time")(body)
 
 	def measure[A](name: String)(body: => A): A = {
-		val t0 = System.currentTimeMillis();
+		val t0 = System.currentTimeMillis()
 		val result = body
-		println(name + ": " + (System.currentTimeMillis() - t0) + "ms");
+		log.debug(name + ": " + (System.currentTimeMillis() - t0) + "ms")
 		result
 	}
 }

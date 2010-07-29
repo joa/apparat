@@ -51,9 +51,19 @@ class LoggerImpl(level: LogLevel, outputs: List[LogOutput]) extends Logger {
 		override def write(chars: Array[Char], off: Int, len: Int) = {
 			if(len > 0 && (len > 1 || chars(off) != '\n' || chars(off) != '\r')) {
 				val sb = new StringBuilder(len)
+				
 				var i = 0
+				var n = len
 
-				while(i < len) {
+				while(i < n && (chars(off + i) == '\r' || chars(off + i) == '\n')) {
+					i += 1
+				}
+
+				while(n > 0 && (chars(off + n - 1) == '\r' || chars(off + n - 1) == '\n')) {
+					n -= 1
+				}
+
+				while(i < n) {
 					sb append chars(off + i)
 					i += 1
 				}
@@ -62,7 +72,11 @@ class LoggerImpl(level: LogLevel, outputs: List[LogOutput]) extends Logger {
 
 				if(result.nonEmpty &&
 						result != "\r" && result != "\n" && result != "\n\r") {
-					log(level, result)
+					if(result.indexOf('\n') != -1) {
+						result.split('\n') foreach { result => log(level, result) }
+					} else {
+						log(level, result)
+					}
 				}
 			}
 		}

@@ -46,7 +46,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 	override def emit(ast: TaasAST) = {
 		for(nominal <- TaasDependencyGraphBuilder(ast).topsort) {
 			val cw = new JClassWriter(JClassWriter.COMPUTE_FRAMES)
-			val cv = if(JbcBackend.DEBUG) new JTraceClassVisitor(cw, new JPrintWriter(System.out)) else cw
+			val cv = if(JbcBackend.DEBUG) new JTraceClassVisitor(cw, new JPrintWriter(log asWriterFor Debug)) else cw
 
 			cv.visit(
 				JOpcodes.V1_6,
@@ -83,7 +83,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			classMap += nominal.qualifiedName -> bytes
 
 			if(JbcBackend.DEBUG) {
-				JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(System.out))
+				//JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(log asWriterFor Debug))
 			}
 		}
 	}
