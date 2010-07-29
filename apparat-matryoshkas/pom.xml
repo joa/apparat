@@ -35,13 +35,11 @@
       <groupId>com.adobe.flex.framework</groupId>
       <artifactId>playerglobal</artifactId>
       <classifier>${flash.version}</classifier>
-      <version>${flex.version}</version>
       <type>swc</type>
     </dependency>
     <dependency>
       <groupId>com.adobe.flex.framework</groupId>
       <artifactId>flex</artifactId>
-      <version>${flex.version}</version>
       <type>swc</type>
     </dependency>
   </dependencies>

@@ -9,29 +9,17 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <name>apparat-jitb</name>
-  <description>The jit-b project. What does it mean? I do not know.</description>
-  <artifactId>apparat-jitb</artifactId>
-  <packaging>jar</packaging>
+  <name>apparat-assembly</name>
+  <description>Apparat Assembly.</description>
+  <artifactId>apparat-assembly</artifactId>
+  <packaging>pom</packaging>
 
   <build>
+    <finalName>apparat-${project.version}</finalName>
     <plugins>
       <plugin>
-        <groupId>org.scala-tools</groupId>
-        <artifactId>maven-scala-plugin</artifactId>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.4.3</version>
-        <configuration>
-          <useSystemClassLoader>false</useSystemClassLoader>
-          <argLine>-Xmx512m</argLine>
-          <includes>
-            <include>**/*Spec.java</include>
-          </includes>
-          <basedir>src/test/scala</basedir>
-        </configuration>
+        <artifactId>maven-assembly-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
@@ -39,7 +27,17 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-anttasks</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>apparat-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-jitb</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -49,7 +47,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>apparat-taas</artifactId>
+      <artifactId>apparat-lzma-encoder</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -58,16 +56,27 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-taas</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.scala-tools.testing</groupId>
-      <artifactId>specs</artifactId>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-ersatz</artifactId>
+      <version>${project.version}</version>
+      <type>swc</type>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-lzma-decoder</artifactId>
+      <version>${project.version}</version>
+      <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>apparat-asm</artifactId>
+      <version>${project.version}</version>
+      <type>swc</type>
     </dependency>
   </dependencies>
 </project>

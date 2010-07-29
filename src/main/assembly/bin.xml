@@ -5,24 +5,36 @@
   <id>bin</id>
   <formats>
     <format>tar.gz</format>
-    <format>tar.bz2</format>
     <format>zip</format>
   </formats>
+  <dependencySets>
+    <dependencySet>
+      <includes><include>asm:asm</include></includes>
+      <useTransitiveFiltering>true</useTransitiveFiltering>
+      <useTransitiveDependencies>true</useTransitiveDependencies>
+    </dependencySet>
+  </dependencySets>
   <moduleSets>
     <moduleSet>
       <includes>
         <include>${project.groupId}:apparat-anttasks</include>
         <include>${project.groupId}:apparat-core</include>
+        <include>${project.groupId}:apparat-jitb</include>
         <include>${project.groupId}:apparat-log</include>
         <include>${project.groupId}:apparat-lzma-encoder</include>
+        <include>${project.groupId}:apparat-playerglobal</include>
+        <include>${project.groupId}:apparat-taas</include>
       </includes>
       <binaries>
         <unpack>false</unpack>
         <includes>
           <include>${project.groupId}:apparat-anttasks</include>
           <include>${project.groupId}:apparat-core</include>
+          <include>${project.groupId}:apparat-jitb</include>
           <include>${project.groupId}:apparat-log</include>
           <include>${project.groupId}:apparat-lzma-encoder</include>
+          <include>${project.groupId}:apparat-playerglobal</include>
+          <include>${project.groupId}:apparat-taas</include>
         </includes>
       </binaries>
     </moduleSet>
@@ -75,6 +87,7 @@
         <include>*.bat</include>
       </includes>
       <filtered>true</filtered>
+      <lineEnding>dos</lineEnding>
       <outputDirectory>/</outputDirectory>
     </fileSet>
     <fileSet>
@@ -87,6 +100,7 @@
       </excludes>
       <filtered>true</filtered>
       <fileMode>777</fileMode>
+      <lineEnding>unix</lineEnding>
       <outputDirectory>/</outputDirectory>
     </fileSet>
   </fileSets>

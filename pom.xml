@@ -45,6 +45,66 @@
     </repository>
   </distributionManagement>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant</artifactId>
+        <version>1.7.0</version>
+      </dependency>
+      <dependency>
+        <groupId>asm</groupId>
+        <artifactId>asm</artifactId>
+        <version>3.2</version>
+      </dependency>
+      <dependency>
+        <groupId>asm</groupId>
+        <artifactId>asm-commons</artifactId>
+        <version>3.2</version>
+      </dependency>
+      <dependency>
+        <groupId>asm</groupId>
+        <artifactId>asm-util</artifactId>
+        <version>3.2</version>
+      </dependency>
+      <dependency>
+        <groupId>asm</groupId>
+        <artifactId>asm-analysis</artifactId>
+        <version>3.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.scala-lang</groupId>
+        <artifactId>scala-library</artifactId>
+        <version>${scala.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.scala-tools.testing</groupId>
+        <artifactId>specs</artifactId>
+        <version>1.6.1-2.8.0.Beta1-RC6</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.4</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.adobe.flex.framework</groupId>
+        <artifactId>playerglobal</artifactId>
+        <classifier>${flash.version}</classifier>
+        <version>${flex.version}</version>
+        <type>swc</type>
+      </dependency>
+      <dependency>
+        <groupId>com.adobe.flex.framework</groupId>
+        <artifactId>flex</artifactId>
+        <version>${flex.version}</version>
+        <type>swc</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <developers>
     <developer>
       <name>Joa Ebert</name>
@@ -190,6 +250,7 @@
     <module>apparat-anttasks</module>
     <module>apparat-archetypes</module>
     <module>apparat-asm</module>
+    <module>apparat-assembly</module>
     <module>apparat-core</module>
     <module>apparat-ersatz</module>
     <module>apparat-jitb</module>

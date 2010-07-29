@@ -32,8 +32,7 @@
     <dependency>
       <groupId>com.adobe.flex.framework</groupId>
       <artifactId>playerglobal</artifactId>
-      <classifier>10.0</classifier>
-      <version>${flex.version}</version>
+      <classifier>${flash.version}</classifier>
       <type>swc</type>
     </dependency>
   </dependencies>
