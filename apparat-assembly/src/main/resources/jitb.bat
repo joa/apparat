@@ -19,4 +19,4 @@
 ::
 
 @echo off
-scala -cp "%~dp0\*" apparat.jitb.JITB %*
+scala -cp "%~dp0\*";"%~dp0\lib\*"; apparat.jitb.JITB %*

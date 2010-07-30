@@ -76,7 +76,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 			for(method <- nominal.methods if !method.isStatic) {
 				emitMethod(method, cv)
-			}			
+			}
 
 			val bytes = cw.toByteArray()
 			cv.visitEnd()

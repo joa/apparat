@@ -20,4 +20,4 @@
 # http://www.joa-ebert.com/
 #
 
-scala -cp `dirname "$0"`/\* apparat.jitb.JITB $*
+scala -cp `dirname "$0"`/\*:`dirname "$0"`/lib/\* apparat.jitb.JITB $*

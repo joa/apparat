@@ -63,9 +63,9 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 
 		registers(0) typeAs scopeType
 		
-		for(i <- 1 to method.parameters.length) {
+		for(i <- 0 until method.parameters.length) {
 			method.parameters(i).typeName match {
-				case qname: AbcQName => registers(i) typeAs AbcTypes.fromQName(qname)
+				case qname: AbcQName => registers(i + 1) typeAs AbcTypes.fromQName(qname)
 				case other => error("Expected QName, got "+other+".")
 			}
 		}

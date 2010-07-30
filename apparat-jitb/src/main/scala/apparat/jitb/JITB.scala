@@ -30,6 +30,7 @@ import apparat.taas.TaasCompiler
 import apparat.taas.backend.jbc.{JbcClassLoader, JbcBackend}
 import java.lang.{Thread => JThread}
 import apparat.swf.{SymbolClass, SwfTags, Swf}
+import flash.display.{DisplayObject, Stage, Sprite}
 
 /**
  * @author Joa Ebert
@@ -87,8 +88,24 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val loader = new JbcClassLoader(compile(Abc fromSwf swf get), JThread.currentThread.getContextClassLoader)
 		JThread.currentThread setContextClassLoader loader
 
-		log.debug("Creating main class instance ...")
-		log.debug("Result: %s", Class.forName(mainClass, true, loader).newInstance())
+		val main = Class.forName(mainClass, true, loader)
+
+		if(classOf[DisplayObject] isAssignableFrom main) {
+			log.debug("Main class is a DisplayObject")
+			val stage = new Stage()
+			val documentRoot = main.newInstance()
+			log.debug("Created DocumentRoot %s.", documentRoot)
+			//stage.addChild(documentRoot)
+		} else {
+			//
+			// For now we use a hardcoded empty array.
+			//
+			val arguments: Array[String] = Array.empty[String]
+
+			log.debug("Using a headless runner without a stage.")
+
+			main.getMethod("main", arguments.getClass).invoke(main, arguments)
+		}
 	}
 
 	def compile(abc: Abc) = {
