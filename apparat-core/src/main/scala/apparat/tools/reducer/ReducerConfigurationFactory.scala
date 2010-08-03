@@ -38,13 +38,21 @@ object ReducerConfigurationFactory extends ApparatConfigurationFactory[ReducerCo
 		val matryoshkaType = (config("-t") getOrElse "quiet") match {
 			case "quiet" => MatryoshkaType.QUIET
 			case "preloader" => MatryoshkaType.PRELOADER
+			case "custom" => MatryoshkaType.CUSTOM
 			case "none" => MatryoshkaType.NONE
 		}
+		val matryoshka = config("-f") map { f => new JFile(f) }
+		val mergeCF = (config("-b") getOrElse "false").toBoolean
 
 		if(!input.exists) {
 			error("Input "+input+" does not exist.")
 		}
 
-		new ReducerConfigurationImpl(input, output, quality, deblock, merge, sort, lzma, matryoshkaType)
+		if(matryoshka.isDefined && !matryoshka.get.exists) {
+			error("Custom Matryoshka is defined but does not exist.")
+		}
+
+		new ReducerConfigurationImpl(input, output, quality, deblock,
+			merge, sort, lzma, matryoshkaType, matryoshka, mergeCF)
 	}
 }

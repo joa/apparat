@@ -33,4 +33,6 @@ protected[reducer] class ReducerConfigurationImpl(
 		val mergeABC: Boolean,
 		val sortCPool: Boolean,
 		val lzma: Boolean,
-		val matryoshkaType: Int) extends ReducerConfiguration
+		val matryoshkaType: Int,
+		val matryoshka: Option[JFile],
+		val mergeCF: Boolean) extends ReducerConfiguration

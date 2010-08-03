@@ -27,4 +27,5 @@ object MatryoshkaType {
 	val NONE = 0
 	val QUIET = 1
 	val PRELOADER = 2
+	val CUSTOM = 3
 }

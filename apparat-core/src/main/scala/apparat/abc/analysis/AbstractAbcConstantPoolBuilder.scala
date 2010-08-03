@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2010 Joa Ebert
+ * Copyright (C) 2009 Joa Ebert
  * http://www.joa-ebert.com/
  *
  */
@@ -22,134 +22,94 @@ package apparat.abc.analysis
 
 import apparat.abc._
 import apparat.bytecode.operations._
-import collection.immutable.HashSet
 
 /**
  * @author Joa Ebert
  */
-object QuickAbcConstantPoolBuilder {
-	def using(abc: Abc) = {
-		val builder = new QuickAbcConstantPoolBuilder()
-		builder add abc
-		builder.createPool
-	}
-}
+trait AbstractAbcConstantPoolBuilder {
+	self: AbcVisitor =>
 
-class QuickAbcConstantPoolBuilder extends AbcVisitor {
-	var ints = HashSet.empty[Int]
-	var uints = HashSet.empty[Long]
-	var doubles = HashSet.empty[Double]
-	var strings = HashSet.empty[Symbol]
-	var namespaces = HashSet.empty[AbcNamespace]
-	var nssets = HashSet.empty[AbcNSSet]
-	var names = HashSet.empty[AbcName]
-	var addNaN = false
+	protected var addNaN: Boolean = false
 
-	def reset = {
-		ints = HashSet.empty
-		uints = HashSet.empty
-		doubles = HashSet.empty
-		strings = HashSet.empty
-		namespaces = HashSet.empty
-		nssets = HashSet.empty
-		names = HashSet.empty
+	def createPool: AbcConstantPool
+
+	def reset(): Unit = {
 		addNaN = false
 	}
 
-	def createPool = {
-		val intFuture = (0 :: ints.toList).toArray
-		val uintFuture = (0L :: uints.toList).toArray
-		val doubleFuture = if(addNaN) {
-			(Double.NaN :: Double.NaN :: doubles.toList).toArray
-		} else {
-			(Double.NaN :: doubles.toList).toArray
-		}
-		val stringFuture = (AbcConstantPool.EMPTY_STRING :: strings.toList).toArray
-		val namespaceFuture = (AbcConstantPool.EMPTY_NAMESPACE :: namespaces.toList).toArray
-		val nssetFuture = (AbcConstantPool.EMPTY_NSSET :: nssets.toList).toArray
+	private def proxy(value: Abc): Unit = add(value)
+	def add(value: Abc): Unit = value accept this
 
-		//TODO get rid of sorting here, see add(AbcName) how
-		val noDuplicates = names.toList
-		val count = Map(noDuplicates zip (noDuplicates map { x => names count (_ == x) }): _*)
-		val nameFuture = (AbcConstantPool.EMPTY_NAME :: noDuplicates.sortWith((a, b) => a match {
-				case AbcTypename(_, _) => false
-				case other => b match {
-					case AbcTypename(_, _) => true
-					case _ => count(a) > count(b)
-				}
-			}).distinct).toArray
-		new AbcConstantPool(intFuture, uintFuture, doubleFuture, stringFuture,
-			namespaceFuture, nssetFuture, nameFuture)
+	private def proxy(value: Int): Unit = add(value)
+	def add(value: Int): Unit
+
+	private def proxy(value: Long): Unit = add(value)
+	def add(value: Long): Unit
+
+	private def proxy(value: Double): Unit = if(!value.isNaN) add(value)
+	def add(value: Double): Unit
+
+	private def proxy(value: Symbol): Unit = if(value != AbcConstantPool.EMPTY_STRING) add(value)
+	def add(value: Symbol): Unit
+
+	private def proxy(value: AbcNamespace): Unit = {
+		proxy(value.name)
+		if(value != AbcConstantPool.EMPTY_NAMESPACE) add(value)
 	}
+	def add(value: AbcNamespace): Unit
 
-	def add(abc: Abc): Unit = abc accept this
-
-	def add(value: Int): Unit  = ints += value
-
-	def add(value: Long): Unit  = uints += value
-
-	def add(value: Double): Unit  = if(!value.isNaN) doubles += value
-
-	def add(value: Symbol): Unit  = if(value != AbcConstantPool.EMPTY_STRING) strings += value
-
-	def add(value: AbcNamespace): Unit  = {
-		add(value.name)
-		if(value != AbcConstantPool.EMPTY_NAMESPACE) namespaces += value
+	private def proxy(value: AbcNSSet): Unit  = {
+		value.set foreach proxy
+		if(value != AbcConstantPool.EMPTY_NSSET) add(value)
 	}
+	def add(value: AbcNSSet): Unit
 
-	def add(value: AbcNSSet): Unit  = {
-		value.set foreach add
-		if(value != AbcConstantPool.EMPTY_NSSET) nssets += value
-	}
-
-	def add(value: AbcName): Unit = {
-		if(value != AbcConstantPool.EMPTY_NAME) names += value
-
+	private def proxy(value: AbcName): Unit = {
 		value match {
 			case AbcQName(name, namespace) => {
-				add(name)
-				add(namespace)
+				proxy(name)
+				proxy(namespace)
 			}
 			case AbcQNameA(name, namespace) => {
-				add(name)
-				add(namespace)
+				proxy(name)
+				proxy(namespace)
 			}
-			case AbcRTQName(name) => add(name)
-			case AbcRTQNameA(name) => add(name)
+			case AbcRTQName(name) => proxy(name)
+			case AbcRTQNameA(name) => proxy(name)
 			case AbcRTQNameL | AbcRTQNameLA =>
 			case AbcMultiname(name, nsset) => {
-				add(name)
-				add(nsset)
+				proxy(name)
+				proxy(nsset)
 			}
 			case AbcMultinameA(name, nsset) => {
-				add(name)
-				add(nsset)
+				proxy(name)
+				proxy(nsset)
 			}
-			case AbcMultinameL(nsset) => add(nsset)
-			case AbcMultinameLA(nsset) => add(nsset)
+			case AbcMultinameL(nsset) => proxy(nsset)
+			case AbcMultinameLA(nsset) => proxy(nsset)
 			case AbcTypename(name, parameters) => {
-				//TODO add type after parameters have been added so we
-				//always have a correct order in the cpool
-				add(name)
-				parameters foreach add
+				proxy(name)
+				parameters foreach proxy
 			}
 		}
-	}
 
-	def add(kind: Int, value: Any): Unit = kind match {
-		case AbcConstantType.Int => add(value.asInstanceOf[Int])
-		case AbcConstantType.UInt => add(value.asInstanceOf[Long])
+		if(value != AbcConstantPool.EMPTY_NAME) add(value)
+	}
+	def add(value: AbcName): Unit
+
+	private def proxy(kind: Int, value: Any): Unit = kind match {
+		case AbcConstantType.Int => proxy(value.asInstanceOf[Int])
+		case AbcConstantType.UInt => proxy(value.asInstanceOf[Long])
 		case AbcConstantType.Double => {
-			//TODO fix when fixed
-			//http://lampsvn.epfl.ch/trac/scala/ticket/3291
+			// Thank you. http://lampsvn.epfl.ch/trac/scala/ticket/3291
 			val double = value.asInstanceOf[Double]
 			if(double.isNaN) {
 				addNaN = true
 			} else {
-				add(value.asInstanceOf[Double])
+				proxy(value.asInstanceOf[Double])
 			}
 		}
-		case AbcConstantType.Utf8 => add(value.asInstanceOf[Symbol])
+		case AbcConstantType.Utf8 => proxy(value.asInstanceOf[Symbol])
 		case AbcConstantType.True |
 				AbcConstantType.False |
 				AbcConstantType.Null |
@@ -160,44 +120,44 @@ class QuickAbcConstantPoolBuilder extends AbcVisitor {
 				AbcConstantType.ProtectedNamespace |
 				AbcConstantType.ExplicitNamespace |
 				AbcConstantType.StaticProtectedNamespace |
-				AbcConstantType.PrivateNamespace => add(value.asInstanceOf[AbcNamespace])
+				AbcConstantType.PrivateNamespace => proxy(value.asInstanceOf[AbcNamespace])
 	}
 
 	override def visit(value: AbcConstantPool): Unit = {}
 
 	override def visit(value: AbcExceptionHandler): Unit = {
-		add(value.typeName)
-		add(value.varName)
+		proxy(value.typeName)
+		proxy(value.varName)
 	}
 
 	override def visit(value: AbcInstance): Unit = {
-		add(value.name)
+		proxy(value.name)
 
 		value.base match {
-			case Some(base) => add(base)
+			case Some(base) => proxy(base)
 			case None =>
 		}
 
 		value.protectedNs match {
-			case Some(namespace) => add(namespace)
+			case Some(namespace) => proxy(namespace)
 			case None =>
 		}
 
-		value.interfaces foreach add
+		value.interfaces foreach proxy
 	}
 
 	override def visit(value: AbcMetadata): Unit = {
-		add(value.name)
+		proxy(value.name)
 
 		for((key, value) <- value.attributes) {
-			add(key)
-			add(value)
+			proxy(key)
+			proxy(value)
 		}
 	}
 
 	override def visit(value: AbcMethod): Unit = {
-		add(value.returnType)
-		add(value.name)
+		proxy(value.returnType)
+		proxy(value.name)
 	}
 
 	override def visit(value: AbcMethodBody): Unit = {
@@ -206,50 +166,50 @@ class QuickAbcConstantPoolBuilder extends AbcVisitor {
 				bytecode.ops foreach {
 					case Add() | AddInt() =>
 					case ApplyType(_) =>
-					case AsType(typeName) => add(typeName)
+					case AsType(typeName) => proxy(typeName)
 					case AsTypeLate() =>
 					case BitAnd() | BitNot() | BitOr() | BitXor() =>
 					case Breakpoint() | BreakpointLine() =>
 					case Call(_) =>
 					case CallMethod(_, _) =>
-					case CallProperty(property, _) => add(property)
-					case CallPropLex(property, _) => add(property)
-					case CallPropVoid(property, _) => add(property)
+					case CallProperty(property, _) => proxy(property)
+					case CallPropLex(property, _) => proxy(property)
+					case CallPropVoid(property, _) => proxy(property)
 					case CallStatic(_, _) =>
-					case CallSuper(property, _) => add(property)
-					case CallSuperVoid(property, _) => add(property)
+					case CallSuper(property, _) => proxy(property)
+					case CallSuperVoid(property, _) => proxy(property)
 					case CheckFilter() =>
-					case Coerce(typeName) => add(typeName)
+					case Coerce(typeName) => proxy(typeName)
 					case CoerceAny() | CoerceBoolean() | CoerceDouble() | CoerceInt() | CoerceObject() | CoerceString() | CoerceUInt() =>
 					case Construct(_) =>
-					case ConstructProp(property, _) => add(property)
+					case ConstructProp(property, _) => proxy(property)
 					case ConstructSuper(_) =>
 					case ConvertBoolean() | ConvertDouble() | ConvertInt() | ConvertObject() | ConvertString() | ConvertUInt() =>
-					case Debug(_, name, _, _) => add(name)
-					case DebugFile(file) => add(file)
+					case Debug(_, name, _, _) => proxy(name)
+					case DebugFile(file) => proxy(file)
 					case DebugLine(_) =>
 					case DecLocal(_) =>
 					case DecLocalInt(_) =>
 					case Decrement() | DecrementInt() =>
-					case DeleteProperty(property) => add(property)
+					case DeleteProperty(property) => proxy(property)
 					case Divide() =>
 					case Dup() =>
-					case DefaultXMLNamespace(uri) => add(uri)
+					case DefaultXMLNamespace(uri) => proxy(uri)
 					case DefaultXMLNamespaceLate() =>
 					case Equals() =>
 					case EscapeXMLAttribute() =>
 					case EscapeXMLElement() =>
-					case FindProperty(property) => add(property)
-					case FindPropStrict(property) => add(property)
-					case GetDescendants(property) => add(property)
+					case FindProperty(property) => proxy(property)
+					case FindPropStrict(property) => proxy(property)
+					case GetDescendants(property) => proxy(property)
 					case GetGlobalScope() =>
 					case GetGlobalSlot(_) =>
-					case GetLex(typeName) => add(typeName)
+					case GetLex(typeName) => proxy(typeName)
 					case GetLocal(_) =>
-					case GetProperty(property) => add(property)
+					case GetProperty(property) => proxy(property)
 					case GetScopeObject(_) =>
 					case GetSlot(_) =>
-					case GetSuper(property) => add(property)
+					case GetSuper(property) => proxy(property)
 					case GreaterEquals() | GreaterThan() =>
 					case HasNext() =>
 					case HasNext2(_, _) =>
@@ -271,9 +231,9 @@ class QuickAbcConstantPoolBuilder extends AbcVisitor {
 					case IncLocal(_) =>
 					case IncLocalInt(_) =>
 					case Increment() | IncrementInt() =>
-					case InitProperty(property) => add(property)
+					case InitProperty(property) => proxy(property)
 					case InstanceOf() =>
-					case IsType(typeName) => add(typeName)
+					case IsType(typeName) => proxy(typeName)
 					case IsTypeLate() =>
 					case Jump(_) =>
 					case Kill(_) =>
@@ -289,23 +249,23 @@ class QuickAbcConstantPoolBuilder extends AbcVisitor {
 					case NewObject(_) =>
 					case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() =>
 					case PushByte(_) =>
-					case PushDouble(value) => add(value)
+					case PushDouble(value) => proxy(value)
 					case PushFalse() =>
-					case PushInt(value) => add(value)
-					case PushNamespace(value) => add(value)
+					case PushInt(value) => proxy(value)
+					case PushNamespace(value) => proxy(value)
 					case PushNaN() | PushNull() | PushScope() =>
 					case PushShort(_) =>
-					case PushString(value) => add(value)
+					case PushString(value) => proxy(value)
 					case PushTrue() =>
-					case PushUInt(value) => add(value)
+					case PushUInt(value) => proxy(value)
 					case PushUndefined() | PushWith() =>
 					case ReturnValue() | ReturnVoid() =>
 					case ShiftRight() =>
 					case SetLocal(_) =>
 					case SetGlobalSlot(_) =>
-					case SetProperty(property) => add(property)
+					case SetProperty(property) => proxy(property)
 					case SetSlot(_) =>
-					case SetSuper(property) => add(property)
+					case SetSuper(property) => proxy(property)
 					case StrictEquals() | Subtract() | SubtractInt() | Swap() =>
 					case Throw() | TypeOf() | ShiftRightUnsigned() =>
 					case SetByte() | SetShort() | SetInt() | SetFloat() | SetDouble() =>
@@ -318,16 +278,16 @@ class QuickAbcConstantPoolBuilder extends AbcVisitor {
 	}
 
 	override def visit(value: AbcMethodParameter): Unit = {
-		add(value.typeName)
+		proxy(value.typeName)
 
 		value.name match {
-			case Some(name) => add(name)
+			case Some(name) => proxy(name)
 			case None =>
 		}
 
 		if(value.optional) {
 			if(value.optionalType.isDefined && value.optionalVal.isDefined) {
-				add(value.optionalType.get, value.optionalVal.get)
+				proxy(value.optionalType.get, value.optionalVal.get)
 			} else {
 				error("Optional parameter that is not properly defined.")
 			}
@@ -335,15 +295,15 @@ class QuickAbcConstantPoolBuilder extends AbcVisitor {
 	}
 
 	override def visit(value: AbcTrait): Unit = {
-		add(value.name)
+		proxy(value.name)
 
 		value match {
 			case slot: AbcTraitAnySlot => {
-				add(slot.typeName)
+				proxy(slot.typeName)
 				slot.value match {
 					case Some(value) => {
 						if(slot.value.isDefined && slot.valueType.isDefined) {
-							add(slot.valueType.get, slot.value.get)
+							proxy(slot.valueType.get, slot.value.get)
 						} else {
 							error("Slot with initial value that is not properly defined.")
 						}

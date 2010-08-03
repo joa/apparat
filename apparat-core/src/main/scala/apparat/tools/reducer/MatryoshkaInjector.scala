@@ -24,42 +24,48 @@ import apparat.utils.IO
 import apparat.log.SimpleLog
 import apparat.swf._
 
-class MatryoshkaInjector(source: Swf, matryoshkaType: Int) extends SimpleLog {
+import java.io.{File => JFile}
+
+class MatryoshkaInjector(source: Swf, matryoshkaType: Int, customMatryoshka: Option[JFile]) extends SimpleLog {
 	lazy val swf = {
-		var resource = getClass.getResource("/apparat-matryoshka-"+
-				(if(MatryoshkaType.QUIET == matryoshkaType) "quiet" else "preloader")+".swf")
-		var length = 0L
-
-		if(null == resource) {
-			log.error("Could not read SWF resource.")
-			new Swf
+		if(MatryoshkaType.CUSTOM == matryoshkaType) {
+			Swf fromFile (customMatryoshka getOrElse error("Custom matryoshka file is not specified."))
 		} else {
-			//
-			// Read the length of the SWF resource
-			//
+			var resource = getClass.getResource("/apparat-matryoshka-"+
+					(if(MatryoshkaType.QUIET == matryoshkaType) "quiet" else "preloader")+".swf")
+			var length = 0L
 
-			IO.using(resource.openStream) {
-				stream => {
-					var buffer = new Array[Byte](0x1000)
-					var bytesRead = 0
+			if(null == resource) {
+				log.error("Could not read SWF resource.")
+				new Swf
+			} else {
+				//
+				// Read the length of the SWF resource
+				//
 
-					bytesRead = stream.read(buffer, 0, 0x1000)
+				IO.using(resource.openStream) {
+					stream => {
+						var buffer = new Array[Byte](0x1000)
+						var bytesRead = 0
 
-					while(-1 != bytesRead) {
-						length += bytesRead
 						bytesRead = stream.read(buffer, 0, 0x1000)
+
+						while(-1 != bytesRead) {
+							length += bytesRead
+							bytesRead = stream.read(buffer, 0, 0x1000)
+						}
 					}
 				}
-			}
 
-			log.debug("Matryoshka size is %dbytes.", length)
+				log.debug("Matryoshka size is %dbytes.", length)
 
-			//
-			// Now read the SWF since we know the length.
-			//
+				//
+				// Now read the SWF since we know the length.
+				//
 
-			IO.using(resource.openStream) {
-				stream => Swf.fromInputStream(stream, length)
+				IO.using(resource.openStream) {
+					stream => Swf.fromInputStream(stream, length)
+				}
 			}
 		}
 	}

@@ -22,9 +22,16 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 
 	/**
 	 * Additional override for the target file if it is not the default artifact of your project.
-	 * @parameter
+	 * @parameter expression="${apparat.overrideArtifact}"
 	 */
 	protected File overrideArtifact;
+
+	/**
+	 * Whether or not to fail if the <code>overrideArtifact</code> is missing.
+	 *
+	 * @parameter default-value="true" expression="${apparat.failIfOverrideIsMissing}"
+	 */
+	protected boolean failIfOverrideIsMissing;
 
 	/**
 	 * {@inheritDoc}
@@ -44,7 +51,12 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 				}
 			} else {
 				if(!overrideArtifact.exists()) {
-					throw new MojoFailureException("File "+overrideArtifact+" does not exist.");
+					if(failIfOverrideIsMissing) {
+						throw new MojoFailureException("File "+overrideArtifact+" does not exist.");
+					} else {
+						getLog().warn("Override "+overrideArtifact+" is missing.");
+						return;
+					}
 				}
 
 				try {

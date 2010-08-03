@@ -78,6 +78,20 @@ object Abc {
 	}
 
 	def fromFile(pathname: String): Abc = fromFile(new JFile(pathname))
+
+	def using[T](doABC: DoABC, supportBytecode: Boolean = true)(f: Abc => T) = {
+		val abc = Abc fromDoABC doABC
+
+		if(supportBytecode) {
+			abc.loadBytecode()
+			f(abc)
+			abc.saveBytecode()
+		} else {
+			f(abc)
+		}
+
+		abc write doABC
+	}
 }
 
 class Abc extends Dumpable {

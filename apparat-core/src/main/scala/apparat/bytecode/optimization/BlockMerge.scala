@@ -71,9 +71,9 @@ object BlockMerge {
 					modified = true
 				}
 
-			for(predecessor <- predecessors) {
-				loop(predecessor)
-			}
+				for(predecessor <- predecessors) {
+					loop(predecessor)
+				}
 			}
 		}
 

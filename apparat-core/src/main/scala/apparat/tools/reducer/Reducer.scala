@@ -14,6 +14,7 @@ import apparat.actors.Futures._
 import apparat.abc.Abc
 import apparat.abc.analysis.AbcConstantPoolBuilder
 import java.io.{File => JFile, FileOutputStream => JFileOutputStream, ByteArrayOutputStream => JByteArrayOutputStream, ByteArrayInputStream => JByteArrayInputStream}
+import apparat.bytecode.optimization.BlockMerge
 
 object Reducer {
 	def main(args: Array[String]): Unit = ApparatApplication(new ReducerTool, args)
@@ -27,6 +28,8 @@ object Reducer {
 		var sortCPool: Boolean = false
 		var lzma: Boolean = false
 		var matryoshkaType: Int = MatryoshkaType.QUIET
+		var customMatryoshka: Option[JFile] = None
+		var mergeCF: Boolean = false
 
 		override def name: String = "Reducer"
 
@@ -37,7 +40,9 @@ object Reducer {
   -m [true|false] Merge ABC files
   -s [true|false] Sort constant pool (only if -m is specified)
   -l [true|false] Use LZMA compression
-  -t [quiet|preloader] Matryoshka type (default: quiet)"""
+  -t [quiet|preloader|custom] Matryoshka type (default: quiet)
+  -f [file]	Custom matryoshka SWF wrapper (required if -t custom)
+  -b [true|false] Merge control flow if possible (experimental)"""
 
 		override def configure(config: ApparatConfiguration): Unit = configure(ReducerConfigurationFactory fromConfiguration config)
 		
@@ -50,6 +55,8 @@ object Reducer {
 			sortCPool = config.sortCPool
 			lzma = config.lzma
 			matryoshkaType = config.matryoshkaType
+			customMatryoshka = config.matryoshka
+			mergeCF = config.mergeCF
 		}
 
 		override def run() = {
@@ -70,6 +77,27 @@ object Reducer {
 			val cont = TagContainer fromFile source
 			cont.tags = cont.tags filterNot (tag => tag.kind == SwfTags.Metadata || tag.kind == SwfTags.ProductInfo) map reduce
 
+			if(mergeCF) {
+				log.info("Merging identical control flow ...")
+
+				for(tag <- cont.tags) tag match {
+					case doABC: DoABC => {
+						Abc.using(doABC) {
+							abc => {
+								for {
+									method <- abc.methods
+									body <- method.body
+									bytecode <- body.bytecode
+								} {
+									body.bytecode = Some(BlockMerge(bytecode)._2)
+								}
+							}
+						}
+					}
+					case _ =>
+				}
+			}
+			
 			if(mergeABC) {
 				log.info("Merging ABC files ...")
 				
@@ -132,7 +160,7 @@ object Reducer {
 							// Create a Matryoshka
 							//
 							val matryoshka = new MatryoshkaInjector(swfStrategy.swf getOrElse error("No SWF loaded."),
-								matryoshkaType)
+								matryoshkaType, customMatryoshka)
 							val outputStream = new JFileOutputStream(target)
 
 							outputStream write matryoshka.toByteArray

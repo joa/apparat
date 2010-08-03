@@ -69,4 +69,15 @@ trait ReducerConfiguration {
 	 */
 	def matryoshkaType: Int
 
+	/**
+	 * The custom matryoshka. Has to be specified only if
+	 * <code>matryoshkaType</code> is <code>MatryoshkaType.CUSTOM</code>.
+	 */
+	def matryoshka: Option[JFile]
+
+	/**
+	 * Whether or not to merge instructions which are identical in identical
+	 * flow positions. 
+	 */
+	def mergeCF: Boolean
 }
