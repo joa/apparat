@@ -48,16 +48,16 @@ object BytecodeEncoder {
 		@inline def writeOp(op: AbstractOp) = {
 			markers(op) match {
 				case Some(marker) => marker.position = position
-				case None => {}
+				case None =>
 			}
 			u08(op.opCode)
 			op match {
-				case Add() | AddInt() => {}
+				case Add() | AddInt() =>
 				case ApplyType(numArguments) => u30(numArguments)
 				case AsType(typeName) => name(typeName)
-				case AsTypeLate() => {}
-				case BitAnd() | BitNot() | BitOr() | BitXor() => {}
-				case Breakpoint() | BreakpointLine() => {}
+				case AsTypeLate() =>
+				case BitAnd() | BitNot() | BitOr() | BitXor() =>
+				case Breakpoint() | BreakpointLine() =>
 				case Call(numArguments) => u30(numArguments)
 				case CallMethod(index, numArguments) => {
 					u30(index)
@@ -87,16 +87,16 @@ object BytecodeEncoder {
 					name(property)
 					u30(numArguments)
 				}
-				case CheckFilter() => {}
+				case CheckFilter() =>
 				case Coerce(typeName) => name(typeName)
-				case CoerceAny() | CoerceBoolean() | CoerceDouble() | CoerceInt() | CoerceObject() | CoerceString() | CoerceUInt() => {}
+				case CoerceAny() | CoerceBoolean() | CoerceDouble() | CoerceInt() | CoerceObject() | CoerceString() | CoerceUInt() =>
 				case Construct(numArguments) => u30(numArguments)
 				case ConstructProp(property, numArguments) => {
 					name(property)
 					u30(numArguments)
 				}
 				case ConstructSuper(numArguments) => u30(numArguments)
-				case ConvertBoolean() | ConvertDouble() | ConvertInt() | ConvertObject() | ConvertString() | ConvertUInt() => {}
+				case ConvertBoolean() | ConvertDouble() | ConvertInt() | ConvertObject() | ConvertString() | ConvertUInt() =>
 			 	case Debug(kind, name, register, extra) => {
 					 u08(kind)
 					 string(name)
@@ -107,19 +107,19 @@ object BytecodeEncoder {
 				case DebugLine(line) => u30(line)
 				case DecLocal(register) => u30(register)
 				case DecLocalInt(register) => u30(register)
-				case Decrement() | DecrementInt() => {}
+				case Decrement() | DecrementInt() =>
 				case DeleteProperty(property) => name(property)
-				case Divide() => {}
-				case Dup() => {}
+				case Divide() =>
+				case Dup() =>
 				case DefaultXMLNamespace(uri) => string(uri)
-				case DefaultXMLNamespaceLate() => {}
-				case Equals() => {}
-				case EscapeXMLAttribute() => {}
-				case EscapeXMLElement() => {}
+				case DefaultXMLNamespaceLate() =>
+				case Equals() =>
+				case EscapeXMLAttribute() =>
+				case EscapeXMLElement() =>
 				case FindProperty(property) => name(property)
 				case FindPropStrict(property) => name(property)
 				case GetDescendants(property) => name(property)
-				case GetGlobalScope() => {}
+				case GetGlobalScope() =>
 				case GetGlobalSlot(slot) => u30(slot)
 				case GetLex(typeName) => name(typeName)
 				case GetLocal(register: Int) => if(register > 3) u30(register)//note: keep the if and do not put it in the case
@@ -127,8 +127,8 @@ object BytecodeEncoder {
 				case GetScopeObject(index) => u08(index)
 				case GetSlot(slot) => u30(slot)
 				case GetSuper(property) => name(property)
-				case GreaterEquals() | GreaterThan() => {}
-				case HasNext() => {}
+				case GreaterEquals() | GreaterThan() =>
+				case HasNext() =>
 				case HasNext2(objectRegister, indexRegister) => {
 					u30(objectRegister)
 					u30(indexRegister)
@@ -147,54 +147,54 @@ object BytecodeEncoder {
 				case IfStrictEqual(marker) => patch(op)
 				case IfStrictNotEqual(marker) => patch(op)
 				case IfTrue(marker) => patch(op)
-				case In() => {}
+				case In() =>
 				case IncLocal(register) => u30(register)
 				case IncLocalInt(register) => u30(register)
-				case Increment() | IncrementInt() => {}
+				case Increment() | IncrementInt() =>
 				case InitProperty(property) => name(property)
-				case InstanceOf() => {}
+				case InstanceOf() =>
 				case IsType(typeName) => name(typeName)
-				case IsTypeLate() => {}
+				case IsTypeLate() =>
 				case Jump(marker) => patch(op)
 				case Kill(register) => u30(register)
-				case Label() => {}
-				case LessEquals() | LessThan() => {}
+				case Label() =>
+				case LessEquals() | LessThan() =>
 				case LookupSwitch(defaultCase, cases) => {
 					patch(op)
 					u30(cases.length - 1)
 					(0 until cases.length) foreach { i => s24(0) }
 				}
-				case ShiftLeft() | Modulo() | Multiply() | MultiplyInt() | Negate() | NegateInt() => {}
-				case NewActivation() => {}
+				case ShiftLeft() | Modulo() | Multiply() | MultiplyInt() | Negate() | NegateInt() =>
+				case NewActivation() =>
 				case NewArray(numArguments) => u30(numArguments)
 				case NewCatch(exceptionHandler) => u30(bytecode.exceptions indexOf exceptionHandler)
 				case NewClass(nominalType) => u30(abc.types indexOf nominalType)
 				case NewFunction(function) => u30(abc.methods indexOf function)
 				case NewObject(numArguments) => u30(numArguments)
-				case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() => {}
+				case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() =>
 				case PushByte(value) => s08(value) // pushbyte is signed
 				case PushDouble(value) => u30(cpool indexOf value)
-				case PushFalse() => {}
+				case PushFalse() =>
 				case PushInt(value) => u30(cpool indexOf value)
 				case PushNamespace(value) => u30(cpool indexOf value)
-				case PushNaN() | PushNull() | PushScope() => {}
+				case PushNaN() | PushNull() | PushScope() =>
 				case PushShort(value) => s30(value) // pushshort is signed
 				case PushString(value) => string(value)
-				case PushTrue() => {}
+				case PushTrue() =>
 				case PushUInt(value) => u30(cpool indexOf value)
-				case PushUndefined() | PushWith() => {}
-				case ReturnValue() | ReturnVoid() => {}
-				case ShiftRight() => {}
+				case PushUndefined() | PushWith() =>
+				case ReturnValue() | ReturnVoid() =>
+				case ShiftRight() =>
 				case SetLocal(register) => if(register > 3) u30(register)
 				case SetGlobalSlot(slot) => u30(slot)
 				case SetProperty(property) => name(property)
 				case SetSlot(slot) => u30(slot)
 				case SetSuper(property) => name(property)
-				case StrictEquals() | Subtract() | SubtractInt() | Swap() => {}
-				case Throw() | TypeOf() | ShiftRightUnsigned() => {}
-				case SetByte() | SetShort() | SetInt() | SetFloat() | SetDouble() => {}
-				case GetByte() | GetShort() | GetInt() | GetFloat() | GetDouble() => {}
-				case Sign1() | Sign8() | Sign16() => {}
+				case StrictEquals() | Subtract() | SubtractInt() | Swap() =>
+				case Throw() | TypeOf() | ShiftRightUnsigned() =>
+				case SetByte() | SetShort() | SetInt() | SetFloat() | SetDouble() =>
+				case GetByte() | GetShort() | GetInt() | GetFloat() | GetDouble() =>
+				case Sign1() | Sign8() | Sign16() =>
 			}
 		}
 		try {
@@ -232,7 +232,7 @@ object BytecodeEncoder {
 			(buffer, exceptions)
 		}
 		finally {
-			try { output.close() } catch { case _ => {} }
+			try { output.close() } catch { case _ =>  }
 		}
 	}
 }
