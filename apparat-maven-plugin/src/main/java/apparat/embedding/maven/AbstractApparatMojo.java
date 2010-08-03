@@ -15,8 +15,7 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 	/**
 	 * The Maven project.
 	 *
-	 * @parameter expression="${project}"
-	 * @required
+	 * @parameter default-value="null" expression="${project}"
 	 */
 	protected MavenProject project;
 
@@ -44,10 +43,12 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 			apparat.log.Log.addOutput(logAdapter);
 
 			if(null == overrideArtifact) {
-				processArtifact(project.getArtifact());
+				if(null != project) {
+					processArtifact(project.getArtifact());
 
-				for(final Artifact artifact : project.getAttachedArtifacts()) {
-					processArtifact(artifact);
+					for(final Artifact artifact : project.getAttachedArtifacts()) {
+						processArtifact(artifact);
+					}
 				}
 			} else {
 				if(!overrideArtifact.exists()) {
@@ -71,10 +72,16 @@ abstract class AbstractApparatMojo extends AbstractMojo {
 	}
 
 	private void processArtifact(final Artifact artifact) throws MojoExecutionException, MojoFailureException {
+		if(null == artifact) {
+			return;
+		}
+		
 		final String artifactType = artifact.getType();
 		if(artifactType.equals("swc") || artifactType.equals("swf")) {
 			try {
-				processFile(artifact.getFile());
+				if(null != artifact.getFile()) {
+					processFile(artifact.getFile());
+				}
 			} catch(final Throwable cause) {
 				throw new MojoExecutionException("Apparat execution failed.", cause);
 			}
