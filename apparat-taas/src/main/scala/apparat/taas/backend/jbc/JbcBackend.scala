@@ -25,10 +25,10 @@ import apparat.taas.analysis.TaasDependencyGraphBuilder
 import apparat.taas.graph._
 import java.io.{PrintWriter => JPrintWriter}
 import collection.mutable.ListBuffer
-import apparat.taas.ast._
-import org.objectweb.asm.util.{CheckClassAdapter => JCheckClassAdapter, TraceClassVisitor => JTraceClassVisitor}
 import org.objectweb.asm.{Opcodes => JOpcodes, Label => JLabel, ClassWriter => JClassWriter, ClassVisitor => JClassVisitor, ClassReader => JClassReader}
 import apparat.log.{Debug, SimpleLog}
+import org.objectweb.asm.util.{ASMifierClassVisitor, CheckClassAdapter => JCheckClassAdapter, TraceClassVisitor => JTraceClassVisitor}
+import apparat.taas.ast._
 
 /**
  * @author Joa Ebert
@@ -88,7 +88,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 		}
 	}
 
-	@inline private def methodDesc(returnType: String, parameters: ListBuffer[TaasParameter]): String = "("+(parameters map { _.`type` } map { toJavaType } mkString ",")+")"+returnType
+	@inline private def methodDesc(returnType: String, parameters: ListBuffer[TaasParameter]): String = "("+(parameters map { _.`type` } map { toJavaType } mkString "")+")"+returnType
 	@inline private def methodDesc(returnType: TaasType, parameters: ListBuffer[TaasParameter]): String = methodDesc(toJavaType(returnType), parameters)
 	@inline private def methodDesc(method: TaasMethod): String = methodDesc(toJavaType(method.`type`), method.parameters)
 
@@ -200,6 +200,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						}
 					}
 				}
+				case TCoerce(_) =>
 				case _ => error("TODO "+op)
 			}
 		}
@@ -258,17 +259,29 @@ class JbcBackend extends TaasBackend with SimpleLog {
 					
 					op match {
 						case _: TNop =>
-						case T2(TOp_Nothing, TLexical(t: TaasClass), _) =>
-						case T2(TOp_Nothing, TLexical(t: TaasFunction), _) =>
+						case T2(TOp_Nothing, lex @ TLexical(t: TaasClass), reg) => reg typeAs lex.`type`
+						case T2(TOp_Nothing, lex @ TLexical(t: TaasFunction), reg) => reg typeAs lex.`type`
 						case T2(operator, rhs, result) => {
 							load(rhs)
 							unop(operator, rhs)
 							storeByValue(rhs, result)
 						}
-						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => mv.visitIincInsn(result.index, -n)
-						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => mv.visitIincInsn(result.index, -n)
-						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => mv.visitIincInsn(result.index, n)
-						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => mv.visitIincInsn(result.index, n)
+						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => {
+							mv.visitIincInsn(result.index, -n)
+							result typeAs TaasIntType
+						}
+						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => {
+							mv.visitIincInsn(result.index, -n)
+							result typeAs TaasIntType
+						}
+						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => {
+							mv.visitIincInsn(result.index, n)
+							result typeAs TaasIntType
+						}
+						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => {
+							mv.visitIincInsn(result.index, n)
+							result typeAs TaasIntType
+						}
 						case T3(operator, lhs, rhs, result) => {
 							load(lhs)
 							load(rhs)
@@ -363,6 +376,40 @@ class JbcBackend extends TaasBackend with SimpleLog {
 								case None =>
 							}
 						}
+						case TConstruct(obj, arguments, result) => {
+							val ctor = obj.`type` match {
+								case TaasNominalTypeInstance(nominal) => nominal match {
+									case TaasClass(_, _, _, _, _, ctor, _, _, _, _) => ctor
+									case other => error("Unexpected definition: "+other)
+								}
+								case other => error("Unexpected objet: "+other)
+							}
+
+							mv.visitTypeInsn(JOpcodes.NEW, toJavaName(obj.`type`));
+							mv.visitInsn(JOpcodes.DUP);
+
+							var i = 0
+							var n = arguments.length
+							var m = ctor.parameters.length
+
+							while(i < n) {
+								load(arguments(i))
+								implicitCast(arguments(i).`type`, ctor.parameters(i).`type`)
+								i += 1
+							}
+
+							while(i < m) {
+								val defaultValue = ctor.parameters(i).defaultValue
+								load(defaultValue getOrElse error("Missing parameter."))
+								implicitCast(defaultValue.get.`type`, ctor.parameters(i).`type`)
+								i += 1
+							}
+							
+							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, toJavaName(obj.`type`), "<init>", methodDesc("V", ctor.parameters))
+							
+							storeByType(obj.`type`, result)
+						}
+						
 						case TLoad(obj, field, result) => {
 							mv.visitFieldInsn(JOpcodes.GETSTATIC, toJavaName(ownerOf(field)), field.name.name, toJavaType(field.`type`))
 							storeByType(field.`type`, result)

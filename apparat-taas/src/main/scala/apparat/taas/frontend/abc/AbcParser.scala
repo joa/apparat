@@ -136,7 +136,7 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 
 	def parseParameters(parameters: Array[AbcMethodParameter]) = ListBuffer((parameters map parseParameter): _*)
 
-	def parseParameter(parameter: AbcMethodParameter) = TaasParameter(parameter.typeName, parameter.optionalVal)
+	def parseParameter(parameter: AbcMethodParameter) = TaasParameter(parameter.typeName, parameter.optionalVal map asTValue)
 
 	def parseSlot(slotTrait: AbcTraitAnySlot, isStatic: Boolean) = slotTrait match {
 		case AbcTraitSlot(name, _, typeName, _, _, _) => TaasSlot(name.name, name.namespace, typeName, isStatic)
@@ -199,5 +199,16 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 			}
 			case None => None
 		}
+	}
+
+	private def asTValue(value: Any): TValue = value match {
+		case b: Boolean => TBool(b)
+		case i: Int => TInt(i)
+		case l: Long => TLong(l)
+		case d: Double => TDouble(d)
+		case y: Symbol => TString(y)
+		case s: String => TString(Symbol(s))
+		case n if n == null => TNull
+		case _ => error("Unexpected default value: "+value)
 	}
 }

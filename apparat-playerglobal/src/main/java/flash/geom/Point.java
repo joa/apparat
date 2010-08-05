@@ -15,7 +15,7 @@ public class Point implements Cloneable {
 	private double _y;
 
 	public Point() { this(0.0, 0.0); }
-
+	public Point(final double x) { this(x, 0.0); }
 	public Point(final double x, final double y) {
 		_x = x;
 		_y = y;
@@ -42,6 +42,7 @@ public class Point implements Cloneable {
 	public Point clone() throws CloneNotSupportedException {
 		return (Point)super.clone();
 	}
+
 
 	@Override
 	public boolean equals(final Object that) {

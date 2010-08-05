@@ -216,9 +216,13 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case CoerceUInt() => pp(unop(TCoerce(TaasLongType)))
 				case Construct(numArguments) => {
 					val args = arguments(numArguments)
-					pp(TConstruct(pop(), args))
+					pp(TConstruct(pop(), args, nextOperand))
 				}
-				case ConstructProp(property, numArguments) => TODO(op)
+				case ConstructProp(property, numArguments) => {
+					//TODO verify that property equals obj
+					val args = arguments(numArguments)
+					pp(TConstruct(pop(), args, nextOperand))
+				}
 				case ConstructSuper(numArguments) => {
 					val args = arguments(numArguments)
 					pp(TSuper(pop(), args))
@@ -333,7 +337,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case PushInt(value) => pp(push(TInt(value)))
 				case PushNamespace(value) => TODO(op)
 				case PushNaN() => pp(push(TDouble(Double.NaN)))
-				case PushNull() => TODO(op)
+				case PushNull() => pp(push(TNull))
 				case PushScope() => pop()
 				case PushShort(value) => pp(push(TInt(value)))
 				case PushString(value) => pp(push(TString(value)))

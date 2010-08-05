@@ -239,7 +239,7 @@ abstract class TaasCode extends Dumpable {
 
 case class TaasParameter(
 		`type`: TaasType,
-		defaultValue: Option[Any]) extends TaasElement with ParentUnit with TaasTyped {
+		defaultValue: Option[TValue]) extends TaasElement with ParentUnit with TaasTyped {
 	override def accept(visitor: TaasVisitor) = visitor visit this
 }
 
@@ -447,6 +447,7 @@ sealed trait TArgumentList {
 }
 
 case object TVoid extends TValue { override def `type` = TaasVoidType }
+case object TNull extends TValue { override def `type` = TaasVoidType }
 case class TInt(value: Int) extends TConst { override def `type` = TaasIntType }
 case class TLong(value: Long) extends TConst { override def `type` = TaasLongType }
 case class TBool(value: Boolean) extends TConst { override def `type` = TaasBooleanType }
@@ -534,9 +535,10 @@ case class TReturn(value: TValue) extends TExpr with TSideEffect {
 	override def uses(index: Int) = value matches index
 }
 
-case class TConstruct(`object`: TValue, arguments: List[TValue]) extends TExpr with TSideEffect with TArgumentList {
-	override def defines(index: Int) = false
+case class TConstruct(`object`: TValue, arguments: List[TValue], result: TReg) extends TDef with TSideEffect with TArgumentList {
+	override def defines(index: Int) = result.index == index
 	override def uses(index: Int) = (`object` matches index) || argumentMatches(index)
+	override def register = result.index
 }
 
 case class TSuper(base: TValue, arguments: List[TValue]) extends TExpr with TSideEffect with TArgumentList {
