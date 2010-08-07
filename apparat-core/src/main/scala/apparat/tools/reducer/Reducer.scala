@@ -12,6 +12,7 @@ import java.util.zip.{Inflater => JInflater}
 import java.util.zip.{Deflater => JDeflater}
 import apparat.actors.Futures._
 import apparat.abc.Abc
+import apparat.abc.optimization.IdenticalMethodSort
 import apparat.abc.analysis.AbcConstantPoolBuilder
 import java.io.{File => JFile, FileOutputStream => JFileOutputStream, ByteArrayOutputStream => JByteArrayOutputStream, ByteArrayInputStream => JByteArrayInputStream}
 import apparat.bytecode.optimization.BlockMerge
@@ -63,8 +64,8 @@ object Reducer {
 			SwfTags.tagFactory = (kind: Int) => kind match {
 				case SwfTags.DefineBitsLossless2 => Some(new DefineBitsLossless2)
 				case SwfTags.FileAttributes => Some(new FileAttributes)
-				case SwfTags.DoABC if mergeABC => Some(new DoABC)
-				case SwfTags.DoABC1 if mergeABC => Some(new DoABC)
+				case SwfTags.DoABC if mergeABC || mergeCF => Some(new DoABC)
+				case SwfTags.DoABC1 if mergeABC || mergeCF => Some(new DoABC)
 				case SwfTags.DefineBinaryData => Some(new DefineBinaryData)
 				case SwfTags.FileAttributes => Some(new FileAttributes)
 				case SwfTags.ScriptLimits => Some(new ScriptLimits)
@@ -132,6 +133,7 @@ object Reducer {
 									}
 									
 									b.saveBytecode()
+									IdenticalMethodSort(b)
 									b write doABC
 
 									result = o :: doABC :: result

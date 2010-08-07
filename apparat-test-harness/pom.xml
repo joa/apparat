@@ -46,6 +46,7 @@
               <goal>tdsi</goal>
             </goals>
             <configuration>
+			  <failIfOverrideIsMissing>false</failIfOverrideIsMissing>
               <overrideArtifact>${project.build.testOutputDirectory}/${flexmojos.testrunner}</overrideArtifact>
               <alchemyExpansion>true</alchemyExpansion>
               <asmExpansion>true</asmExpansion>

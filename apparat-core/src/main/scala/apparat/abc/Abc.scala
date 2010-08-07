@@ -81,16 +81,17 @@ object Abc {
 
 	def using[T](doABC: DoABC, supportBytecode: Boolean = true)(f: Abc => T) = {
 		val abc = Abc fromDoABC doABC
-
-		if(supportBytecode) {
+		val result = if(supportBytecode) {
 			abc.loadBytecode()
-			f(abc)
+			val temp = f(abc)
 			abc.saveBytecode()
+			temp
 		} else {
 			f(abc)
 		}
 
 		abc write doABC
+		result
 	}
 }
 
@@ -585,7 +586,7 @@ class Abc extends Dumpable {
 			t.metadata match {
 				case Some(meta) => {
 					output writeU30 meta.length
-					meta foreach (x => output writeU30 (metadata indexOf x))//TODO chain with andThen?
+					meta foreach (x => output writeU30 (metadata indexOf x))
 				}
 				case None => {}
 			}
@@ -675,6 +676,8 @@ class Abc extends Dumpable {
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Abc:"
 		writer withIndent {
+			writer <= methods.length+" method(s), "+metadata.length+
+					" metadata, "+types.length+" type(s), "+scripts.length+" script(s)"
 			cpool dump writer
 			writer <= "Functions:"
 			writer withIndent {
