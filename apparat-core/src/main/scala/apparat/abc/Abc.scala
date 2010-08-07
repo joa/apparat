@@ -81,16 +81,17 @@ object Abc {
 
 	def using[T](doABC: DoABC, supportBytecode: Boolean = true)(f: Abc => T) = {
 		val abc = Abc fromDoABC doABC
-
-		if(supportBytecode) {
+		val result = if(supportBytecode) {
 			abc.loadBytecode()
-			f(abc)
+			val temp = f(abc)
 			abc.saveBytecode()
+			temp
 		} else {
 			f(abc)
 		}
 
 		abc write doABC
+		result
 	}
 }
 

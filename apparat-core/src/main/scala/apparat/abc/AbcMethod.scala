@@ -71,6 +71,8 @@ class AbcMethod(var parameters: Array[AbcMethodParameter], var returnType: AbcNa
 			}
 		}
 	}
+
+
 }
 
 class AbcMethodBody(var maxStack: Int, var localCount: Int, var initScopeDepth: Int,
