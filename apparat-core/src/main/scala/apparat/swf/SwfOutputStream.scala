@@ -31,7 +31,7 @@ class SwfOutputStream(val output: JOutputStream) extends JOutputStream {
 	private var bitBuffer: Int = 0
 	private var bitIndex: Int = 0
 
-	private def aligned(body: => Unit): Unit = {
+	@inline private def aligned(body: => Unit): Unit = {
 		if (0 != bitIndex) {
 			write(bitBuffer);
 			bitIndex = 0;
@@ -135,15 +135,15 @@ class SwfOutputStream(val output: JOutputStream) extends JOutputStream {
 	def writeSB(value: Int): Unit = writeSB(value, countBits(value));
 	def writeSB(value: Int, n: Int): Unit = for (i <- (n - 1) to 0 by -1) {
 		if (0 != (value & (1 << i))) {
-			markBit
+			markBit()
 		}
-		nextBit
+		nextBit()
 	}
 
 	def writeUB(value: Int): Unit = writeSB(value, 0x20 - Integer.numberOfLeadingZeros(value));
 	def writeUB(value: Int, n: Int): Unit = writeSB(value, n)
 
-	def writeSI08(value: Int) = aligned {write(value & 0xff)}
+	def writeSI08(value: Int) = aligned { write(value & 0xff) }
 
 	def writeSI16(value: Int) = aligned {
 		write(value & 0xff)

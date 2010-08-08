@@ -37,7 +37,7 @@ object DeadCodeElimination extends TaasOptimization {
 	}
 
 	def apply(graph: TaasGraph): Boolean = apply(-1, graph)
-	
+
 	def apply(numParameters: Int, graph: TaasGraph): Boolean = {
 		var modified: Boolean = false
 

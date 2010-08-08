@@ -27,41 +27,47 @@ class SwfInputStream(val input: JInputStream) extends JInputStream {
 	private var bitBuffer: Int = 0
 	private var bitIndex: Int = 0
 
-	private def aligned[@specialized A](body: => A): A = {
+	@inline private def aligned[@specialized A](body: => A): A = {
 		bitBuffer = 0
 		bitIndex = 0
 		body
 	}
 
-	private def signed(mask: Int, r: Int) = {
+	@inline private def signed(mask: Int, r: Int) = {
 		if (0 != (r & mask)) (r & (mask - 1)) - mask
 		else r
 	}
 
-	private def signed(mask: Long, r: Long): Int = {
+	@inline private def signed(mask: Long, r: Long): Int = {
 		if (0 != (r & mask)) ((r & (mask - 1L)) - mask).asInstanceOf[Int]
 		else r.asInstanceOf[Int]
 	}
 
 	private def readBits() = {
-		bitBuffer = read
+		bitBuffer = read()
 		bitIndex = 8
 	}
 
 	private def isBitTrue() = {
-		if (0 == bitIndex) readBits
+		if (0 == bitIndex) readBits()
 		0 != (bitBuffer & (1 << (bitIndex - 1)))
 	}
 
 	private def bitAt(index: Int) = isBitTrue match {
-		case true => {nextBit; 1 << index}
-		case false => {nextBit; 0}
+		case true => {
+			nextBit()
+			1 << index
+		}
+		case false => {
+			nextBit()
+			0
+		}
 	}
 
 	private def nextBit() = bitIndex = bitIndex - 1
 
 	def readFIXED() = {
-		val a = readUI16 / 65535.0f
+		val a = readUI16() / 65535.0f
 		readUI16() + a
 	}
 
@@ -71,8 +77,8 @@ class SwfInputStream(val input: JInputStream) extends JInputStream {
 	}
 
 	def readRECORDHEADER() = {
-		val pack = readUI16
-		new Recordheader(pack >> 6, if (0x3f == (pack & 0x3f)) readSI32() else pack & 0x3f)
+		val pack = readUI16()
+		new Recordheader(pack >> 6, if(0x3f == (pack & 0x3f)) readSI32() else pack & 0x3f)
 	}
 
 	def readRECT() = {
@@ -80,20 +86,15 @@ class SwfInputStream(val input: JInputStream) extends JInputStream {
 		new Rect(readSB(bits), readSB(bits), readSB(bits), readSB(bits))
 	}
 
-	def readRGB() = new RGB(readUI08, readUI08, readUI08)
+	def readRGB() = new RGB(readUI08(), readUI08(), readUI08())
 
 	def readSTRING(): String = {
-		@tailrec def until0(seq: List[Byte]): List[Byte] = readUI08 match {
+		@tailrec def loop(seq: List[Byte]): List[Byte] = readUI08() match {
 			case 0 => seq
-			case _@y => {
-				seq match {
-					case Nil => until0(List(y.asInstanceOf[Byte]))
-					case h :: t => until0(seq ::: List(y.asInstanceOf[Byte]))
-				}
-			}
+			case y => loop(y.asInstanceOf[Byte] :: seq)
 		}
 
-		new String(until0(Nil) toArray, "UTF8")
+		new String(loop(Nil).reverse.toArray, "UTF8")
 	}
 
 	def readTAG(): SwfTag = {
@@ -107,21 +108,21 @@ class SwfInputStream(val input: JInputStream) extends JInputStream {
 	//or: while(n > -1) { result |= bitAt(n); n -= 1 }
 	def readUB(n: Int) = ((n - 1) to 0 by -1) map bitAt reduceLeft (_ | _)
 
-	def readUI08() = aligned { read }
+	def readUI08() = aligned { read() }
 
 	def readUI16() = aligned {
-		val b0 = readUI08
-		(read << 0x08) | b0
+		val b0 = readUI08()
+		(read() << 0x08) | b0
 	}
 
 	def readUI24() = aligned {
-		val b0 = readUI16
-		(read << 0x10) | b0
+		val b0 = readUI16()
+		(read() << 0x10) | b0
 	}
 
 	def readUI32(): Long = aligned {
-		val b0 = readUI24
-		(read << 0x18) | b0
+		val b0 = readUI24()
+		(read() << 0x18) | b0
 	}
 
 	def readUI64(): BigInt = aligned {
@@ -132,13 +133,13 @@ class SwfInputStream(val input: JInputStream) extends JInputStream {
 
 	def readSB(n: Int) = signed(1 << n, readUB(n))
 
-	def readSI08() = signed(0x80, readUI08)
+	def readSI08() = signed(0x80, readUI08())
 
-	def readSI16() = signed(0x8000, readUI16)
+	def readSI16() = signed(0x8000, readUI16())
 
-	def readSI24() = signed(0x800000, readUI24)
+	def readSI24() = signed(0x800000, readUI24())
 
-	def readSI32() = signed(0x80000000L, readUI32)
+	def readSI32() = signed(0x80000000L, readUI32())
 
 	override def available() = input.available
 

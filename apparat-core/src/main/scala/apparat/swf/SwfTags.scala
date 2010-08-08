@@ -184,10 +184,7 @@ object SwfTags {
 
 	var tagFactory: (Int => Option[SwfTag]) = defaultTagFactory
 
-	protected[swf] def create(kind: Int): SwfTag = tagFactory(kind) match {
-		case Some(x) => x
-		case None => new GenericTag(kind)
-	}
+	protected[swf] def create(kind: Int): SwfTag = tagFactory(kind) getOrElse new GenericTag(kind)
 
 	def isLongTag(kind: Int) = kind match {
 		case
