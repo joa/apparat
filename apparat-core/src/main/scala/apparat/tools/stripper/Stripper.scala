@@ -62,7 +62,7 @@ object Stripper {
 		 * FindPropStrict(trace) AnyOp* CallPropVoid(trace,N) => AnyOp* repeat(Pop(), N)
 		 */
 		private lazy val trace = {
-			(	FindPropStrict(qname) ~
+			(FindPropStrict(qname) ~
 				(filter {
 					case CallPropVoid(name, args) if name == qname => false
 					case _ => true
@@ -102,52 +102,43 @@ object Stripper {
 			}
 
 			val cont = TagContainer fromFile input
-			cont.tags = cont.tags map strip
+			cont foreachTag strip
 			cont write output
 		}
 
-		private def strip(tag: SwfTag) = tag match {
+		private def strip: PartialFunction[SwfTag, Unit] = {
 			case doABC: DoABC => {
 				val abc = Abc fromDoABC doABC
 
 				abc.loadBytecode()
 
-				for(method <- abc.methods) {
-					method.body match {
-						case Some(body) => {
-							body.bytecode match {
-								case Some(bytecode) => {
-									//
-									// Strip all debug information.
-									//
+				for {
+					method <- abc.methods
+					body <- method.body
+					bytecode <- body.bytecode
+				} {
+					//
+					// Strip all debug information.
+					//
 
-									bytecode removeAll {
-										_.opCode match {
-											case Op.debug | Op.debugfile | Op.debugline => true
-											case _ => false
-										}
-									}
-
-									//
-									// Strip all traces.
-									//
-
-									bytecode rewrite traceVoid
-									bytecode rewrite trace
-								}
-								case None =>
-							}
+					bytecode removeAll {
+						_.opCode match {
+							case Op.debug | Op.debugfile | Op.debugline => true
+							case _ => false
 						}
-						case None =>
 					}
+
+					//
+					// Strip all traces.
+					//
+
+					bytecode rewrite traceVoid
+					bytecode rewrite trace
 				}
 
 				abc.saveBytecode()
 				abc write doABC
-
-				doABC
 			}
-			case _ => tag
 		}
 	}
 }

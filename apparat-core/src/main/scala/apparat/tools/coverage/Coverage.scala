@@ -50,7 +50,7 @@ object Coverage {
 			}
 
 			val cont = TagContainer fromFile input
-			cont.tags = cont.tags map coverage
+			cont foreachTag coverage
 			cont write output
 		}
 
@@ -62,61 +62,49 @@ object Coverage {
 			observers = observers filterNot (_ == observer)
 		}
 
-		private def coverage(tag: SwfTag) = tag match {
+		private def coverage: PartialFunction[SwfTag, Unit] = {
 			case doABC: DoABC => {
-				val f = future {
-					var abcModified = false
-					val abc = Abc fromDoABC doABC
+				var abcModified = false
+				val abc = Abc fromDoABC doABC
 
-					abc.loadBytecode()
+				abc.loadBytecode()
 
-					for(method <- abc.methods) {
-						method.body match {
-							case Some(body) => {
-								body.bytecode match {
-									case Some(bytecode) => {
-										bytecode.ops find (_.opCode == Op.debugfile) match {
-											case Some(op) => {
-												val debugFile = op.asInstanceOf[DebugFile]
-												val file = debugFile.file
-												if(sourcePath.isEmpty || (sourcePath exists (file.name startsWith _))) {
-													abcModified = true
+				for {
+					method <- abc.methods
+					body <- method.body
+					bytecode <- body.bytecode
+				} {
+					bytecode.ops find (_.opCode == Op.debugfile) match {
+						case Some(op) => {
+							val debugFile = op.asInstanceOf[DebugFile]
+							val file = debugFile.file
+							if(sourcePath.isEmpty || (sourcePath exists (file.name startsWith _))) {
+								abcModified = true
 
-													bytecode.replaceFrom(4, debugLine) {
-														x =>
-															observers foreach (_.instrument(file.name, x))
-															
-															DebugLine(x) ::
-															coverageScope ::
-															PushString(file) ::
-															pushLine(x) ::
-															coverageMethod :: Nil
-													}
+								bytecode.replaceFrom(4, debugLine) {
+									x =>
+										observers foreach (_.instrument(file.name, x))
 
-													body.maxStack += 3
-												}
-											}
-											case None =>
-										}
-									}
-									case None =>
+										DebugLine(x) ::
+										coverageScope ::
+										PushString(file) ::
+										pushLine(x) ::
+										coverageMethod :: Nil
 								}
+
+								body.maxStack += 3
 							}
-							case None =>
 						}
+						case None =>
 					}
-
-					if(abcModified) {
-						abc.cpool = (abc.cpool add coverageQName) add coverageOnSample
-						abc.saveBytecode()
-						abc write doABC
-					}
-
-					doABC
 				}
-				f()
+
+				if(abcModified) {
+					abc.cpool = (abc.cpool add coverageQName) add coverageOnSample
+					abc.saveBytecode()
+					abc write doABC
+				}
 			}
-			case _ => tag
 		}
 
 		private def pushLine(line: Int) = line match {

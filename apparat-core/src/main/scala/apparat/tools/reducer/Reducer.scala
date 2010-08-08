@@ -12,10 +12,10 @@ import java.util.zip.{Inflater => JInflater}
 import java.util.zip.{Deflater => JDeflater}
 import apparat.actors.Futures._
 import apparat.abc.Abc
-import apparat.abc.optimization.IdenticalMethodSort
 import apparat.abc.analysis.AbcConstantPoolBuilder
 import java.io.{File => JFile, FileOutputStream => JFileOutputStream, ByteArrayOutputStream => JByteArrayOutputStream, ByteArrayInputStream => JByteArrayInputStream}
 import apparat.bytecode.optimization.BlockMerge
+import apparat.abc.optimization.IdenticalMethodSort
 
 object Reducer {
 	def main(args: Array[String]): Unit = ApparatApplication(new ReducerTool, args)
@@ -76,12 +76,13 @@ object Reducer {
 			val target = output
 			val l0 = source length
 			val cont = TagContainer fromFile source
-			cont.tags = cont.tags filterNot (tag => tag.kind == SwfTags.Metadata || tag.kind == SwfTags.ProductInfo) map reduce
+			cont.tags = cont.tags filterNot (tag => tag.kind == SwfTags.Metadata || tag.kind == SwfTags.ProductInfo)
+			cont mapTags reduce
 
 			if(mergeCF) {
 				log.info("Merging identical control flow ...")
 
-				for(tag <- cont.tags) tag match {
+				cont foreachTag { 
 					case doABC: DoABC => {
 						Abc.using(doABC) {
 							abc => {
@@ -95,7 +96,6 @@ object Reducer {
 							}
 						}
 					}
-					case _ =>
 				}
 			}
 			
@@ -105,6 +105,11 @@ object Reducer {
 				var buffer: Option[Abc] = None
 				var result = List.empty[SwfTag]
 				var i = 0
+
+				//
+				// Note: We cannot use foreachTag or mapTags since the
+				// order is not gauranteed.
+				//
 
 				for(tag <- cont.tags) {
 					tag match {
@@ -183,17 +188,15 @@ object Reducer {
 			log.info("Total bytes: %d", delta)
 		}
 
-		private def reduce(tag: SwfTag) = tag.kind match {
-			case SwfTags.DefineBitsLossless2 => {
-				val dbl2 = tag.asInstanceOf[DefineBitsLossless2]
+		private def reduce: PartialFunction[SwfTag, SwfTag] = {
+			case dbl2: DefineBitsLossless2 => {
 				if (5 == dbl2.bitmapFormat && (dbl2.bitmapWidth * dbl2.bitmapHeight) > 1024) {
 					lossless2jpg(dbl2)
 				} else {
 					dbl2
 				}
 			}
-			case SwfTags.FileAttributes => {
-				val fileAttributes = tag.asInstanceOf[FileAttributes]
+			case fileAttributes: FileAttributes => {
 				val result = new FileAttributes()
 
 				result.actionScript3 = fileAttributes.actionScript3
@@ -204,7 +207,6 @@ object Reducer {
 
 				result
 			}
-			case _ => tag
 		}
 
 		private def lossless2jpg(tag: DefineBitsLossless2) = {

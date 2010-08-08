@@ -91,33 +91,26 @@ object TurboDieselSportInjection {
 
 			if (asm) {
 				for((doABC, abc) <- allABC) {
+					for {
+						method <- abc.methods
+						body <- method.body
+						bytecode <- body.bytecode
+					} {
+						@tailrec def modifyBytecode(counter: Int): Unit = {
+							var modified = false
 
-					for(method <- abc.methods) {
-						method.body match {
-							case Some(body) => {
-								body.bytecode match {
-									case Some(bytecode) => {
-										@tailrec def modifyBytecode(counter: Int): Unit = {
-											var modified = false
-
-											if(AsmExpansion(bytecode)) {
-												modified = true
-												rebuildCpoolSet += abc
-											}
-
-											if (modified && (counter < 31)) {
-												modifyBytecode(counter + 1)
-											}
-										}
-
-										PeepholeOptimizations(bytecode)
-										modifyBytecode(0)
-									}
-									case None =>
-								}
+							if(AsmExpansion(bytecode)) {
+								modified = true
+								rebuildCpoolSet += abc
 							}
-							case None =>
+
+							if (modified && (counter < 31)) {
+								modifyBytecode(counter + 1)
+							}
 						}
+
+						PeepholeOptimizations(bytecode)
+						modifyBytecode(0)
 					}
 				}
 			}
@@ -125,48 +118,41 @@ object TurboDieselSportInjection {
 			for((doABC, abc) <- allABC) {
 				var rebuildCpool = rebuildCpoolSet.contains(abc)
 
-				for(method <- abc.methods) {
-					method.body match {
-						case Some(body) => {
-							body.bytecode match {
-								case Some(bytecode) => {
-									@tailrec def modifyBytecode(counter: Int): Unit = {
-										var modified = false
+				for {
+					method <- abc.methods
+					body <- method.body
+					bytecode <- body.bytecode
+				} {
+					@tailrec def modifyBytecode(counter: Int): Unit = {
+						var modified = false
 
-										if(inline && (inlineExpansion.get expand bytecode)) {
-											modified = true
-											rebuildCpool = true
-										}
-
-										if(macros && (macroExpansion.get expand bytecode)) {
-											modified = true
-											rebuildCpool = true
-										}
-
-										if(alchemy) {
-											modified |= InlineMemory(bytecode)
-										}
-
-										if(fixAlchemy) {
-											modified |= AlchemyOptimizations(bytecode)
-										}
-
-										modified |= PeepholeOptimizations(bytecode)
-
-										if (modified && (counter < 31)) {
-											modifyBytecode(counter + 1)
-										}
-									}
-
-									modifyBytecode(0)
-								}
-								case None =>
-							}
+						if(inline && (inlineExpansion.get expand bytecode)) {
+							modified = true
+							rebuildCpool = true
 						}
-						case None =>
-					}
-				}
 
+						if(macros && (macroExpansion.get expand bytecode)) {
+							modified = true
+							rebuildCpool = true
+						}
+
+						if(alchemy) {
+							modified |= InlineMemory(bytecode)
+						}
+
+						if(fixAlchemy) {
+							modified |= AlchemyOptimizations(bytecode)
+						}
+
+						modified |= PeepholeOptimizations(bytecode)
+
+						if (modified && (counter < 31)) {
+							modifyBytecode(counter + 1)
+						}
+					}
+
+					modifyBytecode(0)
+				}
 
 				if(allABC.size > 1 && rebuildCpool) {
 					//

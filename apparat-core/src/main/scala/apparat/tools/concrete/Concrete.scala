@@ -51,14 +51,19 @@ object Concrete {
 				}
 			}
 
-			for(abc <- abcs;
-				nominalType <- abc.types if nominalType.inst.base.isDefined && !nominalType.inst.isInterface) {
+			for {
+				abc <- abcs
+				nominalType <- abc.types if nominalType.inst.base.isDefined && !nominalType.inst.isInterface
+			} {
 
 				val stack = buildStack(nominalType, Stack.empty[AbcNominalType])
 				var abstracts = List.empty[AbcQName]
 				var concretes = List.empty[AbcQName]
 
-				for(currentType <- stack; `trait` <- currentType.inst.traits) {
+				for {
+					currentType <- stack
+					`trait` <- currentType.inst.traits
+				} {
 					`trait` match {
 						case anyMethod: AbcTraitAnyMethod => {
 							if(anyMethod.metadata.isDefined && (anyMethod.metadata.get exists { _.name == 'Abstract })) {

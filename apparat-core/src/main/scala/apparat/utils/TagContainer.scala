@@ -22,7 +22,7 @@ object TagContainer {
 	}
 }
 
-class TagContainer {
+class TagContainer extends SwfTagMapping {
 	var strategy: Option[TagContainerStrategy] = None
 
 	def tags: List[SwfTag] = strategy match {

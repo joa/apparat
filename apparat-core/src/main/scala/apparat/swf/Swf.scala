@@ -81,7 +81,7 @@ object Swf {
 	}
 }
 
-final class Swf extends Dumpable {
+final class Swf extends Dumpable with SwfTagMapping {
 	var compressed: Boolean = true
 	var version: Int = 10
 	var frameSize: Rect = new Rect(0, 20000, 0, 20000)
