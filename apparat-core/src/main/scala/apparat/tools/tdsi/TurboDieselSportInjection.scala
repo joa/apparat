@@ -96,12 +96,14 @@ object TurboDieselSportInjection {
 						body <- method.body
 						bytecode <- body.bytecode
 					} {
+						var rebuildCpool = false
+
 						@tailrec def modifyBytecode(counter: Int): Unit = {
 							var modified = false
 
 							if(AsmExpansion(bytecode)) {
 								modified = true
-								rebuildCpoolSet += abc
+								rebuildCpool = true
 							}
 
 							if (modified && (counter < 31)) {
@@ -111,6 +113,10 @@ object TurboDieselSportInjection {
 
 						PeepholeOptimizations(bytecode)
 						modifyBytecode(0)
+
+						if(rebuildCpool) {
+							rebuildCpoolSet += abc
+						}
 					}
 				}
 			}
@@ -154,7 +160,7 @@ object TurboDieselSportInjection {
 					modifyBytecode(0)
 				}
 
-				if(allABC.size > 1 && rebuildCpool) {
+				if(rebuildCpool) {
 					//
 					// We have to rebuild the cpool here since both Macro and Inline
 					// expansion could include operations from a different ABC
