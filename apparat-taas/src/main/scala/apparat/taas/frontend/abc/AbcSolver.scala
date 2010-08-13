@@ -47,7 +47,6 @@ object AbcSolver extends SimpleLog {
 	def setProperty(`type`: TaasNominalType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = property(`type`.nominal, name, 1)
 
 	def property(`type`: TaasType, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = {
-		log.debug("%s, %s, %d", `type`, name, numParameters)
 		`type` match {
 			case nominalType: TaasNominalType => property(nominalType.nominal, name, numParameters)
 			case _ => error("Nominal type expected, got "+`type`+" while searching "+name+" with "+numParameters+" parameter(s).")
@@ -57,7 +56,6 @@ object AbcSolver extends SimpleLog {
 	def property(`type`: TaasNominalType, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = property(`type`.nominal, name, numParameters)
 
 	def property(nominal: TaasNominal, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = {
-		log.debug("%s, %s, %d", nominal, name, numParameters)
 		nominal match {
 			case TaasInterface(_, _, base, methods, _) => {
 				name match {
@@ -146,6 +144,10 @@ object AbcSolver extends SimpleLog {
 	def getLexical(scope: TaasType, static: Boolean, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
 		scope match {
 			case nominalType: TaasNominalType => getLexical(nominalType.nominal, static, name)
+			case TaasObjectType => name match {
+				case qname: AbcQName => Some(AbcTypes.fromQName(qname).nominal)
+				case _ => error("QName expected, got "+name+".")
+			}
 			case other => error("Nominal type expected, got "+other+".")
 		}
 	}

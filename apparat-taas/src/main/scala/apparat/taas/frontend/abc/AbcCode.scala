@@ -111,7 +111,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 		} catch {
 			case e => {
 				e.printStackTrace()
-				bytecode.dump(log, DebugLogLevel)
+				bytecode.dump()
 				log.debug("-------------------------------------------------")
 				new TaasGraph(new Graph[TaasBlock](), TaasEntry, TaasExit)
 			}
@@ -121,7 +121,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 	private def mapVertices[V <: BlockVertex[AbstractOp]](g: BytecodeControlFlowGraph[V], annotations: Map[V, (Int, Int)])(implicit registers: List[TReg]) = {
 		var result = HashMap.empty[V, TaasBlock]
 
-		for(vertex <- g.verticesIterator) {
+		for(vertex <- g.topsort) {
 			result += vertex -> (
 				if(g isEntry vertex) TaasEntry
 				else if(g isExit vertex) TaasExit
@@ -137,7 +137,12 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 		var operandStack = stack._1
 		var scopeStack = stack._2
 
-		@inline def pp(expr: TExpr) = r = expr :: r
+		@inline def pp(expr: TExpr) = {
+			if(log.debugEnabled) {
+				log.debug("%s", expr)
+			}
+			r = expr :: r
+		}
 		@inline def register(i: Int): TReg = registers(i)
 		@inline def operand(i: Int): TReg = registers(i + numRegisters)
 		@inline def push(value: TValue): TExpr = { val o = operandStack; operandStack += 1; T2(TOp_Nothing, value, operand(o)) }
@@ -193,7 +198,6 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case CallPropVoid(property, numArguments) => {
 					val args = arguments(numArguments)
 					val obj = pop()
-					log.debug("CURRENT OBJECT %s", obj)
 					val method = AbcSolver.property(obj.`type`, property, numArguments) match {
 						case Some(method: TaasMethod) => method
 						case _ => error("Could not find property "+property+" on "+obj.`type`)
@@ -338,7 +342,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case Label() =>
 				case LessEquals() | LessThan() => TODO(op)
 				case LookupSwitch(defaultCase, cases) => TODO(op)
-				case ShiftLeft() => TODO(op)
+				case ShiftLeft() => pp(binop(TOp_<<))
 				case Modulo() => pp(binop(TOp_%))
 				case Multiply() | MultiplyInt() => pp(binop(TOp_*))
 				case Negate() | NegateInt() => TODO(op)
