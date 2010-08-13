@@ -193,6 +193,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case CallPropVoid(property, numArguments) => {
 					val args = arguments(numArguments)
 					val obj = pop()
+					log.debug("CURRENT OBJECT %s", obj)
 					val method = AbcSolver.property(obj.`type`, property, numArguments) match {
 						case Some(method: TaasMethod) => method
 						case _ => error("Could not find property "+property+" on "+obj.`type`)

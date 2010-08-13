@@ -22,15 +22,16 @@ package apparat.taas.frontend.abc
 
 import apparat.taas.ast._
 import apparat.abc.{AbcNamespace, AbcNominalType, AbcQName, AbcName}
+import apparat.log.SimpleLog
 
 /**
  * @author Joa Ebert
  */
-object AbcSolver {
+object AbcSolver extends SimpleLog {
 	def getProperty(`type`: TaasType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
 		`type` match {
 			case nominalType: TaasNominalType => property(nominalType.nominal, name, 0)
-			case _ => error("Nominal type expected.")
+			case _ => error("Nominal type expected, got "+`type`+" when searching "+name+".")
 		}
 	}
 
@@ -39,83 +40,107 @@ object AbcSolver {
 	def setProperty(`type`: TaasType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
 		`type` match {
 			case nominalType: TaasNominalType => property(nominalType.nominal, name, 1)
-			case _ => error("Nominal type expected.")
+			case _ => error("Nominal type expected, got "+`type`+".")
 		}
 	}
 
 	def setProperty(`type`: TaasNominalType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = property(`type`.nominal, name, 1)
 
 	def property(`type`: TaasType, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = {
+		log.debug("%s, %s, %d", `type`, name, numParameters)
 		`type` match {
 			case nominalType: TaasNominalType => property(nominalType.nominal, name, numParameters)
-			case _ => error("Nominal type expected, got "+`type`+".")
+			case _ => error("Nominal type expected, got "+`type`+" while searching "+name+" with "+numParameters+" parameter(s).")
 		}
 	}
 
 	def property(`type`: TaasNominalType, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = property(`type`.nominal, name, numParameters)
 
-	def property(nominal: TaasNominal, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = nominal match {
-		case TaasInterface(_, _, base, methods, _) => {
-			name match {
-				case AbcQName(symbol, _) => methods find { m => m.name == symbol && m.parameters.length == numParameters } match {
-					case Some(result) => Some(result)
-					case None => base match {
-						case Some(base) => getProperty(base, name)
-						case None => None
-					}
-				}
-				case _ => error("QName expected.")
-			}
-		}
-		case TaasClass(_, _, _, _, _, _, base, methods, fields, _) => {
-			name match {
-				case AbcQName(symbol, _) => methods find { m => m.name == symbol && m.parameters.length == numParameters } match {
-					case Some(result) => Some(result)
-					case None => fields find { _.name == symbol } match {
+	def property(nominal: TaasNominal, name: AbcName, numParameters: Int)(implicit ast: TaasAST): Option[TaasDefinition] = {
+		log.debug("%s, %s, %d", nominal, name, numParameters)
+		nominal match {
+			case TaasInterface(_, _, base, methods, _) => {
+				name match {
+					case AbcQName(symbol, _) => methods find { m => m.name == symbol && m.parameters.length == numParameters } match {
 						case Some(result) => Some(result)
-						case None => base match {
-							case Some(base) => getProperty(base, name)
-							case None => None
+						case None => {
+							methods count { m => m.name == symbol } match {
+								case 1 => methods find { m => m.name == symbol }
+								case _ => base match {
+									case Some(base) => property(base, name, numParameters)
+									case None => None
+								}
+							}
 						}
 					}
+					case _ => error("QName expected, got "+name+".")
 				}
-				case _ => error("QName expected.")
 			}
-		}
+			case TaasClass(_, _, _, _, _, _, base, methods, fields, _) => {
+				name match {
+					case AbcQName(symbol, _) => methods find { m => m.name == symbol && m.parameters.length == numParameters } match {
+						case Some(result) => Some(result)
+						case None => {
+							methods count { m => m.name == symbol } match {
+								case 1 => methods find { m => m.name == symbol }
+								case _ => fields find { _.name == symbol } match {
+									case Some(result) => Some(result)
+									case None => base match {
+										case Some(base) => property(base, name, numParameters)
+										case None => None
+									}
+								}
+							}
+						}
+					}
+					case _ => error("QName expected, got "+name+".")
+				}
+			}
 
-		case TaasFunction(_, _, method) => Some(method)
+			case TaasFunction(_, _, method) => Some(method)
+		}
 	}
 
-	def property(nominal: TaasNominal, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = nominal match {
-		case TaasInterface(_, _, base, methods, _) => {
-			name match {
-				case AbcQName(symbol, _) => methods find { m => m.name == symbol } match {
-					case Some(result) => Some(result)
-					case None => base match {
-						case Some(base) => getProperty(base, name)
-						case None => None
-					}
-				}
-				case _ => error("QName expected.")
+	def property(nominal: TaasNominal, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
+		def getProperty(`type`: TaasType, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
+			`type` match {
+				case nominalType: TaasNominalType => property(nominalType.nominal, name)
+				case TaasObjectType => None
+				case _ => error("Unexpected type, got "+`type`+".")
 			}
 		}
-		case TaasClass(_, _, _, _, _, _, base, methods, fields, _) => {
-			name match {
-				case AbcQName(symbol, _) => methods find { m => m.name == symbol } match {
-					case Some(result) => Some(result)
-					case None => fields find { _.name == symbol } match {
-						case Some(result) => Some(result)
+		
+		nominal match {
+			case TaasInterface(_, _, base, methods, _) => {
+				name match {
+					case AbcQName(symbol, _) => methods find { m => m.name == symbol } match {
+						case Some(result) => Some(nominal)
 						case None => base match {
 							case Some(base) => getProperty(base, name)
 							case None => None
 						}
 					}
+					case _ => error("QName expected, got "+name+".")
 				}
-				case _ => error("QName expected.")
 			}
-		}
+			case TaasClass(_, _, _, _, _, _, base, methods, fields, _) => {
+				name match {
+					case AbcQName(symbol, _) => methods find { m => m.name == symbol } match {
+						case Some(result) => Some(nominal)
+						case None => fields find { _.name == symbol } match {
+							case Some(result) => Some(nominal)
+							case None => base match {
+								case Some(base) => getProperty(base, name)
+								case None => None
+							}
+						}
+					}
+					case _ => error("QName expected, got "+name+".")
+				}
+			}
 
-		case TaasFunction(_, _, method) => Some(method)
+			case TaasFunction(_, _, method) => Some(method)
+		}
 	}
 
 	def getLexical(scope: TaasType, static: Boolean, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
