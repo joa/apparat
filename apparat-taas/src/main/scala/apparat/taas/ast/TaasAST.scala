@@ -455,6 +455,7 @@ case class TString(value: Symbol) extends TConst { override def `type` = TaasStr
 case class TDouble(value: Double) extends TConst { override def `type` = TaasDoubleType }
 case class TClass(value: TaasType) extends TConst { override def `type` = value }
 case class TInstance(value: TaasType) extends TConst { override def `type` = value }
+case class TClosure(value: TaasMethod) extends TConst { override def `type` = TaasFunctionType }
 case class TLexical(value: TaasDefinition) extends TValue {
 	override def `type` = value match {
 		case klass: TaasClass => TaasNominalTypeInstance(klass)

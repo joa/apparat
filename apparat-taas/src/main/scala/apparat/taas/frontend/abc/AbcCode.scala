@@ -291,7 +291,13 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case GetProperty(property) => {
 					val obj = pop()
 					AbcSolver.getProperty(obj.`type`, property) match {
-						case Some(method: TaasMethod) => pp(TCall(obj, method, List.empty, Some(nextOperand)))
+						case Some(method: TaasMethod) => {
+							if(method.parameters.length == 0) {
+								pp(TCall(obj, method, List.empty, Some(nextOperand)))
+							} else {
+								pp(push(TClosure(method)))
+							}
+						}
 						case Some(field: TaasField) => pp(TLoad(obj, field, nextOperand))
 						case _ => error("Could not find property "+property+" on "+obj.`type`)
 					}
@@ -368,7 +374,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case PushUndefined() | PushWith() => TODO(op)
 				case ReturnValue() => pp(TReturn(pop()))
 				case ReturnVoid() => pp(TReturn(TVoid))
-				case ShiftRight() => TODO(op)
+				case ShiftRight() => pp(binop(TOp_>>))
 				case SetLocal(index) => pp(T2(TOp_Nothing, pop(), register(index)))
 				case SetGlobalSlot(slot) => TODO(op)
 				case SetProperty(property) => {
