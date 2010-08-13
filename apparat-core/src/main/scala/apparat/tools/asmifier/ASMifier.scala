@@ -198,6 +198,7 @@ object ASMifier {
 				writer <= "//exception handlers are not supported yet"
 			} else {
 				if(methodBody.bytecode.isDefined) {
+					writer <= "//locals: "+methodBody.localCount
 					exportBytecode(writer, methodBody.bytecode.get)
 				} else {
 					writer <= "//bytecode is not defined"
