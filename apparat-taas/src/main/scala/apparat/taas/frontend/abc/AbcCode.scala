@@ -265,9 +265,18 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case EscapeXMLAttribute() => TODO(op)
 				case EscapeXMLElement() => TODO(op)
 				case FindProperty(property) => TODO(op)
-				case FindPropStrict(property) => property match {
-					case qname: AbcQName => pp(push(TLexical((AbcTypes fromQName qname).nominal)))
-					case _ => error("QName expected.")
+				case FindPropStrict(property) => {
+					property match {
+						case qname: AbcQName => {
+							scopeType match {
+								case t: TaasNominalType =>
+									pp(push(TLexical(AbcSolver.property(t.nominal, property) getOrElse {
+										(AbcTypes fromQName qname).nominal})))
+								case _ => pp(push(TLexical((AbcTypes fromQName qname).nominal)))
+							}
+						}
+						case _ => error("QName expected.")
+					}
 				}
 				case GetDescendants(property) => TODO(op)
 				case GetGlobalScope() => TODO(op)
@@ -311,7 +320,15 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 					operandStack += 1
 					pp(T3(TOp_+, lhs, TInt(1), result))
 				}
-				case InitProperty(property) => TODO(op)
+				case InitProperty(property) => {
+					val arg = pop()
+					val obj = pop()
+					AbcSolver.setProperty(obj.`type`, property) match {
+						case Some(method: TaasMethod) => pp(TCall(obj, method, arg :: Nil, None))
+						case Some(field: TaasField) => pp(TStore(obj, field, arg))
+						case _ => error("Could not find property "+property+" on "+obj.`type`)
+					}
+				}
 				case InstanceOf() => TODO(op)
 				case IsType(typeName) => TODO(op)
 				case IsTypeLate() => TODO(op)

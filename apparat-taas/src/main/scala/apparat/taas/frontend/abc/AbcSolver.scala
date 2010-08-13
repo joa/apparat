@@ -86,6 +86,38 @@ object AbcSolver {
 		case TaasFunction(_, _, method) => Some(method)
 	}
 
+	def property(nominal: TaasNominal, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = nominal match {
+		case TaasInterface(_, _, base, methods, _) => {
+			name match {
+				case AbcQName(symbol, _) => methods find { m => m.name == symbol } match {
+					case Some(result) => Some(result)
+					case None => base match {
+						case Some(base) => getProperty(base, name)
+						case None => None
+					}
+				}
+				case _ => error("QName expected.")
+			}
+		}
+		case TaasClass(_, _, _, _, _, _, base, methods, fields, _) => {
+			name match {
+				case AbcQName(symbol, _) => methods find { m => m.name == symbol } match {
+					case Some(result) => Some(result)
+					case None => fields find { _.name == symbol } match {
+						case Some(result) => Some(result)
+						case None => base match {
+							case Some(base) => getProperty(base, name)
+							case None => None
+						}
+					}
+				}
+				case _ => error("QName expected.")
+			}
+		}
+
+		case TaasFunction(_, _, method) => Some(method)
+	}
+
 	def getLexical(scope: TaasType, static: Boolean, name: AbcName)(implicit ast: TaasAST): Option[TaasDefinition] = {
 		scope match {
 			case nominalType: TaasNominalType => getLexical(nominalType.nominal, static, name)
