@@ -36,7 +36,7 @@ import apparat.log.{SimpleLog, Debug => DebugLogLevel}
  * @author Joa Ebert
  */
 protected[abc] object AbcCode {
-	val DEBUG = true
+	val DEBUG = false
 }
 
 protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,

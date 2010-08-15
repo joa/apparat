@@ -184,6 +184,28 @@ object CopyPropagation extends TaasOptimization {
 				}
 			}
 
+			case load @ TLoad(o: TReg, field, result) => (available get o.index) match {
+				case Some(value) => (true, TLoad(value, field, result))
+				case None => (false, load)
+			}
+
+			case store @ TStore(o: TReg, field, argument) => (available get o.index) match {
+				case Some(value) => argument match {
+					case TReg(index) => available get index match {
+						case Some(argumentValue) => (true, TStore(value, field, argumentValue))
+						case None => (true, TStore(value, field, argument))
+					}
+					case _ => (true, TStore(value, field, argument))
+				}
+				case None => argument match {
+					case TReg(index) => available get index {
+						case Some(argumentValue) => (true, TStore(o, field, argumentValue))
+						case None => (false, store)
+					}
+					case _ => (false, store)
+				}
+			}
+
 			case other => (false, other)
 		}
 	}

@@ -35,6 +35,8 @@ import apparat.taas.ast._
  */
 object JbcBackend {
 	val DEBUG = true
+	private val WRITER_PARAMETERS = if(DEBUG) JClassWriter.COMPUTE_MAXS else JClassWriter.COMPUTE_FRAMES
+	private val JAVA_VERSION = if(DEBUG) JOpcodes.V1_5 else JOpcodes.V1_6
 }
 
 /**
@@ -45,15 +47,22 @@ class JbcBackend extends TaasBackend with SimpleLog {
 	var closures = List.empty[(TaasMethod, TaasMethod)]
 	var currentNominal: TaasNominal = _
 
+	private def decorateWriter(writer: JClassWriter) = {
+		if(JbcBackend.DEBUG) {
+			new JTraceClassVisitor(writer, new JPrintWriter(log asWriterFor Debug))
+		} else {
+			writer
+		}
+	}
 	override def emit(ast: TaasAST) = {
 		for(nominal <- TaasDependencyGraphBuilder(ast).topsort) {
 			currentNominal = nominal
 
-			val cw = new JClassWriter(JClassWriter.COMPUTE_FRAMES)
-			val cv = if(JbcBackend.DEBUG) new JTraceClassVisitor(cw, new JPrintWriter(log asWriterFor Debug)) else cw
+			val cw = new JClassWriter(JbcBackend.WRITER_PARAMETERS)
+			val cv = decorateWriter(cw)
 
 			cv.visit(
-				JOpcodes.V1_6,
+				JbcBackend.JAVA_VERSION,
 				visibilityOf(nominal) + (nominal match {
 					case i: TaasInterface => JOpcodes.ACC_INTERFACE
 					case _ => JOpcodes.ACC_SUPER
@@ -95,12 +104,12 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			}
 			closures = Nil
 			
-			cv.visitEnd()
 			val bytes = cw.toByteArray()
+			cv.visitEnd()
 			classMap += nominal.qualifiedName -> bytes
 
 			if(JbcBackend.DEBUG) {
-				//JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(log asWriterFor Debug))
+				JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(Console.out))
 			}
 		}
 	}
@@ -110,7 +119,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 	@inline private def methodDesc(method: TaasMethod): String = methodDesc(toJavaType(method.`type`), method.parameters)
 
 	private def emitField(field: TaasField, cv: JClassVisitor): Unit = {
-		val fv = cv.visitField(visibilityOf(field), field.name.name, toJavaType(TaasNominalTypeInstance(currentNominal)), null, null)
+		val fv = cv.visitField(visibilityOf(field), field.name.name, toJavaType(field.`type`), null, null)
 		fv.visitEnd()
 	}
 
@@ -171,15 +180,12 @@ class JbcBackend extends TaasBackend with SimpleLog {
 					case fun: TaasFunction => 
 				}
 				case reg: TReg => {
-					if(reg.index+1 > maxL) {
-						maxL = reg.index+1
-					}
-
+					val index = mapIndex(reg.index)
 					reg.`type` match {
-						case TaasAnyType | TaasObjectType | TaasStringType | TaasFunctionType | _: TaasNominalType => mv.visitVarInsn(JOpcodes.ALOAD, reg.index)
-						case TaasBooleanType | TaasIntType => mv.visitVarInsn(JOpcodes.ILOAD, reg.index)
-						case TaasDoubleType => mv.visitVarInsn(JOpcodes.DLOAD, reg.index)
-						case TaasLongType => mv.visitVarInsn(JOpcodes.LLOAD, reg.index)
+						case TaasAnyType | TaasObjectType | TaasStringType | TaasFunctionType | _: TaasNominalType => mv.visitVarInsn(JOpcodes.ALOAD, index)
+						case TaasBooleanType | TaasIntType => mv.visitVarInsn(JOpcodes.ILOAD, index)
+						case TaasDoubleType => mv.visitVarInsn(JOpcodes.DLOAD, index)
+						case TaasLongType => mv.visitVarInsn(JOpcodes.LLOAD, index)
 						case TaasVoidType => error("Cannot store void in register.")
 					}
 				}
@@ -203,18 +209,14 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 		@inline def storeByValue(value: TValue, reg: TReg): Unit = if(value == TNull) storeByType(TaasAnyType, reg) else storeByType(value.`type`, reg)
 		@inline def storeByType(value: TaasType, reg: TReg): Unit = {
-			if(reg.index+1 > maxL) {
-				maxL = reg.index+1
-			}
-
-			//TODO check if this is valid
 			reg typeAs value
-			
+
+			val index = mapIndex(reg.index)
 			value match {
-				case TaasAnyType | TaasObjectType | TaasStringType | TaasFunctionType | _: TaasNominalType => mv.visitVarInsn(JOpcodes.ASTORE, reg.index)
-				case TaasBooleanType | TaasIntType => mv.visitVarInsn(JOpcodes.ISTORE, reg.index)
-				case TaasDoubleType => mv.visitVarInsn(JOpcodes.DSTORE, reg.index)
-				case TaasLongType => mv.visitVarInsn(JOpcodes.LSTORE, reg.index)
+				case TaasAnyType | TaasObjectType | TaasStringType | TaasFunctionType | _: TaasNominalType => mv.visitVarInsn(JOpcodes.ASTORE, index)
+				case TaasBooleanType | TaasIntType => mv.visitVarInsn(JOpcodes.ISTORE, index)
+				case TaasDoubleType => mv.visitVarInsn(JOpcodes.DSTORE, index)
+				case TaasLongType => mv.visitVarInsn(JOpcodes.LSTORE, index)
 				case TaasVoidType => error("Cannot store void in register.")
 			}
 		}
@@ -295,6 +297,9 @@ class JbcBackend extends TaasBackend with SimpleLog {
 					case TaasIntType => mv.visitInsn(JOpcodes.D2I)
 					case TaasObjectType => mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;")
 				}
+				case TaasLongType => to match {
+					case TaasDoubleType => mv.visitInsn(JOpcodes.L2D)
+				}
 				case TaasStringType => to match {
 					case TaasObjectType => 
 				}
@@ -312,6 +317,9 @@ class JbcBackend extends TaasBackend with SimpleLog {
 								error("TODO implicit nominal cast from "+from+" to "+to)
 							}
 						}
+					}
+					case other => {
+						error("TODO implicit cast from "+from+" to "+to)
 					}
 				}
 				case other => {
@@ -344,31 +352,33 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						case _: TNop =>
 						case T2(TOp_Nothing, lex @ TLexical(t: TaasClass), reg) => reg typeAs lex.`type`
 						case T2(TOp_Nothing, lex @ TLexical(t: TaasFunction), reg) => reg typeAs lex.`type`
-						case T2(operator, rhs, result) => {
+						case t2 @ T2(operator, rhs, result) => {
 							load(rhs)
 							unop(operator, rhs)
-							storeByValue(rhs, result)
+							storeByType(t2.`type`, result)
 						}
 						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => {
-							mv.visitIincInsn(result.index, -n)
+							mv.visitIincInsn(mapIndex(result.index), -n)
 							result typeAs TaasIntType
 						}
 						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => {
-							mv.visitIincInsn(result.index, -n)
+							mv.visitIincInsn(mapIndex(result.index), -n)
 							result typeAs TaasIntType
 						}
 						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => {
-							mv.visitIincInsn(result.index, n)
+							mv.visitIincInsn(mapIndex(result.index), n)
 							result typeAs TaasIntType
 						}
 						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => {
-							mv.visitIincInsn(result.index, n)
+							mv.visitIincInsn(mapIndex(result.index), n)
 							result typeAs TaasIntType
 						}
 						case T3(operator, lhs, rhs, result) => {
+							val t = TaasType.widen(lhs, rhs) 
 							load(lhs)
+							implicitCast(lhs.`type`, t)
 							load(rhs)
-							val t = TaasType.widen(lhs, rhs)
+							implicitCast(rhs.`type`, t)
 							binopWithType(operator, lhs, rhs, t)
 							storeByType(t, result)
 						}
@@ -421,7 +431,11 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 							method.parent match {
 									case Some(parent) => parent match {
-										case _: TaasClass | _: TaasInterface => load(t)
+										case _: TaasClass | _: TaasInterface => t match {
+											case TLexical(_: TaasClass) if !method.isStatic => mv.visitVarInsn(JOpcodes.ALOAD, 0)
+											case TLexical(_: TaasInterface) => mv.visitVarInsn(JOpcodes.ALOAD, 0)
+											case _ => load(t)
+										}
 										case _: TaasFunction =>
 									}
 							}
@@ -456,7 +470,16 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 							method.parent match {
 								case Some(parent) => parent match {
-									case k: TaasClass => mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, toJavaName(ownerOf(method)), method.name.name, methodDesc(method))
+									case k: TaasClass => {
+										if(method.isStatic) {
+											mv.visitMethodInsn(
+												JOpcodes.INVOKESTATIC,
+												toJavaName(ownerOf(method)),
+												method.name.name, methodDesc(method))
+										} else {
+											mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, toJavaName(ownerOf(method)), method.name.name, methodDesc(method))
+										}
+									}
 									case i: TaasInterface => mv.visitMethodInsn(JOpcodes.INVOKEINTERFACE, toJavaName(ownerOf(method)), method.name.name, methodDesc(method))
 									case f: TaasFunction => mv.visitMethodInsn(
 										JOpcodes.INVOKESTATIC,
@@ -468,12 +491,11 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							}
 
 							result match {
-								case Some(result) => {
-									storeByType(method.`type`, result)
-								}
+								case Some(result) => storeByType(method.`type`, result)
 								case None =>
 							}
 						}
+						
 						case TConstruct(obj, arguments, result) => {
 							val ctor = obj.`type` match {
 								case TaasNominalTypeInstance(nominal) => nominal match {
@@ -508,11 +530,18 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							storeByType(obj.`type`, result)
 						}
 						case TLoad(obj, field, result) => {
-							mv.visitFieldInsn(JOpcodes.GETSTATIC, toJavaName(ownerOf(field)), field.name.name, toJavaType(field.`type`))
+							if(field.isStatic) {
+								mv.visitFieldInsn(JOpcodes.GETSTATIC, toJavaName(ownerOf(field)), field.name.name, toJavaType(field.`type`))
+							} else {
+								load(obj)
+								mv.visitFieldInsn(JOpcodes.GETFIELD, toJavaName(ownerOf(field)), field.name.name, toJavaType(field.`type`))
+							}
 							storeByType(field.`type`, result)
 
 						}
 						case TStore(obj, field, value) => {
+							load(obj)
+							load(value)
 							mv.visitFieldInsn(JOpcodes.PUTFIELD, toJavaName(ownerOf(field)), field.name.name, toJavaType(field.`type`))
 						}
 						case TSuper(base, arguments) => {
@@ -532,7 +561,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			case None =>
 		}
 
-		mv.visitMaxs(1, 1)//4, maxL)
+		mv.visitMaxs(0, 0)
 		mv.visitEnd()
 	}
 
@@ -600,6 +629,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 		result
 	}
 
+	@inline private def mapIndex(value: Int) = value << 1
+	
 	/**
 	 * nominal is the type in which we are using a closure
 	 * method is the method that calls the closure
@@ -618,16 +649,16 @@ class JbcBackend extends TaasBackend with SimpleLog {
 	 * in this case A is the nominal, B is method since it contains the closure call and C is the closure.
 	 */
 	private def emitClosure(ov: JClassVisitor, nominal: TaasNominal, method: TaasMethod, closure: TaasMethod) = if(!classMap.contains(toJavaName(nominal.qualifiedName)+"$"+closure.name.name)) {
-		assume(closure.parameters.length == 1)
+		assume(closure.parameters.length == 1)//for now
 		assume(closure.`type` == TaasVoidType)
 
 		ov.visitInnerClass(toJavaName(nominal.qualifiedName)+"$"+closure.name.name, null, null, 0);
 		
-		val cw = new JClassWriter(JClassWriter.COMPUTE_FRAMES)
-		val cv = if(JbcBackend.DEBUG) new JTraceClassVisitor(cw, new JPrintWriter(log asWriterFor Debug)) else cw
+		val cw = new JClassWriter(JbcBackend.WRITER_PARAMETERS)
+		val cv = decorateWriter(cw)
 
 		cv.visit(
-			JOpcodes.V1_6,
+			JbcBackend.JAVA_VERSION,
 			JOpcodes.ACC_SUPER,
 			toJavaName(nominal.qualifiedName)+"$"+closure.name.name,
 			"Ljitb/Function1<"+toJavaType(closure.parameters(0).`type`)+"Ljava/lang/Object;>;",
@@ -690,8 +721,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			mv.visitEnd();
 		}
 
-		cv.visitEnd()
 		val bytes = cw.toByteArray()
+		cv.visitEnd()
 		classMap += (toJavaName(nominal.qualifiedName)+"$"+closure.name.name) -> bytes
 	}
 }
