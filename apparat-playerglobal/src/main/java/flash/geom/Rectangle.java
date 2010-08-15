@@ -27,4 +27,8 @@ public class Rectangle {
 
 	public double height() { return _height; }
 	public void height(final double value) { _height = value; }
+
+	public String toString() {
+		return "[Rectangle x: "+x()+", y: "+y()+", width: "+width()+", height: "+height()+"]";
+	}
 }

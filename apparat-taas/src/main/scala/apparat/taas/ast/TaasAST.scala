@@ -484,10 +484,7 @@ case class TLexical(value: TaasDefinition) extends TValue {
 case class TReg(index: Int) extends TValue {
 	private var _type: TaasType = TaasAnyType
 
-	def typeAs(`type`: TaasType) = {
-		if(index == 5) { println("SET TYPE TO "+`type`)}
-		_type = `type`
-	}
+	def typeAs(`type`: TaasType) = _type = `type`
 
 	override def `type` = _type
 	override def toString = "r"+index+":"+_type
@@ -515,7 +512,29 @@ case class T2(op: TaasUnop, rhs: TValue, result: TReg) extends TDef {
 
 //result = operand1 op operand2
 case class T3(op: TaasBinop, lhs: TValue, rhs: TValue, result: TReg) extends TDef {
-	result typeAs TaasType.widen(lhs, rhs)
+	def `type` = op match {
+		case TOp_&   => TaasIntType
+		case TOp_^   => TaasIntType
+		case TOp_|   => TaasIntType
+		case TOp_<<  => TaasIntType
+		case TOp_>>  => TaasIntType
+		case TOp_>>> => TaasIntType
+		case TOp_==  => TaasBooleanType
+		case TOp_>=  => TaasBooleanType
+		case TOp_>   => TaasBooleanType
+		case TOp_<=  => TaasBooleanType
+		case TOp_<   => TaasBooleanType
+		case TOp_!=  => TaasBooleanType
+		case TOp_!>= => TaasBooleanType
+		case TOp_!>  => TaasBooleanType
+		case TOp_!<= => TaasBooleanType
+		case TOp_!<  => TaasBooleanType
+		case TOp_=== => TaasBooleanType
+		case TOp_!== => TaasBooleanType
+		case _ => TaasType.widen(lhs, rhs)
+	}
+
+	result typeAs `type`
 
 	override def toString = result.toString+" = "+lhs.toString+" "+op.toString+" "+rhs.toString
 	override def defines(index: Int) = result.index == index

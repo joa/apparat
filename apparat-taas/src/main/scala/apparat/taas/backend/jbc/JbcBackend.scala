@@ -252,12 +252,6 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			TaasType.widen(lhs, rhs))
 
 		@inline def binopWithType(op: TaasBinop, lhs: TValue, rhs: TValue, `type`: TaasType): Unit = {
-			def doublesToInt() = {
-				mv.visitInsn(JOpcodes.D2I)
-				mv.visitInsn(JOpcodes.SWAP)
-				mv.visitInsn(JOpcodes.D2I)
-				mv.visitInsn(JOpcodes.SWAP)
-			}
 			`type` match {
 				case TaasIntType => op match {
 					case TOp_+ => mv.visitInsn(JOpcodes.IADD)
@@ -273,14 +267,6 @@ class JbcBackend extends TaasBackend with SimpleLog {
 					case TOp_- => mv.visitInsn(JOpcodes.DSUB)
 					case TOp_* => mv.visitInsn(JOpcodes.DMUL)
 					case TOp_/ => mv.visitInsn(JOpcodes.DDIV)
-					case TOp_& => {
-						doublesToInt()
-						mv.visitInsn(JOpcodes.IAND)
-					}
-					case TOp_>> => {
-						doublesToInt()
-						mv.visitInsn(JOpcodes.ISHR)
-					}
 				}
 			}
 		}
@@ -299,6 +285,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				}
 				case TaasLongType => to match {
 					case TaasDoubleType => mv.visitInsn(JOpcodes.L2D)
+					case TaasIntType =>  mv.visitInsn(JOpcodes.L2I)
 				}
 				case TaasStringType => to match {
 					case TaasObjectType => 
@@ -373,8 +360,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							mv.visitIincInsn(mapIndex(result.index), n)
 							result typeAs TaasIntType
 						}
-						case T3(operator, lhs, rhs, result) => {
-							val t = TaasType.widen(lhs, rhs) 
+						case t3 @ T3(operator, lhs, rhs, result) => {
+							val t = t3.`type`
 							load(lhs)
 							implicitCast(lhs.`type`, t)
 							load(rhs)

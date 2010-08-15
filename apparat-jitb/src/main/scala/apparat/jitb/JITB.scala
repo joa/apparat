@@ -95,7 +95,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 			val stage = new Stage()
 			val documentRoot = main.newInstance()
 			log.debug("Created DocumentRoot %s.", documentRoot)
-			//stage.addChild(documentRoot)
+			stage.addChild(documentRoot)
 		} else {
 			//
 			// For now we use a hardcoded empty array.
