@@ -31,6 +31,9 @@ import apparat.taas.backend.jbc.{JbcClassLoader, JbcBackend}
 import java.lang.{Thread => JThread}
 import apparat.swf.{SymbolClass, SwfTags, Swf}
 import flash.display.{DisplayObject, Stage, Sprite}
+import java.util.{TimerTask, Timer}
+import flash.events.Event
+import jitb.display.DisplayList
 
 /**
  * @author Joa Ebert
@@ -95,7 +98,33 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 			val stage = new Stage()
 			val documentRoot = main.newInstance()
 			log.debug("Created DocumentRoot %s.", documentRoot)
-			stage.addChild(documentRoot)
+			stage.addChild(documentRoot.asInstanceOf[DisplayObject])    
+
+			val frameTime = (1000.0f / swf.frameRate).asInstanceOf[Long]
+			while(true) {
+				val t0 = System.currentTimeMillis
+				val iter = DisplayList.displayObjects.iterator
+
+				while(iter.hasNext) {
+					val displayObject = iter.next()
+					displayObject.dispatchEvent(new Event(Event.ENTER_FRAME))
+				}
+
+				val delta = System.currentTimeMillis - t0
+
+				//log.debug("Frame rendered in "+delta+"ms")
+
+				if(delta < frameTime) {
+					Thread.sleep(frameTime - delta)
+				}
+			}
+
+			val timer = new Timer()
+			timer.scheduleAtFixedRate(new TimerTask() {
+				override def run(): Unit = {
+
+				}
+			}, 1000L / swf.frameRate.asInstanceOf[Long], 100L)
 		} else {
 			//
 			// For now we use a hardcoded empty array.

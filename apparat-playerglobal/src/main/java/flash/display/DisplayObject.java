@@ -1,12 +1,15 @@
 package flash.display;
 
 import flash.events.EventDispatcher;
+import jitb.display.DisplayList;
 
 /**
  * @author Joa Ebert
  */
 public class DisplayObject extends EventDispatcher implements IBitmapDrawable {
-	public Stage stage() {
-		return new Stage();
+	public DisplayObject() {
+		DisplayList.register(this);
 	}
+	
+	public Stage stage() { return null; }
 }

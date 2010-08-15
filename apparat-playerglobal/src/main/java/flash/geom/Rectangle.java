@@ -1,5 +1,7 @@
 package flash.geom;
 
+import java.util.Timer;
+
 /**
  * @author Joa Ebert
  */

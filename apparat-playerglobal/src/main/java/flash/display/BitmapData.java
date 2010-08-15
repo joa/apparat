@@ -41,7 +41,6 @@ public class BitmapData implements IBitmapDrawable {
 	public Rectangle rect() { return _rect;	}
 
 	public void fillRect(Rectangle rect, long color) {
-		System.out.println("FillRect: "+rect+", Color: "+Long.toString(color, 0x10));
 	}
 
 	public long getPixel(final int x, final int y) {
