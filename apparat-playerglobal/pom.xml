@@ -13,11 +13,16 @@
   <description>Flash playerglobal.swc implementation.</description>
   <artifactId>apparat-playerglobal</artifactId>
   <packaging>jar</packaging>
- 
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>lwjgl</groupId>
+      <artifactId>lwjgl</artifactId>
+      <version>2.4.2</version>
     </dependency>
   </dependencies>
 </project>

@@ -69,5 +69,20 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
+	<dependency>
+	  <groupId>lwjgl</groupId> 
+      <artifactId>lwjgl</artifactId> 
+      <version>2.4.2</version> 
+	</dependency>
+    <dependency>
+      <groupId>lwjgl</groupId>
+      <artifactId>jinput</artifactId>
+      <version>2.4.2</version>
+    </dependency>
+    <dependency>
+      <groupId>lwjgl</groupId>
+      <artifactId>lwjgl-util</artifactId>
+      <version>2.4.2</version>
+    </dependency>
   </dependencies>
 </project>

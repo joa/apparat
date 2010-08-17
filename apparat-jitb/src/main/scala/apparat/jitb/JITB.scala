@@ -22,6 +22,7 @@ package apparat.jitb
 
 import apparat.log.output.ConsoleOutput
 import apparat.log.{SimpleLog, Debug, Info, Log}
+import math.TwipsMath
 import scala.util.Properties
 import apparat.abc.Abc
 import apparat.utils.IO._
@@ -34,6 +35,7 @@ import flash.display.{DisplayObject, Stage, Sprite}
 import java.util.{TimerTask, Timer}
 import flash.events.Event
 import jitb.display.DisplayList
+import org.lwjgl.opengl.{GL11, DisplayMode, PixelFormat, Display}
 
 /**
  * @author Joa Ebert
@@ -94,37 +96,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val main = Class.forName(mainClass, true, loader)
 
 		if(classOf[DisplayObject] isAssignableFrom main) {
-			log.debug("Main class is a DisplayObject")
-			val stage = new Stage()
-			val documentRoot = main.newInstance()
-			log.debug("Created DocumentRoot %s.", documentRoot)
-			stage.addChild(documentRoot.asInstanceOf[DisplayObject])    
-
-			val frameTime = (1000.0f / swf.frameRate).asInstanceOf[Long]
-			while(true) {
-				val t0 = System.currentTimeMillis
-				val iter = DisplayList.displayObjects.iterator
-
-				while(iter.hasNext) {
-					val displayObject = iter.next()
-					displayObject.dispatchEvent(new Event(Event.ENTER_FRAME))
-				}
-
-				val delta = System.currentTimeMillis - t0
-
-				//log.debug("Frame rendered in "+delta+"ms")
-
-				if(delta < frameTime) {
-					Thread.sleep(frameTime - delta)
-				}
-			}
-
-			val timer = new Timer()
-			timer.scheduleAtFixedRate(new TimerTask() {
-				override def run(): Unit = {
-
-				}
-			}, 1000L / swf.frameRate.asInstanceOf[Long], 100L)
+			runWithDisplay(swf, main)
 		} else {
 			//
 			// For now we use a hardcoded empty array.
@@ -171,5 +143,72 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val playerglobalABC = using(playerglobal.openStream) { Abc fromInputStream _ }
 
 		builtinABC :: toplevelABC :: playerglobalABC :: Nil
+	}
+
+	private def runWithDisplay(swf: Swf, main: Class[_]) = {
+		log.debug("Main class is a DisplayObject")
+		val frameRate = swf.frameRate.asInstanceOf[Int]
+		val stage = new Stage()
+		val documentRoot = main.newInstance()
+		log.debug("Created DocumentRoot %s.", documentRoot)
+		stage.addChild(documentRoot.asInstanceOf[DisplayObject])
+		log.debug("Desired frame rate: %.2f", swf.frameRate)
+
+
+		//
+		// Initialize display
+		//
+
+		Display.setTitle("JITB")
+		Display.setFullscreen(false)
+		Display.setVSyncEnabled(true)
+		/*Display.setDisplayMode(new DisplayMode(TwipsMath.twipsToPixel(swf.frameSize._3),
+			TwipsMath.twipsToPixel(swf.frameSize._4)))*/
+		Display.create()
+
+		//
+		// Orthographic projection with 1:1 pixel ratio.
+		//
+		
+		GL11.glMatrixMode(GL11.GL_PROJECTION)
+		GL11.glLoadIdentity()
+		GL11.glOrtho(0.0, Display.getDisplayMode().getWidth(), 0.0, Display.getDisplayMode().getHeight(), -1.0, 1.0)
+		GL11.glMatrixMode(GL11.GL_MODELVIEW)
+		GL11.glLoadIdentity()
+		GL11.glViewport(0, 0, Display.getDisplayMode().getWidth(), Display.getDisplayMode().getHeight())
+
+		while(!Display.isCloseRequested) {
+			val t0 = System.currentTimeMillis
+
+			//
+			// LWJGL magic.
+			//
+
+			Display.update();
+
+			//
+			// Dispatch an ENTER_FRAME event to every DisplayObject
+			//
+
+			DisplayList.enterFrame();
+
+			//
+			// Render all objects in the display list.
+			//
+
+			DisplayList.render(stage);
+
+			//
+			// Dispatch an EXIT_FRAME event to every DisplayObject
+			//
+
+			DisplayList.exitFrame();
+
+			val delta = System.currentTimeMillis - t0
+
+			//log.debug("Frame rendered in "+delta+"ms")
+
+			Display.sync(frameRate)
+		}
 	}
 }
