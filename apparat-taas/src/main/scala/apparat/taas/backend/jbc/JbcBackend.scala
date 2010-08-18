@@ -34,7 +34,7 @@ import apparat.taas.ast._
  * @author Joa Ebert
  */
 object JbcBackend {
-	val DEBUG = true
+	val DEBUG = "true" == System.getProperty("apparat.debug", "false")
 	private val WRITER_PARAMETERS = if(DEBUG) JClassWriter.COMPUTE_MAXS else JClassWriter.COMPUTE_FRAMES
 	private val JAVA_VERSION = if(DEBUG) JOpcodes.V1_5 else JOpcodes.V1_6
 }
@@ -126,6 +126,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 	private def emitMethod(method: TaasMethod, cv: JClassVisitor): Unit = emitMethod(method, cv, method.name.name, toJavaType(method.`type`))
 
 	private def emitMethod(method: TaasMethod, cv: JClassVisitor, name: String, returnType: String): Unit = {
+		implicit val implicitMethod = method
 		val mv = cv.visitMethod(visibilityOf(method), name, methodDesc(returnType, method.parameters), null, null)
 		var maxL = 0
 		@inline def load(value: TValue) = {
@@ -281,6 +282,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				}
 				case TaasDoubleType => to match {
 					case TaasIntType => mv.visitInsn(JOpcodes.D2I)
+					case TaasLongType => mv.visitInsn(JOpcodes.D2L)
 					case TaasObjectType => mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;")
 				}
 				case TaasLongType => to match {
@@ -344,19 +346,19 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							unop(operator, rhs)
 							storeByType(t2.`type`, result)
 						}
-						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => {
+						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && result.`type` == TaasIntType => {
 							mv.visitIincInsn(mapIndex(result.index), -n)
 							result typeAs TaasIntType
 						}
-						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => {
+						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && result.`type` == TaasIntType => {
 							mv.visitIincInsn(mapIndex(result.index), -n)
 							result typeAs TaasIntType
 						}
-						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index => {
+						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && result.`type` == TaasIntType => {
 							mv.visitIincInsn(mapIndex(result.index), n)
 							result typeAs TaasIntType
 						}
-						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index => {
+						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && result.`type` == TaasIntType => {
 							mv.visitIincInsn(mapIndex(result.index), n)
 							result typeAs TaasIntType
 						}
@@ -392,14 +394,16 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
 										case TaasDoubleType => {
 											mv.visitInsn(JOpcodes.DCMPG)
-											mv.visitJumpInsn(JOpcodes.IFLT, labels(jumps(if2)(0)))
+											load(TInt(-1))
+											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if2)(0)))
 										}
 									}
 								}
 								case TOp_!> => t match {
 									case TaasDoubleType => {
 										mv.visitInsn(JOpcodes.DCMPG)
-										mv.visitJumpInsn(JOpcodes.IF_ICMPLE, labels(jumps(if2)(0)))
+										load(TInt(1))
+										mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
 									}
 									case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLE, labels(jumps(if2)(0)))
 								}
@@ -472,14 +476,16 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										JOpcodes.INVOKESTATIC,
 										toJavaName(ownerOf(method)),
 										"callStatic",
-										if(varargs) "([Ljava/lang/Object;)V" else methodDesc(method))
+										if(varargs) "([Ljava/lang/Object;)Ljava/lang/Object;" else methodDesc(method))
 								}
 								case None => error("Method without parent.")
 							}
 
 							result match {
 								case Some(result) => storeByType(method.`type`, result)
-								case None =>
+								case None => if(method.`type` != TaasVoidType) {
+									mv.visitInsn(JOpcodes.POP)
+								}
 							}
 						}
 						
@@ -616,7 +622,9 @@ class JbcBackend extends TaasBackend with SimpleLog {
 		result
 	}
 
-	@inline private def mapIndex(value: Int) = value << 1
+	@inline private def mapIndex(value: Int)(implicit method: TaasMethod) = {
+		if(value <= method.parameters.length) value else value << 1
+	}
 	
 	/**
 	 * nominal is the type in which we are using a closure

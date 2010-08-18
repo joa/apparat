@@ -18,6 +18,7 @@ public class BitmapData implements IBitmapDrawable {
 	private boolean _transparent;
 	private final Rectangle _rect;
 
+	private boolean _invalidated;
 	private ByteBuffer _buffer;
 	private int _textureId = -1;
 
@@ -35,7 +36,7 @@ public class BitmapData implements IBitmapDrawable {
 		_rect = new Rectangle(0.0, 0.0, _width, _height);
 		_transparent = transparent;
 		_buffer = BufferUtils.createByteBuffer(width * height * 4);
-		fillRect(rect(), fillColor);
+		fillRect(_rect, fillColor);
 	}
 
 	public int width() { return _width; }
@@ -43,11 +44,12 @@ public class BitmapData implements IBitmapDrawable {
 	public Rectangle rect() { return _rect;	}
 
 	public void fillRect(final Rectangle rect, final long color) {
+		_invalidated = true;
+
 		final int minX = (int)rect.x();
 		final int minY = (int)rect.y();
 		final int maxX = (int)(rect.x() + rect.width());
 		final int maxY = (int)(rect.y() + rect.height());
-
 
 		if(0 == minX && 0 == minY && _width == maxX && _height == maxY) {
 			if(0 == color) {
@@ -59,24 +61,21 @@ public class BitmapData implements IBitmapDrawable {
 				}
 				_buffer.flip();
 			} else {
-				final byte alpha = (byte)(color & 0xff000000L >>> 0x18);
-				final byte red = (byte)(color & 0xff0000L >>> 0x10);
-				final byte green = (byte)(color & 0xff00L >>> 0x08);
+				final byte alpha = (byte)((color & 0xff000000L) >>> 0x18);
+				final byte red = (byte)((color & 0xff0000L) >>> 0x10);
+				final byte green = (byte)((color & 0xff00L) >>> 0x08);
 				final byte blue = (byte)(color & 0xffL);
 				final int n = _width * _height;
 				_buffer.clear();
 				for(int i = 0; i < n; ++i) {
-					_buffer.put(red);
-					_buffer.put(green);
-					_buffer.put(blue);
-					_buffer.put(alpha);
+					_buffer.put(red).put(green).put(blue).put(alpha);
 				}
 				_buffer.flip();
 			}
 		} else {
-			final byte alpha = (byte)(color & 0xff000000L >>> 0x18);
-			final byte red = (byte)(color & 0xff0000L >>> 0x10);
-			final byte green = (byte)(color & 0xff00L >>> 0x08);
+			final byte alpha = (byte)((color & 0xff000000L) >>> 0x18);
+			final byte red = (byte)((color & 0xff0000L) >>> 0x10);
+			final byte green = (byte)((color & 0xff00L) >>> 0x08);
 			final byte blue = (byte)(color & 0xffL);
 
 			int oy = 0;
@@ -84,10 +83,7 @@ public class BitmapData implements IBitmapDrawable {
 				oy = y * _width * 4;
 				for(int x = minX; x < maxX; ++x) {
 					final int index = oy + x * 4;
-					_buffer.put(index  , red);
-					_buffer.put(index+1, green);
-					_buffer.put(index+2, blue);
-					_buffer.put(index+3, alpha);
+					_buffer.put(index  , red).put(index+1, green).put(index+2, blue).put(index+3, alpha);
 				}
 			}
 		}
@@ -103,6 +99,7 @@ public class BitmapData implements IBitmapDrawable {
 	}
 
 	public void setPixel(final int x, final int y, final long color) {
+		_invalidated = true;
 		final int index = y * _width * 4 + x * 4;
 		final byte red = (byte)((color & 0xff0000L) >> 0x10);
 		final byte green = (byte)((color & 0xff00L) >> 0x08);
@@ -151,24 +148,30 @@ public class BitmapData implements IBitmapDrawable {
 			);
 
 			_textureId = id;
+			_invalidated = false;
 
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 		} else {
-			//
-			// Refresh the texture.
-			//
-			
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, _textureId);
-			GL11.glTexSubImage2D(
-					GL11.GL_TEXTURE_2D,
-					0,
-					0,
-					0,
-					width(),
-					height(),
-					GL11.GL_RGBA,
-					GL11.GL_UNSIGNED_BYTE, _buffer
-			);
+			if(_invalidated) {
+				//
+				// Refresh the texture.
+				//
+
+				GL11.glBindTexture(GL11.GL_TEXTURE_2D, _textureId);
+				GL11.glTexSubImage2D(
+						GL11.GL_TEXTURE_2D,
+						0,
+						0,
+						0,
+						width(),
+						height(),
+						GL11.GL_RGBA,
+						GL11.GL_UNSIGNED_BYTE,
+						_buffer
+				);
+				
+				_invalidated = false;
+			}
 		}
 
 		return _textureId;

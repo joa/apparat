@@ -146,69 +146,96 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	}
 
 	private def runWithDisplay(swf: Swf, main: Class[_]) = {
-		log.debug("Main class is a DisplayObject")
 		val frameRate = swf.frameRate.asInstanceOf[Int]
 		val stage = new Stage()
 		val documentRoot = main.newInstance()
+
+		log.debug("Main class is a DisplayObject")
+		log.debug("SWF info:")
+		log.debug("\tFramerate: %d", frameRate)
+		log.debug("\tWidth: %d", swf.width)
+		log.debug("\tHeight: %d", swf.height)
+		swf.backgroundColor match {
+			case Some(rgb) => log.debug("\tBackground: %d, %d, %d", rgb.red, rgb.green, rgb.blue)
+			case None => log.debug("\tBackground: None")
+		}
+
+		log.debug("Created Stage %s.", stage)
 		log.debug("Created DocumentRoot %s.", documentRoot)
+
 		stage.addChild(documentRoot.asInstanceOf[DisplayObject])
-		log.debug("Desired frame rate: %.2f", swf.frameRate)
-
-
+		
 		//
 		// Initialize display
 		//
 
-		Display.setTitle("JITB")
-		Display.setFullscreen(false)
+		Display.setTitle("JITB "+configuration.file.toString)
+		Display.setFullscreen(true)
 		Display.setVSyncEnabled(true)
-		/*Display.setDisplayMode(new DisplayMode(TwipsMath.twipsToPixel(swf.frameSize._3),
-			TwipsMath.twipsToPixel(swf.frameSize._4)))*/
+		Display.setDisplayMode(new DisplayMode(swf.width, swf.height))
 		Display.create()
 
 		//
 		// Orthographic projection with 1:1 pixel ratio.
 		//
-		
+
 		GL11.glMatrixMode(GL11.GL_PROJECTION)
 		GL11.glLoadIdentity()
-		GL11.glOrtho(0.0, Display.getDisplayMode().getWidth(), 0.0, Display.getDisplayMode().getHeight(), -1.0, 1.0)
+		GL11.glOrtho(0.0, Display.getDisplayMode().getWidth(), Display.getDisplayMode().getHeight(), 0.0, -1.0, 1.0)
 		GL11.glMatrixMode(GL11.GL_MODELVIEW)
 		GL11.glLoadIdentity()
 		GL11.glViewport(0, 0, Display.getDisplayMode().getWidth(), Display.getDisplayMode().getHeight())
 
-		while(!Display.isCloseRequested) {
-			val t0 = System.currentTimeMillis
+		//
+		// Generic setup
+		//
 
+		GL11.glEnable(GL11.GL_TEXTURE_2D)
+
+		/*swf.backgroundColor match {
+			case Some(rgb) => GL11.glClearColor(
+				rgb.red.toFloat,
+				rgb.green.toFloat,
+				rgb.blue.toFloat, 255.0f)
+			case None =>
+		}*/
+
+		//
+		// Render loop
+		//
+		
+		while(!Display.isCloseRequested) {
 			//
 			// LWJGL magic.
 			//
 
-			Display.update();
+			Display.update()
 
 			//
 			// Dispatch an ENTER_FRAME event to every DisplayObject
 			//
 
-			DisplayList.enterFrame();
+			DisplayList.enterFrame()
 
 			//
 			// Render all objects in the display list.
 			//
 
-			DisplayList.render(stage);
+			DisplayList render stage
 
 			//
 			// Dispatch an EXIT_FRAME event to every DisplayObject
 			//
 
-			DisplayList.exitFrame();
+			DisplayList.exitFrame()
+			
+			//
+			// Synchronize to frame rate
+			//
 
-			val delta = System.currentTimeMillis - t0
-
-			//log.debug("Frame rendered in "+delta+"ms")
-
-			Display.sync(frameRate)
+			Display sync frameRate
 		}
+
+		Display.destroy()
 	}
 }

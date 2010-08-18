@@ -42,7 +42,7 @@ public class Bitmap extends DisplayObject {
 	}
 
 	@Override
-	public final void render() {
+	protected final void JITB$render() {
 		if(null == _bitmapData) {
 			return;
 		}

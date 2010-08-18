@@ -5,7 +5,7 @@ package flash.display;
  */
 public class Sprite extends DisplayObjectContainer {
 	@Override
-	public final void render() {
-		renderChildren();
+	protected final void JITB$render() {
+		JITB$renderChildren();
 	}
 }

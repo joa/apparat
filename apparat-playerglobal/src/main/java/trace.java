@@ -2,7 +2,7 @@
  * @author Joa Ebert
  */
 public class trace {
-	public static void callStatic(Object... args) {
+	public static Object callStatic(Object... args) {
 		final StringBuilder builder = new StringBuilder();
 		final int n = args.length;
 		final int m = n - 1;
@@ -15,5 +15,6 @@ public class trace {
 		}
 
 		System.out.println(builder.toString());
+		return null;
 	}
 }

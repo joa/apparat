@@ -89,6 +89,9 @@ final class Swf extends Dumpable with SwfTagMapping {
 	var frameCount: Int = 1
 	var tags: List[SwfTag] = Nil
 
+	def width = frameSize._2 / 20
+	def height = frameSize._4 / 20
+
 	def foreach(body: SwfTag => Unit) = tags foreach body
 
 	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x1000))(read(_, file.length))
@@ -285,5 +288,10 @@ final class Swf extends Dumpable with SwfTagMapping {
 	lazy val mainClass = tags find { _.kind == SwfTags.SymbolClass } match {
 		case Some(symbolClass: SymbolClass) => symbolClass.symbols find { _._1 == 0 } map { _._2 }
 		case _=> None
+	}
+
+	lazy val backgroundColor = tags find { _.kind == SwfTags.SetBackgroundColor } match {
+		case Some(setBackgroundColor: SetBackgroundColor) => Some(setBackgroundColor.color)
+		case _ => None
 	}
 }

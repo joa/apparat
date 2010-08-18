@@ -1,6 +1,5 @@
 package flash.display;
 
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -36,26 +35,23 @@ public final class Stage extends DisplayObjectContainer {
 	}
 
 	@Override
-	public final void render() {
+	protected final void JITB$render() {
 		//
 		// Clear the screen when the stage is re-rendered.
 		//
 
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT);
-		GL11.glEnable(GL11.GL_TEXTURE_2D);
 		
 		//
 		// Translate corresponding to stage align.
 		//
 
-		//GL11.glTranslatef(Display.getDisplayMode().getWidth() / 2, Display.getDisplayMode().getHeight() / 2, 0.0f);
-
-		//GL11.glTranslatef(0.0f, 0.0f, 0.0f);
+		GL11.glTranslatef(0.0f, 0.0f, 0.0f);
 
 		//
 		// Now render all children of the stage.
 		//
 
-		renderChildren();
+		JITB$renderChildren();
 	}
 }

@@ -34,7 +34,7 @@ public final class DisplayList {
 	}
 
 	public static void render(final Stage stage) {
-		stage.render();
+		stage.JITB$renderDisplayObject();
 	}
 
 	public static void exitFrame() {

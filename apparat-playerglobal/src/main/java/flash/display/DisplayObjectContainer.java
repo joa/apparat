@@ -14,9 +14,9 @@ public abstract class DisplayObjectContainer extends InteractiveObject {
 		return child;
 	}
 
-	protected final void renderChildren() {
+	protected final void JITB$renderChildren() {
 		for(final DisplayObject child : _children) {
-			child.render();
+			child.JITB$renderDisplayObject();
 		}
 	}
 }
