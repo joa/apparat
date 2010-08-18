@@ -257,6 +257,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				case TaasIntType => op match {
 					case TOp_+ => mv.visitInsn(JOpcodes.IADD)
 					case TOp_- => mv.visitInsn(JOpcodes.ISUB)
+					case TOp_* => mv.visitInsn(JOpcodes.IMUL)
 					case TOp_<< => mv.visitInsn(JOpcodes.ISHL)
 					case TOp_>> => mv.visitInsn(JOpcodes.ISHR)
 					case TOp_| => mv.visitInsn(JOpcodes.IOR)
@@ -396,6 +397,16 @@ class JbcBackend extends TaasBackend with SimpleLog {
 											mv.visitInsn(JOpcodes.DCMPG)
 											load(TInt(-1))
 											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if2)(0)))
+										}
+									}
+								}
+								case TOp_!< => {
+									t match {
+										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPGE, labels(jumps(if2)(0)))
+										case TaasDoubleType => {
+											mv.visitInsn(JOpcodes.DCMPG)
+											load(TInt(-1))
+											mv.visitJumpInsn(JOpcodes.IF_ICMPGT, labels(jumps(if2)(0)))
 										}
 									}
 								}
