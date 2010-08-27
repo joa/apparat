@@ -1,5 +1,6 @@
 package flash.display;
 
+import java.util.AbstractSequentialList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -9,9 +10,17 @@ import java.util.List;
 public abstract class DisplayObjectContainer extends InteractiveObject {
 	private final List<DisplayObject> _children = new LinkedList<DisplayObject>();
 
-	public DisplayObject addChild(final DisplayObject child) {
-		_children.add(child);
+	public int numChildren() {
+		return _children.size();
+	}
+
+	public DisplayObject addChildAt(final int index, final DisplayObject child) {
+		_children.add(index, child);
 		return child;
+	}
+
+	public DisplayObject addChild(final DisplayObject child) {
+		return addChildAt(_children.size(), child);
 	}
 
 	protected final void JITB$renderChildren() {

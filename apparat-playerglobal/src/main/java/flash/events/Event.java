@@ -7,6 +7,7 @@ public class Event {
 	private final String _type;
 	private final boolean _bubbles;
 	private final boolean _cancelable;
+	private boolean _isDefaultPrevented = false;
 
 	public Event(final String type) {
 		this(type, false);
@@ -23,7 +24,7 @@ public class Event {
 	}
 
 	public boolean isDefaultPrevented() {
-		return false;
+		return _isDefaultPrevented;
 	}
 
 	public long eventPhase() {
@@ -39,6 +40,7 @@ public class Event {
 	}
 
 	public void preventDefault() {
+		_isDefaultPrevented = true;
 	}
 
 	public void stopPropagation() {

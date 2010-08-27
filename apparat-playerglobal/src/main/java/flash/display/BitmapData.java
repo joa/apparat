@@ -126,6 +126,7 @@ public class BitmapData implements IBitmapDrawable {
 	}
 
 	int textureId() {
+		//TODO optimize using FBO
 		if(-1 == _textureId) {
 			//
 			// Create a new texture for this BitmapData.

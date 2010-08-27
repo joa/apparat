@@ -86,6 +86,7 @@ public class EventDispatcher implements IEventDispatcher {
 
 		//TODO add weak reference here.
 		listOfListenersForType.add(new EventListener(listener, useCapture, priority));
+		Collections.sort(listOfListenersForType);
 	}
 
 	@Override
