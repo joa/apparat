@@ -1,3 +1,5 @@
+package jitb.lang;
+
 /**
  * @author Joa Ebert
  */

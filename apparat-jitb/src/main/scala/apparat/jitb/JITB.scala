@@ -36,6 +36,7 @@ import java.util.{TimerTask, Timer}
 import flash.events.Event
 import jitb.display.DisplayList
 import org.lwjgl.opengl.{GL11, DisplayMode, PixelFormat, Display}
+import jitb.Throw
 
 /**
  * @author Joa Ebert
@@ -211,32 +212,56 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		//
 		// Render loop
 		//
-		
-		while(!Display.isCloseRequested) {
+
+		var noErrorOccurred = true
+
+		while(noErrorOccurred && !Display.isCloseRequested) {
 			//
 			// LWJGL magic.
 			//
 
 			Display.update()
 
-			//
-			// Dispatch an ENTER_FRAME event to every DisplayObject
-			//
+			try {
+				//
+				// Dispatch an ENTER_FRAME event to every DisplayObject
+				//
 
-			DisplayList.enterFrame()
+				DisplayList.enterFrame()
 
-			//
-			// Render all objects in the display list.
-			//
+				//
+				// Render all objects in the display list.
+				//
 
-			DisplayList render stage
+				DisplayList render stage
 
-			//
-			// Dispatch an EXIT_FRAME event to every DisplayObject
-			//
+				//
+				// Dispatch an EXIT_FRAME event to every DisplayObject
+				//
 
-			DisplayList.exitFrame()
-			
+				DisplayList.exitFrame()
+			} catch {
+				case actionScriptError: Throw => {
+					noErrorOccurred = false
+
+					actionScriptError.value match {
+						case error: Error =>
+							log.error("An ActionScript error occured.")
+							log.error("%s:%d %s", error.name, error.id, error.message)
+							log.error("%s", error.getStackTrace())
+						case other =>
+							log.error("Object has not been catched.")
+							log.error("%s", other)
+					}
+				}
+
+				case other => {
+					noErrorOccurred
+					log.error("An internal error occurred.")
+					log.error("%s", other)
+				}
+			}
+
 			//
 			// Synchronize to frame rate
 			//
