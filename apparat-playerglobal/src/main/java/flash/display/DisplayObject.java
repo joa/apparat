@@ -1,6 +1,8 @@
 package flash.display;
 
 import flash.events.EventDispatcher;
+import flash.geom.ColorTransform;
+import flash.geom.Transform;
 import jitb.display.DisplayList;
 import jitb.display.IDisplayObject;
 import org.lwjgl.opengl.GL11;
@@ -13,6 +15,7 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	private double _y = 0.0;
 	private double _rotation = 0.0;
 	private String _blendMode = BlendMode.NORMAL;
+	private final Transform _transform = new Transform().$JITBinit(this);
 
 	public DisplayObject() {
 		DisplayList.register(this);
@@ -32,13 +35,18 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	public double rotation() { return _rotation; }
 	public void rotation(final double value) { _rotation = value; }
 
+	public Transform transform() { return _transform; }
+
 	protected abstract void JITB$render();
 
 	public final void JITB$renderDisplayObject() {
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		GL11.glPushMatrix();
-		GL11.glRotatef((float)(_rotation / 180.0 * Math.PI), 0.0f, 0.0f, 1.0f);
-		GL11.glTranslated(x(), y(), 0.0);
 
+		GL11.glTranslated(x(), y(), 0.0);
+		GL11.glRotatef((float)(_rotation / 180.0 * Math.PI), 0.0f, 0.0f, 1.0f);
+		GL11.glColor4d(_transform.colorTransform().redMultiplier, _transform.colorTransform().greenMultiplier,
+					   _transform.colorTransform().blueMultiplier, _transform.colorTransform().alphaMultiplier);
 		final String blendMode = blendMode();
 		boolean disableDepthTest = false;
 

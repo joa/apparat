@@ -77,7 +77,7 @@ object AbcSolver extends SimpleLog {
 			case TaasClass(_, _, _, _, _, _, base, methods, fields, _) => {
 				name match {
 					case AbcQName(symbol, _) => methods find { m => m.name == symbol && m.parameters.length == numParameters } match {
-						case Some(result) => Some(result)
+						case r @ Some(_) => r
 						case None => {
 							methods count { m => m.name == symbol } match {
 								case 1 => methods find { m => m.name == symbol }

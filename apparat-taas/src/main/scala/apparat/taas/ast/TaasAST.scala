@@ -587,6 +587,11 @@ case class TSuper(base: TValue, arguments: List[TValue]) extends TExpr with TSid
 }
 
 case class TCall(`this`: TValue, method: TaasMethod, arguments: List[TValue], result: Option[TReg]) extends TDef with TSideEffect with TArgumentList {
+	result match {
+		case Some(result) => result typeAs method.`type`
+		case None =>
+	}
+
 	override def defines(index: Int) = if(result.isDefined) { result.get.index == index } else { false }
 	override def uses(index: Int) = (`this` matches index) || argumentMatches(index)
 	override def register = if(result.isDefined) result.get.index else -1

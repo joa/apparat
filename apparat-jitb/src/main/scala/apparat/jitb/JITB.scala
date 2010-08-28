@@ -192,6 +192,14 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 		GL11.glEnable(GL11.GL_TEXTURE_2D)
 
+		GL11.glClearDepth(1.0)
+		GL11.glDisable(GL11.GL_DEPTH_TEST)
+
+		//temporary for color transform until fragment shader
+		GL11.glShadeModel(GL11.GL_SMOOTH)
+		GL11.glHint(GL11.GL_PERSPECTIVE_CORRECTION_HINT, GL11.GL_NICEST)
+		GL11.glHint(GL11.GL_POINT_SMOOTH_HINT, GL11.GL_NICEST)
+
 		/*swf.backgroundColor match {
 			case Some(rgb) => GL11.glClearColor(
 				rgb.red.toFloat,

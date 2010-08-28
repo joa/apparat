@@ -40,7 +40,7 @@ public final class Stage extends DisplayObjectContainer {
 		// Clear the screen when the stage is re-rendered.
 		//
 
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT);
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
 		//
 		// Translate corresponding to stage align.
