@@ -27,7 +27,7 @@ import collection.mutable.ListBuffer
 /**
  * @author Joa Ebert
  */
-object Java {
+protected[jbc] object Java {
 	@inline
 	def nameOf(qualifiedName: String): String = qualifiedName.replaceAll("\\.", "\\/")
 

@@ -24,12 +24,55 @@ import apparat.taas.ast._
 
 import org.objectweb.asm.{MethodVisitor => JMethodVisitor}
 import org.objectweb.asm.{Opcodes => JOpcodes}
+import apparat.log.SimpleLog
 
 /**
  * @author Joa Ebert
  */
-object Load {
+protected[jbc] object Load extends SimpleLog {
 	final case class Error(message: String)
+
+	def apply(value: TValue, asType: TaasType, mapIndex: Int => Int)(implicit mv: JMethodVisitor, currentNominal: TaasNominal): Option[Load.Error] = {
+		def loadWithCast() = {
+			val result = apply(value, mapIndex)
+
+			Cast(value.`type`, asType) match {
+				case Right(_) =>
+				case Left(x) => {
+					log.error("Implicit cast failed: %s", x.message)
+					error(x.message)
+				}
+			}
+
+			result
+		}
+
+		if(value.`type` != asType) {
+			value match {
+				case TInt(i) => asType match {
+					case TaasDoubleType => apply(TDouble(i.toDouble), mapIndex)
+					case TaasLongType => apply(TLong(i.toLong), mapIndex)
+					case TaasStringType => apply(TString(Symbol(i.toString)), mapIndex)
+					case _ => loadWithCast()
+				}
+				case TDouble(d) => asType match {
+					case TaasIntType => apply(TInt(d.toInt), mapIndex)
+					case TaasLongType => apply(TLong(d.toLong), mapIndex)
+					case TaasStringType => apply(TString(Symbol(d.toString)), mapIndex)
+					case _ => loadWithCast()
+				}
+				case TLong(l) => asType match {
+					case TaasIntType => apply(TInt(l.toInt), mapIndex)
+					case TaasDoubleType => apply(TDouble(l.toDouble), mapIndex)
+					case TaasStringType => apply(TString(Symbol(l.toString)), mapIndex)
+					case _ => loadWithCast()
+				}
+				case _ => loadWithCast()
+			}
+		} else {
+			apply(value, mapIndex)
+		}
+	}
 
 	def apply(value: TValue, mapIndex: Int => Int)(implicit mv: JMethodVisitor, currentNominal: TaasNominal): Option[Load.Error] = value match {
 		case TClosure(value) => {
@@ -118,6 +161,9 @@ object Load {
 			}
 			case klass: TaasClass => None
 			case fun: TaasFunction => None
+			case a: TaasAnnotation => Some(Load.Error("Unexpected TaasAnnotation "+a+"."))
+			case f: TaasField => Some(Load.Error("Unexpected TaasField "+f+"."))
+			case i: TaasInterface => Some(Load.Error("Unexpected TaasInterface "+i+"."))
 		}
 		case reg: TReg => {
 			val index = mapIndex(reg.index)
@@ -140,5 +186,8 @@ object Load {
 		case TNull =>
 			mv.visitInsn(JOpcodes.ACONST_NULL)
 			None
+		case TClass(value) => Some(Load.Error("Unexpected TClass "+value+"."))
+		case TVoid => Some(Load.Error("Cannot load TVoid."))
+		case TInstance(value) => Some(Load.Error("Unexpected TInstance "+value+"."))
 	}
 }

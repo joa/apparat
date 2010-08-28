@@ -96,12 +96,11 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			}
 
 			nominal match {
-				case TaasClass(_, _, _, _, _, _, _, _, fields, _) => {
-					for(field <- fields if !field.isStatic) {
-						emitField(field, cv)
-					}
-				}
+				case TaasClass(_, _, _, _, _, _, _, _, fields, _) => for(field <- fields if !field.isStatic) emitField(field, cv)
+				case TaasFunction(_, _, _) =>
+				case TaasInterface(_, _, _, _, _) =>
 			}
+
 			closures = Nil
 			
 			val bytes = cw.toByteArray()
@@ -125,13 +124,19 @@ class JbcBackend extends TaasBackend with SimpleLog {
 		implicit val implicitMethod = method
 		implicit val mv = cv.visitMethod(Java visibilityOf method, name, Java.methodDesc(returnType, method.parameters), null, null)
 		var maxL = 0
-		@inline def load(value: TValue) = {
-			Load(value, x => mapIndex(x)) match {
-				case Some(e) => error(e.message)
-				case None => value match {
-					case TClosure(value) => closures = (method, value) :: closures
-					case _ =>
-				}
+		@inline def load(value: TValue) = Load(value, x => mapIndex(x)) match {
+			case Some(e) => error(e.message)
+			case None => value match {
+				case TClosure(value) => closures = (method, value) :: closures
+				case _ =>
+			}
+		}
+
+		@inline def loadAs(value: TValue, `type`: TaasType) = Load(value, `type`, x => mapIndex(x)) match {
+			case Some(e) => error(e.message)
+			case None => value match {
+				case TClosure(value) => closures = (method, value) :: closures
+				case _ =>
 			}
 		}
 
@@ -172,27 +177,14 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			}
 		}
 
-		@inline def binop(op: TaasBinop, lhs: TValue, rhs: TValue): Unit = binopWithType(op, lhs, rhs,
-			TaasType.widen(lhs, rhs))
-
+		@inline def binop(op: TaasBinop, lhs: TValue, rhs: TValue): Unit = Binop(op, lhs, rhs)
 		@inline def binopWithType(op: TaasBinop, lhs: TValue, rhs: TValue, `type`: TaasType): Unit = {
-			`type` match {
-				case TaasIntType => op match {
-					case TOp_+ => mv.visitInsn(JOpcodes.IADD)
-					case TOp_- => mv.visitInsn(JOpcodes.ISUB)
-					case TOp_* => mv.visitInsn(JOpcodes.IMUL)
-					case TOp_<< => mv.visitInsn(JOpcodes.ISHL)
-					case TOp_>> => mv.visitInsn(JOpcodes.ISHR)
-					case TOp_| => mv.visitInsn(JOpcodes.IOR)
-					case TOp_/ => mv.visitInsn(JOpcodes.IDIV)
-					case TOp_& => mv.visitInsn(JOpcodes.IAND)
+			Binop(op, lhs, rhs, `type`) match {
+				case Some(e) => {
+					log.error(e.message)
+					error(e.message)
 				}
-				case TaasDoubleType => op match {
-					case TOp_+ => mv.visitInsn(JOpcodes.DADD)
-					case TOp_- => mv.visitInsn(JOpcodes.DSUB)
-					case TOp_* => mv.visitInsn(JOpcodes.DMUL)
-					case TOp_/ => mv.visitInsn(JOpcodes.DDIV)
-				}
+				case None =>
 			}
 		}
 
@@ -264,6 +256,11 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							op match {
 								case TOp_true => mv.visitJumpInsn(JOpcodes.IFNONNULL, labels(jumps(if1)(0)))
 								case TOp_false => mv.visitJumpInsn(JOpcodes.IFNULL, labels(jumps(if1)(0)))
+								case TOp_! => mv.visitJumpInsn(JOpcodes.IFNULL, labels(jumps(if1)(0)))
+								case TOp_~ => error("Invalid operator ~ in if statement.")
+								case TOp_Nothing => error("Invalid operator Nothing in if statement.")
+								case TCoerce(_) => error("Invalid operator Coerce in if statement.")
+								case TConvert(_) => error("Invalid operator Convert in if statement.")
 							}
 						}
 						case if2 @ TIf2(op, lhs, rhs) => {

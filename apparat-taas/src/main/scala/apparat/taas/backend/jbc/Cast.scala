@@ -27,7 +27,7 @@ import apparat.taas.ast._
 /**
  * @author Joa Ebert
  */
-object Cast {
+protected[jbc] object Cast {
 	final case class Error(message: String)
 
 	//TODO replace either with option
