@@ -20,7 +20,7 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	public DisplayObject() {
 		DisplayList.register(this);
 	}
-	
+
 	public Stage stage() { return null; }
 
 	public String blendMode() { return _blendMode; }
@@ -44,7 +44,7 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 		GL11.glPushMatrix();
 
 		GL11.glTranslated(x(), y(), 0.0);
-		GL11.glRotatef((float)(_rotation / 180.0 * Math.PI), 0.0f, 0.0f, 1.0f);
+		GL11.glRotatef((float)(_rotation / 180.0 * jitb.lang.Math.PI), 0.0f, 0.0f, 1.0f);
 		GL11.glColor4d(_transform.colorTransform().redMultiplier, _transform.colorTransform().greenMultiplier,
 					   _transform.colorTransform().blueMultiplier, _transform.colorTransform().alphaMultiplier);
 		final String blendMode = blendMode();
