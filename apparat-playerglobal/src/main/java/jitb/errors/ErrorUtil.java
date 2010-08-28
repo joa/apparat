@@ -1,11 +1,12 @@
-package jitb;
+package jitb.errors;
 
+import jitb.Throw;
 import jitb.lang.TypeError;
 
 /**
  * @author Joa Ebert
  */
-public final class Errors {
+public final class ErrorUtil {
 	public final static String E_1009 = "Cannot access a property or method of a null object reference";
 
 	public static void flashThrow(final Object value) {
@@ -16,5 +17,5 @@ public final class Errors {
 		return new TypeError(E_1009);
 	}
 
-	private Errors() {}
+	private ErrorUtil() {}
 }

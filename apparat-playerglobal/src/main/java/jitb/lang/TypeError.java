@@ -1,6 +1,6 @@
 package jitb.lang;
 
-import jitb.Errors;
+import jitb.errors.ErrorUtil;
 
 /**
  * @author Joa Ebert
@@ -15,7 +15,7 @@ public class TypeError extends jitb.lang.Error {
 	public int errorID() {
 		final int result;
 
-		if(message.equals(Errors.E_1009)) {
+		if(message.equals(ErrorUtil.E_1009)) {
 			result = 1009;
 		} else {
 			result = super.errorID();
