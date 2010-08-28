@@ -147,8 +147,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			for(value <- list) {
 				mv.visitInsn(JOpcodes.DUP)
 				load(TInt(i))
-				load(value)
-				implicitCast(value.`type`, `type`)
+				loadAs(value, `type`)
 				mv.visitInsn(JOpcodes.AASTORE)
 				i += 1
 			}
@@ -244,10 +243,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						}
 						case t3 @ T3(operator, lhs, rhs, result) => {
 							val t = t3.`type`
-							load(lhs)
-							implicitCast(lhs.`type`, t)
-							load(rhs)
-							implicitCast(rhs.`type`, t)
+							loadAs(lhs, t)
+							loadAs(rhs, t)
 							binopWithType(operator, lhs, rhs, t)
 							storeByType(t, result)
 						}
@@ -266,11 +263,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						case if2 @ TIf2(op, lhs, rhs) => {
 							val t = TaasType.widen(lhs, rhs)
 
-							load(lhs)
-							implicitCast(lhs.`type`, t)
-
-							load(rhs)
-							implicitCast(rhs.`type`, t)
+							loadAs(lhs, t)
+							loadAs(rhs, t)
 
 							op match {
 								case TOp_< => {
@@ -328,8 +322,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							if(n < m) { error("optional parameters in "+method)}
 							else if(n == m) {
 								while(i < n) {
-									load(arguments(i))
-									implicitCast(arguments(i).`type`, method.parameters(i).`type`)
+									loadAs(arguments(i), method.parameters(i).`type`)
 									i += 1
 								}
 							} else if(m == 0 && n == 1) {
@@ -338,8 +331,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										case _: TaasClass | _: TaasInterface => {
 											//assume setter method
 											log.warning(method+" should have been resolved to its setter.")
-											load(arguments(0))
-											implicitCast(arguments(0).`type`, method.`type`)
+											loadAs(arguments(0), method.`type`)
 										}
 										case _: TaasFunction => {
 											log.warning(method+" has variable arguments.")
@@ -400,15 +392,13 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							var m = ctor.parameters.length
 
 							while(i < n) {
-								load(arguments(i))
-								implicitCast(arguments(i).`type`, ctor.parameters(i).`type`)
+								loadAs(arguments(i), ctor.parameters(i).`type`)
 								i += 1
 							}
 
 							while(i < m) {
 								val defaultValue = ctor.parameters(i).defaultValue
-								load(defaultValue getOrElse error("Missing parameter."))
-								implicitCast(defaultValue.get.`type`, ctor.parameters(i).`type`)
+								loadAs(defaultValue getOrElse error("Missing parameter."), ctor.parameters(i).`type`)
 								i += 1
 							}
 							
