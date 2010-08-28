@@ -6,7 +6,7 @@ import java.io.StringWriter;
 /**
  * @author Joa Ebert
  */
-public class Error {
+public class Error extends jitb.lang.Object {
 	private final int _errorID;
 	private final Throwable _throwable = new Throwable();
 

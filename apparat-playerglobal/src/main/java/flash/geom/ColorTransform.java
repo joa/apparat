@@ -8,7 +8,7 @@ import java.nio.DoubleBuffer;
 /**
  * @author Joa Ebert
  */
-public class ColorTransform {
+public class ColorTransform extends jitb.lang.Object {
 	public double alphaOffset;
 	public double alphaMultiplier;
 	public double redOffset;

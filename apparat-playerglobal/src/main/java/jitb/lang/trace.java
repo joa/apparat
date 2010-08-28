@@ -3,7 +3,7 @@ package jitb.lang;
 /**
  * @author Joa Ebert
  */
-public class trace {
+public class trace extends jitb.lang.Object {
 	public static Object callStatic(Object... args) {
 		final StringBuilder builder = new StringBuilder();
 		final int n = args.length;

@@ -10,7 +10,7 @@ import java.nio.IntBuffer;
 /**
  * @author Joa Ebert
  */
-public class BitmapData implements IBitmapDrawable {
+public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 	private final static IntBuffer _textureIdBuffer = BufferUtils.createIntBuffer(1);
 
 	private int _width;

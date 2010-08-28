@@ -37,6 +37,7 @@ import flash.events.Event
 import jitb.display.DisplayList
 import org.lwjgl.opengl.{GL11, DisplayMode, PixelFormat, Display}
 import jitb.Throw
+import jitb.errors.Throw
 
 /**
  * @author Joa Ebert

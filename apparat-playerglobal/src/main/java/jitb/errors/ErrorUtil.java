@@ -1,6 +1,5 @@
 package jitb.errors;
 
-import jitb.Throw;
 import jitb.lang.TypeError;
 
 /**

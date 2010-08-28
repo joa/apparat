@@ -5,7 +5,7 @@ import java.util.Timer;
 /**
  * @author Joa Ebert
  */
-public class Rectangle {
+public class Rectangle extends jitb.lang.Object {
 	private double _x;
 	private double _y;
 	private double _width;

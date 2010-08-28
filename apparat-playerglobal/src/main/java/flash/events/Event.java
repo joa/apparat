@@ -3,7 +3,7 @@ package flash.events;
 /**
  * @author Joa Ebert
  */
-public class Event {
+public class Event extends jitb.lang.Object {
 	private final String _type;
 	private final boolean _bubbles;
 	private final boolean _cancelable;

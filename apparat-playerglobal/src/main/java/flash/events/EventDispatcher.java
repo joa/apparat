@@ -1,13 +1,13 @@
 package flash.events;
 
-import jitb.Function;
+import jitb.lang.closure.Function;
 
 import java.util.*;
 
 /**
  * @author Joa Ebert
  */
-public class EventDispatcher implements IEventDispatcher {
+public class EventDispatcher extends jitb.lang.Object implements IEventDispatcher {
 	private final class EventListener implements Comparable<EventListener> {
 		public final Function<Object> callback;
 		public final boolean useCapture;

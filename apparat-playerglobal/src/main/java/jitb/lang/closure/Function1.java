@@ -1,4 +1,4 @@
-package jitb;
+package jitb.lang.closure;
 
 /**
  * @author Joa Ebert

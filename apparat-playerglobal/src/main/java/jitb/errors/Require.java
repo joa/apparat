@@ -1,4 +1,4 @@
-package jitb;
+package jitb.errors;
 
 import jitb.errors.ErrorUtil;
 

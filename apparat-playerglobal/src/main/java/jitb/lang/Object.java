@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 /**
  * @author Joa Ebert
  */
-public class Object {
+public class Object extends java.lang.Object {
 	public void setPropertyIsEnumerable(final String name) {
 		setPropertyIsEnumerable(name, true);
 	}

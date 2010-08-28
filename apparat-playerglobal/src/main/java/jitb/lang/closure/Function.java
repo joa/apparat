@@ -1,11 +1,11 @@
-package jitb;
+package jitb.lang.closure;
 
 /**
  * The Function class defines an abstract function closure.
  *
  * @author Joa Ebert
  */
-public abstract class Function<B> {
+public abstract class Function<B> extends jitb.lang.Object {
 	/**
 	 * Applies the given parameters to the function.
 	 *

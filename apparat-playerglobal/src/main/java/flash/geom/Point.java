@@ -3,7 +3,7 @@ package flash.geom;
 /**
  * @author Joa Ebert
  */
-public class Point {
+public class Point extends jitb.lang.Object {
 	public static double distance(final Point pt1, final Point pt2) {
 		final double dx = pt1.x - pt2.x;
 		final double dy = pt1.y - pt2.y;

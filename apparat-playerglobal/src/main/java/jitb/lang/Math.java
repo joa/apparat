@@ -3,7 +3,7 @@ package jitb.lang;
 /**
  * @author Joa Ebert
  */
-public class Math {
+public class Math extends jitb.lang.Object {
 	public final static double E = Double.NaN;
 	public final static double LN10 = Double.NaN;
 	public final static double LN2 = Double.NaN;

@@ -1,7 +1,6 @@
 package flash.events;
 
-import jitb.Function;
-import jitb.Function1;
+import jitb.lang.closure.Function;
 
 /**
  * @author Joa Ebert
