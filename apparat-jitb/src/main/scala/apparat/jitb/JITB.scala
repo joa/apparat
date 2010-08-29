@@ -33,11 +33,9 @@ import java.lang.{Thread => JThread}
 import apparat.swf.{SymbolClass, SwfTags, Swf}
 import flash.display.{DisplayObject, Stage, Sprite}
 import java.util.{TimerTask, Timer}
-import flash.events.Event
 import jitb.display.DisplayList
 import org.lwjgl.opengl.{GL11, DisplayMode, PixelFormat, Display}
-import jitb.Throw
-import jitb.errors.Throw
+import jitb.errors.{ErrorUtil, Throw}
 
 /**
  * @author Joa Ebert
@@ -148,13 +146,15 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	}
 
 	private def runWithDisplay(swf: Swf, main: Class[_]) = {
-		val frameRate = swf.frameRate.asInstanceOf[Int]
 		val stage = new Stage()
+
+		stage.frameRate(swf.frameRate.asInstanceOf[Double])
+
 		val documentRoot = main.newInstance()
 
 		log.debug("Main class is a DisplayObject")
 		log.debug("SWF info:")
-		log.debug("\tFramerate: %d", frameRate)
+		log.debug("\tFramerate: %.2f", stage.frameRate)
 		log.debug("\tWidth: %d", swf.width)
 		log.debug("\tHeight: %d", swf.height)
 		swf.backgroundColor match {
@@ -202,13 +202,13 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		GL11.glHint(GL11.GL_PERSPECTIVE_CORRECTION_HINT, GL11.GL_NICEST)
 		GL11.glHint(GL11.GL_POINT_SMOOTH_HINT, GL11.GL_NICEST)
 
-		/*swf.backgroundColor match {
+		swf.backgroundColor match {
 			case Some(rgb) => GL11.glClearColor(
-				rgb.red.toFloat,
-				rgb.green.toFloat,
-				rgb.blue.toFloat, 255.0f)
+				rgb.red.toFloat / 255.0f,
+				rgb.green.toFloat / 255.0f,
+				rgb.blue.toFloat / 255.0f, 1.0f)
 			case None =>
-		}*/
+		}
 
 		//
 		// Render loop
@@ -246,16 +246,20 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 					noErrorOccurred = false
 
 					actionScriptError.value match {
-						case error: Error =>
-							log.error("An ActionScript error occured.")
-							log.error("%s:%d %s", error.name, error.id, error.message)
+						case error: jitb.lang.Error =>
+							log.error("%s: Error #%d: %s", error.name, error.errorID, error.message)
 							log.error("%s", error.getStackTrace())
 						case other =>
 							log.error("Object has not been catched.")
 							log.error("%s", other)
 					}
 				}
-
+				case _: NullPointerException => {
+					val error = ErrorUtil.error1009()
+					noErrorOccurred = false
+					log.error("%s: Error #%d: %s", error.name, error.errorID, error.message)
+					log.error("%s", error.getStackTrace())
+				}
 				case other => {
 					noErrorOccurred
 					log.error("An internal error occurred.")
@@ -267,7 +271,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 			// Synchronize to frame rate
 			//
 
-			Display sync frameRate
+			Display sync stage.frameRate.asInstanceOf[Int]
 		}
 
 		Display.destroy()

@@ -47,7 +47,9 @@ protected[jbc] object Load extends SimpleLog {
 			result
 		}
 
-		if(value.`type` != asType) {
+		if(value == TNull) {
+			apply(TNull, mapIndex)
+		} else if(value.`type` != asType) {
 			value match {
 				case TInt(i) => asType match {
 					case TaasDoubleType => apply(TDouble(i.toDouble), mapIndex)

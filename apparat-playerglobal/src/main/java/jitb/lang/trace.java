@@ -4,7 +4,7 @@ package jitb.lang;
  * @author Joa Ebert
  */
 public class trace extends jitb.lang.Object {
-	public static Object callStatic(Object... args) {
+	public static Object callStatic(final Object... args) {
 		final StringBuilder builder = new StringBuilder();
 		final int n = args.length;
 		final int m = n - 1;

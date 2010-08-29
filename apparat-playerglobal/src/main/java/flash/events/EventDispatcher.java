@@ -32,7 +32,7 @@ public class EventDispatcher extends jitb.lang.Object implements IEventDispatche
 	}
 
 
-	private Map<String, List<EventListener>> map = new HashMap<String, List<EventListener>>();
+	private final Map<String, List<EventListener>> map = new HashMap<String, List<EventListener>>();
 
 	@Override
 	public boolean dispatchEvent(final Event event) {
@@ -50,33 +50,33 @@ public class EventDispatcher extends jitb.lang.Object implements IEventDispatche
 	}
 
 	@Override
-	public boolean hasEventListener(String type) {
+	public boolean hasEventListener(final String type) {
 		final List<EventListener> listOfListenersForType = map.get(type);
 		return null != listOfListenersForType && listOfListenersForType.size() > 0;
 	}
 
 	@Override
-	public boolean willTrigger(String type) {
+	public boolean willTrigger(final String type) {
 		return false;
 	}
 
 	@Override
-	public void addEventListener(String type, Function<Object> listener) {
+	public void addEventListener(final String type, final Function<Object> listener) {
 		addEventListener(type, listener, false);
 	}
 
 	@Override
-	public void addEventListener(String type, Function<Object> listener, boolean useCapture) {
+	public void addEventListener(final String type, final Function<Object> listener, final boolean useCapture) {
 		addEventListener(type, listener, useCapture, 0);
 	}
 
 	@Override
-	public void addEventListener(String type, Function<Object> listener, boolean useCapture, int priority) {
+	public void addEventListener(final String type, final Function<Object> listener, final boolean useCapture, final int priority) {
 		addEventListener(type, listener, useCapture, priority, false);
 	}
 
 	@Override
-	public void addEventListener(String type, Function<Object> listener, boolean useCapture, int priority, boolean useWeakReference) {
+	public void addEventListener(final String type, final Function<Object> listener, final boolean useCapture, final int priority, final boolean useWeakReference) {
 		List<EventListener> listOfListenersForType = map.get(type);
 
 		if(null == listOfListenersForType) {
@@ -90,13 +90,13 @@ public class EventDispatcher extends jitb.lang.Object implements IEventDispatche
 	}
 
 	@Override
-	public void removeEventListener(String type, Function<Object> listener) {
+	public void removeEventListener(final String type, final Function<Object> listener) {
 		removeEventListener(type, listener, false);
 	}
 
 	@Override
-	public void removeEventListener(String type, Function<Object> listener, boolean useCapture) {
-		List<EventListener> listOfListenersForType = map.get(type);
+	public void removeEventListener(final String type, final Function<Object> listener, final boolean useCapture) {
+		final List<EventListener> listOfListenersForType = map.get(type);
 
 		if(null == listOfListenersForType) {
 			return;

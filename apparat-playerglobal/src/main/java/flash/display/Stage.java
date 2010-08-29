@@ -10,7 +10,7 @@ public final class Stage extends DisplayObjectContainer {
 	private String _quality = "high";
 	private String _scaleMode = "none";
 
-	public void frameRate(double value) {
+	public void frameRate(final double value) {
 		_rate = value;
 	}
 
@@ -18,7 +18,7 @@ public final class Stage extends DisplayObjectContainer {
 		return _rate;
 	}
 
-	public void quality(String value) {
+	public void quality(final String value) {
 		_quality = value;
 	}
 
@@ -26,7 +26,7 @@ public final class Stage extends DisplayObjectContainer {
 		return _quality;
 	}
 
-	public void scaleMode(String value) {
+	public void scaleMode(final String value) {
 		_scaleMode = value;
 	}
 

@@ -33,27 +33,27 @@ protected[jbc] object Java {
 
 	@inline
 	def nameOf(`type`: TaasType): String = `type` match {
-		case TaasAnyType | TaasObjectType => "java/lang/Object"
+		case TaasAnyType | TaasObjectType => "jitb/lang/Object"
 		case TaasVoidType => error("Void has no name.")
 		case TaasBooleanType => "java/lang/Boolean"
 		case TaasDoubleType => "java/lang/Double"
 		case TaasIntType => "java/lang/Integer"
 		case TaasLongType => "java/lang/Long"
 		case TaasStringType => "java/lang/String"
-		case TaasFunctionType => "jitb/Function"
+		case TaasFunctionType => "jitb/lang/closure/Function"
 		case t: TaasNominalType => nameOf(t.nominal.qualifiedName)
 	}
 
 	@inline
 	def typeOf(`type`: TaasType) = `type` match {
-		case TaasAnyType | TaasObjectType => "Ljava/lang/Object;"
+		case TaasAnyType | TaasObjectType => "Ljitb/lang/Object;"
 		case TaasVoidType => "V"
 		case TaasBooleanType => "Z"
 		case TaasDoubleType => "D"
 		case TaasIntType => "I"
 		case TaasLongType => "J"
 		case TaasStringType => "Ljava/lang/String;"
-		case TaasFunctionType => "Ljitb/Function;"
+		case TaasFunctionType => "Ljitb/lang/closure/Function;"
 		case t: TaasNominalType => "L"+nameOf(t.nominal.qualifiedName)+";"
 	}
 

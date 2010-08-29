@@ -72,10 +72,10 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				nominal.base match {
 					case Some(base) => base match {
 						case t: TaasNominalType => Java nameOf t.nominal.qualifiedName
-						case TaasObjectType => "java/lang/Object"
+						case TaasObjectType => "jitb/lang/Object"
 						case _ => error("Expected TaasNominalType, got "+base)
 					}
-					case None => "java/lang/Object"
+					case None => "jitb/lang/Object"
 				},
 				null//Array.empty[String]//TODO map to interface names...
 			)
@@ -140,9 +140,9 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			}
 		}
 
-		@inline def loadArray(list: List[TValue], `type`: TaasType) = {
+		@inline def loadArray(list: List[TValue], `type`: TaasType, javaArrayType: String) = {
 			load(TInt(list.length))
-			mv.visitTypeInsn(JOpcodes.ANEWARRAY, Java nameOf `type`)
+			mv.visitTypeInsn(JOpcodes.ANEWARRAY, javaArrayType)
 			var i = 0
 			for(value <- list) {
 				mv.visitInsn(JOpcodes.DUP)
@@ -210,6 +210,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				}
 
 				for(op <- ops) {
+					log.debug("Emit %s", op)
 					(labels get op) match {
 						case Some(label) => mv.visitLabel(label)
 						case None =>
@@ -336,7 +337,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										case _: TaasFunction => {
 											log.warning(method+" has variable arguments.")
 											varargs = true
-											loadArray(arguments, TaasObjectType)
+											loadArray(arguments, TaasObjectType, "java/lang/Object")
 										}
 									}
 									case None => error("Method without parent.")
@@ -491,8 +492,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			JbcBackend.JAVA_VERSION,
 			JOpcodes.ACC_SUPER,
 			Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name,
-			"Ljitb/Function1<"+Java.typeOf(closure.parameters(0).`type`)+"Ljava/lang/Object;>;",
-			"jitb/Function1",
+			"Ljitb/lang/closure/Function1<"+Java.typeOf(closure.parameters(0).`type`)+"Ljava/lang/Object;>;",
+			"jitb/lang/closure/Function1",
 			null
 		)
 
@@ -509,7 +510,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			mv.visitVarInsn(JOpcodes.ALOAD, 1)
 			mv.visitFieldInsn(JOpcodes.PUTFIELD, Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name, "this$0", Java typeOf TaasNominalTypeInstance(nominal))
 			mv.visitVarInsn(JOpcodes.ALOAD, 0)
-			mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, "jitb/Function1", "<init>", "()V")
+			mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, "jitb/lang/closure/Function1", "<init>", "()V")
 			mv.visitInsn(JOpcodes.RETURN)
 			mv.visitMaxs(2, 2)
 			mv.visitEnd()

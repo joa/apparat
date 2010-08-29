@@ -1,14 +1,12 @@
 package flash.geom;
 
-import org.lwjgl.BufferUtils;
-
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-
 /**
  * @author Joa Ebert
  */
 public class ColorTransform extends jitb.lang.Object {
+	private static final String TO_STRING = "(redMultiplier=%.2f, greenMultiplier=%.2f, blueMultiplier=%.2f, " +
+			"alphaMultiplier=%.2f, redOffset=%.2f, greenOffset=%.2f, blueOffset=%.2f, alphaOffset=%.2f)";
+	
 	public double alphaOffset;
 	public double alphaMultiplier;
 	public double redOffset;
@@ -97,18 +95,9 @@ public class ColorTransform extends jitb.lang.Object {
 		blueMultiplier *= second.blueMultiplier;
 	}
 
-	public ColorTransform clone() {
-		return new ColorTransform(redMultiplier, greenMultiplier, blueMultiplier, alphaMultiplier,
-								  redOffset, greenOffset, blueOffset, alphaOffset);
-	}
-
-	public DoubleBuffer JITB$toDoubleBuffer() {
-		// 4x4 matrix, each a double (8 bytes)
-		return (DoubleBuffer) BufferUtils.createByteBuffer(4*4*8).asDoubleBuffer().
-				put(redMultiplier).put(0.0).put(0.0).put(0.0).
-				put(0.0).put(greenMultiplier).put(0.0).put(0.0).
-				put(0.0).put(0.0).put(blueMultiplier).put(0.0).
-				put(0.0).put(0.0).put(0.0).put(alphaMultiplier).
-				flip();
+	@Override
+	public String toString() {
+		return String.format(TO_STRING, redMultiplier, greenMultiplier, blueMultiplier, alphaMultiplier,
+							 redOffset, greenOffset, blueOffset, alphaOffset);
 	}
 }

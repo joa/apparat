@@ -7,7 +7,7 @@ import java.io.StringWriter;
  * @author Joa Ebert
  */
 public class Error extends jitb.lang.Object {
-	private final int _errorID;
+	private int _errorID;
 	private final Throwable _throwable = new Throwable();
 
 	public String message;
@@ -28,6 +28,10 @@ public class Error extends jitb.lang.Object {
 	
 	public int errorID() {
 		return _errorID;
+	}
+
+	public void JITB$errorID(final int value) {
+		_errorID = value;
 	}
 
 	public String getStackTrace() {
