@@ -1,13 +1,10 @@
 package flash.display;
 
 import flash.events.EventDispatcher;
-import flash.geom.ColorTransform;
 import flash.geom.Matrix;
 import flash.geom.Transform;
 import jitb.display.DisplayList;
 import jitb.display.IDisplayObject;
-import jitb.errors.MissingImplementationException;
-import jitb.lang.trace;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
@@ -24,8 +21,9 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	private double _scaleX = 1.0;
 	private double _scaleY = 1.0;
 	private double _rotation = 0.0;
+	private float _rotationRad = 0.0f;
 	private String _blendMode = BlendMode.NORMAL;
-	private final Transform _transform = new Transform().$JITBinit(this);
+	private final Transform _transform = new Transform().JITB$init(this);
 
 	public DisplayObject() {
 		DisplayList.register(this);
@@ -43,7 +41,10 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	public void y(final double value) { _y = value; }
 
 	public double rotation() { return _rotation; }
-	public void rotation(final double value) { _rotation = value; }
+	public void rotation(final double value) {
+		_rotation = value;
+		_rotationRad = (float)(value / 180.0 * Math.PI);
+	}
 
 	public double scaleX() { return _scaleX; }
 	public void scaleX(final double value) { _scaleX = value; }
@@ -72,7 +73,7 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 		//GL11.glLoadMatrix(modelViewMatrix);
 
 		GL11.glTranslated(x(), y(), 0.0);
-		GL11.glRotatef((float)(_rotation / 180.0 * Math.PI), 0.0f, 0.0f, 1.0f);
+		GL11.glRotatef(_rotationRad, 0.0f, 0.0f, 1.0f);
 		GL11.glScaled(_scaleX, _scaleY, 1.0);
 		GL11.glColor4d(_transform.colorTransform().redMultiplier, _transform.colorTransform().greenMultiplier,
 					   _transform.colorTransform().blueMultiplier, _transform.colorTransform().alphaMultiplier);

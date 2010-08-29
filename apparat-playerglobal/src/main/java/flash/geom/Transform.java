@@ -36,11 +36,11 @@ public class Transform extends jitb.lang.Object {
 		}
 	}
 
-	public Matrix $JITBmatrix() {
+	public Matrix JITB$matrix() {
 		return _matrix;
 	}
 	
-	public Transform $JITBinit(final DisplayObject displayObject) {
+	public Transform JITB$init(final DisplayObject displayObject) {
 		_displayObject = displayObject;
 		return this;
 	}
