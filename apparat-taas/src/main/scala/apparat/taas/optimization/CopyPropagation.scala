@@ -198,7 +198,7 @@ object CopyPropagation extends TaasOptimization {
 					case _ => (true, TStore(value, field, argument))
 				}
 				case None => argument match {
-					case TReg(index) => available get index {
+					case TReg(index) => available get index match {
 						case Some(argumentValue) => (true, TStore(o, field, argumentValue))
 						case None => (false, store)
 					}
