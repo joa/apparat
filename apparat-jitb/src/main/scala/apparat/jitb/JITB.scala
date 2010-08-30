@@ -79,7 +79,7 @@ object JITB {
 class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	def run() = {
 		val swf = Swf fromFile configuration.file
-		val mainClass = swf.mainClass getOrElse { throw JITBException("Could not find main class.") }
+		val mainClass = liftToplevel(swf.mainClass getOrElse { throw JITBException("Could not find main class.") })
 
 		log.debug("Main class: %s", mainClass)
 
@@ -275,5 +275,10 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		}
 
 		Display.destroy()
+	}
+
+	private def liftToplevel(qname: String) = qname indexOf '.' match {
+		case -1 => "jitb.lang."+ qname
+		case _ => qname
 	}
 }

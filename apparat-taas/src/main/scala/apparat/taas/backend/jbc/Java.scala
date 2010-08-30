@@ -29,7 +29,20 @@ import collection.mutable.ListBuffer
  */
 protected[jbc] object Java {
 	@inline
-	def nameOf(qualifiedName: String): String = qualifiedName.replaceAll("\\.", "\\/")
+	def nameOf(qualifiedName: String): String = {
+		val name = qualifiedName.replaceAll("\\.", "\\/")
+		if(-1 == (name indexOf '/')) {
+			"jitb/lang/"+name
+		} else {
+			name
+		}
+	}
+
+	@inline
+	def liftToplevel(qualifiedName: String): String = qualifiedName indexOf '.' match {
+		case -1 => "jitb.lang."+ qualifiedName
+		case _ => qualifiedName
+	}
 
 	@inline
 	def nameOf(`type`: TaasType): String = `type` match {

@@ -105,7 +105,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			
 			val bytes = cw.toByteArray()
 			cv.visitEnd()
-			classMap += nominal.qualifiedName -> bytes
+			classMap += Java.liftToplevel(nominal.qualifiedName) -> bytes
 
 			if(JbcBackend.DEBUG) {
 				JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(Console.out))
