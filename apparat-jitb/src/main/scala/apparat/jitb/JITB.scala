@@ -261,7 +261,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 					log.error("%s", error.getStackTrace())
 				}
 				case other => {
-					noErrorOccurred
+					noErrorOccurred = false
 					log.error("An internal error occurred.")
 					log.error("%s", other)
 				}

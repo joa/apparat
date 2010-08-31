@@ -174,16 +174,16 @@ public class Matrix extends jitb.lang.Object {
 
 	public void JITB$toDoubleBuffer(final DoubleBuffer value) {
 		//
-		// a c tx
-		// b d ty
-		// 0 0 1
-		//
+		// a c tx    a c 0 tx
+		// b d ty -> b d 0 ty
+		// 0 0 1     0 0 1 0
+		//           0 0 0 1
 
 		value.clear();
 		value.put(a).put(b).put(0.0).put(0.0).
 				put(c).put(d).put(0.0).put(0.0).
 				put(0.0).put(0.0).put(1.0).put(0.0).
-				put(tx).put(ty).put(0.0).put(0.0);
+				put(tx).put(ty).put(0.0).put(1.0);
 		value.flip();
 	}
 

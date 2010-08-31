@@ -35,22 +35,47 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	public void blendMode(final String value) { _blendMode = value; }
 
 	public double x() { return _x; }
-	public void x(final double value) { _x = value; }
+	public void x(final double value) {
+		_x = value;
+		transform().JITB$matrix().tx = value;
+	}
 
 	public double y() { return _y; }
-	public void y(final double value) { _y = value; }
+	public void y(final double value) {
+		_y = value;
+		transform().JITB$matrix().ty = value;
+	}
 
 	public double rotation() { return _rotation; }
 	public void rotation(final double value) {
 		_rotation = value;
 		_rotationRad = (float)(value / 180.0 * Math.PI);
+
+		updateMatrix();
 	}
 
 	public double scaleX() { return _scaleX; }
-	public void scaleX(final double value) { _scaleX = value; }
+	public void scaleX(final double value) {
+		_scaleX = value;
+		updateMatrix();
+	}
 
 	public double scaleY() { return _scaleY; }
-	public void scaleY(final double value) { _scaleY = value; }
+	public void scaleY(final double value) {
+		_scaleY = value;
+		updateMatrix();
+	}
+
+	private void updateMatrix() {
+		final Matrix matrix = transform().JITB$matrix();
+		//TODO integrate rotation
+		matrix.a = _scaleX;
+		matrix.b = 0.0;
+		matrix.c = 0.0;
+		matrix.d = _scaleY;
+		matrix.tx = _x;
+		matrix.ty = _y;
+	}
 
 	public Transform transform() { return _transform; }
 
@@ -69,12 +94,12 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		GL11.glPushMatrix();
 		GL11.glLoadIdentity();
-		//transform().matrix().JITB$toDoubleBuffer(modelViewMatrix);
-		//GL11.glLoadMatrix(modelViewMatrix);
+		transform().matrix().JITB$toDoubleBuffer(modelViewMatrix);
+		GL11.glLoadMatrix(modelViewMatrix);
 
-		GL11.glTranslated(x(), y(), 0.0);
-		GL11.glRotatef(_rotationRad, 0.0f, 0.0f, 1.0f);
-		GL11.glScaled(_scaleX, _scaleY, 1.0);
+		//GL11.glTranslated(x(), y(), 0.0);
+		//GL11.glRotatef(_rotationRad, 0.0f, 0.0f, 1.0f);
+		//GL11.glScaled(_scaleX, _scaleY, 1.0);
 		GL11.glColor4d(_transform.colorTransform().redMultiplier, _transform.colorTransform().greenMultiplier,
 					   _transform.colorTransform().blueMultiplier, _transform.colorTransform().alphaMultiplier);
 		final String blendMode = blendMode();

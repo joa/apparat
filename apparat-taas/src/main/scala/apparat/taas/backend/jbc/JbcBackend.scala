@@ -479,7 +479,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 	 *
 	 * in this case A is the nominal, B is method since it contains the closure call and C is the closure.
 	 */
-	private def emitClosure(ov: JClassVisitor, nominal: TaasNominal, method: TaasMethod, closure: TaasMethod) = if(!classMap.contains(Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name)) {
+	private def emitClosure(ov: JClassVisitor, nominal: TaasNominal, method: TaasMethod, closure: TaasMethod) = if(!classMap.contains(Java.liftToplevel(nominal.qualifiedName)+"$"+closure.name.name)) {
 		assume(closure.parameters.length == 1)//for now
 		assume(closure.`type` == TaasVoidType)
 
@@ -555,6 +555,6 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 		val bytes = cw.toByteArray()
 		cv.visitEnd()
-		classMap += (Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name) -> bytes
+		classMap += (Java.liftToplevel(nominal.qualifiedName)+"$"+closure.name.name) -> bytes
 	}
 }
