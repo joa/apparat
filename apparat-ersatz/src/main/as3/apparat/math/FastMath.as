@@ -95,16 +95,12 @@ package apparat.math {
 			var r:Number
 			var sign:Number = 1.0 - (int(y < 0.0) << 1)
 			var absY:Number = y * sign + 2.220446049250313e-16
-
 			var partSignX:Number = (int(x < 0.0) << 1) // [0.0/2.0]
 			var signX:Number = 1.0 - partSignX // [1.0/-1.0]
 
 			r = (x - signX * absY) / (signX * x + absY)
-			angle = (partSignX + 1.0) * 0.7853981634
-
-			angle += (0.1821 * r * r - 0.9675) * r
-
-			return angle * sign
+			
+			return (((partSignX + 1.0) * 0.7853981634) + ((0.1821 * r * r - 0.9675) * r)) * sign
 		}
 
 		/**
