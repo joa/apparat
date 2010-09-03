@@ -28,7 +28,6 @@ import apparat.abc.Abc
 import apparat.utils.IO._
 import apparat.taas.frontend.abc.AbcFrontend
 import apparat.taas.TaasCompiler
-import apparat.taas.backend.jbc.{JbcClassLoader, JbcBackend}
 import java.lang.{Thread => JThread}
 import apparat.swf.{SymbolClass, SwfTags, Swf}
 import flash.display.{DisplayObject, Stage, Sprite}
@@ -36,6 +35,8 @@ import java.util.{TimerTask, Timer}
 import jitb.display.DisplayList
 import org.lwjgl.opengl.{GL11, DisplayMode, PixelFormat, Display}
 import jitb.errors.{ErrorUtil, Throw}
+import apparat.taas.backend.jbc.{JbcClassWriter, JbcClassLoader, JbcBackend}
+import java.io.{File => JFile}
 
 /**
  * @author Joa Ebert
@@ -89,9 +90,12 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		// a test case to support loading of a single ABC from a SWF.
 		// We do not care at this point where the ABC occurs in the SWF.
 		//
-		
-		val loader = new JbcClassLoader(compile(Abc fromSwf swf get), JThread.currentThread.getContextClassLoader)
+
+		val binaries = compile(Abc fromSwf swf get)
+		val loader = new JbcClassLoader(binaries, JThread.currentThread.getContextClassLoader)
 		JThread.currentThread setContextClassLoader loader
+
+		new JbcClassWriter(binaries).write(new JFile("/home/joa/classes"))
 
 		val main = Class.forName(mainClass, true, loader)
 

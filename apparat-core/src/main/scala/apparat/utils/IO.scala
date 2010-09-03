@@ -104,14 +104,13 @@ object IO {
 		output.toByteArray()
 	}
 
-	def using[A, B <: {def close()}](stream: B)(body: B => A): A = {
+	def using[A, B <: { def close() }](stream: B)(body: B => A): A = {
 		try {
 			body(stream)
-		}
-		finally {
+		} finally {
 			if (null != stream) {
 				try {
-					stream close ()
+					stream.close()
 				} catch {
 					case _ => {}
 				}
