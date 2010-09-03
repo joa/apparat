@@ -1,8 +1,19 @@
 package apparat.math {
-	import apparat.asm.*
 	import apparat.inline.Macro
 
 	public class MathMacro extends Macro {
+		/**
+		 * Normalizes a denormal IEEE-754 double-precision floating-point number.
+		 *
+		 * <p>This code has been tested on Mac OS X, Windows and Linux.</p>
+		 *
+		 * @param value A denormal IEEE-754 double-precision floating-point number.
+		 * 
+		 * @see http://wiki.joa-ebert.com/index.php/Avoiding_Denormals
+		 */
+		public static function normalize(value: Number): void {
+			value = value + 1e-18 - 1e-18
+		}
 
 		/**
 		 * Computes and returns the sine and the cosine of the specified angle in radians.
