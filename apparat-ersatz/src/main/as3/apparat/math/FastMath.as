@@ -83,23 +83,24 @@ package apparat.math {
 		 *
 		 * @author Eugene Zatepyakin
 		 * @author Joa Ebert
+		 * @author Patrick Le Clec'h
+		 *
 		 * @param y A number specifying the <em>y</em> coordinate of the point.
 		 * @param x A number specifying the <em>x</em> coordinate of the point.
+		 *
 		 * @return A number.
 		 */
 		public static function atan2(y:Number, x:Number):Number {
-			var angle: Number
-			var r: Number
-			var sign: Number = 1.0 - (int(y < 0.0) << 1)
-			var absY: Number = y * sign + 2.220446049250313e-16
+			var angle:Number
+			var r:Number
+			var sign:Number = 1.0 - (int(y < 0.0) << 1)
+			var absY:Number = y * sign + 2.220446049250313e-16
 
-			if(x >= 0.0) {
-				r = (x - absY) / (x + absY)
-				angle = 0.785398164
-			} else {
-				r = (x + absY) / (absY - x)
-				angle = 2.356194491
-			}
+			var partSignX:Number = (int(x < 0.0) << 1) // [0.0/2.0]
+			var signX:Number = 1.0 - partSignX // [1.0/-1.0]
+
+			r = (x - signX * absY) / (signX * x + absY)
+			angle = (partSignX + 1.0) * 0.7853981634
 
 			angle += (0.1821 * r * r - 0.9675) * r
 
