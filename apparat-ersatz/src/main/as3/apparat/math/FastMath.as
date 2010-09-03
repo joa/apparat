@@ -77,6 +77,33 @@ package apparat.math {
 		}
 
 		/**
+		 * @author Eugene Zatepyakin
+		 * @author Joa Ebert
+		 * @param y
+		 * @param x
+		 * @return
+		 */
+		public static function atan2(y:Number, x:Number):Number {
+			var angle: Number
+			var r: Number
+			var c3: Number = 0.1821
+			var c1: Number = 0.9675
+			var absY:Number = y * (1.0 - (int(y < 0.0) << 1)) + 2.220446049250313e-16
+			//var abs_y:Number = (y < 0 ? -y : y) + 2.220446049250313e-16
+
+			if(x >= 0.0) {
+				r = (x - absY) / (x + absY)
+				angle = 0.785398164//pi * 0.25
+			} else {
+				r = (x + absY) / (absY - x)
+				angle = 2.356194491//3 * pi * 0.25
+			}
+			angle += (c3 * r * r - c1) * r
+			//return (y < 0) ? -angle : angle
+			return angle * (1.0 - (int(y < 0.0) << 1))
+		}
+
+		/**
 		 * Computes and returns an absolute value.
 		 *
 		 * @param value The number whose absolute value is returned.
