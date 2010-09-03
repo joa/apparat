@@ -91,16 +91,12 @@ package apparat.math {
 		 * @return A number.
 		 */
 		public static function atan2(y:Number, x:Number):Number {
-			var angle:Number
-			var r:Number
 			var sign:Number = 1.0 - (int(y < 0.0) << 1)
-			var absY:Number = y * sign + 2.220446049250313e-16
+			var absYandR:Number = y * sign + 2.220446049250313e-16
 			var partSignX:Number = (int(x < 0.0) << 1) // [0.0/2.0]
 			var signX:Number = 1.0 - partSignX // [1.0/-1.0]
-
-			r = (x - signX * absY) / (signX * x + absY)
-			
-			return (((partSignX + 1.0) * 0.7853981634) + ((0.1821 * r * r - 0.9675) * r)) * sign
+			absYandR = (x - signX * absYandR) / (signX * x + absYandR)
+			return ((partSignX + 1.0) * 0.7853981634 + (0.1821 * absYandR * absYandR - 0.9675) * absYandR) * sign
 		}
 
 		/**
