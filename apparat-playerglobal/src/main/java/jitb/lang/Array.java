@@ -350,4 +350,24 @@ public class Array extends jitb.lang.Object {
 
 		return _arrayList.size();
 	}
+
+	public java.lang.Object JITB$get(final int index) {
+		return _arrayList.get(index);
+	}
+
+	public void JITB$set(final int index, final java.lang.Object value) {
+		final int n = _arrayList.size();
+
+		if(index > n) {
+			final LinkedList<java.lang.Object> list = new LinkedList<java.lang.Object>();
+
+			for(int i = n; i < index; ++i) {
+				list.addFirst(null);
+			}
+			
+			_arrayList.addAll(list);
+		}
+
+		_arrayList.add(index, value);
+	}
 }
