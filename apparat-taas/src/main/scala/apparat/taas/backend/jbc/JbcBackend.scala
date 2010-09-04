@@ -303,6 +303,25 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							mv.visitJumpInsn(JOpcodes.GOTO, labels(jumps(jump)(0)))
 						}
 
+						case TCall(t, TSetIndex, index :: value :: Nil, result) => {
+							load(t)
+							loadAs(index, TaasIntType)
+							loadAs(value, TaasObjectType)
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Array", "JITB$set",  "(ILjava/lang/Object;)V")
+						}
+
+						case TCall(t, TGetIndex, index :: Nil, result) => {
+							load(t)
+							loadAs(index, TaasIntType)
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Array", "JITB$get", "(I)Ljava/lang/Object;")
+							result match {
+								case Some(result) => storeByType(TGetIndex.`type`, result)
+								case None => if(TGetIndex.`type` != TaasVoidType) {
+									mv.visitInsn(JOpcodes.POP)
+								}
+							}
+						}
+
 						case TCall(t, method, arguments, result) => {
 							var i = 0
 							var n = arguments.length

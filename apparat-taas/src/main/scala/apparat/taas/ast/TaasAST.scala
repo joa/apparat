@@ -608,3 +608,6 @@ case class TStore(`object`: TValue, field: TaasField, value: TValue) extends TEx
 	override def defines(index: Int) = false
 	override def uses(index: Int) = (`object` matches index) || (value matches index)
 }
+
+case object TSetIndex extends TaasMethod('TSet, TaasPublic, TaasVoidType, ListBuffer(TaasParameter(TaasIntType, None), TaasParameter(TaasObjectType, None)), false, true, true, None)
+case object TGetIndex extends TaasMethod('TGet, TaasPublic, TaasObjectType, ListBuffer(TaasParameter(TaasIntType, None)), false, true, true, None)

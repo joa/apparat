@@ -370,4 +370,8 @@ public class Array extends jitb.lang.Object {
 
 		_arrayList.add(index, value);
 	}
+
+	public List<java.lang.Object> JITB$internalArray() {
+		return _arrayList;
+	}
 }

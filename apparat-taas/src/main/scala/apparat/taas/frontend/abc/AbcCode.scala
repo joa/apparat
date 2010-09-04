@@ -26,7 +26,7 @@ import apparat.graph.{BlockVertex, BytecodeControlFlowGraph}
 import collection.immutable.HashMap
 import apparat.graph.immutable.{Graph, BytecodeControlFlowGraphBuilder}
 import apparat.bytecode.operations._
-import apparat.abc.{Abc, AbcMethod, AbcNominalType, AbcQName}
+import apparat.abc._
 import apparat.graph.Edge
 import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer}
 import apparat.taas.optimization._
@@ -36,7 +36,7 @@ import apparat.log.{SimpleLog, Debug => DebugLogLevel}
  * @author Joa Ebert
  */
 protected[abc] object AbcCode {
-	val DEBUG = false
+	val DEBUG = "true" == System.getProperty("apparat.debug", "false")
 }
 
 protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
@@ -289,17 +289,29 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case GetLex(typeName) => pp(push(TLexical(AbcSolver getLexical (scopeType, isStatic, typeName) getOrElse error("Could not solve "+typeName+" on "+scopeType+"."))))
 				case GetLocal(index: Int) => pp(push(register(index)))
 				case GetProperty(property) => {
-					val obj = pop()
-					AbcSolver.getProperty(obj.`type`, property) match {
-						case Some(method: TaasMethod) => {
-							if(method.parameters.length == 0) {
-								pp(TCall(obj, method, List.empty, Some(nextOperand)))
-							} else {
-								pp(push(TClosure(method)))
+					property match {
+						case multinameL: AbcMultinameL => {
+							log.warning("Assuming Array index in GetProperty(%s).", property)
+							val index = pop()
+							val obj = pop()
+
+							pp(TCall(obj, TGetIndex, index :: Nil, Some(nextOperand)))
+						}
+						case _ => {
+							val obj = pop()
+							
+							AbcSolver.getProperty(obj.`type`, property) match {
+								case Some(method: TaasMethod) => {
+									if(method.parameters.length == 0) {
+										pp(TCall(obj, method, List.empty, Some(nextOperand)))
+									} else {
+										pp(push(TClosure(method)))
+									}
+								}
+								case Some(field: TaasField) => pp(TLoad(obj, field, nextOperand))
+								case _ => error("Could not find property "+property+" on "+obj.`type`)
 							}
 						}
-						case Some(field: TaasField) => pp(TLoad(obj, field, nextOperand))
-						case _ => error("Could not find property "+property+" on "+obj.`type`)
 					}
 				}
 				case GetScopeObject(index) => TODO(op)
@@ -379,11 +391,20 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case SetGlobalSlot(slot) => TODO(op)
 				case SetProperty(property) => {
 					val arg = pop()
-					val obj = pop()
-					AbcSolver.setProperty(obj.`type`, property) match {
-						case Some(method: TaasMethod) => pp(TCall(obj, method, arg :: Nil, None))
-						case Some(field: TaasField) => pp(TStore(obj, field, arg))
-						case _ => error("Could not find property "+property+" on "+obj.`type`)
+					property match {
+						case multinameL: AbcMultinameL => {
+							log.warning("Assuming Array index in SetProperty(%s).", property)
+							val index = pop()
+							val obj = pop()
+
+							pp(TCall(obj, TSetIndex, index :: arg :: Nil, None))
+						}
+						case _ => val obj = pop()
+							AbcSolver.setProperty(obj.`type`, property) match {
+								case Some(method: TaasMethod) => pp(TCall(obj, method, arg :: Nil, None))
+								case Some(field: TaasField) => pp(TStore(obj, field, arg))
+								case _ => error("Could not find property "+property+" on "+obj.`type`)
+							}
 					}
 				}
 				case SetSlot(slot) => TODO(op)
@@ -398,6 +419,15 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 			}
 
 			if((operandStackBefore + op.operandDelta) != operandStack) {
+				log.error("Wrong operand stack delta.")
+				log.error("Expected: %d -> %d", operandStackBefore, (operandStackBefore + op.operandDelta))
+				log.error("Result: %d -> %d", operandStackBefore, operandStack)
+				log.error("List of values on stack:")
+
+				for(i <- 0 until (operandStackBefore + op.operandDelta)) {
+					log.error("%s", pop())
+				}
+
 				error("Wrong operand-stack delta for "+op+". Got "+operandStackBefore+" -> "+operandStack+", expected "+operandStackBefore+" -> "+(operandStackBefore + op.operandDelta))
 			}
 		}
