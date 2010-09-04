@@ -4,13 +4,13 @@ package jitb.lang;
  * @author Joa Ebert
  */
 public class trace extends jitb.lang.Object {
-	public static Object callStatic(final Object... args) {
+	public static java.lang.Object callStatic(final java.lang.Object... arguments) {
 		final StringBuilder builder = new StringBuilder();
-		final int n = args.length;
+		final int n = arguments.length;
 		final int m = n - 1;
 
 		for(int i = 0; i < n; ++i) {
-			builder.append(args[i].toString());
+			builder.append(arguments[i].toString());
 			if(i != m) {
 				builder.append(" ");
 			}

@@ -4,9 +4,6 @@ package flash.geom;
  * @author Joa Ebert
  */
 public class ColorTransform extends jitb.lang.Object {
-	private static final String TO_STRING = "(redMultiplier=%.2f, greenMultiplier=%.2f, blueMultiplier=%.2f, " +
-			"alphaMultiplier=%.2f, redOffset=%.2f, greenOffset=%.2f, blueOffset=%.2f, alphaOffset=%.2f)";
-	
 	public double alphaOffset;
 	public double alphaMultiplier;
 	public double redOffset;
@@ -97,7 +94,7 @@ public class ColorTransform extends jitb.lang.Object {
 
 	@Override
 	public String toString() {
-		return String.format(TO_STRING, redMultiplier, greenMultiplier, blueMultiplier, alphaMultiplier,
-							 redOffset, greenOffset, blueOffset, alphaOffset);
+		return "(redMultiplier="+redMultiplier+", greenMultiplier="+greenMultiplier+", blueMultiplier="+blueMultiplier+", "+
+			"alphaMultiplier="+alphaMultiplier+", redOffset="+redOffset+", greenOffset="+greenOffset+", blueOffset="+blueOffset+", alphaOffset="+alphaOffset+")";
 	}
 }

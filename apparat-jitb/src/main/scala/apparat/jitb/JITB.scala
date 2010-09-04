@@ -95,7 +95,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val loader = new JbcClassLoader(binaries, JThread.currentThread.getContextClassLoader)
 		JThread.currentThread setContextClassLoader loader
 
-		new JbcClassWriter(binaries).write(new JFile("/home/joa/classes"))
+		//new JbcClassWriter(binaries).write(new JFile("/home/joa/classes"))
 
 		val main = Class.forName(mainClass, true, loader)
 
