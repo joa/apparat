@@ -21,6 +21,7 @@
 package apparat.pbj
 
 import java.io.{InputStream => JInputStream}
+import apparat.pbj.pbjdata.implicits._
 import apparat.pbj.pbjdata._
 import annotation.tailrec
 
@@ -71,6 +72,22 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 		case PBool2Type => PBool2(readUI16() == 1, readUI16() == 1)
 		case PBool3Type => PBool3(readUI16() == 1, readUI16() == 1, readUI16() == 1)
 		case PBool4Type => PBool4(readUI16() == 1, readUI16() == 1, readUI16() == 1, readUI16() == 1)
+	}
+
+	def readMeta(): PMeta = {
+		val `type` = readUI08()
+		PMeta(readString(), readConst(`type`))
+	}
+
+	def readOp(): POp = {
+		import POp._
+
+		val opCode = -1
+
+		opCode match {
+			case KernelMetaData => PKernelMetaData(readMeta())
+			case _ => error("Invalid opcode "+opCode+".")
+		}
 	}
 
 	override def available() = input.available()
