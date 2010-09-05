@@ -10,7 +10,12 @@ public class trace extends jitb.lang.Object {
 		final int m = n - 1;
 
 		for(int i = 0; i < n; ++i) {
-			builder.append(arguments[i].toString());
+			if(null == arguments[i]) {
+				builder.append("null");
+			} else {
+				builder.append(arguments[i].toString());
+			}
+			
 			if(i != m) {
 				builder.append(" ");
 			}

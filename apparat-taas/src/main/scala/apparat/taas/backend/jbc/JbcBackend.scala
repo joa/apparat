@@ -362,7 +362,9 @@ class JbcBackend extends TaasBackend with SimpleLog {
 									case None => error("Method without parent.")
 								}
 							} else {
-								error("Invalid op "+op+".")
+								log.warning(method+" has variable arguments.")
+								varargs = true
+								loadArray(arguments, TaasObjectType, "java/lang/Object")
 							}
 
 							method.parent match {

@@ -46,7 +46,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 	lazy val graph = computeGraph()
 
 	val scopeType = scope match {
-		case Some(scope) => AbcTypes.fromQName(scope.inst.name)
+		case Some(scope) => AbcTypes name2type scope.inst.name
 		case None => TaasAnyType
 	}
 
@@ -65,7 +65,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 		
 		for(i <- 0 until method.parameters.length) {
 			method.parameters(i).typeName match {
-				case qname: AbcQName => registers(i + 1) typeAs AbcTypes.fromQName(qname)
+				case qname: AbcQName => registers(i + 1) typeAs (AbcTypes name2type qname)
 				case other => error("Expected QName, got "+other+".")
 			}
 		}
@@ -86,6 +86,8 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 			var modified = false
 
 			if(AbcCode.DEBUG) {
+				log.debug("Bytecode:")
+				bytecode.dump()
 				log.debug("Code after initial parse step:")
 				new TaasGraphLinearizer(taasGraph).dump(log, DebugLogLevel)
 			}
@@ -169,6 +171,16 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 		}
 		@inline def arguments(n: Int): List[TReg] = List.fill(n) { pop() }.reverse
 
+		if(method.needsArguments) {
+			//
+			// TODO check if method requires "arguments", if yes create an Array object
+			// that lives in register parameters+1, which is filled with the arguments.
+			//
+			// We may do this only in the first successor of the TaasEntry for this method.
+			//
+			error("TODO method.needsArguments")
+		}
+
 		for(op <- vertex.block) {
 			val operandStackBefore = operandStack
 			val scopeStackBefore = scopeStack
@@ -209,7 +221,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case CallSuperVoid(property, numArguments) => TODO(op)
 				case CheckFilter() => TODO(op)
 				case Coerce(typeName) => typeName match {
-					case qname: AbcQName => pp(unop(TCoerce(AbcTypes fromQName qname)))
+					case qname: AbcQName => pp(unop(TCoerce(AbcTypes name2type qname)))
 					case other => error("Unexpected Coerce("+other+").")
 				}
 				case CoerceAny() => pp(unop(TCoerce(TaasAnyType)))
@@ -276,8 +288,14 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 							scopeType match {
 								case t: TaasNominalType =>
 									pp(push(TLexical(AbcSolver.property(t.nominal, property) getOrElse {
-										(AbcTypes fromQName qname).nominal})))
-								case _ => pp(push(TLexical((AbcTypes fromQName qname).nominal)))
+										(AbcTypes name2type qname) match {
+											case n: TaasNominalType => n.nominal
+											case other => error("TaasNominalType expected, got "+other+".")
+										}})))
+								case _ => pp(push(TLexical((AbcTypes name2type qname) match {
+											case n: TaasNominalType => n.nominal
+											case other => error("TaasNominalType expected, got "+other+".")
+										})))
 							}
 						}
 						case _ => error("QName expected.")

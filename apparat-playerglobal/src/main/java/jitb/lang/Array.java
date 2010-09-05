@@ -172,8 +172,12 @@ public class Array extends jitb.lang.Object {
 		int i = 0;
 
 		for(final java.lang.Object object : _arrayList) {
-			builder.append(object.toString());
-
+			if(null == object) {
+				builder.append("null");
+			} else {
+				builder.append(object.toString());
+			}
+			
 			if(i++ != m) {
 				builder.append(sep);
 			}
@@ -331,7 +335,11 @@ public class Array extends jitb.lang.Object {
 		int i = 0;
 
 		for(final java.lang.Object object : _arrayList) {
-			builder.append(object.toString());
+			if(null == object) {
+				builder.append("null");
+			} else {
+				builder.append(object.toString());
+			}
 
 			if(i++ != m) {
 				builder.append(',');

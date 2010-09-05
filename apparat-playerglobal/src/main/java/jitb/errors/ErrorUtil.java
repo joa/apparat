@@ -7,6 +7,7 @@ import jitb.lang.TypeError;
  */
 public final class ErrorUtil {
 	public final static String E_1009 = "Cannot access a property or method of a null object reference.";
+	public final static String E_1034 = "Type Coercion failed: cannot convert %s to %s.";
 	public final static String E_2007 = "Parameter %s must be non-null.";
 
 	public static void flashThrow(final Object value) {
@@ -16,6 +17,12 @@ public final class ErrorUtil {
 	public static TypeError error1009() {
 		final TypeError result = new TypeError(E_1009);
 		result.JITB$errorID(1009);
+		return result;
+	}
+
+	public static TypeError error1034(final Object object, final Class type) {
+		final TypeError result = new TypeError(String.format(E_1034, object, type.getName()));
+		result.JITB$errorID(1034);
 		return result;
 	}
 
