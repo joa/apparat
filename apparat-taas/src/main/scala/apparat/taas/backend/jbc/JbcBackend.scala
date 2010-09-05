@@ -109,7 +109,6 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 			if(JbcBackend.DEBUG) {
 				JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(Console.out))
-				ASMifierClassVisitor.main(Array("jitb.lang.Test"))
 			}
 		}
 	}
