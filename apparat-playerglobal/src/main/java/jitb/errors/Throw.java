@@ -9,4 +9,9 @@ public final class Throw extends RuntimeException {
 	public Throw(final Object value) {
 		this.value = value;
 	}
+
+	@Override
+	public String toString() {
+		return null == value ? "null" : value.toString();
+	}
 }

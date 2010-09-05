@@ -20,14 +20,22 @@
  */
 package apparat.taas.backend.jbc
 
-import org.objectweb.asm.{MethodVisitor => JMethodVisitor}
-import org.objectweb.asm.{Opcodes => JOpcodes}
 import apparat.taas.ast._
+import org.objectweb.asm.{Type, MethodVisitor => JMethodVisitor, Opcodes => JOpcodes}
 
 /**
  * @author Joa Ebert
  */
 protected[jbc] object Cast {
+	//
+	// If REQUIRE_TYPEERROR is set to false a TypeError will not be passed to
+	// ActionScript catch blocks when a type coercion error occurs.
+	// This is usually bad practice and an error that indicates a bug. Since it
+	// is an expensive check we can omit it in 99% of all cases anyways for more
+	// performance.
+	//
+	val REQUIRE_TYPEERROR = true
+
 	final case class Error(message: String)
 
 	//TODO replace either with option
@@ -76,15 +84,26 @@ protected[jbc] object Cast {
 						if(loop(Some(a))) {
 							Right(())
 						} else {
-							Left(Cast.Error("Cannot convert from "+a+" to "+target))
+							Right(checkCast(target))
 						}
 					}
 					case TaasObjectType => Right(())
 					case TaasStringType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/String", "valueOf", "(Ljava/lang/Object;)Ljava/lang/String;"))
-					case other =>  Left(Cast.Error("Cannot convert from "+a+" to "+target))
+					case other => Right(checkCast(other))
 				}
+				case TaasObjectType => Right(checkCast(target))
 				case _ => Left(Cast.Error("Cannot convert from "+source+" to "+target))
 			}
 		}
+	}
+
+	private def checkCast(target: TaasType)(implicit mv: JMethodVisitor) = {
+		if(REQUIRE_TYPEERROR) {
+			mv.visitInsn(JOpcodes.DUP)
+			mv.visitLdcInsn(Type.getType(Java typeOf target))
+			mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "jitb/lang/AVM", "coerce", "(Ljava/lang/Object;Ljava/lang/Class;)V")
+		}
+
+		mv.visitTypeInsn(JOpcodes.CHECKCAST, Java nameOf target)
 	}
 }

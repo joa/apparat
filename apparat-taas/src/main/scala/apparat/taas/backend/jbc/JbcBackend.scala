@@ -132,7 +132,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			}
 		}
 
-		@inline def loadAs(value: TValue, `type`: TaasType) = Load(value, `type`, x => mapIndex(x)) match {
+		@inline def loadAs(value: TValue, `type`: TaasType): Unit = Load(value, `type`, x => mapIndex(x)) match {
 			case Some(e) => error(e.message)
 			case None => value match {
 				case TClosure(value) => closures = (method, value) :: closures
@@ -176,9 +176,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			}
 		}
 
-		@inline def binop(op: TaasBinop, lhs: TValue, rhs: TValue): Unit = Binop(op, lhs, rhs)
-		@inline def binopWithType(op: TaasBinop, lhs: TValue, rhs: TValue, `type`: TaasType): Unit = {
-			Binop(op, lhs, rhs, `type`) match {
+		@inline def binopWithType(op: TaasBinop, lhs: TValue, rhs: TValue, `type`: TaasType, mapIndex: Int => Int): Unit = {
+			Binop(op, lhs, rhs, `type`, mapIndex, (x, y) => loadAs(x, y)) match {
 				case Some(e) => {
 					log.error(e.message)
 					error(e.message)
@@ -244,9 +243,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						}
 						case t3 @ T3(operator, lhs, rhs, result) => {
 							val t = t3.`type`
-							loadAs(lhs, t)
-							loadAs(rhs, t)
-							binopWithType(operator, lhs, rhs, t)
+							binopWithType(operator, lhs, rhs, t, x => mapIndex(x))
 							storeByType(t, result)
 						}
 						case if1 @ TIf1(op, rhs) => {
@@ -303,6 +300,25 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							mv.visitJumpInsn(JOpcodes.GOTO, labels(jumps(jump)(0)))
 						}
 
+						case TCall(t, TSetIndex, index :: value :: Nil, result) => {
+							load(t)
+							loadAs(index, TaasIntType)
+							loadAs(value, TaasObjectType)
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Array", "JITB$set",  "(ILjava/lang/Object;)V")
+						}
+
+						case TCall(t, TGetIndex, index :: Nil, result) => {
+							load(t)
+							loadAs(index, TaasIntType)
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Array", "JITB$get", "(I)Ljava/lang/Object;")
+							result match {
+								case Some(result) => storeByType(TGetIndex.`type`, result)
+								case None => if(TGetIndex.`type` != TaasVoidType) {
+									mv.visitInsn(JOpcodes.POP)
+								}
+							}
+						}
+
 						case TCall(t, method, arguments, result) => {
 							var i = 0
 							var n = arguments.length
@@ -343,7 +359,9 @@ class JbcBackend extends TaasBackend with SimpleLog {
 									case None => error("Method without parent.")
 								}
 							} else {
-								error("Invalid op "+op+".")
+								log.warning(method+" has variable arguments.")
+								varargs = true
+								loadArray(arguments, TaasObjectType, "java/lang/Object")
 							}
 
 							method.parent match {
@@ -483,7 +501,11 @@ class JbcBackend extends TaasBackend with SimpleLog {
 		assume(closure.parameters.length == 1)//for now
 		assume(closure.`type` == TaasVoidType)
 
-		ov.visitInnerClass(Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name, null, null, 0);
+		val outerClassName = Java nameOf nominal.qualifiedName
+		val innerClassName = outerClassName+"$"+closure.name.name
+		val outerClassType = Java typeOf TaasNominalTypeInstance(nominal)
+
+		ov.visitInnerClass(innerClassName, null, null, 0);
 		
 		val cw = new JClassWriter(JbcBackend.WRITER_PARAMETERS)
 		val cv = decorateWriter(cw)
@@ -491,24 +513,24 @@ class JbcBackend extends TaasBackend with SimpleLog {
 		cv.visit(
 			JbcBackend.JAVA_VERSION,
 			JOpcodes.ACC_SUPER,
-			Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name,
+			innerClassName,
 			"Ljitb/lang/closure/Function1<"+Java.typeOf(closure.parameters(0).`type`)+"Ljava/lang/Object;>;",
 			"jitb/lang/closure/Function1",
 			null
 		)
 
-		cv.visitOuterClass(Java nameOf nominal.qualifiedName, method.name.name, Java methodDesc method)
-		cv.visitInnerClass(Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name, null, null, 0)
+		cv.visitOuterClass(outerClassName, method.name.name, Java methodDesc method)
+		cv.visitInnerClass(innerClassName, null, null, 0)
 
-		val fv = cv.visitField(JOpcodes.ACC_FINAL + JOpcodes.ACC_SYNTHETIC, "this$0", Java typeOf TaasNominalTypeInstance(nominal), null, null)
+		val fv = cv.visitField(JOpcodes.ACC_FINAL + JOpcodes.ACC_SYNTHETIC, "this$0", outerClassType, null, null)
 		fv.visitEnd()
 
 		{
-			val mv = cv.visitMethod(0, "<init>", "("+Java.typeOf(TaasNominalTypeInstance(nominal))+")V", null, null)
+			val mv = cv.visitMethod(0, "<init>", "("+outerClassType+")V", null, null)
 			mv.visitCode()
 			mv.visitVarInsn(JOpcodes.ALOAD, 0)
 			mv.visitVarInsn(JOpcodes.ALOAD, 1)
-			mv.visitFieldInsn(JOpcodes.PUTFIELD, Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name, "this$0", Java typeOf TaasNominalTypeInstance(nominal))
+			mv.visitFieldInsn(JOpcodes.PUTFIELD, innerClassName, "this$0", outerClassType)
 			mv.visitVarInsn(JOpcodes.ALOAD, 0)
 			mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, "jitb/lang/closure/Function1", "<init>", "()V")
 			mv.visitInsn(JOpcodes.RETURN)
@@ -517,11 +539,12 @@ class JbcBackend extends TaasBackend with SimpleLog {
 		}
 
 		{
-			val mv = cv.visitMethod(JOpcodes.ACC_PUBLIC, "apply1", "("+Java.typeOf(closure.parameters(0).`type`)+")Ljava/lang/Object;", null, null)
+			val mv = cv.visitMethod(JOpcodes.ACC_PUBLIC, "apply1", "(Ljitb/lang/Object;"+Java.typeOf(closure.parameters(0).`type`)+")Ljava/lang/Object;", null, null)
 			mv.visitCode()
 			mv.visitVarInsn(JOpcodes.ALOAD, 0)
-			mv.visitFieldInsn(JOpcodes.GETFIELD, Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name, "this$0", Java typeOf TaasNominalTypeInstance(nominal))
-			mv.visitVarInsn(JOpcodes.ALOAD, 1)
+			//add check for thisArg and whether it is null or not.
+			mv.visitFieldInsn(JOpcodes.GETFIELD, innerClassName, "this$0", outerClassType)
+			mv.visitVarInsn(JOpcodes.ALOAD, 2)
 			closure.parent match {
 				case Some(parent) => parent match {
 					case k: TaasClass => mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, Java nameOfOwnerOf closure, closure.name.name, Java methodDesc closure)
@@ -542,15 +565,58 @@ class JbcBackend extends TaasBackend with SimpleLog {
 		}
 
 		{
-			val mv = cv.visitMethod(JOpcodes.ACC_PUBLIC + JOpcodes.ACC_BRIDGE + JOpcodes.ACC_SYNTHETIC, "apply1", "(Ljava/lang/Object;)Ljava/lang/Object;", null, null);
-			mv.visitCode();
-			mv.visitVarInsn(JOpcodes.ALOAD, 0);
-			mv.visitVarInsn(JOpcodes.ALOAD, 1);
+			val mv = cv.visitMethod(JOpcodes.ACC_PUBLIC, "applyVoid1", "(Ljitb/lang/Object;"+Java.typeOf(closure.parameters(0).`type`)+")V", null, null)
+			mv.visitCode()
+			mv.visitVarInsn(JOpcodes.ALOAD, 0)
+			//add check for thisArg and whether it is null or not.
+			mv.visitFieldInsn(JOpcodes.GETFIELD, innerClassName, "this$0", outerClassType)
+			mv.visitVarInsn(JOpcodes.ALOAD, 2)
+			closure.parent match {
+				case Some(parent) => parent match {
+					case k: TaasClass => mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, Java nameOfOwnerOf closure, closure.name.name, Java methodDesc closure)
+					case i: TaasInterface => mv.visitMethodInsn(JOpcodes.INVOKEINTERFACE, Java nameOfOwnerOf closure, closure.name.name, Java methodDesc closure)
+					case f: TaasFunction => mv.visitMethodInsn(
+						JOpcodes.INVOKESTATIC,
+						Java nameOfOwnerOf closure,
+						"callStatic",
+						Java methodDesc closure)
+					case _ => error("Unexpected parent "+parent+".")
+				}
+				case None => error("Method without parent.")
+			}
+			mv.visitInsn(JOpcodes.RETURN)
+			mv.visitMaxs(2, 2)
+			mv.visitEnd()
+		}
+
+		// Bridge methods
+
+		{
+			val mv = cv.visitMethod(JOpcodes.ACC_PUBLIC + JOpcodes.ACC_BRIDGE + JOpcodes.ACC_SYNTHETIC, "apply1", "(Ljitb/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", null, null)
+			mv.visitCode()
+			mv.visitVarInsn(JOpcodes.ALOAD, 0)
+			mv.visitVarInsn(JOpcodes.ALOAD, 1)
+			mv.visitTypeInsn(JOpcodes.CHECKCAST, "jitb/lang/Object")
+			mv.visitVarInsn(JOpcodes.ALOAD, 2)
 			mv.visitTypeInsn(JOpcodes.CHECKCAST, Java nameOf closure.parameters(0).`type`)
-			mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, Java.nameOf(nominal.qualifiedName)+"$"+closure.name.name, "apply1", "("+Java.typeOf(closure.parameters(0).`type`)+")Ljava/lang/Object;");
-			mv.visitInsn(JOpcodes.ARETURN);
-			mv.visitMaxs(2, 2);
-			mv.visitEnd();
+			mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, innerClassName, "apply1", "(Ljitb/lang/Object;"+Java.typeOf(closure.parameters(0).`type`)+")Ljava/lang/Object;")
+			mv.visitInsn(JOpcodes.ARETURN)
+			mv.visitMaxs(2, 2)
+			mv.visitEnd()
+		}
+
+		{
+			val mv = cv.visitMethod(JOpcodes.ACC_PUBLIC + JOpcodes.ACC_BRIDGE + JOpcodes.ACC_SYNTHETIC, "applyVoid1", "(Ljitb/lang/Object;Ljava/lang/Object;)V", null, null)
+			mv.visitCode()
+			mv.visitVarInsn(JOpcodes.ALOAD, 0)
+			mv.visitVarInsn(JOpcodes.ALOAD, 1)
+			mv.visitTypeInsn(JOpcodes.CHECKCAST, "jitb/lang/Object")
+			mv.visitVarInsn(JOpcodes.ALOAD, 2)
+			mv.visitTypeInsn(JOpcodes.CHECKCAST, Java nameOf closure.parameters(0).`type`)
+			mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, innerClassName, "applyVoid1", "(Ljitb/lang/Object;"+Java.typeOf(closure.parameters(0).`type`)+")V")
+			mv.visitInsn(JOpcodes.RETURN)
+			mv.visitMaxs(2, 2)
+			mv.visitEnd()
 		}
 
 		val bytes = cw.toByteArray()

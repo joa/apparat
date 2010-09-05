@@ -170,9 +170,6 @@ protected[jbc] object Load extends SimpleLog {
 		case reg: TReg => {
 			val index = mapIndex(reg.index)
 			reg.`type` match {
-				case TaasAnyType | TaasObjectType | TaasStringType | TaasFunctionType | _: TaasNominalType =>
-					mv.visitVarInsn(JOpcodes.ALOAD, index)
-					None
 				case TaasBooleanType | TaasIntType =>
 					mv.visitVarInsn(JOpcodes.ILOAD, index)
 					None
@@ -181,6 +178,9 @@ protected[jbc] object Load extends SimpleLog {
 					None
 				case TaasLongType =>
 					mv.visitVarInsn(JOpcodes.LLOAD, index)
+					None
+				case TaasAnyType | TaasObjectType | TaasStringType | TaasFunctionType | _: TaasNominalType =>
+					mv.visitVarInsn(JOpcodes.ALOAD, index)
 					None
 				case TaasVoidType => Some(Load.Error("Cannot store void in register."))
 			}

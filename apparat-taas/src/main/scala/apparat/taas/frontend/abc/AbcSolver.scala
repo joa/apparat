@@ -145,7 +145,10 @@ object AbcSolver extends SimpleLog {
 		scope match {
 			case nominalType: TaasNominalType => getLexical(nominalType.nominal, static, name)
 			case TaasObjectType => name match {
-				case qname: AbcQName => Some(AbcTypes.fromQName(qname).nominal)
+				case qname: AbcQName => Some(AbcTypes name2type qname match {
+					case n: TaasNominalType => n.nominal
+					case other => error("TaasNominalType expected, got "+other+".")
+				})
 				case _ => error("QName expected, got "+name+".")
 			}
 			case other => error("Nominal type expected, got "+other+".")
@@ -174,7 +177,10 @@ object AbcSolver extends SimpleLog {
 					}
 					case _ => error("TaasClass expected.")
 				}
-				case _ => Some((AbcTypes fromQName qname).nominal) 
+				case _ => Some(AbcTypes name2type  qname match {
+					case n: TaasNominalType => n.nominal
+					case other => error("TaasNominalType expected, got "+other+".")
+				}) 
 			}
 		}
 		case _ => error("QName expected.")

@@ -160,7 +160,7 @@ public class Matrix extends jitb.lang.Object {
 	}
 
 	public void scale(final double sx, final double sy) {
-		concat(new Matrix(sx, 0.0, 1.0, sy, 0.0, 0.0));
+		concat(new Matrix(sx, 0.0, 0.0, sy, 0.0, 0.0));
 	}
 
 	@Override

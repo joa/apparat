@@ -169,27 +169,7 @@ protected[abc] class AbcParser(ast: TaasAST, abc: Abc, unit: TaasUnit) {
 		}
 	}
 
-	private implicit def name2type(name: AbcName): TaasType = {
-		if(name == AbcConstantPool.EMPTY_NAME) TaasAnyType
-		else {
-			name match {
-				case AbcQName(name, namespace) => {
-					if(name == 'void && namespace.name.name.length == 0) TaasVoidType
-					else if(name == 'int && namespace.name.name.length == 0) TaasIntType
-					else if(name == 'uint && namespace.name.name.length == 0) TaasLongType
-					else if(name == 'Number && namespace.name.name.length == 0) TaasDoubleType
-					else if(name == 'String && namespace.name.name.length == 0) TaasStringType
-					else if(name == 'Boolean && namespace.name.name.length == 0) TaasBooleanType
-					else if(name == 'Function && namespace.name.name.length == 0) TaasFunctionType
-					else if(name == 'Object && namespace.name.name.length == 0) TaasObjectType
-					else AbcTypes fromQName (name, namespace)
-				}
-				case AbcTypename(name, parameters) => AbcTypes fromTypename (name, parameters)
-				case AbcMultiname(name, nsset) => AbcTypes fromQName (name, nsset.set(1))
-				case _ => error("Unexpected name: " + name)
-			}
-		}
-	}
+	private implicit def name2type(name: AbcName): TaasType = AbcTypes name2type name
 
 	private def method2code(scope: Option[AbcNominalType], isStatic: Boolean, method: AbcMethod): Option[TaasCode] = {
 		method.body match {

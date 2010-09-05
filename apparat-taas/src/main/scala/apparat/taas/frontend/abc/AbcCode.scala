@@ -26,7 +26,7 @@ import apparat.graph.{BlockVertex, BytecodeControlFlowGraph}
 import collection.immutable.HashMap
 import apparat.graph.immutable.{Graph, BytecodeControlFlowGraphBuilder}
 import apparat.bytecode.operations._
-import apparat.abc.{Abc, AbcMethod, AbcNominalType, AbcQName}
+import apparat.abc._
 import apparat.graph.Edge
 import apparat.taas.graph.{TaasEntry, TaasExit, TaasBlock, TaasGraph, TaasGraphLinearizer}
 import apparat.taas.optimization._
@@ -36,7 +36,7 @@ import apparat.log.{SimpleLog, Debug => DebugLogLevel}
  * @author Joa Ebert
  */
 protected[abc] object AbcCode {
-	val DEBUG = false
+	val DEBUG = "true" == System.getProperty("apparat.debug", "false")
 }
 
 protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
@@ -46,7 +46,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 	lazy val graph = computeGraph()
 
 	val scopeType = scope match {
-		case Some(scope) => AbcTypes.fromQName(scope.inst.name)
+		case Some(scope) => AbcTypes name2type scope.inst.name
 		case None => TaasAnyType
 	}
 
@@ -65,7 +65,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 		
 		for(i <- 0 until method.parameters.length) {
 			method.parameters(i).typeName match {
-				case qname: AbcQName => registers(i + 1) typeAs AbcTypes.fromQName(qname)
+				case qname: AbcQName => registers(i + 1) typeAs (AbcTypes name2type qname)
 				case other => error("Expected QName, got "+other+".")
 			}
 		}
@@ -86,6 +86,8 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 			var modified = false
 
 			if(AbcCode.DEBUG) {
+				log.debug("Bytecode:")
+				bytecode.dump()
 				log.debug("Code after initial parse step:")
 				new TaasGraphLinearizer(taasGraph).dump(log, DebugLogLevel)
 			}
@@ -169,6 +171,16 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 		}
 		@inline def arguments(n: Int): List[TReg] = List.fill(n) { pop() }.reverse
 
+		if(method.needsArguments) {
+			//
+			// TODO check if method requires "arguments", if yes create an Array object
+			// that lives in register parameters+1, which is filled with the arguments.
+			//
+			// We may do this only in the first successor of the TaasEntry for this method.
+			//
+			error("TODO method.needsArguments")
+		}
+
 		for(op <- vertex.block) {
 			val operandStackBefore = operandStack
 			val scopeStackBefore = scopeStack
@@ -209,7 +221,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case CallSuperVoid(property, numArguments) => TODO(op)
 				case CheckFilter() => TODO(op)
 				case Coerce(typeName) => typeName match {
-					case qname: AbcQName => pp(unop(TCoerce(AbcTypes fromQName qname)))
+					case qname: AbcQName => pp(unop(TCoerce(AbcTypes name2type qname)))
 					case other => error("Unexpected Coerce("+other+").")
 				}
 				case CoerceAny() => pp(unop(TCoerce(TaasAnyType)))
@@ -276,8 +288,14 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 							scopeType match {
 								case t: TaasNominalType =>
 									pp(push(TLexical(AbcSolver.property(t.nominal, property) getOrElse {
-										(AbcTypes fromQName qname).nominal})))
-								case _ => pp(push(TLexical((AbcTypes fromQName qname).nominal)))
+										(AbcTypes name2type qname) match {
+											case n: TaasNominalType => n.nominal
+											case other => error("TaasNominalType expected, got "+other+".")
+										}})))
+								case _ => pp(push(TLexical((AbcTypes name2type qname) match {
+											case n: TaasNominalType => n.nominal
+											case other => error("TaasNominalType expected, got "+other+".")
+										})))
 							}
 						}
 						case _ => error("QName expected.")
@@ -289,17 +307,29 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case GetLex(typeName) => pp(push(TLexical(AbcSolver getLexical (scopeType, isStatic, typeName) getOrElse error("Could not solve "+typeName+" on "+scopeType+"."))))
 				case GetLocal(index: Int) => pp(push(register(index)))
 				case GetProperty(property) => {
-					val obj = pop()
-					AbcSolver.getProperty(obj.`type`, property) match {
-						case Some(method: TaasMethod) => {
-							if(method.parameters.length == 0) {
-								pp(TCall(obj, method, List.empty, Some(nextOperand)))
-							} else {
-								pp(push(TClosure(method)))
+					property match {
+						case multinameL: AbcMultinameL => {
+							log.warning("Assuming Array index in GetProperty(%s).", property)
+							val index = pop()
+							val obj = pop()
+
+							pp(TCall(obj, TGetIndex, index :: Nil, Some(nextOperand)))
+						}
+						case _ => {
+							val obj = pop()
+							
+							AbcSolver.getProperty(obj.`type`, property) match {
+								case Some(method: TaasMethod) => {
+									if(method.parameters.length == 0) {
+										pp(TCall(obj, method, List.empty, Some(nextOperand)))
+									} else {
+										pp(push(TClosure(method)))
+									}
+								}
+								case Some(field: TaasField) => pp(TLoad(obj, field, nextOperand))
+								case _ => error("Could not find property "+property+" on "+obj.`type`)
 							}
 						}
-						case Some(field: TaasField) => pp(TLoad(obj, field, nextOperand))
-						case _ => error("Could not find property "+property+" on "+obj.`type`)
 					}
 				}
 				case GetScopeObject(index) => TODO(op)
@@ -379,11 +409,20 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case SetGlobalSlot(slot) => TODO(op)
 				case SetProperty(property) => {
 					val arg = pop()
-					val obj = pop()
-					AbcSolver.setProperty(obj.`type`, property) match {
-						case Some(method: TaasMethod) => pp(TCall(obj, method, arg :: Nil, None))
-						case Some(field: TaasField) => pp(TStore(obj, field, arg))
-						case _ => error("Could not find property "+property+" on "+obj.`type`)
+					property match {
+						case multinameL: AbcMultinameL => {
+							log.warning("Assuming Array index in SetProperty(%s).", property)
+							val index = pop()
+							val obj = pop()
+
+							pp(TCall(obj, TSetIndex, index :: arg :: Nil, None))
+						}
+						case _ => val obj = pop()
+							AbcSolver.setProperty(obj.`type`, property) match {
+								case Some(method: TaasMethod) => pp(TCall(obj, method, arg :: Nil, None))
+								case Some(field: TaasField) => pp(TStore(obj, field, arg))
+								case _ => error("Could not find property "+property+" on "+obj.`type`)
+							}
 					}
 				}
 				case SetSlot(slot) => TODO(op)
@@ -398,6 +437,15 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 			}
 
 			if((operandStackBefore + op.operandDelta) != operandStack) {
+				log.error("Wrong operand stack delta.")
+				log.error("Expected: %d -> %d", operandStackBefore, (operandStackBefore + op.operandDelta))
+				log.error("Result: %d -> %d", operandStackBefore, operandStack)
+				log.error("List of values on stack:")
+
+				for(i <- 0 until (operandStackBefore + op.operandDelta)) {
+					log.error("%s", pop())
+				}
+
 				error("Wrong operand-stack delta for "+op+". Got "+operandStackBefore+" -> "+operandStack+", expected "+operandStackBefore+" -> "+(operandStackBefore + op.operandDelta))
 			}
 		}

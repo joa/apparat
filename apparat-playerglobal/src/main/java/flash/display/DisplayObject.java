@@ -21,6 +21,7 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	private double _scaleX = 1.0;
 	private double _scaleY = 1.0;
 	private double _rotation = 0.0;
+	private boolean _visible = true;
 	private float _rotationRad = 0.0f;
 	private String _blendMode = BlendMode.NORMAL;
 	private final Transform _transform = new Transform().JITB$init(this);
@@ -66,6 +67,9 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 		updateMatrix();
 	}
 
+	public boolean visible() { return _visible; }
+	public void visible(final boolean value) { _visible = false; }
+
 	private void updateMatrix() {
 		final Matrix matrix = transform().JITB$matrix();
 		//TODO integrate rotation
@@ -91,9 +95,12 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	}
 
 	public final void JITB$renderDisplayObject() {
+		if(!visible()) {
+			return;
+		}
+
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		GL11.glPushMatrix();
-		GL11.glLoadIdentity();
 		transform().matrix().JITB$toDoubleBuffer(modelViewMatrix);
 		GL11.glLoadMatrix(modelViewMatrix);
 

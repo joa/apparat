@@ -374,6 +374,7 @@ trait OpWithProperty extends AbstractOp {
 	override def popOperands = super.popOperands + (property match {
 		case AbcRTQNameL | AbcRTQNameLA => 2
 		case AbcRTQName(_) | AbcRTQNameA(_) => 1
+		case AbcMultinameL(_) | AbcMultinameLA(_) => 1
 		case _ => 0
 	})
 }

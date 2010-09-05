@@ -28,7 +28,6 @@ import apparat.abc.Abc
 import apparat.utils.IO._
 import apparat.taas.frontend.abc.AbcFrontend
 import apparat.taas.TaasCompiler
-import apparat.taas.backend.jbc.{JbcClassLoader, JbcBackend}
 import java.lang.{Thread => JThread}
 import apparat.swf.{SymbolClass, SwfTags, Swf}
 import flash.display.{DisplayObject, Stage, Sprite}
@@ -36,6 +35,8 @@ import java.util.{TimerTask, Timer}
 import jitb.display.DisplayList
 import org.lwjgl.opengl.{GL11, DisplayMode, PixelFormat, Display}
 import jitb.errors.{ErrorUtil, Throw}
+import apparat.taas.backend.jbc.{JbcClassWriter, JbcClassLoader, JbcBackend}
+import java.io.{File => JFile}
 
 /**
  * @author Joa Ebert
@@ -89,9 +90,12 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		// a test case to support loading of a single ABC from a SWF.
 		// We do not care at this point where the ABC occurs in the SWF.
 		//
-		
-		val loader = new JbcClassLoader(compile(Abc fromSwf swf get), JThread.currentThread.getContextClassLoader)
+
+		val binaries = compile(Abc fromSwf swf get)
+		val loader = new JbcClassLoader(binaries, JThread.currentThread.getContextClassLoader)
 		JThread.currentThread setContextClassLoader loader
+
+		//new JbcClassWriter(binaries).write(new JFile("/home/joa/classes"))
 
 		val main = Class.forName(mainClass, true, loader)
 
@@ -105,7 +109,12 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 			log.debug("Using a headless runner without a stage.")
 
-			main.getMethod("main", arguments.getClass).invoke(main, arguments)
+			AVMContext {
+				main.getMethod("main", arguments.getClass).invoke(main, arguments)
+			} match {
+				case Right(_) => log.debug("Code executed WITHOUT errors.")
+				case Left(_) => log.debug("Code executed WITH errors.")
+			}
 		}
 	}
 
@@ -145,12 +154,15 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		builtinABC :: toplevelABC :: playerglobalABC :: Nil
 	}
 
-	private def runWithDisplay(swf: Swf, main: Class[_]) = {
+	private def runWithDisplay(swf: Swf, main: Class[_]): Unit = {
 		val stage = new Stage()
 
 		stage.frameRate(swf.frameRate.asInstanceOf[Double])
 
-		val documentRoot = main.newInstance()
+		val documentRoot = AVMContext { main.newInstance() } match {
+			case Right(value) => value
+			case Left(_) => error("Could not create DocumentRoot.")
+		}
 
 		log.debug("Main class is a DisplayObject")
 		log.debug("SWF info:")
@@ -223,7 +235,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 			Display.update()
 
-			try {
+			AVMContext {
 				//
 				// Dispatch an ENTER_FRAME event to every DisplayObject
 				//
@@ -241,37 +253,15 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 				//
 
 				DisplayList.exitFrame()
-			} catch {
-				case actionScriptError: Throw => {
-					noErrorOccurred = false
+			} match {
+				case Right(_) =>
+					//
+					// Synchronize to frame rate
+					//
 
-					actionScriptError.value match {
-						case error: jitb.lang.Error =>
-							log.error("%s: Error #%d: %s", error.name, error.errorID, error.message)
-							log.error("%s", error.getStackTrace())
-						case other =>
-							log.error("Object has not been catched.")
-							log.error("%s", other)
-					}
-				}
-				case _: NullPointerException => {
-					val error = ErrorUtil.error1009()
-					noErrorOccurred = false
-					log.error("%s: Error #%d: %s", error.name, error.errorID, error.message)
-					log.error("%s", error.getStackTrace())
-				}
-				case other => {
-					noErrorOccurred = false
-					log.error("An internal error occurred.")
-					log.error("%s", other)
-				}
+					Display sync stage.frameRate.asInstanceOf[Int]
+				case Left(_) => noErrorOccurred = false
 			}
-
-			//
-			// Synchronize to frame rate
-			//
-
-			Display sync stage.frameRate.asInstanceOf[Int]
 		}
 
 		Display.destroy()
@@ -280,5 +270,34 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	private def liftToplevel(qname: String) = qname indexOf '.' match {
 		case -1 => "jitb.lang."+ qname
 		case _ => qname
+	}
+
+	private def AVMContext[A](body: => A): Either[Unit, A] = {
+		try {
+			Right(body)
+		} catch {
+			case actionScriptError: Throw => {
+				actionScriptError.value match {
+					case error: jitb.lang.Error =>
+						log.error("%s: Error #%d: %s", error.name, error.errorID, error.message)
+						log.error("%s", error.getStackTrace())
+					case other =>
+						log.error("Object has not been catched.")
+						log.error("%s", other)
+				}
+				Left(())
+			}
+			case _: NullPointerException => {
+				val error = ErrorUtil.error1009()
+				log.error("%s: Error #%d: %s", error.name, error.errorID, error.message)
+				log.error("%s", error.getStackTrace())
+				Left(())
+			}
+			case other => {
+				log.error("An internal error occurred.")
+				log.error("%s", other)
+				Left(())
+			}
+		}
 	}
 }

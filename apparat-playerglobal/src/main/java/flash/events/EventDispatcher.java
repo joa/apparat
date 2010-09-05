@@ -1,6 +1,7 @@
 package flash.events;
 
 import jitb.lang.closure.Function;
+import jitb.lang.closure.Function1;
 
 import java.util.*;
 
@@ -9,11 +10,11 @@ import java.util.*;
  */
 public class EventDispatcher extends jitb.lang.Object implements IEventDispatcher {
 	private final class EventListener implements Comparable<EventListener> {
-		public final Function<Object> callback;
+		public final Function1<Event, Object> callback;
 		public final boolean useCapture;
 		public final int priority;
 
-		public EventListener(final Function<Object> callback, final boolean useCapture, final int priority) {
+		public EventListener(final Function1<Event, Object> callback, final boolean useCapture, final int priority) {
 			this.callback = callback;
 			this.useCapture = useCapture;
 			this.priority = priority;
@@ -40,7 +41,7 @@ public class EventDispatcher extends jitb.lang.Object implements IEventDispatche
 
 		if(null != listOfListenersForType && listOfListenersForType.size() > 0) {
 			for(final EventListener listener : listOfListenersForType) {
-				listener.callback.apply(event);
+				listener.callback.applyVoid1(null, event);
 			}
 
 			return true;
@@ -61,6 +62,35 @@ public class EventDispatcher extends jitb.lang.Object implements IEventDispatche
 	}
 
 	@Override
+	public void addEventListener(final String type, final Function1<Event, Object> listener) {
+		addEventListener(type, listener, false);
+	}
+
+	@Override
+	public void addEventListener(final String type, final Function1<Event, Object> listener, final boolean useCapture) {
+		addEventListener(type, listener, useCapture, 0);
+	}
+
+	@Override
+	public void addEventListener(final String type, final Function1<Event, Object> listener, final boolean useCapture, final int priority) {
+		addEventListener(type, listener, useCapture, priority, false);
+	}
+
+	@Override
+	public void addEventListener(final String type, final Function1<Event, Object> listener, final boolean useCapture, final int priority, final boolean useWeakReference) {
+		List<EventListener> listOfListenersForType = map.get(type);
+
+		if(null == listOfListenersForType) {
+			listOfListenersForType = new LinkedList<EventListener>();
+			map.put(type, listOfListenersForType);
+		}
+
+		//TODO add weak reference here.
+		listOfListenersForType.add(new EventListener(listener, useCapture, priority));
+		Collections.sort(listOfListenersForType);
+	}
+
+	@Override
 	public void addEventListener(final String type, final Function<Object> listener) {
 		addEventListener(type, listener, false);
 	}
@@ -77,25 +107,16 @@ public class EventDispatcher extends jitb.lang.Object implements IEventDispatche
 
 	@Override
 	public void addEventListener(final String type, final Function<Object> listener, final boolean useCapture, final int priority, final boolean useWeakReference) {
-		List<EventListener> listOfListenersForType = map.get(type);
-
-		if(null == listOfListenersForType) {
-			listOfListenersForType = new LinkedList<EventListener>();
-			map.put(type, listOfListenersForType);
-		}
-
-		//TODO add weak reference here.
-		listOfListenersForType.add(new EventListener(listener, useCapture, priority));
-		Collections.sort(listOfListenersForType);
+		addEventListener(type, (Function1<Event, Object>)listener, useCapture, priority, useWeakReference);
 	}
 
 	@Override
-	public void removeEventListener(final String type, final Function<Object> listener) {
+	public void removeEventListener(final String type, final Function1<Event, Object> listener) {
 		removeEventListener(type, listener, false);
 	}
 
 	@Override
-	public void removeEventListener(final String type, final Function<Object> listener, final boolean useCapture) {
+	public void removeEventListener(final String type, final Function1<Event, Object> listener, final boolean useCapture) {
 		final List<EventListener> listOfListenersForType = map.get(type);
 
 		if(null == listOfListenersForType) {
@@ -113,5 +134,15 @@ public class EventDispatcher extends jitb.lang.Object implements IEventDispatche
 				return;
 			}
 		}
+	}
+
+	@Override
+	public void removeEventListener(final String type, final Function<Object> listener) {
+		removeEventListener(type, listener, false);
+	}
+
+	@Override
+	public void removeEventListener(final String type, final Function<Object> listener, final boolean useCapture) {
+		removeEventListener(type, (Function1<Event, Object>)listener, useCapture);
 	}
 }
