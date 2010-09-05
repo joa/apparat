@@ -109,6 +109,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 			if(JbcBackend.DEBUG) {
 				JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(Console.out))
+				ASMifierClassVisitor.main(Array("jitb.lang.Test"))
 			}
 		}
 	}
@@ -132,7 +133,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			}
 		}
 
-		@inline def loadAs(value: TValue, `type`: TaasType) = Load(value, `type`, x => mapIndex(x)) match {
+		@inline def loadAs(value: TValue, `type`: TaasType): Unit = Load(value, `type`, x => mapIndex(x)) match {
 			case Some(e) => error(e.message)
 			case None => value match {
 				case TClosure(value) => closures = (method, value) :: closures
@@ -176,9 +177,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			}
 		}
 
-		@inline def binop(op: TaasBinop, lhs: TValue, rhs: TValue): Unit = Binop(op, lhs, rhs)
-		@inline def binopWithType(op: TaasBinop, lhs: TValue, rhs: TValue, `type`: TaasType): Unit = {
-			Binop(op, lhs, rhs, `type`) match {
+		@inline def binopWithType(op: TaasBinop, lhs: TValue, rhs: TValue, `type`: TaasType, mapIndex: Int => Int): Unit = {
+			Binop(op, lhs, rhs, `type`, mapIndex, (x, y) => loadAs(x, y)) match {
 				case Some(e) => {
 					log.error(e.message)
 					error(e.message)
@@ -244,9 +244,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						}
 						case t3 @ T3(operator, lhs, rhs, result) => {
 							val t = t3.`type`
-							loadAs(lhs, t)
-							loadAs(rhs, t)
-							binopWithType(operator, lhs, rhs, t)
+							binopWithType(operator, lhs, rhs, t, x => mapIndex(x))
 							storeByType(t, result)
 						}
 						case if1 @ TIf1(op, rhs) => {
