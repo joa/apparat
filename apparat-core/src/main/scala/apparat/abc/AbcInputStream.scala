@@ -118,7 +118,7 @@ class AbcInputStream(input: JInputStream) extends JInputStream {
 		n
 	}
 
-	override def reset() = input reset ()
+	override def reset() = input.reset()
 
 	override def skip(n: Long) = {
 		pos += n.asInstanceOf[Int]
