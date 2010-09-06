@@ -92,6 +92,7 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 	}
 
 	def readParam(): PParam = {
+		import PbjRegisterMagic._
 		val qualifier = readUI08()
 		val `type` = readType() match {
 			case PStringType => error("Parameter must not be of type String.")
@@ -107,8 +108,8 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 		val name = readString()
 
 		qualifier match {
-			case 1 => PInParameter(name, `type`, PbjUtil.createDstRegister(register, mask))
-			case 2 => POutParameter(name, `type`, PbjUtil.createDstRegister(register, mask))
+			case 1 => PInParameter(name, `type`, createDstRegister(register, mask))
+			case 2 => POutParameter(name, `type`, createDstRegister(register, mask))
 			case _ => error("Qualifier must be either \"1\" or \"2\".")
 		}
 	}
@@ -122,7 +123,7 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 	
 	def readOp(): POp = {
 		import POp._
-		import PbjUtil._
+		import PbjRegisterMagic._
 		
 		@inline def create(f: (PReg, PReg) => POp with PDstAndSrc): POp with PDstAndSrc = {
 			val dstIndex = readUI16()
@@ -153,7 +154,7 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 			val srcIndex = readUI24()
 			val texture = readUI08()
 			assert(1 == (mask & 0xf))
-			f(PbjUtil.createDstRegister(dstIndex, mask >> 4), PbjUtil.createSrcRegister(srcIndex, 2), texture)
+			f(createDstRegister(dstIndex, mask >> 4), createSrcRegister(srcIndex, 2), texture)
 		}
 
 		@inline def skipBytesAndReturn[@specialized A](x: => A): A = {

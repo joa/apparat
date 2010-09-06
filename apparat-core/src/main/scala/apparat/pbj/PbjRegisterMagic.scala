@@ -26,7 +26,7 @@ import collection.mutable.ListBuffer
 /**
  * @author Joa Ebert
  */
-object PbjUtil {
+protected[pbj] object PbjRegisterMagic {
 	val channels = Array(PChannelR, PChannelG, PChannelB, PChannelA, PChannelM2x2, PChannelM3x3, PChannelM4x4)
 
 	// Input oriented:

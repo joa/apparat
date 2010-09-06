@@ -93,7 +93,7 @@ class PbjOutputStream(val output: JOutputStream) extends JOutputStream {
 	}
 
 	def writeParam(value: PParam): Unit = {
-		import PbjUtil._
+		import PbjRegisterMagic._
 
 		val swizzle = value.register.swizzle
 
@@ -122,7 +122,7 @@ class PbjOutputStream(val output: JOutputStream) extends JOutputStream {
 	}
 
 	def writeOp(value: POp): Unit = {
-		import PbjUtil._
+		import PbjRegisterMagic._
 
 		@inline def writeDst(register: PReg, size: Int) = {
 			var mask = dstMask(register.swizzle)
