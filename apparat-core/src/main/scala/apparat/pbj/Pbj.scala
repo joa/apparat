@@ -88,7 +88,7 @@ class Pbj extends Dumpable {
 		var textureBuffer = List.empty[PTexture]
 		var codeBuffer = List.empty[POp]
 
-		for(op <- input) {println("op: "+op); op match {
+		for(op <- input) op match {
 			case PKernelMetaData(value) => metadataBuffer = value :: metadataBuffer
 			case PParameterData(value) =>
 				parameterMetadataBuffer = ListBuffer.empty[PMeta]
@@ -98,8 +98,7 @@ class Pbj extends Dumpable {
 			case PKernelName(value) => name = value
 			case PVersionData(value) => version = value
 			case _ => codeBuffer = op :: codeBuffer
-		} }
-
+		}
 
 		metadata = metadataBuffer.reverse
 		parameters = parameterBuffer.reverse map { x => x._1 -> x._2.toList }
