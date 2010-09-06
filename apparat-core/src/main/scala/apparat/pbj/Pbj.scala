@@ -26,8 +26,11 @@ import java.io.{
 	File => JFile,
 	BufferedInputStream => JBufferedInputStream,
 	ByteArrayInputStream => JByteArrayInputStream,
+	ByteArrayOutputStream => JByteArrayOutputStream,
 	FileInputStream => JFileInputStream,
-	InputStream => JInputStream}
+	FileOutputStream => JFileOutputStream,
+	InputStream => JInputStream,
+	OutputStream => JOutputStream}
 
 import apparat.utils.IO._
 import collection.mutable.ListBuffer
@@ -38,6 +41,20 @@ object Pbj {
 		val pbj = new Pbj()
 		pbj read args(0)
 		pbj.dump()
+	}
+
+	def fromFile(file: JFile): Pbj = {
+		val pbj = new Pbj
+		pbj read file
+		pbj
+	}
+
+	def fromFile(pathname: String): Pbj = fromFile(new JFile(pathname))
+
+	def fromInputStream(input: JInputStream) = {
+		val pbj = new Pbj
+		pbj read input
+		pbj
 	}
 }
 
@@ -86,6 +103,26 @@ class Pbj extends Dumpable {
 		code = codeBuffer.reverse
 	}
 
+	def write(file: JFile): Unit = using(new JFileOutputStream(file)) { write(_) }
+
+	def write(pathname: String): Unit = write(new JFile(pathname))
+
+	def write(output: JOutputStream): Unit = using(new PbjOutputStream(output)) { write(_) }
+
+	def write(output: PbjOutputStream): Unit = {
+		@inline def writeOp(value: POp) = output writeOp value
+		@inline def mapAndWrite[A, B <: POp](l: List[A], m: A => B) = l map m foreach writeOp
+		writeOp(PVersionData(version))
+		writeOp(PKernelName(name))
+		mapAndWrite(metadata, PKernelMetaData(_: PMeta))
+		for((p, m) <- parameters) {
+			writeOp(PParameterData(p))
+			mapAndWrite(m, PParameterMetaData(_: PMeta))
+		}
+		mapAndWrite(textures, PTextureData(_: PTexture))
+		code foreach writeOp
+	}
+
 	override def dump(writer: IndentingPrintWriter) = {
 		writer <= "Pbj:"
 		writer withIndent {
@@ -100,5 +137,11 @@ class Pbj extends Dumpable {
 			writer <= "Code:"
 			writer <<< code
 		}
+	}
+
+	def toByteArray = {
+		val byteArrayOutputStream = new JByteArrayOutputStream()
+		using(byteArrayOutputStream) { write(_) }
+		byteArrayOutputStream.toByteArray
 	}
 }

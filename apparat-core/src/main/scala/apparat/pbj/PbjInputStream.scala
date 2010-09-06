@@ -32,6 +32,11 @@ import apparat.utils.IO
 class PbjInputStream(input: JInputStream) extends JInputStream {
 	def foreach(body: POp => Unit) = while(available() > 0) { body(readOp()) }
 	
+	@inline private def signed(mask: Long, r: Long): Int = {
+		if (0 != (r & mask)) ((r & (mask - 1L)) - mask).asInstanceOf[Int]
+		else r.asInstanceOf[Int]
+	}
+	
 	def readFloat() = java.lang.Float.intBitsToFloat((read() << 0x18) | (read() << 0x10) | (read() << 0x08) | read())
 
 	def readString() = {
@@ -44,10 +49,14 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 	}
 
 	def readUI08(): Int = read()
+
 	def readUI16(): Int = read() | (read() << 0x08)
+
 	def readUI24(): Int = read() | (read() << 0x08) | (read() << 0x10)
+
 	def readUI32(): Long = read() | (read() << 0x08) | (read() << 0x10) | (read() << 0x18)
-	def readSI32(): Int = read() | (read() << 0x08) | (read() << 0x10) | (read() << 0x18)
+
+	def readSI32(): Int = signed(0x80000000L, readUI32())
 
 	def readConst(`type`: PType): PConst = `type` match {
 		case PFloatType => PFloat(readFloat())
@@ -123,7 +132,7 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 			val matrix = (mask >> 2) & 3
 			val srcIndex = readUI24()
 
-			assert(0 == read())
+			assert(0 == readUI08())
 
 			if(0 != matrix) {
 				assert(0 == (srcIndex >> 16))

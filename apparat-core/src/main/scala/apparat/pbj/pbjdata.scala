@@ -43,6 +43,25 @@ object pbjdata {
 			case 0x0f => PBool3Type
 			case 0x10 => PBool4Type
 			case _ => error("Invalid type "+value)
+		}
+		
+		@inline implicit def typeToInt(value: PType): Int  = value match {
+			case PFloatType => 0x01
+			case PFloat2Type => 0x02
+			case PFloat3Type => 0x03
+			case PFloat4Type => 0x04
+			case PFloat2x2Type => 0x05
+			case PFloat3x3Type => 0x06
+			case PFloat4x4Type => 0x07
+			case PIntType => 0x08
+			case PInt2Type => 0x09
+			case PInt3Type => 0x0a
+			case PInt4Type => 0x0b
+			case PStringType => 0x0c
+			case PBoolType => 0x0d
+			case PBool2Type => 0x0e
+			case PBool3Type => 0x0f
+			case PBool4Type => 0x10
 		}	
 	}
 	
@@ -57,6 +76,7 @@ object pbjdata {
 
 	sealed abstract class PType(val code: Int)
 	sealed abstract class PNumeric(code: Int) extends PType(code)
+	sealed abstract class PMatrix(code: Int) extends PNumeric(code)
 
 	sealed trait PTyped { def `type`: PType }
 
@@ -78,9 +98,9 @@ object pbjdata {
 	case object PFloat2Type extends PNumeric(0x02)
 	case object PFloat3Type extends PNumeric(0x03)
 	case object PFloat4Type extends PNumeric(0x04)
-	case object PFloat2x2Type extends PNumeric(0x05)
-	case object PFloat3x3Type extends PNumeric(0x06)
-	case object PFloat4x4Type extends PNumeric(0x07)
+	case object PFloat2x2Type extends PMatrix(0x05)
+	case object PFloat3x3Type extends PMatrix(0x06)
+	case object PFloat4x4Type extends PMatrix(0x07)
 	case object PIntType extends PNumeric(0x08)
 	case object PInt2Type extends PNumeric(0x09)
 	case object PInt3Type extends PNumeric(0x0a)
