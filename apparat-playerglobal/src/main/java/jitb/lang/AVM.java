@@ -1,5 +1,6 @@
 package jitb.lang;
 
+import flash.utils.getTimer;
 import jitb.errors.ErrorUtil;
 import jitb.errors.Require;
 
@@ -7,6 +8,10 @@ import jitb.errors.Require;
  * @author Joa Ebert
  */
 public final class AVM {
+	public static void init() {
+		getTimer.JITB$init = System.currentTimeMillis();
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static void coerce(final java.lang.Object value, final java.lang.Class type) {
 		if(!type.isAssignableFrom(value.getClass())) {
