@@ -41,11 +41,12 @@ object PbjUtil {
 			}
 		}
 
-		createRegister(indexAndSwizzle & 0xFFFF, swizzle.toList)
+		createRegister(indexAndSwizzle & 0xffff, swizzle.toList)
 	}
 
 	def createDstRegister(index: Int, mask: Int) = {
 		var swizzle = ListBuffer.empty[PChannel]
+		
 		if(mask != 0xf) {
 			if((mask & 8) != 0) swizzle += PChannelR
 			if((mask & 4) != 0) swizzle += PChannelG
@@ -56,7 +57,7 @@ object PbjUtil {
 		createRegister(index, swizzle.toList)
 	}
 
-	def createMatrixRegister(index: Int, matrix: Int) = createRegister(index & 0xFFFF, channels(matrix + 3) :: Nil)
+	def createMatrixRegister(index: Int, matrix: Int) = createRegister(index & 0xffff, channels(matrix + 3) :: Nil)
 
 	def createRegister(index: Int, swizzle: List[PChannel]) = index match {
 		case x if 0 != (x & 0x8000) => PIntReg(index - 0x8000, swizzle)

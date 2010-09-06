@@ -134,10 +134,7 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 		}
 		
 		readUI08() match {
-			case Nop => {
-				assert(0 == (readUI24() + readUI32()))
-				PNop()
-			}
+			case Nop => assert(0 == (readUI24() + readUI32())); PNop()
 			case Add => create(PAdd(_, _))
 			case Subtract => create(PSubtract(_, _))
 			case Multiply => create(PMultiply(_, _))
