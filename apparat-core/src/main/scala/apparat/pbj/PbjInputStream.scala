@@ -74,19 +74,51 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 		case PBool4Type => PBool4(readUI16() == 1, readUI16() == 1, readUI16() == 1, readUI16() == 1)
 	}
 
+	def readType(): PType = readUI08()
+
 	def readMeta(): PMeta = {
-		val `type` = readUI08()
+		val `type` = readType()
 		PMeta(readString(), readConst(`type`))
 	}
 
+	def readParam(): PParam = {
+		val qualifier = readUI08()
+		val `type` = readType()
+
+		assert(`type` != PStringType, "Parameter must not be of type String.")
+
+		val register = readUI16()
+		val mask = readUI08()
+		val name = readString()
+
+		`type` match {
+			case PFloat2x2Type => assert(mask == 2); mask = 0xf
+			case PFloat3x3Type => assert(mask == 3); mask = 0xf
+			case PFloat4x4Type => assert(mask == 4); mask = 0xf
+			case _ => assert((mask >> 4) == 0)
+		}
+
+		qualifier match {
+			case 1 => PInParameter(name, `type`, dstReg(register, mask))
+			case 2 => POutParameter(name, `type`, dstReg(register, mask))
+			case _ => error("Qualifier must be either one or \"1\" or \"2\".")
+		}
+	}
+	
 	def readOp(): POp = {
 		import POp._
 
-		val opCode = -1
+		val opCode = readUI08()
 
 		opCode match {
+			case Select => error("Loops are not supported.")
 			case KernelMetaData => PKernelMetaData(readMeta())
-			case _ => error("Invalid opcode "+opCode+".")
+			case ParameterData => PParameterData(readParam())
+			case ParameterMetaData => PParameterMetaData(readMeta())
+			//case TextureData => PTextureData(null)
+			case KernelName => PKernelName(readString())
+			case VersionData => PVersionData(readUI32())
+			case _ => error("Unknown opcode "+opCode+".")
 		}
 	}
 

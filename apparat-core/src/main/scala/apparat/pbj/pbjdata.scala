@@ -63,10 +63,9 @@ object pbjdata {
 
 	sealed trait PParam extends PTyped {
 		def name: String
-		def meta: Array[PMeta]
 	}
 
-	case class PReg(index: Int, swizzle: Int, `type`: PType) extends PTyped
+	case class PReg(index: Int, swizzle: List[PChannel], `type`: PType) extends PTyped
 
 	case object PFloatType extends PType(0x01)
 	case object PFloat2Type extends PType(0x02)
@@ -160,10 +159,17 @@ object pbjdata {
 
 	case class PMeta(key: String, value: PConst)
 
-	case class PParameter(name: String, meta: Array[PMeta], `type`: PType, out: Boolean, register: PReg) extends PParam
+	case class PInParameter(name: String, `type`: PType, register: PReg) extends PParam
+	case class POutParameter(name: String, `type`: PType, register: PReg) extends PParam
 
-	case class PTexture(name: String, meta: Array[PMeta], channels: Array[PChannel], index: Int) extends PParam {
-		override def `type` = PFloat4Type
+	case class PTexture(name: String, channels: Array[PChannel], index: Int) extends PTyped {
+		override def `type` = channels.length match {
+			case 1 => PFloatType
+			case 2 => PFloat2Type
+			case 3 => PFloat3Type
+			case 4 => PFloat4Type
+			case _ => error("Invalid channel selector.")
+		}
 	}
 
 	object POp {
@@ -324,7 +330,7 @@ object pbjdata {
 	case class PSampleBilinear(dst: PReg, src: PReg, texture: Int) extends POp(POp.SampleBilinear) with PDstAndSrc
 	case class PLoadInt(dst: PReg, value: Int) extends POp(POp.LoadConstant) with PDst
 	case class PLoadFloat(dst: PReg, value: Float) extends POp(POp.LoadConstant) with PDst
-	case class PSelect(dst: PReg, src: PReg, src0: PReg, src1: PReg) extends POp(POp.Select) with PDstAndSrc
+	//case class PSelect(dst: PReg, src: PReg, src0: PReg, src1: PReg) extends POp(POp.Select) with PDstAndSrc
 	case class PIf(condition: PReg) extends POp(POp.If)
 	case class PElse() extends POp(POp.Else)
 	case class PEndif() extends POp(POp.Endif)
@@ -339,9 +345,9 @@ object pbjdata {
 	case class PKernelMetaData(meta: PMeta) extends POp(POp.KernelMetaData) {
 		assume(meta.value.`type` == PIntType, "Kernel metadata must be of type integer.")
 	}
-	//case class PParameterData extends POp(POp.ParameterData)
+	case class PParameterData(param: PParam) extends POp(POp.ParameterData)
 	case class PParameterMetaData(meta: PMeta) extends POp(POp.ParameterMetaData)
-	case class PTextureData extends POp(POp.TextureData)
+	case class PTextureData(texture: PTexture) extends POp(POp.TextureData)
 	case class PKernelName(name: String) extends POp(POp.KernelName)
 	case class PVersionData(version: Int) extends POp(POp.VersionData)
 }
