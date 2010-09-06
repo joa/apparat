@@ -37,6 +37,7 @@ import org.lwjgl.opengl.{GL11, DisplayMode, PixelFormat, Display}
 import jitb.errors.{ErrorUtil, Throw}
 import apparat.taas.backend.jbc.{JbcClassWriter, JbcClassLoader, JbcBackend}
 import java.io.{File => JFile}
+import jitb.lang.AVM
 
 /**
  * @author Joa Ebert
@@ -99,6 +100,8 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 		val main = Class.forName(mainClass, true, loader)
 
+		AVM.init()
+		
 		if(classOf[DisplayObject] isAssignableFrom main) {
 			runWithDisplay(swf, main)
 		} else {

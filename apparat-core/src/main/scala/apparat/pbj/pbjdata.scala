@@ -169,8 +169,8 @@ object pbjdata {
 	case class PInParameter(name: String, `type`: PNumeric, register: PReg) extends PParam
 	case class POutParameter(name: String, `type`: PNumeric, register: PReg) extends PParam
 
-	case class PTexture(name: String, channels: Array[PChannel], index: Int) extends PTyped {
-		override def `type` = channels.length match {
+	case class PTexture(name: String, index: Int, channels: Int) extends PTyped {
+		override def `type` = channels match {
 			case 1 => PFloatType
 			case 2 => PFloat2Type
 			case 3 => PFloat3Type
@@ -347,13 +347,14 @@ object pbjdata {
 	case class PAny(dst: PReg, src: PReg) extends POp(POp.Any) with PDstAndSrc
 	case class PAll(dst: PReg, src: PReg) extends POp(POp.All) with PDstAndSrc
 	case class PKernelMetaData(meta: PMeta) extends POp(POp.KernelMetaData) {
-		require(meta.value.`type` == PIntType, "Kernel metadata must be of type integer.")
+		require(meta.value.`type` == PIntType || meta.value.`type` == PStringType,
+			"Kernel metadata must be either of type integer or String.")
 	}
 	case class PParameterData(param: PParam) extends POp(POp.ParameterData)
 	case class PParameterMetaData(meta: PMeta) extends POp(POp.ParameterMetaData)
 	case class PTextureData(texture: PTexture) extends POp(POp.TextureData)
 	case class PKernelName(name: String) extends POp(POp.KernelName)
 	case class PVersionData(version: Int) extends POp(POp.VersionData) {
-		require(1 == version, "Only PixelBender kernel version \"1\" is supported.")
+		require(1 == version, "Only PixelBender kernel version \"1\" is supported, got "+version+".")
 	}
 }

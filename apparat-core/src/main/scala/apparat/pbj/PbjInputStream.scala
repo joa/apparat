@@ -24,14 +24,15 @@ import java.io.{InputStream => JInputStream}
 import apparat.pbj.pbjdata.implicits._
 import apparat.pbj.pbjdata._
 import annotation.tailrec
+import apparat.utils.IO
 
 /**
  * @author Joa Ebert
  */
 class PbjInputStream(input: JInputStream) extends JInputStream {
-	def readFloat() = {
-		java.lang.Float.intBitsToFloat((read() << 0x18) | (read() << 0x10) | (read() << 0x08) | read())
-	}
+	def foreach(body: POp => Unit) = while(available() > 0) { body(readOp()) }
+	
+	def readFloat() = java.lang.Float.intBitsToFloat((read() << 0x18) | (read() << 0x10) | (read() << 0x08) | read())
 
 	def readString() = {
 		@tailrec def loop(seq: List[Byte]): List[Byte] = readUI08() match {
@@ -43,12 +44,10 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 	}
 
 	def readUI08(): Int = read()
-	
-	def readUI16(): Int = (read() << 0x08) | read()
-
-	def readUI24(): Int = (read() << 0x10) | (read() << 0x08) | read()
-
-	def readUI32(): Long = (read() << 0x18) | (read() << 0x10) | (read() << 0x08) | read()
+	def readUI16(): Int = read() | (read() << 0x08)
+	def readUI24(): Int = read() | (read() << 0x08) | (read() << 0x10)
+	def readUI32(): Long = read() | (read() << 0x08) | (read() << 0x10) | (read() << 0x18)
+	def readSI32(): Int = read() | (read() << 0x08) | (read() << 0x10) | (read() << 0x18)
 
 	def readConst(`type`: PType): PConst = `type` match {
 		case PFloatType => PFloat(readFloat())
@@ -104,13 +103,19 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 			case _ => error("Qualifier must be either \"1\" or \"2\".")
 		}
 	}
+
+	def readTexture() = {
+		val index = readUI08()
+		val channels = readUI08()
+		val name = readString()
+		PTexture(name, index, channels)
+	}
 	
-	def readOp() = {
+	def readOp(): POp = {
 		import POp._
-
+		import PbjUtil._
+		
 		@inline def create(f: (PReg, PReg) => POp with PDstAndSrc): POp with PDstAndSrc = {
-			import PbjUtil._
-
 			val dstIndex = readUI16()
 			val mask = readUI08()
 			val swizzle = mask >> 4
@@ -132,9 +137,24 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 				f(createDstRegister(dstIndex, swizzle), createSrcRegister(srcIndex, size))
 			}
 		}
-		
+
+		@inline def sample(f: (PReg, PReg, Int) => POp with PDstAndSrc): POp with PDstAndSrc = {
+			val dstIndex = readUI16()
+			val mask = readUI08()
+			val srcIndex = readUI24()
+			val texture = readUI08()
+			assert(1 == (mask & 0xf))
+			f(PbjUtil.createDstRegister(dstIndex, mask >> 4), PbjUtil.createSrcRegister(srcIndex, 2), texture)
+		}
+
+		@inline def skipBytesAndReturn[@specialized A](x: => A): A = {
+			assert(0 == readUI24())
+			assert(0 == readUI32())
+			x
+		}
+
 		readUI08() match {
-			case Nop => assert(0 == (readUI24() + readUI32())); PNop()
+			case Nop => skipBytesAndReturn { PNop() } 
 			case Add => create(PAdd(_, _))
 			case Subtract => create(PSubtract(_, _))
 			case Multiply => create(PMultiply(_, _))
@@ -182,13 +202,26 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 			case LogicalAnd => create(PLogicalAnd(_, _))
 			case LogicalOr => create(PLogicalOr(_, _))
 			case LogicalXor => create(PLogicalXor(_, _))
-			case SampleNearest =>
-			case SampleBilinear =>
-			case LoadConstant =>
+			case SampleNearest => sample(PSampleNearest(_, _, _))
+			case SampleBilinear => sample(PSampleBilinear(_, _, _))
+			case LoadConstant => {
+				val dstIndex = readUI16()
+				val mask = readUI08()
+				assert(0 == (mask & 0xf))
+				createDstRegister(dstIndex, mask >> 4) match {
+					case r @ PIntReg(_, _) => PLoadInt(r, readSI32())
+					case r @ PFloatReg(_, _) => PLoadFloat(r, readFloat())
+				}
+			}
 			case Select => error("Loops are not supported.")
-			case If =>
-			case Else =>
-			case Endif =>
+			case If => {
+				assert(0 == readUI24())
+				val src = readUI24()
+				assert(0 == readUI08())
+				PIf(createSrcRegister(src,1))
+			}
+			case Else => skipBytesAndReturn { PElse() }
+			case Endif => skipBytesAndReturn { PEndif() }
 			case FloatToBool => create(PFloatToBool(_, _))
 			case BoolToFloat => create(PBoolToFloat(_, _))
 			case IntToBool => create(PIntToBool(_, _))
@@ -200,8 +233,8 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 			case KernelMetaData => PKernelMetaData(readMeta())
 			case ParameterData => PParameterData(readParam())
 			case ParameterMetaData => PParameterMetaData(readMeta())
-			case TextureData =>
-			case KernelName => PKernelName(readString())
+			case TextureData => PTextureData(readTexture())
+			case KernelName => PKernelName(new String(IO.read(readUI16())(this), "UTF8"))
 			case VersionData => PVersionData(readUI32().asInstanceOf[Int])
 			case other => error("Unknown opcode "+other+".")
 		}
