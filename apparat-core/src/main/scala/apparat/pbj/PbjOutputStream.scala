@@ -93,11 +93,26 @@ class PbjOutputStream(val output: JOutputStream) extends JOutputStream {
 	}
 
 	def writeParam(value: PParam): Unit = {
+		import PbjUtil._
+
+		val swizzle = value.register.swizzle
+
 		writeUI08(value match {
 			case PInParameter(_, _, _) => 1
 			case POutParameter(_, _, _) => 2
 		})
+
 		writeType(value.`type`)
+		writeUI16(registerCode(value.register))
+
+		value.`type` match {
+			case PFloat2x2Type => assert(Nil == swizzle); writeUI08(2)
+			case PFloat3x3Type => assert(Nil == swizzle); writeUI08(3)
+			case PFloat4x4Type => assert(Nil == swizzle); writeUI08(4)
+			case _ => writeUI08(dstMask(swizzle))
+		}
+
+		writeString(value.name)
 	}
 
 	def writeTexture(value: PTexture): Unit = {

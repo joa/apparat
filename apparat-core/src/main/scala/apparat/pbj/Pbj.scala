@@ -41,6 +41,10 @@ object Pbj {
 		val pbj = new Pbj()
 		pbj read args(0)
 		pbj.dump()
+		println("-----------------------")
+		val x = new Pbj()
+		x read pbj.toByteArray
+		x.dump()
 	}
 
 	def fromFile(file: JFile): Pbj = {
@@ -84,7 +88,7 @@ class Pbj extends Dumpable {
 		var textureBuffer = List.empty[PTexture]
 		var codeBuffer = List.empty[POp]
 
-		for(op <- input) op match {
+		for(op <- input) {println("op: "+op); op match {
 			case PKernelMetaData(value) => metadataBuffer = value :: metadataBuffer
 			case PParameterData(value) =>
 				parameterMetadataBuffer = ListBuffer.empty[PMeta]
@@ -94,7 +98,7 @@ class Pbj extends Dumpable {
 			case PKernelName(value) => name = value
 			case PVersionData(value) => version = value
 			case _ => codeBuffer = op :: codeBuffer
-		}
+		} }
 
 
 		metadata = metadataBuffer.reverse
@@ -121,6 +125,7 @@ class Pbj extends Dumpable {
 		}
 		mapAndWrite(textures, PTextureData(_: PTexture))
 		code foreach writeOp
+		output.flush()
 	}
 
 	override def dump(writer: IndentingPrintWriter) = {

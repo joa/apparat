@@ -84,6 +84,7 @@ object pbjdata {
 
 	sealed trait PParam extends PTyped {
 		def name: String
+		def register: PReg
 	}
 
 	sealed trait PReg {
