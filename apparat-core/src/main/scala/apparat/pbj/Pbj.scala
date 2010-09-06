@@ -56,6 +56,8 @@ object Pbj {
 		pbj read input
 		pbj
 	}
+
+	val outCoord = PInParameter("_OutCoord", PFloatType, PFloatReg(0, PChannelR :: PChannelG :: Nil))
 }
 
 /**
@@ -65,7 +67,7 @@ class Pbj extends Dumpable {
 	var version = 1
 	var name = ""
 	var metadata = List.empty[PMeta]
-	var parameters = List.empty[(PParam, List[PMeta])]
+	var parameters: List[(PParam, List[PMeta])] = (Pbj.outCoord, List.empty[PMeta]) :: Nil
 	var textures = List.empty[PTexture]
 	var code = List.empty[POp]
 
