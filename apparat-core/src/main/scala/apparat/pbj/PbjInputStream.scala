@@ -46,6 +46,8 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 	
 	def readUI16(): Int = (read() << 0x08) | read()
 
+	def readUI24(): Int = (read() << 0x10) | (read() << 0x08) | read()
+
 	def readUI32(): Long = (read() << 0x18) | (read() << 0x10) | (read() << 0x08) | read()
 
 	def readConst(`type`: PType): PConst = `type` match {
@@ -83,42 +85,128 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 
 	def readParam(): PParam = {
 		val qualifier = readUI08()
-		val `type` = readType()
-
-		assert(`type` != PStringType, "Parameter must not be of type String.")
-
+		val `type` = readType() match {
+			case PStringType => error("Parameter must not be of type String.")
+			case x: PNumeric => x
+		}
 		val register = readUI16()
-		val mask = readUI08()
+		val mask = `type` match {
+			case PFloat2x2Type => assert(readUI08() == 2); 0xf
+			case PFloat3x3Type => assert(readUI08() == 3); 0xf
+			case PFloat4x4Type => assert(readUI08() == 4); 0xf
+			case _ => val b = readUI08(); assert((b >> 4) == 0); b
+		}
 		val name = readString()
 
-		`type` match {
-			case PFloat2x2Type => assert(mask == 2); mask = 0xf
-			case PFloat3x3Type => assert(mask == 3); mask = 0xf
-			case PFloat4x4Type => assert(mask == 4); mask = 0xf
-			case _ => assert((mask >> 4) == 0)
-		}
-
 		qualifier match {
-			case 1 => PInParameter(name, `type`, dstReg(register, mask))
-			case 2 => POutParameter(name, `type`, dstReg(register, mask))
-			case _ => error("Qualifier must be either one or \"1\" or \"2\".")
+			case 1 => PInParameter(name, `type`, PbjUtil.createDstRegister(register, mask))
+			case 2 => POutParameter(name, `type`, PbjUtil.createDstRegister(register, mask))
+			case _ => error("Qualifier must be either \"1\" or \"2\".")
 		}
 	}
 	
-	def readOp(): POp = {
+	def readOp() = {
 		import POp._
 
-		val opCode = readUI08()
+		@inline def create(f: (PReg, PReg) => POp with PDstAndSrc): POp with PDstAndSrc = {
+			import PbjUtil._
 
-		opCode match {
+			val dstIndex = readUI16()
+			val mask = readUI08()
+			val swizzle = mask >> 4
+			val size = (mask & 3) + 1
+			val matrix = (mask >> 2) & 3
+			val srcIndex = readUI24()
+
+			assert(0 == read())
+
+			if(0 != matrix) {
+				assert(0 == (srcIndex >> 16))
+				assert(1 == size)
+				f(	if(mask == 0) {
+						createMatrixRegister(dstIndex, matrix)
+					} else {
+						createDstRegister(dstIndex, swizzle)
+					}, createMatrixRegister(srcIndex, matrix))
+			} else {
+				f(createDstRegister(dstIndex, swizzle), createSrcRegister(srcIndex, size))
+			}
+		}
+		
+		readUI08() match {
+			case Nop => {
+				assert(0 == (readUI24() + readUI32()))
+				PNop()
+			}
+			case Add => create(PAdd(_, _))
+			case Subtract => create(PSubtract(_, _))
+			case Multiply => create(PMultiply(_, _))
+			case Reciprocal => create(PReciprocal(_, _))
+			case Divide => create(PDivide(_, _))
+			case Atan2 => create(PAtan2(_, _))
+			case Pow => create(PPow(_, _))
+			case Mod => create(PMod(_, _))
+			case Min => create(PMin(_, _))
+			case Max => create(PMax(_, _))
+			case Step => create(PStep(_, _))
+			case Sin => create(PSin(_, _))
+			case Cos => create(PCos(_, _))
+			case Tan => create(PTan(_, _))
+			case ASin => create(PASin(_, _))
+			case ACos => create(PACos(_, _))
+			case ATan => create(PATan(_, _))
+			case Exp => create(PExp(_, _))
+			case Exp2 => create(PExp2(_, _))
+			case Log => create(PLog(_, _))
+			case Log2 => create(PLog2(_, _))
+			case Sqrt => create(PSqrt(_, _))
+			case RSqrt => create(PRSqrt(_, _))
+			case Abs => create(PAbs(_, _))
+			case Sign => create(PSign(_, _))
+			case Floor => create(PFloor(_, _))
+			case Ceil => create(PCeil(_, _))
+			case Fract => create(PFract(_, _))
+			case Copy => create(PCopy(_, _))
+			case FloatToInt => create(PFloatToInt(_, _))
+			case IntToFloat => create(PIntToFloat(_, _))
+			case MatrixMatrixMultiply => create(PMatrixMatrixMultiply(_, _))
+			case VectorMatrixMultiply => create(PVectorMatrixMultiply(_, _))
+			case MatrixVectorMultiply => create(PMatrixVectorMultiply(_, _))
+			case Normalize => create(PNormalize(_, _))
+			case Length => create(PLength(_, _))
+			case Distance => create(PDistance(_, _))
+			case DotProduct => create(PDotProduct(_, _))
+			case CrossProduct => create(PCrossProduct(_, _))
+			case Equal => create(PEqual(_, _))
+			case NotEqual => create(PNotEqual(_, _))
+			case LessThan => create(PLessThan(_, _))
+			case LessThanEqual => create(PLessThanEqual(_, _))
+			case LogicalNot => create(PLogicalNot(_, _))
+			case LogicalAnd => create(PLogicalAnd(_, _))
+			case LogicalOr => create(PLogicalOr(_, _))
+			case LogicalXor => create(PLogicalXor(_, _))
+			case SampleNearest =>
+			case SampleBilinear =>
+			case LoadConstant =>
 			case Select => error("Loops are not supported.")
+			case If =>
+			case Else =>
+			case Endif =>
+			case FloatToBool => create(PFloatToBool(_, _))
+			case BoolToFloat => create(PBoolToFloat(_, _))
+			case IntToBool => create(PIntToBool(_, _))
+			case BoolToInt => create(PBoolToInt(_, _))
+			case VectorEqual => create(PVectorEqual(_, _))
+			case VectorNotEqual => create(PVectorNotEqual(_, _))
+			case Any => create(PAny(_, _))
+			case All => create(PAll(_, _))
 			case KernelMetaData => PKernelMetaData(readMeta())
 			case ParameterData => PParameterData(readParam())
 			case ParameterMetaData => PParameterMetaData(readMeta())
-			//case TextureData => PTextureData(null)
+			case TextureData =>
 			case KernelName => PKernelName(readString())
-			case VersionData => PVersionData(readUI32())
-			case _ => error("Unknown opcode "+opCode+".")
+			case VersionData => PVersionData(readUI32().asInstanceOf[Int])
+			case other => error("Unknown opcode "+other+".")
 		}
 	}
 

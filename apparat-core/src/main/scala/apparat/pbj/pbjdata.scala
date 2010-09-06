@@ -47,15 +47,16 @@ object pbjdata {
 	}
 	
 	sealed trait PChannel
-	case object PChannelR
-	case object PChannelG
-	case object PChannelB
-	case object PChannelA
-	case object PChannelM2x2
-	case object PChannelM3x3
-	case object PChannelM4x4
+	case object PChannelR extends PChannel
+	case object PChannelG extends PChannel
+	case object PChannelB extends PChannel
+	case object PChannelA extends PChannel
+	case object PChannelM2x2 extends PChannel
+	case object PChannelM3x3 extends PChannel
+	case object PChannelM4x4 extends PChannel
 
 	sealed abstract class PType(val code: Int)
+	sealed abstract class PNumeric(code: Int) extends PType(code)
 
 	sealed trait PTyped { def `type`: PType }
 
@@ -65,24 +66,30 @@ object pbjdata {
 		def name: String
 	}
 
-	case class PReg(index: Int, swizzle: List[PChannel], `type`: PType) extends PTyped
+	sealed trait PReg {
+		def index: Int
+		def swizzle: List[PChannel]
+	}
 
-	case object PFloatType extends PType(0x01)
-	case object PFloat2Type extends PType(0x02)
-	case object PFloat3Type extends PType(0x03)
-	case object PFloat4Type extends PType(0x04)
-	case object PFloat2x2Type extends PType(0x05)
-	case object PFloat3x3Type extends PType(0x06)
-	case object PFloat4x4Type extends PType(0x07)
-	case object PIntType extends PType(0x08)
-	case object PInt2Type extends PType(0x09)
-	case object PInt3Type extends PType(0x0a)
-	case object PInt4Type extends PType(0x0b)
+	case class PIntReg(index: Int, swizzle: List[PChannel]) extends PReg
+	case class PFloatReg(index: Int, swizzle: List[PChannel]) extends PReg
+
+	case object PFloatType extends PNumeric(0x01)
+	case object PFloat2Type extends PNumeric(0x02)
+	case object PFloat3Type extends PNumeric(0x03)
+	case object PFloat4Type extends PNumeric(0x04)
+	case object PFloat2x2Type extends PNumeric(0x05)
+	case object PFloat3x3Type extends PNumeric(0x06)
+	case object PFloat4x4Type extends PNumeric(0x07)
+	case object PIntType extends PNumeric(0x08)
+	case object PInt2Type extends PNumeric(0x09)
+	case object PInt3Type extends PNumeric(0x0a)
+	case object PInt4Type extends PNumeric(0x0b)
 	case object PStringType extends PType(0x0c)
-	case object PBoolType extends PType(0x0d)
-	case object PBool2Type extends PType(0x0e)
-	case object PBool3Type extends PType(0x0f)
-	case object PBool4Type extends PType(0x10)
+	case object PBoolType extends PNumeric(0x0d)
+	case object PBool2Type extends PNumeric(0x0e)
+	case object PBool3Type extends PNumeric(0x0f)
+	case object PBool4Type extends PNumeric(0x10)
 
 	case class PFloat(x: Float) extends PConst { override def `type` = PFloatType }
 	case class PFloat2(x: Float, y: Float) extends PConst { override def `type` = PFloat2Type }
@@ -159,8 +166,8 @@ object pbjdata {
 
 	case class PMeta(key: String, value: PConst)
 
-	case class PInParameter(name: String, `type`: PType, register: PReg) extends PParam
-	case class POutParameter(name: String, `type`: PType, register: PReg) extends PParam
+	case class PInParameter(name: String, `type`: PNumeric, register: PReg) extends PParam
+	case class POutParameter(name: String, `type`: PNumeric, register: PReg) extends PParam
 
 	case class PTexture(name: String, channels: Array[PChannel], index: Int) extends PTyped {
 		override def `type` = channels.length match {
@@ -244,10 +251,7 @@ object pbjdata {
 		val VersionData = 0xa5
 	}
 
-	sealed trait POpCode {
-		def opCode: Int
-	}
-
+	sealed trait POpCode { def opCode: Int }
 	sealed abstract class POp(val opCode: Int) extends Product with POpCode {
 		override def equals(that: Any) = that match {
 			case op: POp => op eq this
@@ -343,11 +347,13 @@ object pbjdata {
 	case class PAny(dst: PReg, src: PReg) extends POp(POp.Any) with PDstAndSrc
 	case class PAll(dst: PReg, src: PReg) extends POp(POp.All) with PDstAndSrc
 	case class PKernelMetaData(meta: PMeta) extends POp(POp.KernelMetaData) {
-		assume(meta.value.`type` == PIntType, "Kernel metadata must be of type integer.")
+		require(meta.value.`type` == PIntType, "Kernel metadata must be of type integer.")
 	}
 	case class PParameterData(param: PParam) extends POp(POp.ParameterData)
 	case class PParameterMetaData(meta: PMeta) extends POp(POp.ParameterMetaData)
 	case class PTextureData(texture: PTexture) extends POp(POp.TextureData)
 	case class PKernelName(name: String) extends POp(POp.KernelName)
-	case class PVersionData(version: Int) extends POp(POp.VersionData)
+	case class PVersionData(version: Int) extends POp(POp.VersionData) {
+		require(1 == version, "Only PixelBender kernel version \"1\" is supported.")
+	}
 }
