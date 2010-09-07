@@ -45,28 +45,41 @@ object PbjCopyPropagation extends (List[POp] => (List[POp], Boolean)) {
 		var r = List.empty[POp]
 		var m = false
 
-		@inline def p(op: PDstAndSrc, a: List[PDstAndSrc]) = op match {
+		@inline def p(op: POp, a: List[PDstAndSrc]) = op match {
 			case PCopy(dst, src) =>
-				a find { _ defines src.index } match {
-					case Some(x) if x.dst.swizzle == dst.swizzle =>
+				a find { _ defines src.code } match {
+					case Some(x) if x.dst.swizzle == dst.swizzle => m = true
+						x mapDef dst.code
+					case _ => op
+				}
+			case PIf(condition) =>
+				a find { _ defines condition.code } match {
+					case Some(PCopy(dst, src)) if dst.swizzle == condition.swizzle &&
+							condition.swizzle == src.swizzle =>
 						m = true
-						x mapDef dst.index
+						PIf(src)
 					case _ => op
 				}
 			case _ => op
+		}
+
+		@inline def update(op: PDstAndSrc, code: Int, xs: List[POp]) = {
+			l = if(1 == (xs count { _ uses code })) {
+				op :: (l filterNot { _ uses code })
+			} else { l filterNot { _ uses code } }
 		}
 
 		@tailrec def loop(list: List[POp]): Unit = list match {
 			case Nil =>
 			case x :: xs =>
 				x match {
+					case op: PLogical =>
+						r = p(op, l) :: r
+						update(op, 0x8000, xs)
 					case op: PDstAndSrc =>
 						r = p(op, l) :: r
-						l = if(1 == (xs count { _ uses op.dst.index })) {
-							op :: (l filterNot { _ uses op.dst.index })
-						} else {
-							l filterNot { _ uses op.dst.index }
-						}
+						update(op, op.dst.code, xs)
+					case op: PIf => r = p(op, l) :: r
 					case other => r = other :: r
 				}
 
