@@ -223,7 +223,29 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 					case r @ PFloatReg(_, _) => PLoadFloat(r, readFloat())
 				}
 			}
-			case Select => error("Loops are not supported.")
+			case Select =>
+				val dstIndex = readUI16()
+				val mask = readUI08()
+				val swizzle = mask >> 4
+				val size = (mask & 3) + 1
+				val matrix = (mask >> 2) & 3
+				val srcIndex = readUI24()
+				assert(0 == readUI08())
+
+				val src0Index = readUI24()
+				assert(0 == readUI08())
+
+				val src1Index = readUI24()
+				assert(0 == readUI08())
+
+				if(0 != matrix) {
+					error("Matrix not expected.")
+				}
+				
+				PSelect(createDstRegister(dstIndex, swizzle),
+					createSrcRegister(srcIndex, size),
+					createSrcRegister(src0Index, size),
+					createSrcRegister(src1Index, size))
 			case If => {
 				assert(0 == readUI24())
 				val src = readUI24()

@@ -49,7 +49,10 @@ protected[abc] object AbcTypes {
 					else AbcTypes fromQName (name, namespace)
 				}
 				case AbcTypename(name, parameters) => AbcTypes fromTypename (name, parameters)
-				case AbcMultiname(name, nsset) => AbcTypes fromQName (name, nsset.set(1))
+				case AbcMultiname(name, nsset) => nsset.set.length match {
+					case 1 => AbcTypes fromQName (name, nsset.set(0))
+					case n => AbcTypes fromQName (name, nsset.set(1))
+				}
 				case _ => error("Unexpected name: " + name)
 			}
 		}

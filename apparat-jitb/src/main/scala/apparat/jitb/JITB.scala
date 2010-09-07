@@ -29,7 +29,6 @@ import apparat.utils.IO._
 import apparat.taas.frontend.abc.AbcFrontend
 import apparat.taas.TaasCompiler
 import java.lang.{Thread => JThread}
-import apparat.swf.{SymbolClass, SwfTags, Swf}
 import flash.display.{DisplayObject, Stage, Sprite}
 import java.util.{TimerTask, Timer}
 import jitb.display.DisplayList
@@ -38,6 +37,8 @@ import jitb.errors.{ErrorUtil, Throw}
 import apparat.taas.backend.jbc.{JbcClassWriter, JbcClassLoader, JbcBackend}
 import java.io.{File => JFile}
 import jitb.lang.AVM
+import apparat.swc.Swc
+import apparat.swf.{DoABC, SymbolClass, SwfTags, Swf}
 
 /**
  * @author Joa Ebert
@@ -81,6 +82,11 @@ object JITB {
 class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	def run() = {
 		val swf = Swf fromFile configuration.file
+
+		if(log.debugEnabled) {
+			swf.tags foreach { t => log.debug("Tag: %s", t) }
+		}
+		
 		val mainClass = liftToplevel(swf.mainClass getOrElse { throw JITBException("Could not find main class.") })
 
 		log.debug("Main class: %s", mainClass)
@@ -134,7 +140,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	lazy val builtins = {
 		val builtin = getClass getResource "/builtin.abc"
 		val toplevel = getClass getResource "/toplevel.abc"
-		val playerglobal = getClass getResource "/playerglobal.abc"
+		val playerglobal = getClass getResource "/playerglobal.swc"
 
 		if(null == builtin) {
 			log.debug("Failed to load /builtin.abc")
@@ -143,7 +149,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 			log.debug("Failed to load /toplevel.abc")
 			true
 		} else if(null == playerglobal) {
-			log.debug("Failed to load /playerglobal.abc")
+			log.debug("Failed to load /playerglobal.swc")
 			true
 		} else { false } match {
 			case true => throw JITBException("Could not load builtins.")
@@ -152,9 +158,9 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 		val builtinABC = using(builtin.openStream) { Abc fromInputStream _ }
 		val toplevelABC = using(toplevel.openStream) { Abc fromInputStream _ }
-		val playerglobalABC = using(playerglobal.openStream) { Abc fromInputStream _ }
+		val playerglobalSWC = using(playerglobal.openStream) { Swc fromInputStream _ }
 
-		builtinABC :: toplevelABC :: playerglobalABC :: Nil
+		(builtinABC :: toplevelABC :: Nil) ::: (Swf fromSwc playerglobalSWC).tags collect { case doABC: DoABC => Abc fromDoABC doABC }
 	}
 
 	private def runWithDisplay(swf: Swf, main: Class[_]): Unit = {
@@ -290,13 +296,15 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 				}
 				Left(())
 			}
-			case _: NullPointerException => {
+			case npe: NullPointerException => {
+				npe.printStackTrace()
 				val error = ErrorUtil.error1009()
 				log.error("%s: Error #%d: %s", error.name, error.errorID, error.message)
 				log.error("%s", error.getStackTrace())
 				Left(())
 			}
 			case other => {
+				other.printStackTrace()
 				log.error("An internal error occurred.")
 				log.error("%s", other)
 				Left(())

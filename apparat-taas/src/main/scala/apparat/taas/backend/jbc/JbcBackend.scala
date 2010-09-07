@@ -61,6 +61,11 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			val cw = new JClassWriter(JbcBackend.WRITER_PARAMETERS)
 			val cv = decorateWriter(cw)
 
+			val coreType = nominal match {
+				case i: TaasInterface => "java/lang/Object"
+				case _ => "jitb/lang/Object"
+			}
+
 			cv.visit(
 				JbcBackend.JAVA_VERSION,
 				Java.visibilityOf(nominal) + (nominal match {
@@ -72,10 +77,10 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				nominal.base match {
 					case Some(base) => base match {
 						case t: TaasNominalType => Java nameOf t.nominal.qualifiedName
-						case TaasObjectType => "jitb/lang/Object"
+						case TaasObjectType => coreType
 						case _ => error("Expected TaasNominalType, got "+base)
 					}
-					case None => "jitb/lang/Object"
+					case None => coreType
 				},
 				null//Array.empty[String]//TODO map to interface names...
 			)
@@ -336,7 +341,18 @@ class JbcBackend extends TaasBackend with SimpleLog {
 									}
 							}
 
-							if(n < m) { error("optional parameters in "+method)}
+							if(n < m) {
+								while(i < n) {
+									loadAs(arguments(i), method.parameters(i).`type`)
+									i += 1
+								}
+
+								while(i < m) {
+									val defaultValue = method.parameters(i).defaultValue
+									loadAs(defaultValue getOrElse error("Missing parameter."), method.parameters(i).`type`)
+									i += 1
+								}
+							}
 							else if(n == m) {
 								while(i < n) {
 									loadAs(arguments(i), method.parameters(i).`type`)
@@ -397,6 +413,10 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						case TConstruct(obj, arguments, result) => {
 							val ctor = obj.`type` match {
 								case TaasNominalTypeInstance(nominal) => nominal match {
+									case TaasClass(_, _, _, _, _, ctor, _, _, _, _) => ctor
+									case other => error("Unexpected definition: "+other)
+								}
+								case nominalType: TaasNominalType => nominalType.nominal match {
 									case TaasClass(_, _, _, _, _, ctor, _, _, _, _) => ctor
 									case other => error("Unexpected definition: "+other)
 								}

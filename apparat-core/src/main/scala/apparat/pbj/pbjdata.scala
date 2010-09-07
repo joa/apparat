@@ -384,7 +384,10 @@ object pbjdata {
 	case class PSampleBilinear(dst: PReg, src: PReg, texture: Int) extends POp(POp.SampleBilinear) with PDstAndSrc { override def mapDef(toIndex: Int) = PSampleBilinear(dst mapIndex toIndex, src, texture) }
 	case class PLoadInt(dst: PReg, value: Int) extends POp(POp.LoadConstant) with PDst { override def mapDef(toIndex: Int) = PLoadInt(dst mapIndex toIndex, value) }
 	case class PLoadFloat(dst: PReg, value: Float) extends POp(POp.LoadConstant) with PDst { override def mapDef(toIndex: Int) = PLoadFloat(dst mapIndex toIndex, value) }
-	//case class PSelect(dst: PReg, src: PReg, src0: PReg, src1: PReg) extends POp(POp.Select) with PDstAndSrc { override def mapDef(toIndex: Int) = PSelect(dst mapIndex toIndex, src) }
+	case class PSelect(dst: PReg, src: PReg, src0: PReg, src1: PReg) extends POp(POp.Select) with PDstAndSrc {
+		override def uses(code: Int) = src.code == code || src0.code == code || src1.code == code
+		override def mapDef(toIndex: Int) = PSelect(dst mapIndex toIndex, src, src0, src1)
+	}
 	case class PIf(src: PReg) extends POp(POp.If) with PSrc
 	case class PElse() extends POp(POp.Else)
 	case class PEndif() extends POp(POp.Endif)
@@ -392,8 +395,8 @@ object pbjdata {
 	case class PBoolToFloat(dst: PReg, src: PReg) extends POp(POp.BoolToFloat) with PDstAndSrc { override def mapDef(toIndex: Int) = PBoolToFloat(dst mapIndex toIndex, src) }
 	case class PIntToBool(dst: PReg, src: PReg) extends POp(POp.IntToBool) with PDstAndSrc { override def mapDef(toIndex: Int) = PIntToBool(dst mapIndex toIndex, src) }
 	case class PBoolToInt(dst: PReg, src: PReg) extends POp(POp.BoolToInt) with PDstAndSrc { override def mapDef(toIndex: Int) = PBoolToInt(dst mapIndex toIndex, src) }
-	case class PVectorEqual(dst: PReg, src: PReg) extends POp(POp.VectorEqual) with PDstAndSrc { override def mapDef(toIndex: Int) = PVectorEqual(dst mapIndex toIndex, src) }
-	case class PVectorNotEqual(dst: PReg, src: PReg) extends POp(POp.VectorNotEqual) with PDstAndSrc { override def mapDef(toIndex: Int) = PVectorNotEqual(dst mapIndex toIndex, src) }
+	case class PVectorEqual(dst: PReg, src: PReg) extends POp(POp.VectorEqual) with PLogical { override def mapDef(toIndex: Int) = PVectorEqual(dst mapIndex toIndex, src) }
+	case class PVectorNotEqual(dst: PReg, src: PReg) extends POp(POp.VectorNotEqual) with PLogical { override def mapDef(toIndex: Int) = PVectorNotEqual(dst mapIndex toIndex, src) }
 	case class PAny(dst: PReg, src: PReg) extends POp(POp.Any) with PDstAndSrc { override def mapDef(toIndex: Int) = PAny(dst mapIndex toIndex, src) }
 	case class PAll(dst: PReg, src: PReg) extends POp(POp.All) with PDstAndSrc { override def mapDef(toIndex: Int) = PAll(dst mapIndex toIndex, src) }
 	case class PKernelMetaData(meta: PMeta) extends POp(POp.KernelMetaData) {

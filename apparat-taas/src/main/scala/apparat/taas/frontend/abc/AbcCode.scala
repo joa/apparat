@@ -281,7 +281,25 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case Equals() => TODO(op)
 				case EscapeXMLAttribute() => TODO(op)
 				case EscapeXMLElement() => TODO(op)
-				case FindProperty(property) => TODO(op)
+				case FindProperty(property) => {//we are always strict...
+					property match {
+						case qname: AbcQName => {
+							scopeType match {
+								case t: TaasNominalType =>
+									pp(push(TLexical(AbcSolver.property(t.nominal, property) getOrElse {
+										(AbcTypes name2type qname) match {
+											case n: TaasNominalType => n.nominal
+											case other => error("TaasNominalType expected, got "+other+".")
+										}})))
+								case _ => pp(push(TLexical((AbcTypes name2type qname) match {
+											case n: TaasNominalType => n.nominal
+											case other => error("TaasNominalType expected, got "+other+".")
+										})))
+							}
+						}
+						case _ => error("QName expected.")
+					}
+				}
 				case FindPropStrict(property) => {
 					property match {
 						case qname: AbcQName => {

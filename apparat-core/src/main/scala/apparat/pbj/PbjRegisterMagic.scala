@@ -35,7 +35,7 @@ protected[pbj] object PbjRegisterMagic {
 		val sw = indexAndSwizzle >> 16
 		val swizzle = ListBuffer.empty[PChannel]
 
-		if(sw != 0x1B) {
+		if(sw != 0x1b) {
 			var i = 0
 			while(i < size) {
 				swizzle += channels((sw >> (6 - (i << 1))) & 3)

@@ -87,11 +87,11 @@ protected[jbc] object Cast {
 							Right(checkCast(target))
 						}
 					}
-					case TaasObjectType => Right(())
+					case TaasObjectType | TaasAnyType => Right(())
 					case TaasStringType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/String", "valueOf", "(Ljava/lang/Object;)Ljava/lang/String;"))
 					case other => Right(checkCast(other))
 				}
-				case TaasObjectType => Right(checkCast(target))
+				case TaasObjectType | TaasAnyType => Right(checkCast(target))
 				case _ => Left(Cast.Error("Cannot convert from "+source+" to "+target))
 			}
 		}

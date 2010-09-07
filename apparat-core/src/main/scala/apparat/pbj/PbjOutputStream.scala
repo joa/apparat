@@ -226,7 +226,11 @@ class PbjOutputStream(val output: JOutputStream) extends JOutputStream {
 				writeDst(dst, 0)
 				writeFloat(value)
 			}
-			//case PSelect(dst, src, src0, src1) => 
+			case PSelect(dst, src, src0, src1) =>
+				writeUI08(dst.code)
+				writeUI08(src.code)
+				writeUI08(src0.code)
+				writeUI08(src1.code)
 			case PIf(condition) => {
 				writeUI24(0)
 				writeSrc(condition, 1)
