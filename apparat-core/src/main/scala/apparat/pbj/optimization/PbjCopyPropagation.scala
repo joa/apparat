@@ -27,7 +27,20 @@ import annotation.tailrec
  * @author Joa Ebert
  */
 object PbjCopyPropagation extends (List[POp] => (List[POp], Boolean)) {
-	override def apply(code: List[POp]) = {
+	override def apply(code: List[POp]): (List[POp], Boolean) = {
+		if((code exists { _.opCode == POp.If }) && code.last.opCode != POp.If) {
+			@tailrec def split(result: List[List[POp]], in: List[POp]): List[List[POp]] = {
+				val (s, r) = in splitAt {
+					(in indexWhere { op => op.opCode == POp.If || op.opCode == POp.Else || op.opCode == POp.Endif }) + 1}
+				if(s != Nil) split(s :: result, r) else (r :: result).reverse
+			}
+
+			val mapped = split(List.empty, code) map bb
+			(mapped flatMap { _._1 }) -> (mapped exists { _._2 })
+		} else bb(code) 
+	}
+
+	private def bb(code: List[POp]): (List[POp], Boolean) = {
 		var l = List.empty[PDstAndSrc]
 		var r = List.empty[POp]
 		var m = false
@@ -56,12 +69,12 @@ object PbjCopyPropagation extends (List[POp] => (List[POp], Boolean)) {
 						}
 					case other => r = other :: r
 				}
-				
+
 				loop(xs)
 		}
 
 		loop(code)
-		
+
 		if(m) { r.reverse -> true} else { code -> false }
 	}
 }
