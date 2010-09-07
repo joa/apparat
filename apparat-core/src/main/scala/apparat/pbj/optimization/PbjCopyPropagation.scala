@@ -34,10 +34,10 @@ object PbjCopyPropagation extends (List[POp] => (List[POp], Boolean)) {
 
 		@inline def p(op: PDstAndSrc, a: List[PDstAndSrc]) = op match {
 			case PCopy(dst, src) =>
-				a.find { _ defines src.index } match {
+				a find { _ defines src.index } match {
 					case Some(x) if x.dst.swizzle == dst.swizzle =>
 						m = true
-						x.mapDef(dst.index)
+						x mapDef dst.index
 					case _ => op
 				}
 			case _ => op
@@ -45,23 +45,23 @@ object PbjCopyPropagation extends (List[POp] => (List[POp], Boolean)) {
 
 		@tailrec def loop(list: List[POp]): Unit = list match {
 			case Nil =>
-			case x :: xs => {
+			case x :: xs =>
 				x match {
 					case op: PDstAndSrc =>
 						r = p(op, l) :: r
 						l = if(1 == (xs count { _ uses op.dst.index })) {
-							op :: l.filterNot { _ uses op.dst.index }
+							op :: (l filterNot { _ uses op.dst.index })
 						} else {
-							l.filterNot { _ uses op.dst.index }
+							l filterNot { _ uses op.dst.index }
 						}
 					case other => r = other :: r
 				}
-
+				
 				loop(xs)
-			}
 		}
 
 		loop(code)
+		
 		if(m) { r.reverse -> true} else { code -> false }
 	}
 }
