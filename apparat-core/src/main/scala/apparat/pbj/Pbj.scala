@@ -20,7 +20,7 @@
  */
 package apparat.pbj
 
-import optimization.PbjCopyPropagation
+import optimization.PbjOptimizer
 import pbjdata._
 
 import java.io.{
@@ -40,10 +40,8 @@ import apparat.utils.{IndentingPrintWriter, Dumpable}
 object Pbj {
 	def main(args: Array[String]): Unit = {
 		val pbj = Pbj fromFile args(0)
+		PbjOptimizer(pbj)
 		pbj.dump()
-		val r = PbjCopyPropagation(pbj.code)
-		r._1 foreach println
-		println(r._2)
 	}
 
 	def fromByteArray(byteArray: Array[Byte]) = {
@@ -65,8 +63,6 @@ object Pbj {
 		pbj read input
 		pbj
 	}
-
-	val outCoord = PInParameter("_OutCoord", PFloatType, PFloatReg(0, PChannelR :: PChannelG :: Nil))
 }
 
 /**
@@ -76,7 +72,7 @@ class Pbj extends Dumpable {
 	var version = 1
 	var name = ""
 	var metadata = List.empty[PMeta]
-	var parameters: List[(PParam, List[PMeta])] = (Pbj.outCoord, List.empty[PMeta]) :: Nil
+	var parameters: List[(PParam, List[PMeta])] = (OutCoord, List.empty[PMeta]) :: Nil
 	var textures = List.empty[PTexture]
 	var code = List.empty[POp]
 

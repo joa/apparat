@@ -64,9 +64,7 @@ object PbjCopyPropagation extends (List[POp] => (List[POp], Boolean)) {
 		}
 
 		@inline def update(op: PDstAndSrc, code: Int, xs: List[POp]) = {
-			l = if(1 == (xs count { _ uses code })) {
-				op :: (l filterNot { _ uses code })
-			} else { l filterNot { _ uses code } }
+			l = if(1 == (xs count { _ uses code })) { op :: (l filterNot { _ uses code }) } else { l filterNot { _ uses code } }
 		}
 
 		@tailrec def loop(list: List[POp]): Unit = list match {

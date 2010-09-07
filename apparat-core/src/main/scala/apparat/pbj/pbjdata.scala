@@ -199,6 +199,8 @@ object pbjdata {
 	case class PInParameter(name: String, `type`: PNumeric, register: PReg) extends PParam
 	case class POutParameter(name: String, `type`: PNumeric, register: PReg) extends PParam
 
+	object OutCoord extends PInParameter("_OutCoord", PFloatType, PFloatReg(0, PChannelR :: PChannelG :: Nil))
+
 	case class PTexture(name: String, index: Int, channels: Int) extends PTyped {
 		override def `type` = channels match {
 			case 1 => PFloatType
@@ -383,7 +385,7 @@ object pbjdata {
 	case class PLoadInt(dst: PReg, value: Int) extends POp(POp.LoadConstant) with PDst { override def mapDef(toIndex: Int) = PLoadInt(dst mapIndex toIndex, value) }
 	case class PLoadFloat(dst: PReg, value: Float) extends POp(POp.LoadConstant) with PDst { override def mapDef(toIndex: Int) = PLoadFloat(dst mapIndex toIndex, value) }
 	//case class PSelect(dst: PReg, src: PReg, src0: PReg, src1: PReg) extends POp(POp.Select) with PDstAndSrc { override def mapDef(toIndex: Int) = PSelect(dst mapIndex toIndex, src) }
-	case class PIf(condition: PReg) extends POp(POp.If) { override def uses(code: Int) = condition.code == code }
+	case class PIf(src: PReg) extends POp(POp.If) with PSrc
 	case class PElse() extends POp(POp.Else)
 	case class PEndif() extends POp(POp.Endif)
 	case class PFloatToBool(dst: PReg, src: PReg) extends POp(POp.FloatToBool) with PDstAndSrc { override def mapDef(toIndex: Int) = PFloatToBool(dst mapIndex toIndex, src) }
