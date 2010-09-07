@@ -2,6 +2,10 @@ package flash.display;
 
 import flash.geom.Matrix;
 import jitb.lang.Array;
+import org.lwjgl.opengl.ARBShaderObjects;
+
+import java.util.LinkedList;
+
 import static org.lwjgl.opengl.GL11.*;
 
 /**
@@ -9,6 +13,60 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public final class Graphics extends jitb.lang.Object {
 	private Shader _shader;
+
+	private interface ICommand {
+		void run();
+	}
+
+	private final class DrawRectCommand implements ICommand {
+		private final double _x, _y, _width, _height;
+
+		public DrawRectCommand(final double x, final double y, final double width, final double height) {
+			_x = x;
+			_y = y;
+			_width = width;
+			_height = height;
+		}
+
+		@Override
+		public void run() {
+			glBegin(GL_QUADS); {
+				glTexCoord2f(0.0f, 0.0f);
+				glVertex2d(_x, _y);
+
+				glTexCoord2f(1.0f, 0.0f);
+				glVertex2d(_x + _width, _y);
+
+				glTexCoord2f(1.0f, 1.0f);
+				glVertex2d(_x + _width, _y + _height);
+
+				glTexCoord2f(0.0f, 1.0f);
+				glVertex2d(_x, _y + _height);
+			} glEnd();
+		}
+	}
+
+	private final class BeginShaderFillCommand implements ICommand {
+		private final Shader _shader;
+		private final Matrix _matrix;
+
+		public BeginShaderFillCommand(final Shader shader, final Matrix matrix) {
+			_shader = shader;
+			_matrix = matrix;
+		}
+
+		@Override
+		public void run() { _shader.JITB$bind(); }
+	}
+
+	private final class EndFillCommand implements ICommand {
+		public EndFillCommand() {}
+		
+		@Override
+		public void run() { ARBShaderObjects.glUseProgramObjectARB(0); }
+	}
+
+	private LinkedList<ICommand> _commands = new LinkedList<ICommand>();
 
 	public void beginBitmapFill(final BitmapData bitmap, final Matrix matrix, final boolean repeat, final boolean smooth) {
 
@@ -26,12 +84,11 @@ public final class Graphics extends jitb.lang.Object {
 	}
 
 	public void beginShaderFill(final Shader shader, final Matrix matrix) {
-		_shader = shader;
-		_shader.JITB$bind();
+		_commands.addLast(new BeginShaderFillCommand(shader, matrix));
 	}
 
 	public void clear() {
-		
+		_commands.clear();
 	}
 
 	public void copyFrom(final Graphics sourceGraphics) {
@@ -50,19 +107,7 @@ public final class Graphics extends jitb.lang.Object {
 	//public void drawPath
 
 	public void drawRect(final double x, final double y, final double width, final double height) {
-		glBegin(GL_QUADS); {
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex2d(x, y);
-
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex2d(x + width, y);
-
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex2d(x + width, y + height);
-
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex2d(x, y + height);
-		} glEnd();
+		_commands.addLast(new DrawRectCommand(x, y, width, height));
 	}
 
 	public void drawRoundRect(final double x, final double y, final double width, final double height,
@@ -73,11 +118,12 @@ public final class Graphics extends jitb.lang.Object {
 	//drawTriangles
 
 	public void endFill() {
-		if(null != _shader) {
-			_shader.JITB$unbind();
-			_shader = null;
-		}
+		_commands.addLast(new EndFillCommand());
 	}
 
-	
+	public void JITB$render() {
+		for(final ICommand command : _commands) {
+			command.run();
+		}
+	}
 }

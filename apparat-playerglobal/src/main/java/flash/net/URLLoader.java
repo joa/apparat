@@ -43,7 +43,7 @@ public class URLLoader extends EventDispatcher {
 		_request = request;
 		load();
 
-		if(_request.url().startsWith("/")) {
+		if(_request.url().startsWith("/") || _request.url().indexOf(':') == 1) {
 			loadFile();
 		}
 	}

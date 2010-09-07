@@ -13,5 +13,6 @@ public class Sprite extends DisplayObjectContainer {
 	@Override
 	protected final void JITB$render() {
 		JITB$renderChildren();
+		_graphics.JITB$render();
 	}
 }

@@ -1,6 +1,6 @@
 package flash.display;
 
-import org.lwjgl.opengl.GL11;
+import static org.lwjgl.opengl.GL11.*;
 
 /**
  * @author Joa Ebert
@@ -50,19 +50,20 @@ public class Bitmap extends DisplayObject {
 		final int width = (int)(width() + 0.5);
 		final int height = (int)(height() + 0.5);
 
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, _bitmapData.JITB$textureId());
-		GL11.glBegin(GL11.GL_QUADS); {
-			GL11.glTexCoord2f(0.0f, 0.0f);
-			GL11.glVertex2i(0, 0);
+		glBindTexture(GL_TEXTURE_2D, _bitmapData.JITB$textureId());
+		glBegin(GL_QUADS); {
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2i(0, 0);
 			
-			GL11.glTexCoord2f(1.0f, 0.0f);
-			GL11.glVertex2i(width, 0);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex2i(width, 0);
 
-			GL11.glTexCoord2f(1.0f, 1.0f);
-			GL11.glVertex2i(width, height);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex2i(width, height);
 
-			GL11.glTexCoord2f(0.0f, 1.0f);
-			GL11.glVertex2i(0, height);
-		} GL11.glEnd();
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex2i(0, height);
+		} glEnd();
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }

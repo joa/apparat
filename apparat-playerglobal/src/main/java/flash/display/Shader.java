@@ -41,24 +41,20 @@ public class Shader extends jitb.lang.Object {
 		if(-1 != _programId) {
 			//cleanup ...
 		}
+
+		pbj();
 	}
 
-	public ShaderData data() {
-		if(null == _data) {
-			_data = new ShaderData(pbj());
-		}
-
-		return _data;
-	}
+	public ShaderData data() { return _data; }
 	
 	public void data(final ShaderData value) { _data = value; }
 
 	public void JITB$bind() {
 		if(GLContext.getCapabilities().GL_ARB_shader_objects) {
+			ARBShaderObjects.glUseProgramObjectARB(programId());
 			if(null != data()) {
 				data().JITB$applyParameters(programId());
 			}
-			ARBShaderObjects.glUseProgramObjectARB(programId());
 		} else {
 			throw new RuntimeException("Sorry, no shaders supported on your system.");
 		}
@@ -72,6 +68,7 @@ public class Shader extends jitb.lang.Object {
 		if(null == _pbj && null != _byteCode) {
 			//ignore IDE error, code compiles and is correct
 			_pbj = Pbj.fromByteArray(_byteCode.JITB$toByteArray());
+			_data = new ShaderData(_pbj);
 		}
 
 		return _pbj;
@@ -89,28 +86,26 @@ public class Shader extends jitb.lang.Object {
 		System.out.println("Compiling shader ...");
 		final String vertexShader = pbj().toVertexShader();
 		final String fragmentShader = pbj().toFragmentShader();
-		final ByteBuffer vertexBuffer = BufferUtils.createByteBuffer(vertexShader.length()).put(vertexShader.getBytes());
-		final ByteBuffer fragmentBuffer = BufferUtils.createByteBuffer(fragmentShader.length()).put(fragmentShader.getBytes());
 
 		System.out.println("Vertex shader:");
 		System.out.println(vertexShader);
 		System.out.println("Fragment shader:");
 		System.out.println(fragmentShader);
 		
-		vertexBuffer.flip();
-		fragmentBuffer.flip();
-
 		_vertexShaderId = ARBShaderObjects.glCreateShaderObjectARB(ARBVertexShader.GL_VERTEX_SHADER_ARB);
-		ARBShaderObjects.glShaderSourceARB(_vertexShaderId, vertexBuffer);
+		ARBShaderObjects.glShaderSourceARB(_vertexShaderId, vertexShader);
 		ARBShaderObjects.glCompileShaderARB(_vertexShaderId);
+		System.out.println("VertexShader Info: "+ARBShaderObjects.glGetInfoLogARB(_vertexShaderId, 1024));
 
 		_fragmentShaderId = ARBShaderObjects.glCreateShaderObjectARB(ARBFragmentShader.GL_FRAGMENT_SHADER_ARB);
-		ARBShaderObjects.glShaderSourceARB(_fragmentShaderId, fragmentBuffer);
+		ARBShaderObjects.glShaderSourceARB(_fragmentShaderId, fragmentShader);
 		ARBShaderObjects.glCompileShaderARB(_fragmentShaderId);
+		System.out.println("FragmentShader Info: "+ARBShaderObjects.glGetInfoLogARB(_fragmentShaderId, 1024));
 
 		_programId = ARBShaderObjects.glCreateProgramObjectARB();
 		ARBShaderObjects.glAttachObjectARB(_programId, _vertexShaderId);
 		ARBShaderObjects.glAttachObjectARB(_programId, _fragmentShaderId);
 		ARBShaderObjects.glLinkProgramARB(_programId);
+		System.out.println("Program Info: "+ARBShaderObjects.glGetInfoLogARB(_programId, 1024));
 	}
 }

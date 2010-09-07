@@ -78,8 +78,9 @@ public final class ShaderData extends jitb.lang.Object {
 						//use default value?
 					}
 
-					System.out.println("Setting parameter \""+name+"\" to "+floatValue+" at location "+location+".");
+					//System.out.println("Setting parameter \""+name+"\" to "+floatValue+" at location "+location+".");
 					ARBShaderObjects.glUniform1fARB(location, floatValue);
+					//System.out.println("Info: "+ARBShaderObjects.glGetInfoLogARB(programId, 1024));
 				}
 			}
 		}
