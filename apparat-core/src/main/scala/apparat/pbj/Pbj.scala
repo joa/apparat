@@ -20,6 +20,7 @@
  */
 package apparat.pbj
 
+import optimization.PbjCopyPropagation
 import pbjdata._
 
 import java.io.{
@@ -37,6 +38,14 @@ import collection.mutable.ListBuffer
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 object Pbj {
+	def main(args: Array[String]): Unit = {
+		val pbj = Pbj fromFile args(0)
+		pbj.dump()
+		val r = PbjCopyPropagation(pbj.code)
+		r._1 foreach println
+		println(r._2)
+	}
+
 	def fromByteArray(byteArray: Array[Byte]) = {
 		val pbj = new Pbj
 		pbj read byteArray
