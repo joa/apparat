@@ -77,6 +77,29 @@ package apparat.math {
 		}
 
 		/**
+		 * Computes and returns the angle of the point <code>y/x</code> in radians, when measured counterclockwise
+		 * from a circle's <em>x</em> axis (where 0,0 represents the center of the circle).
+		 * The return value is between positive pi and negative pi.
+		 *
+		 * @author Eugene Zatepyakin
+		 * @author Joa Ebert
+		 * @author Patrick Le Clec'h
+		 *
+		 * @param y A number specifying the <em>y</em> coordinate of the point.
+		 * @param x A number specifying the <em>x</em> coordinate of the point.
+		 *
+		 * @return A number.
+		 */
+		public static function atan2(y:Number, x:Number):Number {
+			var sign:Number = 1.0 - (int(y < 0.0) << 1)
+			var absYandR:Number = y * sign + 2.220446049250313e-16
+			var partSignX:Number = (int(x < 0.0) << 1) // [0.0/2.0]
+			var signX:Number = 1.0 - partSignX // [1.0/-1.0]
+			absYandR = (x - signX * absYandR) / (signX * x + absYandR)
+			return ((partSignX + 1.0) * 0.7853981634 + (0.1821 * absYandR * absYandR - 0.9675) * absYandR) * sign
+		}
+
+		/**
 		 * Computes and returns an absolute value.
 		 *
 		 * @param value The number whose absolute value is returned.

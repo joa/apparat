@@ -11,6 +11,28 @@ package apparat.math.test {
 	 * @author Joa Ebert
 	 */
 	public class InlineMathTest extends TestCase {
+		public function testAtan2(): void {
+			const values: Array = [
+				[1, 2], [2, 3], [4, 5], [6, 7],
+				[7, 2], [8, 3], [9, 5], [10, 7],
+				[7, 11], [8, 12], [9, 13], [10, 14],
+				[15, 11], [16, 12], [17, 13], [18, 14],
+				[-7, 11], [-8, 12], [-9, 13], [-10, 14],
+				[-15, 11], [-16, 12], [-17, 13], [-18, 14],
+				[7, -11], [8, -12], [9, -13], [10, -14],
+				[15, -11], [16, -12], [17, -13], [18, -14],
+				[-7, -11], [-8, -12], [-9, -13], [-10, -14],
+				[-15, -11], [-16, -12], [-17, -13], [-18, -14]
+			]
+
+			var n: int = values.length
+
+			while(--n > -1) {
+				var value: Array = values[n]
+				assertNumberEquals(Math.atan2(value[0], value[1]), FastMath.atan2(value[0], value[1]))
+			}
+		}
+
 		public function testSin(): void {
 			const values: Array = [-Math.PI * 2.0, -Math.PI, -Math.PI * 0.5, 0.0, Math.PI * 0.5, Math.PI * 2.0]
 
