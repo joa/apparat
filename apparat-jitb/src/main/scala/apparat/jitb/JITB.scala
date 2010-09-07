@@ -164,30 +164,6 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	}
 
 	private def runWithDisplay(swf: Swf, main: Class[_]): Unit = {
-		val stage = new Stage()
-
-		stage.frameRate(swf.frameRate.asInstanceOf[Double])
-
-		val documentRoot = AVMContext { main.newInstance() } match {
-			case Right(value) => value
-			case Left(_) => error("Could not create DocumentRoot.")
-		}
-
-		log.debug("Main class is a DisplayObject")
-		log.debug("SWF info:")
-		log.debug("\tFramerate: %.2f", stage.frameRate)
-		log.debug("\tWidth: %d", swf.width)
-		log.debug("\tHeight: %d", swf.height)
-		swf.backgroundColor match {
-			case Some(rgb) => log.debug("\tBackground: %d, %d, %d", rgb.red, rgb.green, rgb.blue)
-			case None => log.debug("\tBackground: None")
-		}
-
-		log.debug("Created Stage %s.", stage)
-		log.debug("Created DocumentRoot %s.", documentRoot)
-
-		stage.addChild(documentRoot.asInstanceOf[DisplayObject])
-		
 		//
 		// Initialize display
 		//
@@ -231,6 +207,34 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 			case None =>
 		}
 
+		//
+		// DisplayList setup
+		//
+
+		val stage = new Stage()
+
+		stage.frameRate(swf.frameRate.asInstanceOf[Double])
+
+		val documentRoot = AVMContext { main.newInstance() } match {
+			case Right(value) => value
+			case Left(_) => error("Could not create DocumentRoot.")
+		}
+
+		log.debug("Main class is a DisplayObject")
+		log.debug("SWF info:")
+		log.debug("\tFramerate: %.2f", stage.frameRate)
+		log.debug("\tWidth: %d", swf.width)
+		log.debug("\tHeight: %d", swf.height)
+		swf.backgroundColor match {
+			case Some(rgb) => log.debug("\tBackground: %d, %d, %d", rgb.red, rgb.green, rgb.blue)
+			case None => log.debug("\tBackground: None")
+		}
+
+		log.debug("Created Stage %s.", stage)
+		log.debug("Created DocumentRoot %s.", documentRoot)
+
+		stage.addChild(documentRoot.asInstanceOf[DisplayObject])
+		
 		//
 		// Render loop
 		//

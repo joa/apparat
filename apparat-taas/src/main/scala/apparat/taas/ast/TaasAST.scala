@@ -616,3 +616,5 @@ case class TStore(`object`: TValue, field: TaasField, value: TValue) extends TEx
 
 case object TSetIndex extends TaasMethod('TSet, TaasPublic, TaasVoidType, ListBuffer(TaasParameter(TaasIntType, None), TaasParameter(TaasObjectType, None)), false, true, true, None)
 case object TGetIndex extends TaasMethod('TGet, TaasPublic, TaasObjectType, ListBuffer(TaasParameter(TaasIntType, None)), false, true, true, None)
+case object TSetProperty extends TaasMethod('TSetProperty, TaasPublic, TaasVoidType, ListBuffer(TaasParameter(TaasStringType, None), TaasParameter(TaasObjectType, None)), false, true, true, None)
+case object TGetProperty extends TaasMethod('TGetProperty, TaasPublic, TaasObjectType, ListBuffer(TaasParameter(TaasStringType, None)), false, true, true, None)

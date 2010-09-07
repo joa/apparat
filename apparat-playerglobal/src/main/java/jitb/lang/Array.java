@@ -359,11 +359,13 @@ public class Array extends jitb.lang.Object {
 		return _arrayList.size();
 	}
 
-	public java.lang.Object JITB$get(final int index) {
+	@Override
+	public java.lang.Object JITB$getIndex(final int index) {
 		return _arrayList.get(index);
 	}
 
-	public void JITB$set(final int index, final java.lang.Object value) {
+	@Override
+	public void JITB$setIndex(final int index, final java.lang.Object value) {
 		final int n = _arrayList.size();
 
 		if(index > n) {

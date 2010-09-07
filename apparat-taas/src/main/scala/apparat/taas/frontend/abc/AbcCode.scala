@@ -333,6 +333,11 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 
 							pp(TCall(obj, TGetIndex, index :: Nil, Some(nextOperand)))
 						}
+						case multiname: AbcMultiname => {
+							log.warning("Dynamic variable lookup in GetProperty(%s).", property)
+							val obj = pop()
+							pp(TCall(obj, TGetProperty, TString(multiname.name) :: Nil, Some(nextOperand)))
+						}
 						case _ => {
 							val obj = pop()
 							
@@ -401,7 +406,40 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case Multiply() | MultiplyInt() => pp(binop(TOp_*))
 				case Negate() | NegateInt() => TODO(op)
 				case NewActivation() => TODO(op)
-				case NewArray(numArguments) => TODO(op)
+				case NewArray(numArguments) => {
+					//
+					// TODO need different strategy
+					//
+					// push 800
+					// newArray(1)
+					//
+					// Results in register based:
+					//
+					// r0 = 800
+					// r0 = newArray(1)
+					//
+					// We cannot expand to this:
+					//
+					// r0 = 800
+					// r0 = new Array()
+					// r0[0] = r0
+					//
+					// Hack as:
+					//
+					// r0 = 800
+					// r1 = new Array()
+					// r1[0] = r0
+					// r0 = r1
+					//
+					val elements = for(i <- 0 until numArguments) yield pop()
+					val result = operandStack
+					val arrayRegister = operand(result+1)
+					operandStack += 1
+					pp(TConstruct(TClass(AbcTypes.fromQName('Array, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))), Nil, arrayRegister))
+					elements.zipWithIndex foreach { x => pp(TCall(arrayRegister, TSetIndex, TInt(x._2) :: x._1 :: Nil, None)) }
+					pp(T2(TOp_Nothing, arrayRegister, operand(result)))
+				}
+
 				case NewCatch(exceptionHandler) => TODO(op)
 				case NewClass(nominalType) => TODO(op)
 				case NewFunction(function) => TODO(op)
@@ -434,6 +472,11 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 							val obj = pop()
 
 							pp(TCall(obj, TSetIndex, index :: arg :: Nil, None))
+						}
+						case multiname: AbcMultiname => {
+							log.warning("Dynamic variable lookup in SetProperty(%s).", property)
+							val obj = pop()
+							pp(TCall(obj, TSetProperty, TString(multiname.name) :: arg :: Nil, None))
 						}
 						case _ => val obj = pop()
 							AbcSolver.setProperty(obj.`type`, property) match {

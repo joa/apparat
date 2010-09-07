@@ -305,17 +305,36 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							mv.visitJumpInsn(JOpcodes.GOTO, labels(jumps(jump)(0)))
 						}
 
+						case TCall(t, TSetProperty, property :: value :: Nil, result) => {
+							load(t)
+							loadAs(property, TaasStringType)
+							loadAs(value, TaasObjectType)
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Object", "JITB$setProperty",  "(Ljava/lang/String;Ljava/lang/Object;)V")
+						}
+
+						case TCall(t, TGetProperty, property :: Nil, result) => {
+							load(t)
+							loadAs(property, TaasStringType)
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Object", "JITB$getProperty", "(Ljava/lang/String;)Ljava/lang/Object;")
+							result match {
+								case Some(result) => storeByType(TGetIndex.`type`, result)
+								case None => if(TGetIndex.`type` != TaasVoidType) {
+									mv.visitInsn(JOpcodes.POP)
+								}
+							}
+						}
+
 						case TCall(t, TSetIndex, index :: value :: Nil, result) => {
 							load(t)
 							loadAs(index, TaasIntType)
 							loadAs(value, TaasObjectType)
-							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Array", "JITB$set",  "(ILjava/lang/Object;)V")
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Object", "JITB$setIndex",  "(ILjava/lang/Object;)V")
 						}
 
 						case TCall(t, TGetIndex, index :: Nil, result) => {
 							load(t)
 							loadAs(index, TaasIntType)
-							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Array", "JITB$get", "(I)Ljava/lang/Object;")
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Object", "JITB$getIndex", "(I)Ljava/lang/Object;")
 							result match {
 								case Some(result) => storeByType(TGetIndex.`type`, result)
 								case None => if(TGetIndex.`type` != TaasVoidType) {

@@ -38,14 +38,6 @@ import collection.mutable.ListBuffer
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 object Pbj {
-	def main(args: Array[String]): Unit = {
-		val pbj = Pbj fromFile args(0)
-		//PbjOptimizer(pbj)
-		pbj.dump()
-		println(pbj.toVertexShader)
-		println(pbj.toFragmentShader)
-	}
-
 	def fromByteArray(byteArray: Array[Byte]) = {
 		val pbj = new Pbj
 		pbj read byteArray
@@ -77,6 +69,8 @@ class Pbj extends Dumpable {
 	var parameters: List[(PParam, List[PMeta])] = (OutCoord, List.empty[PMeta]) :: Nil
 	var textures = List.empty[PTexture]
 	var code = List.empty[POp]
+
+	def parametersAsArray = parameters.toArray
 
 	def read(file: JFile): Unit = using(new JBufferedInputStream(new JFileInputStream(file), 0x1000)) { read(_) }
 
