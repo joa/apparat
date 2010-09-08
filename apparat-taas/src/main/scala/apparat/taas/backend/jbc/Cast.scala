@@ -97,7 +97,7 @@ protected[jbc] object Cast {
 		}
 	}
 
-	private def checkCast(target: TaasType)(implicit mv: JMethodVisitor) = {
+	def checkCast(target: TaasType)(implicit mv: JMethodVisitor) = {
 		if(REQUIRE_TYPEERROR) {
 			mv.visitInsn(JOpcodes.DUP)
 			mv.visitLdcInsn(Type.getType(Java typeOf target))

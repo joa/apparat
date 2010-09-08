@@ -2,17 +2,17 @@ package flash.display;
 
 import apparat.pbj.Pbj;
 import flash.utils.ByteArray;
-import org.lwjgl.BufferUtils;
+import jitb.lang.annotations.Element;
+import jitb.lang.annotations.Metadata;
 import org.lwjgl.opengl.ARBFragmentShader;
 import org.lwjgl.opengl.ARBShaderObjects;
 import org.lwjgl.opengl.ARBVertexShader;
 import org.lwjgl.opengl.GLContext;
 
-import java.nio.ByteBuffer;
-
 /**
  * @author Joa Ebert
  */
+@Metadata({@Element(name="Version", keys={""}, values={"10"})})
 public class Shader extends jitb.lang.Object {
 	private ByteArray _byteCode;
 	private Pbj _pbj;
@@ -67,7 +67,7 @@ public class Shader extends jitb.lang.Object {
 	private Pbj pbj() {
 		if(null == _pbj && null != _byteCode) {
 			//ignore IDE error, code compiles and is correct
-			_pbj = Pbj.fromByteArray(_byteCode.JITB$toByteArray());
+			_pbj = ShaderUtil.getPbj(_byteCode);
 			_data = new ShaderData(_pbj);
 		}
 

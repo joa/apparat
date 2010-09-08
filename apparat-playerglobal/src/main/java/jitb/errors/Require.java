@@ -1,6 +1,5 @@
-package jitb.errors;
 
-import jitb.errors.ErrorUtil;
+package jitb.errors;
 
 /**
  * @author Joa Ebert

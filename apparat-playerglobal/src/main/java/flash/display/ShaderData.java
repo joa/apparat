@@ -4,6 +4,8 @@ import apparat.pbj.Pbj;
 import apparat.pbj.pbjdata;
 import flash.utils.ByteArray;
 import jitb.lang.Array;
+import jitb.lang.annotations.Element;
+import jitb.lang.annotations.Metadata;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBShaderObjects;
 import scala.Tuple2;
@@ -14,21 +16,29 @@ import java.util.HashMap;
 /**
  * @author Joa Ebert
  */
+@Metadata({@Element(name="Version", keys={""}, values={"10"})})
 public final class ShaderData extends jitb.lang.Object {
 	private final HashMap<String, Object> _dynamic = new HashMap<String, Object>();
 
-	private Pbj _pbj;
+	private final Pbj _pbj;
+	private final ShaderParameter[] _parameters;
 
 	public ShaderData(ByteArray byteCode) {
-		this(Pbj.fromByteArray(byteCode.JITB$toByteArray()));
+		this(ShaderUtil.getPbj(byteCode));
 	}
 
 	ShaderData(Pbj pbj) {
 		_pbj = pbj;
+		_parameters = ShaderUtil.getShaderParameters(_pbj);
 	}
 
 	@Override
 	public Object JITB$getProperty(final String property) {
+		for(ShaderParameter parameter : _parameters) {
+			if(parameter.name().equals(property)) {
+				return parameter;
+			}
+		}
 		return _dynamic.get(property);
 	}
 

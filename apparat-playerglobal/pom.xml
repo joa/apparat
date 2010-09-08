@@ -14,6 +14,53 @@
   <artifactId>apparat-playerglobal</artifactId>
   <packaging>jar</packaging>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.scala-tools</groupId>
+        <artifactId>maven-scala-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <goals><goal>compile</goal></goals>
+            <phase>compile</phase>
+          </execution>
+          <execution>
+            <id>test-compile</id>
+            <goals><goal>testCompile</goal></goals>
+            <phase>test-compile</phase>
+          </execution>
+          <execution>
+            <phase>process-resources</phase>
+            <goals><goal>compile</goal></goals>
+          </execution>
+        </executions>
+        <configuration>
+          <scalaVersion>${scala.version}</scalaVersion>
+          <args>
+            <arg>-target:jvm-1.5</arg>
+            <arg>-make:transitivenocp</arg>
+            <arg>-dependencyfile</arg>
+            <arg>${project.build.directory}/.scala_dependencies</arg>
+          </args>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.4.3</version>
+        <configuration>
+          <useSystemClassLoader>false</useSystemClassLoader>
+          <argLine>-Xmx512m</argLine>
+          <includes>
+            <include>**/*Spec.java</include>
+          </includes>
+          <basedir>src/test/scala</basedir>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -28,7 +75,16 @@
       <groupId>lwjgl</groupId>
       <artifactId>lwjgl</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-tools.testing</groupId>
+      <artifactId>specs</artifactId>
+    </dependency>
   </dependencies>
+  
   <reporting>
     <plugins>
       <plugin>
