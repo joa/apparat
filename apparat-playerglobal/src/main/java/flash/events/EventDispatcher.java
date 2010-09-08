@@ -1,5 +1,7 @@
 package flash.events;
 
+import jitb.lang.annotations.Metadata;
+import jitb.lang.annotations.Element;
 import jitb.lang.closure.Function;
 import jitb.lang.closure.Function1;
 
@@ -8,6 +10,9 @@ import java.util.*;
 /**
  * @author Joa Ebert
  */
+@Metadata({
+	@Element(name="Event", keys={"name", "type"}, values={"deactivate", "flash.events.Event"}),
+	@Element(name="Event", keys={"name", "type"}, values={"activate", "flash.events.Event"})})
 public class EventDispatcher extends jitb.lang.Object implements IEventDispatcher {
 	private final class EventListener implements Comparable<EventListener> {
 		public final Function1<Event, Object> callback;
