@@ -3,6 +3,7 @@ package flash.display;
 import jitb.lang.Array;
 import jitb.lang.annotations.Element;
 import jitb.lang.annotations.Metadata;
+import org.lwjgl.opengl.ARBShaderObjects;
 
 import java.util.HashMap;
 
@@ -42,7 +43,7 @@ public final class ShaderParameter extends jitb.lang.Object {
 		_index = index;
 
 		if(null == defaultValue) {
-			//todo
+			//todo create new...
 		} else {
 			_value = defaultValue;
 		}
@@ -64,7 +65,15 @@ public final class ShaderParameter extends jitb.lang.Object {
 
 	@Override
 	public Object JITB$getProperty(final String property) {
-		if(property.equals("description")) {
+		if(property.equals("value")) {
+			return _value;
+		} else if(property.equals("type")) {
+			return _type;
+		} else if(property.equals("index")) {
+			return _index;
+		} else if(property.equals("name")) {
+			return _name;
+		} else if(property.equals("description")) {
 			return _description;
 		} else if(property.equals("minValue")) {
 			return _minValue;
@@ -79,7 +88,15 @@ public final class ShaderParameter extends jitb.lang.Object {
 
 	@Override
 	public void JITB$setProperty(final String property, final Object value) {
-		if(property.equals("description")) {
+		if(property.equals("value")) {
+			value((Array)value);
+		} else if(property.equals("type")) {
+			throw new IllegalAccessError(); 
+		} else if(property.equals("index")) {
+			throw new IllegalAccessError();//this is read-only
+		} else if(property.equals("name")) {
+			throw new IllegalAccessError();//this is read-only
+		} else if(property.equals("description")) {
 			_description = (String)value;
 		} else if(property.equals("minValue")) {
 			_minValue = (Array)value;
@@ -90,5 +107,34 @@ public final class ShaderParameter extends jitb.lang.Object {
 		} else {
 			_dynamic.put(property, value);
 		}
+	}
+
+	public void JITB$applyParameter(final int programId) {
+		final int location = ARBShaderObjects.glGetUniformLocationARB(programId, name());
+
+		if(_type.equals(ShaderParameterType.FLOAT)) {
+			ARBShaderObjects.glUniform1fARB(location, getFloat(0));
+		}
+	}
+
+	private float getFloat(final int index) {
+		if(null == _value || _value.length() < index) {
+			return 0.0f;
+		}
+
+		final Object value = _value.JITB$getIndex(index);
+		float floatValue = Float.NaN;
+
+		if(value instanceof Integer) {
+			floatValue = ((Integer)value).floatValue();
+		} else if(value instanceof Double) {
+			floatValue = ((Double)value).floatValue();
+		} else if(value instanceof Long) {
+			floatValue = ((Long)value).floatValue();
+		} else {
+			//use default value?
+		}
+
+		return floatValue;
 	}
 }

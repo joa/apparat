@@ -77,22 +77,22 @@ object ShaderUtil {
 
 		value match {
 			case PFloat(x) =>
-				result push x.asInstanceOf[AnyRef]
+				result push x.toDouble.asInstanceOf[AnyRef]
 			case PFloat2(x, y) =>
-				result push x.asInstanceOf[AnyRef]
-				result push y.asInstanceOf[AnyRef]
+				result push x.toDouble.asInstanceOf[AnyRef]
+				result push y.toDouble.asInstanceOf[AnyRef]
 			case PFloat3(x, y, z) =>
-				result push x.asInstanceOf[AnyRef]
-				result push y.asInstanceOf[AnyRef]
-				result push z.asInstanceOf[AnyRef]
+				result push x.toDouble.asInstanceOf[AnyRef]
+				result push y.toDouble.asInstanceOf[AnyRef]
+				result push z.toDouble.asInstanceOf[AnyRef]
 			case PFloat4(x, y, z, w) =>
-				result push x.asInstanceOf[AnyRef]
-				result push y.asInstanceOf[AnyRef]
-				result push z.asInstanceOf[AnyRef]
-				result push w.asInstanceOf[AnyRef]
-			case value: PFloat2x2 => for(i <- 0 until  4) result push value(i).asInstanceOf[AnyRef]
-			case value: PFloat3x3 => for(i <- 0 until  9) result push value(i).asInstanceOf[AnyRef]
-			case value: PFloat4x4 => for(i <- 0 until 16) result push value(i).asInstanceOf[AnyRef]
+				result push x.toDouble.asInstanceOf[AnyRef]
+				result push y.toDouble.asInstanceOf[AnyRef]
+				result push z.toDouble.asInstanceOf[AnyRef]
+				result push w.toDouble.asInstanceOf[AnyRef]
+			case value: PFloat2x2 => for(i <- 0 until  4) result push value(i).toDouble.asInstanceOf[AnyRef]
+			case value: PFloat3x3 => for(i <- 0 until  9) result push value(i).toDouble.asInstanceOf[AnyRef]
+			case value: PFloat4x4 => for(i <- 0 until 16) result push value(i).toDouble.asInstanceOf[AnyRef]
 			case PInt(x) =>
 				result push x.asInstanceOf[AnyRef]
 			case PInt2(x, y) =>
