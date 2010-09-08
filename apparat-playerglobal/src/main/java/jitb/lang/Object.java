@@ -9,7 +9,7 @@ import java.util.LinkedList;
 /**
  * @author Joa Ebert
  */
-public class Object extends java.lang.Object {
+public class Object {
 	public void setPropertyIsEnumerable(final String name) {
 		setPropertyIsEnumerable(name, true);
 	}

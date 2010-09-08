@@ -35,6 +35,7 @@ public final class ShaderData extends jitb.lang.Object {
 			}
 		}
 
+		System.out.println("Warning: ShaderData property \""+property+"\" is not a parameter.");
 		return _dynamic.get(property);
 	}
 
@@ -53,6 +54,7 @@ public final class ShaderData extends jitb.lang.Object {
 			}
 		}
 
+		System.out.println("Warning: ShaderData property \""+property+"\" is not a parameter.");
 		_dynamic.put(property, value);
 	}
 

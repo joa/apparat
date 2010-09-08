@@ -31,7 +31,7 @@ import apparat.taas.TaasCompiler
 import java.lang.{Thread => JThread}
 import flash.display.{DisplayObject, Stage, Sprite}
 import java.util.{TimerTask, Timer}
-import jitb.display.DisplayList
+import jitb.display.DisplaySystem
 import org.lwjgl.opengl.{GL11, DisplayMode, PixelFormat, Display}
 import jitb.errors.{ErrorUtil, Throw}
 import apparat.taas.backend.jbc.{JbcClassWriter, JbcClassLoader, JbcBackend}
@@ -208,7 +208,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		}
 
 		//
-		// DisplayList setup
+		// DisplaySystem setup
 		//
 
 		val stage = new Stage()
@@ -253,19 +253,19 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 				// Dispatch an ENTER_FRAME event to every DisplayObject
 				//
 
-				DisplayList.enterFrame()
+				DisplaySystem.enterFrame()
 
 				//
 				// Render all objects in the display list.
 				//
 
-				DisplayList render stage
+				DisplaySystem render stage
 
 				//
 				// Dispatch an EXIT_FRAME event to every DisplayObject
 				//
 
-				DisplayList.exitFrame()
+				DisplaySystem.exitFrame()
 			} match {
 				case Right(_) =>
 					//

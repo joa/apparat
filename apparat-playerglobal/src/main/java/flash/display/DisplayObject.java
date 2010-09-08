@@ -3,7 +3,7 @@ package flash.display;
 import flash.events.EventDispatcher;
 import flash.geom.Matrix;
 import flash.geom.Transform;
-import jitb.display.DisplayList;
+import jitb.display.DisplaySystem;
 import jitb.display.IDisplayObject;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -27,7 +27,7 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	private final Transform _transform = new Transform().JITB$init(this);
 
 	public DisplayObject() {
-		DisplayList.register(this);
+		DisplaySystem.register(this);
 	}
 
 	public Stage stage() { return null; }

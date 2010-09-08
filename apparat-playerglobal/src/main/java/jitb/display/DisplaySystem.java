@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * @author Joa Ebert
  */
-public final class DisplayList {
+public final class DisplaySystem {
 	private static final Object lock = new Object();
 	private static final Set<DisplayObject> _displayObjects =
 			new LinkedHashSet<DisplayObject>();
