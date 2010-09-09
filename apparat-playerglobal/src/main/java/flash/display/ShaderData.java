@@ -5,6 +5,7 @@ import flash.utils.ByteArray;
 import jitb.errors.ErrorUtil;
 import jitb.lang.annotations.Element;
 import jitb.lang.annotations.Metadata;
+import jitb.util.ShaderUtil;
 
 import java.util.HashMap;
 
