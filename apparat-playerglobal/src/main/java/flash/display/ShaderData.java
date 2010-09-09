@@ -16,7 +16,6 @@ import java.util.HashMap;
 public final class ShaderData extends jitb.lang.Object {
 	private final HashMap<String, Object> _dynamic = new HashMap<String, Object>();
 
-	private final Pbj _pbj;
 	private final ShaderParameter[] _parameters;
 
 	public ShaderData(ByteArray byteCode) {
@@ -24,8 +23,7 @@ public final class ShaderData extends jitb.lang.Object {
 	}
 
 	ShaderData(Pbj pbj) {
-		_pbj = pbj;
-		_parameters = ShaderUtil.getShaderParameters(_pbj);
+		_parameters = ShaderUtil.getShaderParameters(pbj);
 	}
 
 	@Override
