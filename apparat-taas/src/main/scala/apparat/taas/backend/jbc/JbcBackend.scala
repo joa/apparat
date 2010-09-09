@@ -480,7 +480,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						}
 						case TStore(obj, field, value) => {
 							load(obj)
-							load(value)
+							loadAs(value, field.`type`)
 							mv.visitFieldInsn(JOpcodes.PUTFIELD, Java nameOfOwnerOf field, field.name.name, Java typeOf field.`type`)
 						}
 						case TSuper(base, arguments) => {
