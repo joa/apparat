@@ -8,6 +8,11 @@ import jitb.errors.Require;
  * @author Joa Ebert
  */
 public final class AVM {
+	private static String _basePath = "";
+
+	public static void basePath(final String value) { _basePath = value; }
+	public static String basePath() { return _basePath; }
+	
 	public static void init() {
 		getTimer.JITB$init = System.currentTimeMillis();
 	}
