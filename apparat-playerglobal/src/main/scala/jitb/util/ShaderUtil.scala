@@ -18,12 +18,13 @@
  * http://www.joa-ebert.com/
  *
  */
-package flash.display
+package jitb.util
 
 import apparat.pbj.Pbj
 import flash.utils.ByteArray
 import apparat.pbj.pbjdata._
 import apparat.pbj.optimization.PbjOptimizer
+import flash.display.ShaderParameter
 
 /**
  * @author Joa Ebert
@@ -65,7 +66,7 @@ object ShaderUtil {
 			}
 			val index = parameter.register.index
 
-			result(i) = new ShaderParameter(name, description, minValue, maxValue, defaultValue, `type`, index)
+			result(i) = ShaderParameter.JITB$create(name, description, minValue, maxValue, defaultValue, `type`, index)
 			i += 1
 		}
 

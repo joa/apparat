@@ -12,6 +12,15 @@ import java.util.HashMap;
  */
 @Metadata({@Element(name="Version", keys={""}, values={"10"})})
 public final class ShaderParameter extends jitb.lang.Object {
+	public static ShaderParameter JITB$create(final String name,
+			final String description,
+			final Array minValue,
+			final Array maxValue,
+			final Array defaultValue,
+			final String type, final int index) {
+		return new ShaderParameter(name, description, minValue, maxValue, defaultValue, type, index);
+	}
+
 	private final HashMap<String, Object> _dynamic = new HashMap<String, Object>();
 
 	private Array _value;
