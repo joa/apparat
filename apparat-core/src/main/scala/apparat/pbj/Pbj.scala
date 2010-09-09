@@ -38,6 +38,16 @@ import collection.mutable.ListBuffer
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 object Pbj {
+	def main(args: Array[String]): Unit = {//"/home/joa/Development/JuliaRT/src/RTRT4Joa.pbj"
+		val pbj = fromFile(args(0))
+		val before = pbj.code.length
+		pbj.dump()
+		PbjOptimizer(pbj)
+		pbj.dump()
+		println("before: "+before)
+		println("after: "+pbj.code.length)
+	}
+
 	def fromByteArray(byteArray: Array[Byte]) = {
 		val pbj = new Pbj
 		pbj read byteArray
@@ -200,7 +210,7 @@ class Pbj extends Dumpable {
 			case _ =>
 		}
 
-		@inline def write(value: String) = builder.append(value)
+		@inline def write(value: String) = builder.append(value+"\n")
 		@inline def swizzleToString(swizzle: List[PChannel]) = {
 			if(swizzle.length == 0) "" else {
 				val result = (swizzle map { _ match {
@@ -225,10 +235,44 @@ class Pbj extends Dumpable {
 		@inline def binop(dst: PReg, src: PReg, operator: String = "?"): Unit = write(regToString(dst)+"="+regToString(dst)+operator+regToString(src)+";")
 		@inline def unop(dst: PReg, src: PReg, operator: String = "?"): Unit = write(regToString(dst)+"="+operator+regToString(src)+";")
 		@inline def logical(dst: PReg, src: PReg, operator: String = "?"): Unit = write("i0.x=int("+regToString(dst)+operator+regToString(src)+");")
-		@inline def call2(dst: PReg, src: PReg, name: String = "?"): Unit = write(regToString(dst)+"="+name+"("+regToString(dst)+","+regToString(src)+");")
+		@inline def call2(dst: PReg, src: PReg, name: String = "?"): Unit = {
+			if(dst.swizzle.length > 1) {
+				name match {
+					//todo we need to cast here to the swizzle ...
+					case "dot" =>
+						write(regToString(dst)+"="+cast(dst).get+"("+name+"("+regToString(dst)+","+regToString(src)+"));")
+					case _ =>
+						write(regToString(dst)+"="+name+"("+regToString(dst)+","+regToString(src)+");")
+				}
+			} else {
+				write(regToString(dst)+"="+name+"("+regToString(dst)+","+regToString(src)+");")
+			}
+
+		}
 		@inline def call1(dst: PReg, src: PReg, name: String = "?"): Unit = write(regToString(dst)+"="+name+"("+regToString(src)+");")
 		@inline def visit(dst: PReg, src: PReg, operator: String = "?"): Unit = write(regToString(dst)+"="+regToString(dst)+operator+regToString(src)+";")
-		@inline def glslType(`type`: PNumeric) = `type` match {
+		@inline def cast(reg: PReg): Option[String] = {
+			val swizzle = reg.swizzle
+			if(swizzle == Nil) return None
+			if(swizzle.length == 1) {
+				swizzle.head match {
+					case PChannelM2x2 | PChannelM3x3 | PChannelM4x4 => return None
+					case _ =>
+				}
+			}
+
+			val isFloat = reg match { case PFloatReg(_, _) => true; case PIntReg(_, _) => false }
+
+			Some(glslType(swizzle.length match {
+				case 1 => if(isFloat) PFloatType else PIntType
+				case 2 => if(isFloat) PFloat2Type else PInt2Type
+				case 3 => if(isFloat) PFloat3Type else PInt3Type
+				case 4 => if(isFloat) PFloat4Type else PInt4Type
+				case _ => error("Invalid swizzle "+swizzle)
+			}))
+		}
+
+		@inline def glslType(`type`: PNumeric): String = `type` match {
 			case PFloatType => "float"
 			case PFloat2Type => "vec2"
 			case PFloat3Type => "vec3"
@@ -311,7 +355,12 @@ class Pbj extends Dumpable {
 			case PSampleNearest(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+");")
 			case PSampleBilinear(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+");")
 			case PLoadInt(dst: PReg, value: Int) => write(regToString(dst)+"="+value.toString+";")
-			case PLoadFloat(dst: PReg, value: Float) => write(regToString(dst)+"="+value.toString+";")
+			case PLoadFloat(dst: PReg, value: Float) => {
+				dst match {
+					case floatReg: PFloatReg => write(regToString(floatReg)+"="+value.toString+";")
+					case intReg: PIntReg => write(regToString(intReg)+"="+value.toString+";")
+				}
+			}
 			case PSelect(dst, src, src0, src1) => write(regToString(dst)+"=bool("+regToString(src)+")?"+regToString(src0)+":"+regToString(src1)+";")
 			case PIf(condition) => write("if(bool("+regToString(condition)+")){")
 			case PElse() => write("}else{")
