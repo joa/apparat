@@ -27,7 +27,15 @@ import apparat.taas.ast._
  * @author Joa Ebert
  */
 protected[abc] object AbcTypes {
-	def fromQName(name: Symbol, namespace: AbcNamespace)(implicit ast: TaasAST): TaasType = new AbcType(ast, name, namespace)
+	def fromQName(name: Symbol, namespace: AbcNamespace)(implicit ast: TaasAST): TaasType = {
+		namespace match {
+			case
+				AbcNamespace(5, Symbol("BitmapData.as$233")) |
+				AbcNamespace(5, Symbol("DynamicPropertyOutput.as$208")) =>
+					new AbcType(ast, name, AbcNamespace(22, Symbol("")))
+			case _ => new AbcType(ast, name, namespace)
+		}
+	}
 	def fromQName(qname: AbcQName)(implicit ast: TaasAST): TaasType = fromQName(qname.name, qname.namespace)
 
 	def fromTypename(name: AbcQName, parameters: Array[AbcName])(implicit ast: TaasAST): AbcParameterizedType = new AbcParameterizedType(ast, name, parameters)
@@ -98,8 +106,8 @@ protected[abc] class AbcParameterizedType(ast: TaasAST, name: AbcQName, params: 
 	}
 	
 	lazy val parameters: List[TaasType] = params map {
-		case AbcQName(name, namespace) => AbcTypes.fromQName(name, namespace)(ast)
-		case AbcTypename(name, parameters) => AbcTypes.fromTypename(name, parameters)(ast)
+		case qname: AbcQName => AbcTypes.name2type(qname)(ast)
+		case typename: AbcTypename => AbcTypes.name2type(typename)(ast)
 		case other => error("Unexpected name: " + other)
 	} toList
 }

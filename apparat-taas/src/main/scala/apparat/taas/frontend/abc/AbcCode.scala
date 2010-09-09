@@ -301,6 +301,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 					}
 				}
 				case FindPropStrict(property) => {
+					println("FIND PROP STRICT "+property)
 					property match {
 						case qname: AbcQName => {
 							scopeType match {
@@ -444,7 +445,12 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case NewClass(nominalType) => TODO(op)
 				case NewFunction(function) => TODO(op)
 				case NewObject(numArguments) => TODO(op)
-				case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() => TODO(op)
+				case NextName() => TODO(op)
+				case NextValue() => TODO(op)
+				case Nop() => TODO(op)
+				case Not() => TODO(op)
+				case Pop() => pop()
+				case PopScope() => TODO(op)
 				case PushByte(value) => pp(push(TInt(value)))
 				case PushDouble(value) => pp(push(TDouble(value)))
 				case PushFalse() => pp(push(TBool(false)))

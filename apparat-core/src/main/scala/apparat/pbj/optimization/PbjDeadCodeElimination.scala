@@ -22,12 +22,17 @@ package apparat.pbj.optimization
 
 import apparat.pbj.Pbj
 import apparat.pbj.pbjdata._
+import apparat.log.SimpleLog
 
 /**
  * @author Joa Ebert
  */
-object PbjDeadCodeElimination extends (Pbj => Boolean) {
+object PbjDeadCodeElimination extends (Pbj => Boolean) with SimpleLog {
 	override def apply(pbj: Pbj) = {
+		//
+		// Remove globally unused stuff
+		//
+
 		val dead = ((pbj.parameters map { _._1.register.code }) ::: (pbj.code collect {
 			case l: PLogical => 0x8000
 			case d: PDst => d.dst.code
@@ -38,12 +43,41 @@ object PbjDeadCodeElimination extends (Pbj => Boolean) {
 			case _ => Nil
 		})).distinct
 
+		if(log.debugEnabled) {
+			log.debug("PBJ globally dead:")
+			for(d <- dead) log.debug("  %s", d)
+		}
+
+
 		pbj.code = pbj.code filterNot {
 			case l: PLogical => dead contains 0x8000
 			case d: PDst => dead exists { _ == d.dst.code }
 			case _ => false
 		}
 
-		dead.length > 0
+		//
+		// Remove DEF without USE
+		//
+
+		var r = List.empty[PDst]
+		var h = List.empty[PDst]
+
+		for(op <- pbj.code) {
+			op match {
+				case d: PDst => {
+					val p = h partition { h => h.dst.code == d.dst.code && !(d uses h.dst.code) }
+					r = p._1 ::: r
+					h = d :: (p._2 filterNot { d uses _.dst.code})
+				}
+				case o => h = h filterNot { o uses _.dst.code }
+			}
+		}
+
+		if(r.nonEmpty) {
+			pbj.code = pbj.code filterNot { r contains _ }
+			true
+		} else {
+			dead.length > 0
+		}
 	}
 }

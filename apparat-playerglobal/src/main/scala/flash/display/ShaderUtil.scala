@@ -23,12 +23,17 @@ package flash.display
 import apparat.pbj.Pbj
 import flash.utils.ByteArray
 import apparat.pbj.pbjdata._
+import apparat.pbj.optimization.PbjOptimizer
 
 /**
  * @author Joa Ebert
  */
 object ShaderUtil {
-	def getPbj(byteCode: ByteArray): apparat.pbj.Pbj = Pbj fromByteArray byteCode.JITB$toByteArray()
+	def getPbj(byteCode: ByteArray): apparat.pbj.Pbj = {
+		val pbj = Pbj fromByteArray byteCode.JITB$toByteArray()
+		//PbjOptimizer(pbj)
+		pbj
+	}
 	
 	def getShaderParameters(pbj: apparat.pbj.Pbj): Array[ShaderParameter] = {
 		val result = new Array[ShaderParameter](pbj.parameters.length)

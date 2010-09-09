@@ -29,6 +29,29 @@ import apparat.abc._
  * @author Joa Ebert
  */
 class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
+	object Synthetic extends TaasLibrary(
+		ListBuffer(
+			TaasPackage(Symbol(""),
+				ListBuffer(
+					TaasInterface('IBitmapDrawable, TaasPublic, None, ListBuffer.empty, ListBuffer.empty),
+					TaasInterface('IGraphicsFill, TaasPublic, None, ListBuffer.empty, ListBuffer.empty),
+					TaasInterface('IGraphicsData, TaasPublic, None, ListBuffer.empty, ListBuffer.empty),
+					TaasInterface('IGraphicsPath, TaasPublic, None, ListBuffer.empty, ListBuffer.empty),
+					TaasInterface('IGraphicsStroke, TaasPublic, None, ListBuffer.empty, ListBuffer.empty),
+					TaasInterface('IDynamicPropertyOutput, TaasPublic, None, ListBuffer.empty, ListBuffer.empty),
+					TaasInterface('IDataInput, TaasPublic, None, ListBuffer.empty, ListBuffer.empty),
+					TaasInterface('IDataOutput, TaasPublic, None, ListBuffer.empty, ListBuffer.empty)
+				)
+			),
+			TaasPackage(Symbol("flash.net"),
+				ListBuffer(
+					TaasInterface('IDataInput, TaasPublic, None, ListBuffer.empty, ListBuffer.empty),
+					TaasInterface('IDataOutput, TaasPublic, None, ListBuffer.empty, ListBuffer.empty)
+				)
+			)
+		)
+	)
+	
 	private val ast: TaasAST = TaasAST(ListBuffer.empty)
 	
 	override lazy val getAST = {
@@ -37,6 +60,7 @@ class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
 		
 		val target = TaasTarget(ListBuffer.empty)
 		val lib = TaasLibrary(ListBuffer.empty)
+		ast.children append Synthetic
 		ast.children append target
 		ast.children append lib
 

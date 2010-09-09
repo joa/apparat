@@ -204,7 +204,7 @@ case class TaasMethod(
 		writer <= toString
 		code match {
 			case Some(code) => writer withIndent {
-				code dump writer
+				//code dump writer
 			}
 			case None =>
 		}
