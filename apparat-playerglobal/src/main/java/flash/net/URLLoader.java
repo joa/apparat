@@ -4,6 +4,7 @@ import flash.events.Event;
 import flash.events.EventDispatcher;
 import flash.utils.ByteArray;
 import jitb.errors.Require;
+import jitb.util.PathUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,13 +44,15 @@ public class URLLoader extends EventDispatcher {
 		_request = request;
 		load();
 
-		if(_request.url().startsWith("/") || _request.url().indexOf(':') == 1) {
-			loadFile();
+		final String path = PathUtil.createPath(_request.url());
+
+		if(path.startsWith("/") || path.indexOf(':') == 1) {
+			loadFile(path);
 		}
 	}
 
-	private void loadFile() {
-		final File file = new File(_request.url());
+	private void loadFile(final String pathname) {
+		final File file = new File(pathname);
 		FileInputStream fis = null;
 
 		try {

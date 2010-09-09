@@ -106,6 +106,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 		val main = Class.forName(mainClass, true, loader)
 
+		AVM.basePath(configuration.file.getParent)
 		AVM.init()
 		
 		if(classOf[DisplayObject] isAssignableFrom main) {
