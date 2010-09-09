@@ -114,6 +114,12 @@ public final class ShaderParameter extends jitb.lang.Object {
 
 		if(_type.equals(ShaderParameterType.FLOAT)) {
 			ARBShaderObjects.glUniform1fARB(location, getFloat(0));
+		} else if(_type.equals(ShaderParameterType.FLOAT2)) {
+			ARBShaderObjects.glUniform2fARB(location, getFloat(0), getFloat(1));
+		} else if(_type.equals(ShaderParameterType.FLOAT3)) {
+			ARBShaderObjects.glUniform3fARB(location, getFloat(0), getFloat(1), getFloat(3));
+		} else if(_type.equals(ShaderParameterType.FLOAT4)) {
+			ARBShaderObjects.glUniform4fARB(location, getFloat(0), getFloat(1), getFloat(2), getFloat(3));
 		}
 	}
 
