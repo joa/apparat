@@ -434,7 +434,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 					//
 					val elements = for(i <- 0 until numArguments) yield pop()
 					val result = operandStack
-					val arrayRegister = operand(result+1)
+					val arrayRegister = operand(result+numArguments)
 					operandStack += 1
 					pp(TConstruct(TClass(AbcTypes.fromQName('Array, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))), Nil, arrayRegister))
 					elements.zipWithIndex foreach { x => pp(TCall(arrayRegister, TSetIndex, TInt(x._2) :: x._1 :: Nil, None)) }
