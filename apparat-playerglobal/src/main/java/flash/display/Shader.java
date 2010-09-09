@@ -4,6 +4,7 @@ import apparat.pbj.Pbj;
 import flash.utils.ByteArray;
 import jitb.lang.annotations.Element;
 import jitb.lang.annotations.Metadata;
+import jitb.util.ShaderUtil;
 import org.lwjgl.opengl.ARBFragmentShader;
 import org.lwjgl.opengl.ARBShaderObjects;
 import org.lwjgl.opengl.ARBVertexShader;
