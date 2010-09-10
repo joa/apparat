@@ -36,17 +36,18 @@ import java.io.{
 import apparat.utils.IO._
 import collection.mutable.ListBuffer
 import apparat.utils.{IndentingPrintWriter, Dumpable}
+import annotation.tailrec
 
 object Pbj {
 	def main(args: Array[String]): Unit = {
 		val pbj = fromFile(args(0))
-		/*val before = pbj.code.length
+		val before = pbj.code.length
 		pbj.dump()
 		PbjOptimizer(pbj)
 		pbj.dump()
 		println("before: "+before)
-		println("after: "+pbj.code.length)*/
-		println(pbj.toFragmentShader)
+		println("after: "+pbj.code.length)
+		//println(pbj.toFragmentShader)
 	}
 
 	def fromByteArray(byteArray: Array[Byte]) = {

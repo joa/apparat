@@ -322,8 +322,8 @@ object pbjdata {
 		def usesOnly(reg: PReg): Boolean = false
 
 		def matchesAny(a: PReg, b: PReg): Boolean = if(a.code == b.code) {
-			if(a.swizzle == Nil || b.swizzle.head == PChannelM2x2 ||
-				b.swizzle.head == PChannelM3x3 || b.swizzle.head == PChannelM4x4) {
+			if(a.swizzle == Nil || (b.swizzle.length == 1 && (b.swizzle.head == PChannelM2x2 ||
+				b.swizzle.head == PChannelM3x3 || b.swizzle.head == PChannelM4x4))) {
 				true
 			} else {
 				for{sa <- a.swizzle
