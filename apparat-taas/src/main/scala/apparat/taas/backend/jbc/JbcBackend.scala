@@ -514,6 +514,15 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							}), "<init>", "()V")//TODO!
 						}
 						case TReturn(TVoid) => mv.visitInsn(JOpcodes.RETURN)
+						case TReturn(value) =>
+							loadAs(value, method.`type`)
+							method.`type` match {
+								case TaasBooleanType =>mv.visitInsn(JOpcodes.ZRETURN)
+								case TaasDoubleType => mv.visitInsn(JOpcodes.DRETURN)
+								case TaasIntType => mv.visitInsn(JOpcodes.IRETURN)
+								case TaasLongType => mv.visitInsn(JOpcodes.JRETURN)
+								case _ => mv.visitInsn(JOpcodes.ARETURN)
+							}
 					}
 				}
 			}
