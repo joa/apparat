@@ -517,10 +517,10 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						case TReturn(value) =>
 							loadAs(value, method.`type`)
 							method.`type` match {
-								case TaasBooleanType =>mv.visitInsn(JOpcodes.ZRETURN)
+								case TaasBooleanType =>mv.visitInsn(JOpcodes.IRETURN)
 								case TaasDoubleType => mv.visitInsn(JOpcodes.DRETURN)
 								case TaasIntType => mv.visitInsn(JOpcodes.IRETURN)
-								case TaasLongType => mv.visitInsn(JOpcodes.JRETURN)
+								case TaasLongType => mv.visitInsn(JOpcodes.LRETURN)
 								case _ => mv.visitInsn(JOpcodes.ARETURN)
 							}
 					}
