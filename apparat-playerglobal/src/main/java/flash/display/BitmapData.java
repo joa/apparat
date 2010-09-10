@@ -127,7 +127,9 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 			glBindTexture(GL_TEXTURE_2D, JITB$textureId());
 			rect().JITB$render();
 		}
-		
+
+		glPushMatrix();
+		glTranslated(destPoint.x, destPoint.y, 0.0);
 		glBindTexture(GL_TEXTURE_2D, sourceBitmapData.JITB$textureId());
 
 		//
@@ -148,9 +150,10 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 			}
 		}
 
+		glPopMatrix();
+
 		//
 		// Note: We can defer this step to the next _buffer access.
-		// TODO add support for dstPoint and rect
 		//
 		
 		_buffer.clear();
