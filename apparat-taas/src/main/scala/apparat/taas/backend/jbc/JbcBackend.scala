@@ -270,6 +270,26 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							loadAs(rhs, t)
 
 							op match {
+								case TOp_!= => {
+									t match {
+										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPNE, labels(jumps(if2)(0)))
+										case TaasDoubleType => {
+											mv.visitInsn(JOpcodes.DCMPG)
+											load(TInt(0))
+											mv.visitJumpInsn(JOpcodes.IFNE, labels(jumps(if2)(0)))
+										}
+									}
+								}
+								case TOp_== => {
+									t match {
+										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPEQ, labels(jumps(if2)(0)))
+										case TaasDoubleType => {
+											mv.visitInsn(JOpcodes.DCMPG)
+											load(TInt(0))
+											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if2)(0)))
+										}
+									}
+								}
 								case TOp_< => {
 									t match {
 										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
