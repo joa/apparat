@@ -310,7 +310,7 @@ class Pbj extends Dumpable {
 			n match {
 				case Nil =>
 				case PLoadFloat(PFloatReg(i, PChannelR :: Nil), a) :: PLoadFloat(PFloatReg(j, PChannelG :: Nil), b) :: PLoadFloat(PFloatReg(k, PChannelB :: Nil), c) :: xs if i == j && j == k =>
-					r = "f"+i+".xyz"+"=vec3("+a+","+b+","+c+")" :: r
+					r = "f"+i+".xyz"+"=vec3("+a+","+b+","+c+");" :: r
 					n = xs
 				case PLoadFloat(d0, a) :: PAdd(d1, s1) :: xs if d0 == d1 =>
 					r = (regToString(d1)+"="+a+"+"+regToString(s1)+";") :: r
