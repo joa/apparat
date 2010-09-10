@@ -125,7 +125,7 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 		}
 	}
 
-	int JITB$textureId() {
+	public int JITB$textureId() {
 		//TODO optimize using FBO
 		if(-1 == _textureId) {
 			//

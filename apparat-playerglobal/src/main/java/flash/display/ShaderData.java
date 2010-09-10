@@ -17,6 +17,7 @@ public final class ShaderData extends jitb.lang.Object {
 	private final HashMap<String, Object> _dynamic = new HashMap<String, Object>();
 
 	private final ShaderParameter[] _parameters;
+	private final ShaderInput[] _inputs;
 
 	public ShaderData(ByteArray byteCode) {
 		this(ShaderUtil.getPbj(byteCode));
@@ -24,6 +25,7 @@ public final class ShaderData extends jitb.lang.Object {
 
 	ShaderData(Pbj pbj) {
 		_parameters = ShaderUtil.getShaderParameters(pbj);
+		_inputs = ShaderUtil.getShaderTextures(pbj);
 	}
 
 	@Override
@@ -34,13 +36,21 @@ public final class ShaderData extends jitb.lang.Object {
 			}
 		}
 
-		System.out.println("Warning: ShaderData property \""+property+"\" is not a parameter.");
+		for(final ShaderInput input : _inputs) {
+			if(null != input && input.name().equals(property)) {
+				return input;
+			}
+		}
+
+		System.out.println("Warning: ShaderData property \""+property+"\" is not known.");
 		return _dynamic.get(property);
 	}
 
 	@Override
 	public void JITB$setProperty(String property, Object value) {
-		int n = _parameters.length;
+		int n;
+
+		n= _parameters.length;
 		while(--n > -1) {
 			if(null != _parameters[n] && _parameters[n].name().equals(property)) {
 				if(value instanceof ShaderParameter) {
@@ -53,7 +63,20 @@ public final class ShaderData extends jitb.lang.Object {
 			}
 		}
 
-		System.out.println("Warning: ShaderData property \""+property+"\" is not a parameter.");
+		n = _inputs.length;
+		while(--n > -1) {
+			if(null != _inputs[n] && _inputs[n].name().equals(property)) {
+				if(value instanceof ShaderInput) {
+					_inputs[n] = (ShaderInput)value;
+				} else {
+					ErrorUtil.flashThrow(ErrorUtil.error1034(value, ShaderInput.class));
+				}
+
+				return;
+			}
+		}
+
+		System.out.println("Warning: ShaderData property \""+property+"\" is not known.");
 		_dynamic.put(property, value);
 	}
 
@@ -61,6 +84,20 @@ public final class ShaderData extends jitb.lang.Object {
 		for(final ShaderParameter parameter : _parameters) {
 			if(null != parameter) {
 				parameter.JITB$applyParameter(programId);
+			}
+		}
+		
+		for(final ShaderInput input : _inputs) {
+			if(null != input) {
+				input.JITB$applyInput(programId);
+			}
+		}
+	}
+
+	public void JITB$unapplyParameters() {
+		for(final ShaderInput input : _inputs) {
+			if(null != input) {
+				input.JITB$unapplyInput();
 			}
 		}
 	}

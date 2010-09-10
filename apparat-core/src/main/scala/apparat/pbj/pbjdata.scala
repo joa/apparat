@@ -309,6 +309,9 @@ object pbjdata {
 			}
 		}
 
+		def defines(reg: PReg): Boolean = defines(reg.code)
+		def uses(reg: PReg): Boolean = uses(reg.code)
+
 		def defines(code: Int): Boolean = false
 		def uses(code: Int): Boolean = false
 	}
@@ -324,64 +327,88 @@ object pbjdata {
 		override def uses(code: Int) = src.code == code
 	}
 	
-	sealed trait PDstAndSrc extends PSrc with PDst {
+	sealed trait PDstAndSrc extends PSrc with PDst
+
+	sealed trait PBinop extends PDstAndSrc {
+		//dst = dst op src
 		override def uses(code: Int) = src.code == code || dst.code == code
+		override def defines(code: Int) = dst.code == code
+	}
+
+	sealed trait PUnop extends PDstAndSrc {
+		//dst = (op)src
+		override def uses(code: Int) = src.code == code
+		override def defines(code: Int) = dst.code == code
+	}
+
+	sealed trait PArity1 extends PDstAndSrc {
+		//dst = f(src)
+		override def uses(code: Int) = src.code == code
+		override def defines(code: Int) = dst.code == code
+	}
+
+	sealed trait PArity2 extends PDstAndSrc {
+		//dst = f(dst, src)
+		override def uses(code: Int) = src.code == code || dst.code == code
+		override def defines(code: Int) = dst.code == code
 	}
 
 	sealed trait PLogical extends PDstAndSrc {
+		//ireg(0x8000) = dst op src
+		override def uses(code: Int) = src.code == code || dst.code == code
 		override def defines(code: Int) = 0x8000 == code
 	}
 
 	case class PNop() extends POp(POp.Nop)
-	case class PAdd(dst: PReg, src: PReg) extends POp(POp.Add) with PDstAndSrc { override def mapDef(toIndex: Int) = PAdd(dst mapIndex toIndex, src) }
-	case class PSubtract(dst: PReg, src: PReg) extends POp(POp.Subtract) with PDstAndSrc { override def mapDef(toIndex: Int) = PSubtract(dst mapIndex toIndex, src) }
-	case class PMultiply(dst: PReg, src: PReg) extends POp(POp.Multiply) with PDstAndSrc { override def mapDef(toIndex: Int) = PMultiply(dst mapIndex toIndex, src) }
-	case class PReciprocal(dst: PReg, src: PReg) extends POp(POp.Reciprocal) with PDstAndSrc { override def mapDef(toIndex: Int) = PReciprocal(dst mapIndex toIndex, src) }
-	case class PDivide(dst: PReg, src: PReg) extends POp(POp.Divide) with PDstAndSrc { override def mapDef(toIndex: Int) = PDivide(dst mapIndex toIndex, src) }
-	case class PAtan2(dst: PReg, src: PReg) extends POp(POp.Atan2) with PDstAndSrc { override def mapDef(toIndex: Int) = PAtan2(dst mapIndex toIndex, src) }
-	case class PPow(dst: PReg, src: PReg) extends POp(POp.Pow) with PDstAndSrc { override def mapDef(toIndex: Int) = PPow(dst mapIndex toIndex, src) }
-	case class PMod(dst: PReg, src: PReg) extends POp(POp.Mod) with PDstAndSrc { override def mapDef(toIndex: Int) = PMod(dst mapIndex toIndex, src) }
-	case class PMin(dst: PReg, src: PReg) extends POp(POp.Min) with PDstAndSrc { override def mapDef(toIndex: Int) = PMin(dst mapIndex toIndex, src) }
-	case class PMax(dst: PReg, src: PReg) extends POp(POp.Max) with PDstAndSrc { override def mapDef(toIndex: Int) = PMax(dst mapIndex toIndex, src) }
-	case class PStep(dst: PReg, src: PReg) extends POp(POp.Step) with PDstAndSrc { override def mapDef(toIndex: Int) = PStep(dst mapIndex toIndex, src) }
-	case class PSin(dst: PReg, src: PReg) extends POp(POp.Sin) with PDstAndSrc { override def mapDef(toIndex: Int) = PSin(dst mapIndex toIndex, src) }
-	case class PCos(dst: PReg, src: PReg) extends POp(POp.Cos) with PDstAndSrc { override def mapDef(toIndex: Int) = PCos(dst mapIndex toIndex, src) }
-	case class PTan(dst: PReg, src: PReg) extends POp(POp.Tan) with PDstAndSrc { override def mapDef(toIndex: Int) = PTan(dst mapIndex toIndex, src) }
-	case class PASin(dst: PReg, src: PReg) extends POp(POp.ASin) with PDstAndSrc { override def mapDef(toIndex: Int) = PASin(dst mapIndex toIndex, src) }
-	case class PACos(dst: PReg, src: PReg) extends POp(POp.ACos) with PDstAndSrc { override def mapDef(toIndex: Int) = PACos(dst mapIndex toIndex, src) }
-	case class PATan(dst: PReg, src: PReg) extends POp(POp.ATan) with PDstAndSrc { override def mapDef(toIndex: Int) = PATan(dst mapIndex toIndex, src) }
-	case class PExp(dst: PReg, src: PReg) extends POp(POp.Exp) with PDstAndSrc { override def mapDef(toIndex: Int) = PExp(dst mapIndex toIndex, src) }
-	case class PExp2(dst: PReg, src: PReg) extends POp(POp.Exp2) with PDstAndSrc { override def mapDef(toIndex: Int) = PExp2(dst mapIndex toIndex, src) }
-	case class PLog(dst: PReg, src: PReg) extends POp(POp.Log) with PDstAndSrc { override def mapDef(toIndex: Int) = PLog(dst mapIndex toIndex, src) }
-	case class PLog2(dst: PReg, src: PReg) extends POp(POp.Log2) with PDstAndSrc { override def mapDef(toIndex: Int) = PLog2(dst mapIndex toIndex, src) }
-	case class PSqrt(dst: PReg, src: PReg) extends POp(POp.Sqrt) with PDstAndSrc { override def mapDef(toIndex: Int) = PSqrt(dst mapIndex toIndex, src) }
-	case class PRSqrt(dst: PReg, src: PReg) extends POp(POp.RSqrt) with PDstAndSrc { override def mapDef(toIndex: Int) = PRSqrt(dst mapIndex toIndex, src) }
-	case class PAbs(dst: PReg, src: PReg) extends POp(POp.Abs) with PDstAndSrc { override def mapDef(toIndex: Int) = PAbs(dst mapIndex toIndex, src) }
-	case class PSign(dst: PReg, src: PReg) extends POp(POp.Sign) with PDstAndSrc { override def mapDef(toIndex: Int) = PSign(dst mapIndex toIndex, src) }
-	case class PFloor(dst: PReg, src: PReg) extends POp(POp.Floor) with PDstAndSrc { override def mapDef(toIndex: Int) = PFloor(dst mapIndex toIndex, src) }
-	case class PCeil(dst: PReg, src: PReg) extends POp(POp.Ceil) with PDstAndSrc { override def mapDef(toIndex: Int) = PCeil(dst mapIndex toIndex, src) }
-	case class PFract(dst: PReg, src: PReg) extends POp(POp.Fract) with PDstAndSrc { override def mapDef(toIndex: Int) = PFract(dst mapIndex toIndex, src) }
+	case class PAdd(dst: PReg, src: PReg) extends POp(POp.Add) with PBinop { override def mapDef(toIndex: Int) = PAdd(dst mapIndex toIndex, src) }
+	case class PSubtract(dst: PReg, src: PReg) extends POp(POp.Subtract) with PBinop { override def mapDef(toIndex: Int) = PSubtract(dst mapIndex toIndex, src) }
+	case class PMultiply(dst: PReg, src: PReg) extends POp(POp.Multiply) with PBinop { override def mapDef(toIndex: Int) = PMultiply(dst mapIndex toIndex, src) }
+	case class PReciprocal(dst: PReg, src: PReg) extends POp(POp.Reciprocal) with PUnop { override def mapDef(toIndex: Int) = PReciprocal(dst mapIndex toIndex, src) }
+	case class PDivide(dst: PReg, src: PReg) extends POp(POp.Divide) with PBinop { override def mapDef(toIndex: Int) = PDivide(dst mapIndex toIndex, src) }
+	case class PAtan2(dst: PReg, src: PReg) extends POp(POp.Atan2) with PArity2 { override def mapDef(toIndex: Int) = PAtan2(dst mapIndex toIndex, src) }
+	case class PPow(dst: PReg, src: PReg) extends POp(POp.Pow) with PArity2 { override def mapDef(toIndex: Int) = PPow(dst mapIndex toIndex, src) }
+	case class PMod(dst: PReg, src: PReg) extends POp(POp.Mod) with PArity2 { override def mapDef(toIndex: Int) = PMod(dst mapIndex toIndex, src) }
+	case class PMin(dst: PReg, src: PReg) extends POp(POp.Min) with PArity2 { override def mapDef(toIndex: Int) = PMin(dst mapIndex toIndex, src) }
+	case class PMax(dst: PReg, src: PReg) extends POp(POp.Max) with PArity2 { override def mapDef(toIndex: Int) = PMax(dst mapIndex toIndex, src) }
+	case class PStep(dst: PReg, src: PReg) extends POp(POp.Step) with PArity2 { override def mapDef(toIndex: Int) = PStep(dst mapIndex toIndex, src) }
+	case class PSin(dst: PReg, src: PReg) extends POp(POp.Sin) with PArity1 { override def mapDef(toIndex: Int) = PSin(dst mapIndex toIndex, src) }
+	case class PCos(dst: PReg, src: PReg) extends POp(POp.Cos) with PArity1 { override def mapDef(toIndex: Int) = PCos(dst mapIndex toIndex, src) }
+	case class PTan(dst: PReg, src: PReg) extends POp(POp.Tan) with PArity1 { override def mapDef(toIndex: Int) = PTan(dst mapIndex toIndex, src) }
+	case class PASin(dst: PReg, src: PReg) extends POp(POp.ASin) with PArity1 { override def mapDef(toIndex: Int) = PASin(dst mapIndex toIndex, src) }
+	case class PACos(dst: PReg, src: PReg) extends POp(POp.ACos) with PArity1 { override def mapDef(toIndex: Int) = PACos(dst mapIndex toIndex, src) }
+	case class PATan(dst: PReg, src: PReg) extends POp(POp.ATan) with PArity1 { override def mapDef(toIndex: Int) = PATan(dst mapIndex toIndex, src) }
+	case class PExp(dst: PReg, src: PReg) extends POp(POp.Exp) with PArity1 { override def mapDef(toIndex: Int) = PExp(dst mapIndex toIndex, src) }
+	case class PExp2(dst: PReg, src: PReg) extends POp(POp.Exp2) with PArity1 { override def mapDef(toIndex: Int) = PExp2(dst mapIndex toIndex, src) }
+	case class PLog(dst: PReg, src: PReg) extends POp(POp.Log) with PArity1 { override def mapDef(toIndex: Int) = PLog(dst mapIndex toIndex, src) }
+	case class PLog2(dst: PReg, src: PReg) extends POp(POp.Log2) with PArity1 { override def mapDef(toIndex: Int) = PLog2(dst mapIndex toIndex, src) }
+	case class PSqrt(dst: PReg, src: PReg) extends POp(POp.Sqrt) with PArity1 { override def mapDef(toIndex: Int) = PSqrt(dst mapIndex toIndex, src) }
+	case class PRSqrt(dst: PReg, src: PReg) extends POp(POp.RSqrt) with PUnop { override def mapDef(toIndex: Int) = PRSqrt(dst mapIndex toIndex, src) }
+	case class PAbs(dst: PReg, src: PReg) extends POp(POp.Abs) with PArity1 { override def mapDef(toIndex: Int) = PAbs(dst mapIndex toIndex, src) }
+	case class PSign(dst: PReg, src: PReg) extends POp(POp.Sign) with PArity1 { override def mapDef(toIndex: Int) = PSign(dst mapIndex toIndex, src) }
+	case class PFloor(dst: PReg, src: PReg) extends POp(POp.Floor) with PArity1 { override def mapDef(toIndex: Int) = PFloor(dst mapIndex toIndex, src) }
+	case class PCeil(dst: PReg, src: PReg) extends POp(POp.Ceil) with PArity1 { override def mapDef(toIndex: Int) = PCeil(dst mapIndex toIndex, src) }
+	case class PFract(dst: PReg, src: PReg) extends POp(POp.Fract) with PArity1 { override def mapDef(toIndex: Int) = PFract(dst mapIndex toIndex, src) }
 	case class PCopy(dst: PReg, src: PReg) extends POp(POp.Copy) with PDstAndSrc { override def mapDef(toIndex: Int) = PCopy(dst mapIndex toIndex, src) }
-	case class PFloatToInt(dst: PReg, src: PReg) extends POp(POp.FloatToInt) with PDstAndSrc { override def mapDef(toIndex: Int) = PFloatToInt(dst mapIndex toIndex, src) }
-	case class PIntToFloat(dst: PReg, src: PReg) extends POp(POp.IntToFloat) with PDstAndSrc { override def mapDef(toIndex: Int) = PIntToFloat(dst mapIndex toIndex, src) }
-	case class PMatrixMatrixMultiply(dst: PReg, src: PReg) extends POp(POp.MatrixMatrixMultiply) with PDstAndSrc { override def mapDef(toIndex: Int) = PMatrixMatrixMultiply(dst mapIndex toIndex, src) }
-	case class PVectorMatrixMultiply(dst: PReg, src: PReg) extends POp(POp.VectorMatrixMultiply) with PDstAndSrc { override def mapDef(toIndex: Int) = PVectorMatrixMultiply(dst mapIndex toIndex, src) }
-	case class PMatrixVectorMultiply(dst: PReg, src: PReg) extends POp(POp.MatrixVectorMultiply) with PDstAndSrc { override def mapDef(toIndex: Int) = PMatrixVectorMultiply(dst mapIndex toIndex, src) }
-	case class PNormalize(dst: PReg, src: PReg) extends POp(POp.Normalize) with PDstAndSrc { override def mapDef(toIndex: Int) = PNormalize(dst mapIndex toIndex, src) }
-	case class PLength(dst: PReg, src: PReg) extends POp(POp.Length) with PDstAndSrc { override def mapDef(toIndex: Int) = PLength(dst mapIndex toIndex, src) }
-	case class PDistance(dst: PReg, src: PReg) extends POp(POp.Distance) with PDstAndSrc { override def mapDef(toIndex: Int) = PDistance(dst mapIndex toIndex, src) }
-	case class PDotProduct(dst: PReg, src: PReg) extends POp(POp.DotProduct) with PDstAndSrc { override def mapDef(toIndex: Int) = PDotProduct(dst mapIndex toIndex, src) }
-	case class PCrossProduct(dst: PReg, src: PReg) extends POp(POp.CrossProduct) with PDstAndSrc { override def mapDef(toIndex: Int) = PCrossProduct(dst mapIndex toIndex, src) }
+	case class PFloatToInt(dst: PReg, src: PReg) extends POp(POp.FloatToInt) with PArity1 { override def mapDef(toIndex: Int) = PFloatToInt(dst mapIndex toIndex, src) }
+	case class PIntToFloat(dst: PReg, src: PReg) extends POp(POp.IntToFloat) with PArity1 { override def mapDef(toIndex: Int) = PIntToFloat(dst mapIndex toIndex, src) }
+	case class PMatrixMatrixMultiply(dst: PReg, src: PReg) extends POp(POp.MatrixMatrixMultiply) with PBinop { override def mapDef(toIndex: Int) = PMatrixMatrixMultiply(dst mapIndex toIndex, src) }
+	case class PVectorMatrixMultiply(dst: PReg, src: PReg) extends POp(POp.VectorMatrixMultiply) with PBinop { override def mapDef(toIndex: Int) = PVectorMatrixMultiply(dst mapIndex toIndex, src) }
+	case class PMatrixVectorMultiply(dst: PReg, src: PReg) extends POp(POp.MatrixVectorMultiply) with PBinop { override def mapDef(toIndex: Int) = PMatrixVectorMultiply(dst mapIndex toIndex, src) }
+	case class PNormalize(dst: PReg, src: PReg) extends POp(POp.Normalize) with PArity1 { override def mapDef(toIndex: Int) = PNormalize(dst mapIndex toIndex, src) }
+	case class PLength(dst: PReg, src: PReg) extends POp(POp.Length) with PArity1 { override def mapDef(toIndex: Int) = PLength(dst mapIndex toIndex, src) }
+	case class PDistance(dst: PReg, src: PReg) extends POp(POp.Distance) with PArity1 { override def mapDef(toIndex: Int) = PDistance(dst mapIndex toIndex, src) }
+	case class PDotProduct(dst: PReg, src: PReg) extends POp(POp.DotProduct) with PArity2 { override def mapDef(toIndex: Int) = PDotProduct(dst mapIndex toIndex, src) }
+	case class PCrossProduct(dst: PReg, src: PReg) extends POp(POp.CrossProduct) with PArity2 { override def mapDef(toIndex: Int) = PCrossProduct(dst mapIndex toIndex, src) }
 	case class PEqual(dst: PReg, src: PReg) extends POp(POp.Equal) with PLogical { override def mapDef(toIndex: Int) = PEqual(dst mapIndex toIndex, src) }
 	case class PNotEqual(dst: PReg, src: PReg) extends POp(POp.NotEqual) with PLogical { override def mapDef(toIndex: Int) = PNotEqual(dst mapIndex toIndex, src) }
 	case class PLessThan(dst: PReg, src: PReg) extends POp(POp.LessThan) with PLogical { override def mapDef(toIndex: Int) = PLessThan(dst mapIndex toIndex, src) }
 	case class PLessThanEqual(dst: PReg, src: PReg) extends POp(POp.LessThanEqual) with PLogical { override def mapDef(toIndex: Int) = PLessThanEqual(dst mapIndex toIndex, src) }
-	case class PLogicalNot(dst: PReg, src: PReg) extends POp(POp.LogicalNot) with PDstAndSrc { override def mapDef(toIndex: Int) = PLogicalNot(dst mapIndex toIndex, src) }
-	case class PLogicalAnd(dst: PReg, src: PReg) extends POp(POp.LogicalAnd) with PDstAndSrc { override def mapDef(toIndex: Int) = PLogicalAnd(dst mapIndex toIndex, src) }
-	case class PLogicalOr(dst: PReg, src: PReg) extends POp(POp.LogicalOr) with PDstAndSrc { override def mapDef(toIndex: Int) = PLogicalOr(dst mapIndex toIndex, src) }
-	case class PLogicalXor(dst: PReg, src: PReg) extends POp(POp.LogicalXor) with PDstAndSrc { override def mapDef(toIndex: Int) = PLogicalXor(dst mapIndex toIndex, src) }
-	case class PSampleNearest(dst: PReg, src: PReg, texture: Int) extends POp(POp.SampleNearest) with PDstAndSrc { override def mapDef(toIndex: Int) = PSampleNearest(dst mapIndex toIndex, src, texture) }
-	case class PSampleBilinear(dst: PReg, src: PReg, texture: Int) extends POp(POp.SampleBilinear) with PDstAndSrc { override def mapDef(toIndex: Int) = PSampleBilinear(dst mapIndex toIndex, src, texture) }
+	case class PLogicalNot(dst: PReg, src: PReg) extends POp(POp.LogicalNot) with PUnop { override def mapDef(toIndex: Int) = PLogicalNot(dst mapIndex toIndex, src) }
+	case class PLogicalAnd(dst: PReg, src: PReg) extends POp(POp.LogicalAnd) with PBinop { override def mapDef(toIndex: Int) = PLogicalAnd(dst mapIndex toIndex, src) }
+	case class PLogicalOr(dst: PReg, src: PReg) extends POp(POp.LogicalOr) with PBinop { override def mapDef(toIndex: Int) = PLogicalOr(dst mapIndex toIndex, src) }
+	case class PLogicalXor(dst: PReg, src: PReg) extends POp(POp.LogicalXor) with PBinop { override def mapDef(toIndex: Int) = PLogicalXor(dst mapIndex toIndex, src) }
+	case class PSampleNearest(dst: PReg, src: PReg, texture: Int) extends POp(POp.SampleNearest) with PArity1 { override def mapDef(toIndex: Int) = PSampleNearest(dst mapIndex toIndex, src, texture) }
+	case class PSampleBilinear(dst: PReg, src: PReg, texture: Int) extends POp(POp.SampleBilinear) with PArity1 { override def mapDef(toIndex: Int) = PSampleBilinear(dst mapIndex toIndex, src, texture) }
 	case class PLoadInt(dst: PReg, value: Int) extends POp(POp.LoadConstant) with PDst { override def mapDef(toIndex: Int) = PLoadInt(dst mapIndex toIndex, value) }
 	case class PLoadFloat(dst: PReg, value: Float) extends POp(POp.LoadConstant) with PDst { override def mapDef(toIndex: Int) = PLoadFloat(dst mapIndex toIndex, value) }
 	case class PSelect(dst: PReg, src: PReg, src0: PReg, src1: PReg) extends POp(POp.Select) with PDstAndSrc {
@@ -391,10 +418,10 @@ object pbjdata {
 	case class PIf(src: PReg) extends POp(POp.If) with PSrc
 	case class PElse() extends POp(POp.Else)
 	case class PEndif() extends POp(POp.Endif)
-	case class PFloatToBool(dst: PReg, src: PReg) extends POp(POp.FloatToBool) with PDstAndSrc { override def mapDef(toIndex: Int) = PFloatToBool(dst mapIndex toIndex, src) }
-	case class PBoolToFloat(dst: PReg, src: PReg) extends POp(POp.BoolToFloat) with PDstAndSrc { override def mapDef(toIndex: Int) = PBoolToFloat(dst mapIndex toIndex, src) }
-	case class PIntToBool(dst: PReg, src: PReg) extends POp(POp.IntToBool) with PDstAndSrc { override def mapDef(toIndex: Int) = PIntToBool(dst mapIndex toIndex, src) }
-	case class PBoolToInt(dst: PReg, src: PReg) extends POp(POp.BoolToInt) with PDstAndSrc { override def mapDef(toIndex: Int) = PBoolToInt(dst mapIndex toIndex, src) }
+	case class PFloatToBool(dst: PReg, src: PReg) extends POp(POp.FloatToBool) with PArity1 { override def mapDef(toIndex: Int) = PFloatToBool(dst mapIndex toIndex, src) }
+	case class PBoolToFloat(dst: PReg, src: PReg) extends POp(POp.BoolToFloat) with PArity1 { override def mapDef(toIndex: Int) = PBoolToFloat(dst mapIndex toIndex, src) }
+	case class PIntToBool(dst: PReg, src: PReg) extends POp(POp.IntToBool) with PArity1 { override def mapDef(toIndex: Int) = PIntToBool(dst mapIndex toIndex, src) }
+	case class PBoolToInt(dst: PReg, src: PReg) extends POp(POp.BoolToInt) with PArity1 { override def mapDef(toIndex: Int) = PBoolToInt(dst mapIndex toIndex, src) }
 	case class PVectorEqual(dst: PReg, src: PReg) extends POp(POp.VectorEqual) with PLogical { override def mapDef(toIndex: Int) = PVectorEqual(dst mapIndex toIndex, src) }
 	case class PVectorNotEqual(dst: PReg, src: PReg) extends POp(POp.VectorNotEqual) with PLogical { override def mapDef(toIndex: Int) = PVectorNotEqual(dst mapIndex toIndex, src) }
 	case class PAny(dst: PReg, src: PReg) extends POp(POp.Any) with PDstAndSrc { override def mapDef(toIndex: Int) = PAny(dst mapIndex toIndex, src) }

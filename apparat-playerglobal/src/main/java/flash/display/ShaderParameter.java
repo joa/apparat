@@ -36,7 +36,7 @@ public final class ShaderParameter extends jitb.lang.Object {
 
 	public ShaderParameter() {}
 
-	ShaderParameter(
+	private ShaderParameter(
 			final String name,
 			final String description,
 			final Array minValue,

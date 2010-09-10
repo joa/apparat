@@ -24,7 +24,7 @@ import apparat.pbj.Pbj
 import flash.utils.ByteArray
 import apparat.pbj.pbjdata._
 import apparat.pbj.optimization.PbjOptimizer
-import flash.display.ShaderParameter
+import flash.display.{ShaderInput, ShaderParameter}
 
 /**
  * @author Joa Ebert
@@ -67,6 +67,18 @@ object ShaderUtil {
 			val index = parameter.register.index
 
 			result(i) = ShaderParameter.JITB$create(name, description, minValue, maxValue, defaultValue, `type`, index)
+			i += 1
+		}
+
+		result
+	}
+
+	def getShaderTextures(pbj: apparat.pbj.Pbj): Array[ShaderInput] = {
+		val result = new Array[ShaderInput](pbj.textures.length)
+		var i = 0
+
+		for(texture <- pbj.textures) {
+			result(i) = ShaderInput.JITB$create(texture.name, texture.channels, texture.index)
 			i += 1
 		}
 

@@ -63,6 +63,9 @@ public class Shader extends jitb.lang.Object {
 
 	public void JITB$unbind() {
 		ARBShaderObjects.glUseProgramObjectARB(0);
+		if(null != data()) {
+			data().JITB$unapplyParameters();
+		}
 	}
 	
 	private Pbj pbj() {

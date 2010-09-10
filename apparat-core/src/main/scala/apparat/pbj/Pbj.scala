@@ -290,7 +290,7 @@ class Pbj extends Dumpable {
 			case PBool4Type => "bvec4"
 		}
 		val inputs = parameters map { _._1 } collect { case in: PInParameter if in.name != "_OutCoord" => in }
-		textures map { _.index } map { "uniform sampler2D tex%d;" format _ } foreach write
+		textures map { _.index } map { "uniform sampler2D tex%1$d; uniform vec2 texs%1$d;" format _ } foreach write
 		inputs map { p => "uniform "+glslType(p.`type`)+" "+p.name+";" } foreach write
 		write("void main(){")
 		ints map { "ivec4 i"+_+";" } foreach write
@@ -352,8 +352,8 @@ class Pbj extends Dumpable {
 			case PLogicalAnd(dst, src) => binop(dst, src, "&")
 			case PLogicalOr(dst, src) => binop(dst, src, "|")
 			case PLogicalXor(dst, src) => binop(dst, src, "^")
-			case PSampleNearest(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+");")
-			case PSampleBilinear(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+");")
+			case PSampleNearest(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+"*texs"+texture+");")
+			case PSampleBilinear(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+"*texs"+texture+");")
 			case PLoadInt(dst: PReg, value: Int) => write(regToString(dst)+"="+value.toString+";")
 			case PLoadFloat(dst: PReg, value: Float) => {
 				dst match {
