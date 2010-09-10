@@ -38,14 +38,15 @@ import collection.mutable.ListBuffer
 import apparat.utils.{IndentingPrintWriter, Dumpable}
 
 object Pbj {
-	def main(args: Array[String]): Unit = {//"/home/joa/Development/JuliaRT/src/RTRT4Joa.pbj"
+	def main(args: Array[String]): Unit = {
 		val pbj = fromFile(args(0))
-		val before = pbj.code.length
+		/*val before = pbj.code.length
 		pbj.dump()
 		PbjOptimizer(pbj)
 		pbj.dump()
 		println("before: "+before)
-		println("after: "+pbj.code.length)
+		println("after: "+pbj.code.length)*/
+		println(pbj.toFragmentShader)
 	}
 
 	def fromByteArray(byteArray: Array[Byte]) = {

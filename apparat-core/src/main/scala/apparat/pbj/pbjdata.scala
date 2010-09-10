@@ -314,17 +314,63 @@ object pbjdata {
 
 		def defines(code: Int): Boolean = false
 		def uses(code: Int): Boolean = false
+
+		def definesAny(reg: PReg): Boolean = false
+		def usesAny(reg: PReg): Boolean = false
+
+		def definesOnly(reg: PReg): Boolean = false
+		def usesOnly(reg: PReg): Boolean = false
+
+		def matchesAny(a: PReg, b: PReg): Boolean = if(a.code == b.code) {
+			if(a.swizzle == Nil || b.swizzle.head == PChannelM2x2 ||
+				b.swizzle.head == PChannelM3x3 || b.swizzle.head == PChannelM4x4) {
+				true
+			} else {
+				for{sa <- a.swizzle
+						sb <- b.swizzle} {
+					if(sa == sb) {
+						return true
+					}
+				}
+
+				false
+			}
+		} else { false }
+
+		def matchesOnly(a: PReg, b: PReg): Boolean = {
+			if(a.code != b.code || a.swizzle.length > b.swizzle.length) {
+				false
+			} else {
+				var i = 0
+
+				for{sa <- a.swizzle
+						sb <- b.swizzle} {
+					if(sa == sb) {
+						i += 1
+						if(i == a.swizzle.length) {
+							return true
+						}
+					}
+				}
+
+				i == a.swizzle.length
+			}
+		}
 	}
 
 	sealed trait PDst extends POp {
 		def dst: PReg
 		override def defines(code: Int) = dst.code == code
+		override def definesAny(reg: PReg): Boolean = matchesAny(dst, reg)
+		override def definesOnly(reg: PReg): Boolean = matchesOnly(dst, reg)
 		def mapDef(toIndex: Int): PDst
 	}
 
 	sealed trait PSrc extends POp {
 		def src: PReg
 		override def uses(code: Int) = src.code == code
+		override def usesAny(reg: PReg): Boolean = matchesAny(src, reg)
+		override def usesOnly(reg: PReg): Boolean = matchesOnly(src, reg)
 	}
 	
 	sealed trait PDstAndSrc extends PSrc with PDst
@@ -332,31 +378,54 @@ object pbjdata {
 	sealed trait PBinop extends PDstAndSrc {
 		//dst = dst op src
 		override def uses(code: Int) = src.code == code || dst.code == code
+		override def usesAny(reg: PReg): Boolean = matchesAny(src, reg) || matchesAny(dst, reg)
+		override def usesOnly(reg: PReg): Boolean = matchesOnly(src, reg) || matchesOnly(dst, reg)
 		override def defines(code: Int) = dst.code == code
+		override def definesAny(reg: PReg): Boolean = matchesAny(dst, reg)
+		override def definesOnly(reg: PReg): Boolean = matchesOnly(dst, reg)
 	}
 
 	sealed trait PUnop extends PDstAndSrc {
 		//dst = (op)src
 		override def uses(code: Int) = src.code == code
+		override def usesAny(reg: PReg): Boolean = matchesAny(src, reg)
+		override def usesOnly(reg: PReg): Boolean = matchesOnly(src, reg)
 		override def defines(code: Int) = dst.code == code
+		override def definesAny(reg: PReg): Boolean = matchesAny(dst, reg)
+		override def definesOnly(reg: PReg): Boolean = matchesOnly(dst, reg)
 	}
 
 	sealed trait PArity1 extends PDstAndSrc {
 		//dst = f(src)
 		override def uses(code: Int) = src.code == code
+		override def usesAny(reg: PReg): Boolean = matchesAny(src, reg)
+		override def usesOnly(reg: PReg): Boolean = matchesOnly(src, reg)
 		override def defines(code: Int) = dst.code == code
+		override def definesAny(reg: PReg): Boolean = matchesAny(dst, reg)
+		override def definesOnly(reg: PReg): Boolean = matchesOnly(dst, reg)
 	}
 
 	sealed trait PArity2 extends PDstAndSrc {
 		//dst = f(dst, src)
 		override def uses(code: Int) = src.code == code || dst.code == code
+		override def usesAny(reg: PReg): Boolean = matchesAny(src, reg) || matchesAny(dst, reg)
+		override def usesOnly(reg: PReg): Boolean = matchesOnly(src, reg) || matchesOnly(dst, reg)
 		override def defines(code: Int) = dst.code == code
+		override def definesAny(reg: PReg): Boolean = matchesAny(dst, reg)
+		override def definesOnly(reg: PReg): Boolean = matchesOnly(dst, reg)
 	}
 
 	sealed trait PLogical extends PDstAndSrc {
 		//ireg(0x8000) = dst op src
 		override def uses(code: Int) = src.code == code || dst.code == code
+		override def usesAny(reg: PReg): Boolean = matchesAny(src, reg) || matchesAny(dst, reg)
+		override def usesOnly(reg: PReg): Boolean = matchesOnly(src, reg) || matchesOnly(dst, reg)
 		override def defines(code: Int) = 0x8000 == code
+		override def definesAny(reg: PReg): Boolean = 0x8000 == reg.code && reg.swizzle.contains(PChannelR)
+		override def definesOnly(reg: PReg): Boolean = 0x8000 == reg.code && (reg.swizzle match {
+			case PChannelR :: Nil => true
+			case _ => false
+		})
 	}
 
 	case class PNop() extends POp(POp.Nop)

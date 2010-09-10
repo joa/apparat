@@ -32,35 +32,12 @@ import apparat.pbj.pbjdata._
  * @author Joa Ebert
  */
 object PbjOptimizer extends (Pbj => Unit) {
-	//
-	// PbjOptimizer is far more complex and annoying than it.
-	// might look since one has to take all the swizzle stuff
-	// into account when checking for def-use chains.
-	//
-	// For instance, the current implementation would create
-	// a false positive for dead code in this example:
-	//
-	// i0.x = 1.0;
-	// i0.yz = i1.xy * i1.xy;
-	//
-	// The first assignment marks "i0.x = 1.0;" as possible dead statement
-	// and "i0" as being defined. The second assignment will define "i0"
-	// again so the preceding statement is marked as dead. This is incorrect
-	// however, since we can imagine the register is actually "index * 4 + channel"
-	// and in that case "i0.x" defines "0" and "i0.yz" defines "1" and "2".
-	//
-	// This means we will have to iterate through all the channels for every
-	// def-use case and calculate the index correct based on the swizzle.
-	// A task that is not hard to do but painful to implement :/
-	//
-
 	private val MAX_ITERATIONS = 32
 
 	override def apply(pbj: Pbj): Unit = {
-		error("TODO")
 		@tailrec def loop(i: Int = 0): Unit = i match {
 			case x if x >= MAX_ITERATIONS =>
-			case y => if(optimize(pbj)) loop(y+10000)
+			case y => if(optimize(pbj)) loop(y+1)
 		}
 
 		loop()
@@ -72,7 +49,6 @@ object PbjOptimizer extends (Pbj => Unit) {
 	 * @return <code>true</code> if any modification happened; <code>false</code> otherwise.
 	 */
 	def optimize(pbj: Pbj): Boolean = {
-		error("TODO")
 		@tailrec def splitIntoBlocks(result: List[List[POp]],
 																 in: List[POp]): List[List[POp]] = {
 			//
@@ -146,61 +122,70 @@ object PbjOptimizer extends (Pbj => Unit) {
 		var modified = false
 
 		def updateDead(op: POp): POp = op match {
+			case op: PSelect =>
+				if(killCode) {
+					deadCandidates = deadCandidates filterNot {
+						x => (x definesAny op.dst) || (x definesAny op.src) ||
+								 (x definesAny op.src0) || (x definesAny op.src1) }
+					dead = (deadCandidates filter { _ definesOnly op.dst }) ::: dead
+					deadCandidates = op :: deadCandidates
+				}
+				op
 			case op: PBinop =>
 				if(killCode) {
 					deadCandidates = deadCandidates filterNot {
-						x => (x defines op.src) || (x defines op.dst) }
-					dead = (deadCandidates filter { _ defines op.dst }) ::: dead
+						x => (x definesAny op.src) || (x definesAny op.dst) }
+					dead = (deadCandidates filter { _ definesOnly op.dst }) ::: dead
 					deadCandidates = op :: deadCandidates
 				}
 				op
 			case op: PUnop =>
 				if(killCode) {
-					deadCandidates = deadCandidates filterNot { _ defines op.src }
-					dead = (deadCandidates filter { _ defines op.dst }) ::: dead
+					deadCandidates = deadCandidates filterNot { _ definesAny op.src }
+					dead = (deadCandidates filter { _ definesOnly op.dst }) ::: dead
 					deadCandidates = op :: deadCandidates
 				}
 				op
 			case op: PArity1 =>
 				if(killCode) {
-					deadCandidates = deadCandidates filterNot { _ defines op.src }
-					dead = (deadCandidates filter { _ defines op.dst }) ::: dead
+					deadCandidates = deadCandidates filterNot { _ definesAny op.src }
+					dead = (deadCandidates filter { _ definesOnly op.dst }) ::: dead
 					deadCandidates = op :: deadCandidates
 				}
 				op
 			case op: PArity2 =>
 				if(killCode) {
 					deadCandidates = deadCandidates filterNot {
-						x => (x defines op.src) || (x defines op.dst) }
-					dead = (deadCandidates filter { _ defines op.dst }) ::: dead
+						x => (x definesAny op.src) || (x definesAny op.dst) }
+					dead = (deadCandidates filter { _ definesOnly op.dst }) ::: dead
 					deadCandidates = op :: deadCandidates
 				}
 				op
 			case op: PLogical =>
 				if(killCode) {
 					deadCandidates = deadCandidates filterNot {
-						x => (x defines op.src) || (x defines op.dst) }
-					dead = (deadCandidates filter { _ defines op.dst }) ::: dead
+						x => (x definesAny op.src) || (x definesAny op.dst) }
+					dead = (deadCandidates filter { _ definesOnly op.dst }) ::: dead
 					deadCandidates = op :: deadCandidates
 				}
 				op
 			case op: PDstAndSrc =>
 				if(killCode) {
 					deadCandidates = deadCandidates filterNot {
-						x => (x defines op.src) || (x defines op.dst) }
-					dead = (deadCandidates filter { _ defines op.dst }) ::: dead
+						x => (x definesAny op.src) || (x definesAny op.dst) }
+					dead = (deadCandidates filter { _ definesOnly op.dst }) ::: dead
 					deadCandidates = op :: deadCandidates
 				}
 				op
 			case op: PDst =>
 				if(killCode) {
-					dead = (deadCandidates filter { _ defines op.dst }) ::: dead
+					dead = (deadCandidates filter { _ definesOnly op.dst }) ::: dead
 					deadCandidates = op :: deadCandidates
 				}
 				op
 			case op: PSrc =>
 				if(killCode) {
-					deadCandidates = op :: deadCandidates filterNot { _ defines op.src }
+					deadCandidates = op :: deadCandidates filterNot { _ definesAny op.src }
 				}
 				op
 			case op => op
@@ -250,6 +235,10 @@ object PbjOptimizer extends (Pbj => Unit) {
 
 		if(killCode && deadCandidates.length > 0) {
 			dead = deadCandidates ::: dead
+		}
+
+		dead = dead filterNot {
+			d => pbj.parameters collect { case (POutParameter(_, _, r), _) => r } exists { d definesAny _ }
 		}
 
 		if(modified) {
