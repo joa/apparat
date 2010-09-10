@@ -41,13 +41,13 @@ import annotation.tailrec
 object Pbj {
 	def main(args: Array[String]): Unit = {
 		val pbj = fromFile(args(0))
-		val before = pbj.code.length
+		/*val before = pbj.code.length
 		pbj.dump()
 		PbjOptimizer(pbj)
 		pbj.dump()
 		println("before: "+before)
-		println("after: "+pbj.code.length)
-		//println(pbj.toFragmentShader)
+		println("after: "+pbj.code.length)*/
+		println(pbj.toFragmentShader)
 	}
 
 	def fromByteArray(byteArray: Array[Byte]) = {
@@ -302,7 +302,51 @@ class Pbj extends Dumpable {
 		mat4 map { "mat4 f"+_+";" } foreach write
 		write("f0.xy=gl_FragCoord.xy;")
 		inputs map { p => regToString(p.register)+"="+p.name+";" } foreach write
-		code foreach {
+
+		var n = code
+		var r = List.empty[Any]
+
+		while(n.nonEmpty) {
+			n match {
+				case Nil =>
+				case PLoadFloat(PFloatReg(i, PChannelR :: Nil), a) :: PLoadFloat(PFloatReg(j, PChannelG :: Nil), b) :: PLoadFloat(PFloatReg(k, PChannelB :: Nil), c) :: xs if i == j && j == k =>
+					r = "f"+i+".xyz"+"=vec3("+a+","+b+","+c+")" :: r
+					n = xs
+				case PLoadFloat(d0, a) :: PAdd(d1, s1) :: xs if d0 == d1 =>
+					r = (regToString(d1)+"="+a+"+"+regToString(s1)+";") :: r
+					n = xs
+				case PLoadFloat(d0, a) :: PSubtract(d1, s1) :: xs if d0 == d1 =>
+					r = (regToString(d1)+"="+a+"-"+regToString(s1)+";") :: r
+					n = xs
+				case PLoadFloat(d0, a) :: PMultiply(d1, s1) :: xs if d0 == d1 =>
+					r = (regToString(d1)+"="+a+"*"+regToString(s1)+";") :: r
+					n = xs
+				case PLoadFloat(d0, a) :: PDivide(d1, s1) :: xs if d0 == d1 =>
+					r = (regToString(d1)+"="+a+"/"+regToString(s1)+";") :: r
+					n = xs
+				case PCopy(d0, s0) :: PAdd(d1, s1) :: xs if d0 == d1 =>
+					r = (regToString(d1)+"="+regToString(s0)+"+"+regToString(s1)+";") :: r
+					n = xs
+				case PCopy(d0, s0) :: PSubtract(d1, s1) :: xs if d0 == d1 =>
+					r = (regToString(d1)+"="+regToString(s0)+"-"+regToString(s1)+";") :: r
+					n = xs
+				case PCopy(d0, s0) :: PMultiply(d1, s1) :: xs if d0 == d1 =>
+					r = (regToString(d1)+"="+regToString(s0)+"*"+regToString(s1)+";") :: r
+					n = xs
+				case PCopy(d0, s0) :: PDivide(d1, s1) :: xs if d0 == d1 =>
+					r = (regToString(d1)+"="+regToString(s0)+"/"+regToString(s1)+";") :: r
+					n = xs
+				case PReciprocal(d0, s0) :: PMultiply(d1, s1) :: xs if d0 == d1 =>
+					r = (regToString(d1)+"="+regToString(s1)+"/"+regToString(s0)+";") :: r
+					n = xs
+				case x :: xs =>
+					r = x :: r
+					n = xs
+			}
+		}
+
+		r.reverse foreach {
+			case x: String => write(x)
 			case PNop() =>
 			case PAdd(dst, src) => binop(dst, src, "+")
 			case PSubtract(dst, src) => binop(dst, src, "-")
