@@ -39,13 +39,19 @@ import java.io.{File => JFile}
 import jitb.lang.AVM
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SymbolClass, SwfTags, Swf}
+import org.lwjgl.input.Mouse
+
+import org.objectweb.asm.util.{CheckClassAdapter => JCheckClassAdapter}
+import org.objectweb.asm.{ClassReader => JClassReader}
+import java.io.{PrintWriter => JPrintWriter}
 
 /**
  * @author Joa Ebert
  */
 object JITB {
+	val DEBUG = System.getProperty("apparat.debug", "false").toLowerCase == "true"
 	def main(arguments: Array[String]): Unit = {
-		Log.level = if(System.getProperty("apparat.debug", "false").toLowerCase == "true") Debug else Info
+		Log.level = if(DEBUG) Debug else Info
 		Log.addOutput(new ConsoleOutput())
 
 		val log = Log.newLogger
@@ -101,6 +107,13 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val binaries = compile(Abc fromSwf swf get)
 		val loader = new JbcClassLoader(binaries, JThread.currentThread.getContextClassLoader)
 		JThread.currentThread setContextClassLoader loader
+
+		if(JITB.DEBUG) {
+			for((key, value) <- binaries) {
+				JCheckClassAdapter.verify(new JClassReader(value), true,
+					new JPrintWriter(Console.out))
+			}
+		}
 
 		//new JbcClassWriter(binaries).write(new JFile("/home/joa/classes"))
 
@@ -174,6 +187,8 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		Display.setVSyncEnabled(true)
 		Display.setDisplayMode(new DisplayMode(swf.width, swf.height))
 		Display.create()
+
+		Mouse.create()
 
 		//
 		// Orthographic projection with 1:1 pixel ratio.
@@ -278,6 +293,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 			}
 		}
 
+		Mouse.destroy()
 		Display.destroy()
 	}
 

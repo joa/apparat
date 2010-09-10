@@ -32,8 +32,8 @@ protected[abc] object AbcTypes {
 			case
 				AbcNamespace(5, Symbol("BitmapData.as$233")) |
 				AbcNamespace(5, Symbol("DynamicPropertyOutput.as$208")) =>
-					new AbcType(ast, name, AbcNamespace(22, Symbol("")))
-			case _ => new AbcType(ast, name, namespace)
+					AbcType(ast, name, AbcNamespace(22, Symbol("")))
+			case _ => AbcType(ast, name, namespace)
 		}
 	}
 	def fromQName(qname: AbcQName)(implicit ast: TaasAST): TaasType = fromQName(qname.name, qname.namespace)
@@ -67,7 +67,13 @@ protected[abc] object AbcTypes {
 	}
 }
 
-protected[abc] class AbcType(ast: TaasAST, name: Symbol, namespace: AbcNamespace) extends TaasNominalType {
+protected[abc] case class AbcType(ast: TaasAST, name: Symbol, namespace: AbcNamespace) extends TaasNominalType {
+	/*override def equals(that: Any) = that match {
+		case AbcType(_, thatName, thatNamespace) => name == thatName && namespace == thatNamespace
+		case thatNominal: TaasNominalType => thatNominal.nominal == nominal 
+		case _ => false
+	}*/
+
 	if(namespace.name.name.length == 0) name match {
 		case 'int => error("Use TaasIntType instead of nominal type for int.")
 		case 'uint => error("Use TaasLongType instead of nominal type for uint.")
