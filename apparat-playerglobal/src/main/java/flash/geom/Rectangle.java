@@ -1,6 +1,6 @@
 package flash.geom;
 
-import java.util.Timer;
+import static org.lwjgl.opengl.GL11.*;
 
 /**
  * @author Joa Ebert
@@ -157,5 +157,24 @@ public class Rectangle extends jitb.lang.Object {
 				return new Rectangle(left, top, right - left, bottom - top);
 			}
 		}
+	}
+
+	public void JITB$render() {
+		final int width = (int)width();
+		final int height = (int)height();
+
+		glBegin(GL_QUADS); {
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2i(0, 0);
+
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex2i(width, 0);
+
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex2i(width, height);
+
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex2i(0, height);
+		} glEnd();
 	}
 }

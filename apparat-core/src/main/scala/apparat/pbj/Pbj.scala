@@ -212,7 +212,7 @@ class Pbj extends Dumpable {
 			case _ =>
 		}
 
-		@inline def write(value: String) = builder.append(value+"\n")
+		@inline def write(value: String) = builder.append(value)
 		@inline def swizzleToString(swizzle: List[PChannel]) = {
 			if(swizzle.length == 0) "" else {
 				val result = (swizzle map { _ match {
@@ -240,7 +240,7 @@ class Pbj extends Dumpable {
 		@inline def call2(dst: PReg, src: PReg, name: String = "?"): Unit = {
 			if(dst.swizzle.length > 1) {
 				name match {
-					//todo we need to cast here to the swizzle ...
+					//todo we need to cast here to the swizzle for older graphics cards...
 					case "dot" =>
 						write(regToString(dst)+"="+cast(dst).get+"("+name+"("+regToString(dst)+","+regToString(src)+"));")
 					case _ =>
@@ -305,6 +305,21 @@ class Pbj extends Dumpable {
 
 		var n = code
 		var r = List.empty[Any]
+
+		//
+		// We add a basic simplification step here. Nothing fancy.
+		//
+		//
+		// r.x = x
+		// r.y = y
+		// r.z = z		-> r.xyz = vec3(x,y,z)
+		//
+		// r = x
+		// r = r op y	-> r = x op y
+		//
+		// r = 1/x
+		// r = r * y	-> r = y / x
+		//
 
 		while(n.nonEmpty) {
 			n match {

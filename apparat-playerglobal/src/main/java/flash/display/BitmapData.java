@@ -1,17 +1,21 @@
 package flash.display;
 
+import flash.filters.BitmapFilter;
+import flash.filters.ShaderFilter;
+import flash.geom.Point;
 import flash.geom.Rectangle;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.EXTFramebufferObject;
 
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
+
+import static org.lwjgl.opengl.GL11.*;
 
 /**
  * @author Joa Ebert
  */
 public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
-	private final static IntBuffer _textureIdBuffer = BufferUtils.createIntBuffer(1);
+	private static final Point ORIGIN = new Point();
 
 	private int _width;
 	private int _height;
@@ -43,6 +47,138 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 	public int height() { return _height; }
 	public Rectangle rect() { return _rect;	}
 
+	public void applyFilter(final BitmapData sourceBitmapData, final Rectangle sourceRect,
+													final Point destPoint, final BitmapFilter filter) {
+		final int textureId = JITB$textureId();
+
+		//
+		// If this == sourceBitmapData we have to create a temporary buffer
+		// as an input since we directly render to this BitmapData.
+		//
+		// Another case is when the filter is a ShaderFilter and it expects
+		// an input which is also set to this.
+		//
+
+		final int bufferTextureId;
+
+		if(true) {
+			//TODO this can be done in VRAM however LWJGL does not seem to support it?
+			bufferTextureId = glGenTextures();
+			final ByteBuffer buffer = BufferUtils.createByteBuffer(width()*height()*4);
+			buffer.limit(buffer.capacity());
+			glBindTexture(GL_TEXTURE_2D, bufferTextureId);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(
+					GL_TEXTURE_2D,
+					0,
+					GL_RGBA,
+					width(),
+					height(),
+					0,
+					GL_RGBA,
+					GL_UNSIGNED_BYTE, buffer);
+		} else {
+			bufferTextureId = -1;
+		}
+
+		//
+		// Create and bind FBO
+		//
+
+		final int fboId = EXTFramebufferObject.glGenFramebuffersEXT();
+
+		EXTFramebufferObject.glBindFramebufferEXT(
+			EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboId);
+
+		//
+		// Attach the current BitmapData as a texture to render to.
+
+		EXTFramebufferObject.glFramebufferTexture2DEXT(
+			EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+			EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D,
+			-1 == bufferTextureId ? textureId : bufferTextureId, 0);
+
+		//
+		// Check the health of our FBO
+		//
+
+		final int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(
+			EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
+
+		if(status != EXTFramebufferObject.GL_FRAMEBUFFER_COMPLETE_EXT) {
+			throw new RuntimeException("Could not setup FBO.");
+		}
+
+		//
+		// Start using FBO
+		//
+
+		EXTFramebufferObject.glBindFramebufferEXT(
+			EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboId);
+		glPushAttrib(GL_VIEWPORT_BIT);
+		glViewport(0, 0, width(), height());
+		
+		//
+		// Bind the source BitmapData as an input for the filter.
+		//
+
+		if(!rect().equals(sourceBitmapData.rect()) || !ORIGIN.equals(destPoint)) {
+			glBindTexture(GL_TEXTURE_2D, JITB$textureId());
+			rect().JITB$render();
+		}
+		
+		glBindTexture(GL_TEXTURE_2D, sourceBitmapData.JITB$textureId());
+
+		//
+		// Now run the filter with the given texture.
+		//
+
+		if(filter instanceof ShaderFilter) {
+			ShaderFilter shaderFilter = ((ShaderFilter)filter);
+
+			if(null != shaderFilter.shader()) {
+				shaderFilter.shader().JITB$bind();
+			}
+
+			sourceRect.JITB$render();
+
+			if(null != shaderFilter.shader()) {
+				shaderFilter.shader().JITB$unbind();
+			}
+		}
+
+		//
+		// Note: We can defer this step to the next _buffer access.
+		// TODO add support for dstPoint and rect
+		//
+		
+		_buffer.clear();
+		glReadPixels(0, 0, width(), height(), GL_RGBA, GL_UNSIGNED_BYTE, _buffer);
+		_invalidated = false;
+
+		//
+		// Cleanup
+		//
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glPopAttrib();
+
+		EXTFramebufferObject.glBindFramebufferEXT(
+			EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 0);
+
+		EXTFramebufferObject.glDeleteFramebuffersEXT(fboId);
+
+		if(-1 != bufferTextureId) {
+			//
+			// Exchange old texture for buffer.
+			//
+			
+			glDeleteTextures(_textureId);
+			_textureId = bufferTextureId;
+		}
+	}
+	
 	public void fillRect(final Rectangle rect, final long color) {
 		_invalidated = true;
 
@@ -112,62 +248,52 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 
 	public void dispose() {
 		if(-1 != _textureId) {
-			synchronized(_textureIdBuffer) {
-				_textureIdBuffer.put(0, _textureId);
-				GL11.glDeleteTextures(_textureIdBuffer);
-			}
-		}
-	}
-	private static int newTextureId() {
-		synchronized(_textureIdBuffer) {
-			GL11.glGenTextures(_textureIdBuffer);
-			return _textureIdBuffer.get(0);
+			glDeleteTextures(_textureId);
 		}
 	}
 
 	public int JITB$textureId() {
-		//TODO optimize using FBO
 		if(-1 == _textureId) {
 			//
 			// Create a new texture for this BitmapData.
 			//
 
-			final int id = newTextureId();
+			final int id = glGenTextures();
 
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, id);
-			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-			GL11.glTexImage2D(
-					GL11.GL_TEXTURE_2D,
+			glBindTexture(GL_TEXTURE_2D, id);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(
+					GL_TEXTURE_2D,
 					0,
-					GL11.GL_RGBA,
+					GL_RGBA,
 					width(),
 					height(),
 					0,
-					GL11.GL_RGBA,
-					GL11.GL_UNSIGNED_BYTE, _buffer
+					GL_RGBA,
+					GL_UNSIGNED_BYTE, _buffer
 			);
 
 			_textureId = id;
 			_invalidated = false;
 
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+			glBindTexture(GL_TEXTURE_2D, 0);
 		} else {
 			if(_invalidated) {
 				//
 				// Refresh the texture.
 				//
 
-				GL11.glBindTexture(GL11.GL_TEXTURE_2D, _textureId);
-				GL11.glTexSubImage2D(
-						GL11.GL_TEXTURE_2D,
+				glBindTexture(GL_TEXTURE_2D, _textureId);
+				glTexSubImage2D(
+						GL_TEXTURE_2D,
 						0,
 						0,
 						0,
 						width(),
 						height(),
-						GL11.GL_RGBA,
-						GL11.GL_UNSIGNED_BYTE,
+						GL_RGBA,
+						GL_UNSIGNED_BYTE,
 						_buffer
 				);
 				
