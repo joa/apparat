@@ -3,6 +3,7 @@ package jitb.lang;
 import flash.utils.getTimer;
 import jitb.errors.ErrorUtil;
 import jitb.errors.Require;
+import jitb.events.EventSystem;
 
 /**
  * @author Joa Ebert
@@ -13,8 +14,12 @@ public final class AVM {
 	public static void basePath(final String value) { _basePath = value; }
 	public static String basePath() { return _basePath; }
 	
-	public static void init() {
+	public static void start() {
 		getTimer.JITB$init = System.currentTimeMillis();
+	}
+
+	public static void stop() {
+		EventSystem.shutdown();
 	}
 	
 	@SuppressWarnings("unchecked")

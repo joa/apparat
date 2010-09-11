@@ -39,6 +39,7 @@ import java.io.{File => JFile}
 import jitb.lang.AVM
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SymbolClass, SwfTags, Swf}
+import jitb.events.EventSystem
 
 /**
  * @author Joa Ebert
@@ -107,24 +108,28 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val main = Class.forName(mainClass, true, loader)
 
 		AVM.basePath(configuration.file.getParent)
-		AVM.init()
-		
-		if(classOf[DisplayObject] isAssignableFrom main) {
-			runWithDisplay(swf, main)
-		} else {
-			//
-			// For now we use a hardcoded empty array.
-			//
-			val arguments: Array[String] = Array.empty[String]
+		AVM.start()
 
-			log.debug("Using a headless runner without a stage.")
+		try {
+			if(classOf[DisplayObject] isAssignableFrom main) {
+				runWithDisplay(swf, main)
+			} else {
+				//
+				// For now we use a hardcoded empty array.
+				//
+				val arguments: Array[String] = Array.empty[String]
 
-			AVMContext {
-				main.getMethod("main", arguments.getClass).invoke(main, arguments)
-			} match {
-				case Right(_) => log.debug("Code executed WITHOUT errors.")
-				case Left(_) => log.debug("Code executed WITH errors.")
+				log.debug("Using a headless runner without a stage.")
+
+				AVMContext {
+					main.getMethod("main", arguments.getClass).invoke(main, arguments)
+				} match {
+					case Right(_) => log.debug("Code executed WITHOUT errors.")
+					case Left(_) => log.debug("Code executed WITH errors.")
+				}
 			}
+		} finally {
+			AVM.stop()
 		}
 	}
 
@@ -251,6 +256,12 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 			AVMContext {
 				//
+				// Dispatch all events in the queue.
+				//
+				
+				EventSystem.dispatchEvents()
+
+				//
 				// Dispatch an ENTER_FRAME event to every DisplayObject
 				//
 
@@ -287,9 +298,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	}
 
 	private def AVMContext[A](body: => A): Either[Unit, A] = {
-		try {
-			Right(body)
-		} catch {
+		try { Right(body) } catch {
 			case actionScriptError: Throw => {
 				actionScriptError.value match {
 					case error: jitb.lang.Error =>

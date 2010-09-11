@@ -14,9 +14,10 @@ public final class PathUtil {
 		}
 
 		final String basePath = AVM.basePath();
-		char separatorChar;
+		final char separatorChar;
 
-		if(basePath.startsWith("/") || basePath.startsWith("http://") || basePath.startsWith("ftp://")) {
+		if(basePath.startsWith("/") || basePath.startsWith("http://") ||
+			basePath.startsWith("https://") || basePath.startsWith("ftp://")) {
 			separatorChar = '/';
 		} else if(basePath.indexOf(':') == 1) {
 			separatorChar = '\\';
