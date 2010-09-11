@@ -5,6 +5,7 @@ import flash.events.IEventDispatcher;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,10 +32,15 @@ public final class EventSystem {
 	private static final class Pair {
 		public final IEventDispatcher target;
 		public final Event event;
+		public final CountDownLatch latch;
+		public final Runnable callback;
 
-		public Pair(final IEventDispatcher target, final Event event) {
+		public Pair(final IEventDispatcher target, final Event event,
+								final CountDownLatch latch, final Runnable callback) {
 			this.target = target;
 			this.event = event;
+			this.latch = latch;
+			this.callback = callback;
 		}
 	}
 
@@ -51,7 +57,17 @@ public final class EventSystem {
 	}
 	
 	public static void delayedDispatch(final IEventDispatcher target, final Event event) {
-		final Pair pair = new Pair(target, event);
+		delayedDispatch(target, event, null);
+	}
+
+	public static void delayedDispatch(final IEventDispatcher target, final Event event,
+																		 final CountDownLatch latch) {
+		delayedDispatch(target, event, latch, null);
+	}
+
+	public static void delayedDispatch(final IEventDispatcher target, final Event event,
+																		 final CountDownLatch latch, final Runnable callback) {
+		final Pair pair = new Pair(target, event, latch, callback);
 
 		_lock.lock();
 
@@ -60,6 +76,23 @@ public final class EventSystem {
 		} finally {
 			_lock.unlock();
 		}
+	}
+
+	public static void futureDispatch(final IEventDispatcher target, final Event event) {
+		final CountDownLatch latch = new CountDownLatch(1);
+
+		delayedDispatch(target, event, latch);
+
+		try {
+			latch.await();
+		} catch(final InterruptedException interrupt) {
+			interrupt.printStackTrace();
+		}
+	}
+
+	public static void callbackDispatch(final IEventDispatcher target, final Event event,
+																			final Runnable callback) {
+		delayedDispatch(target, event, null, callback);
 	}
 
 	public static void dispatchEvents() {
@@ -77,6 +110,13 @@ public final class EventSystem {
 
 		for(final Pair p : pairs) {
 			p.target.dispatchEvent(p.event);
+			if(null != p.latch) {
+				p.latch.countDown();
+			}
+
+			if(null != p.callback) {
+				p.callback.run();
+			}
 		}
 	}
 

@@ -2,8 +2,10 @@ package flash.media;
 
 import flash.events.EventDispatcher;
 import flash.net.URLRequest;
+import flash.utils.ByteArray;
 import jitb.lang.annotations.Element;
 import jitb.lang.annotations.Metadata;
+import jitb.media.AS3SoundSource;
 
 /**
  * @author Joa Ebert
@@ -39,19 +41,70 @@ public class Sound extends EventDispatcher {
 		_stream = stream;
 		_context = context;
 	}
-		/*
-		 [Version("10")]
-  native public function extract(target:flash.utils.ByteArray,length:Number,startPosition:Number = -1):Number;
-  native public function load(stream:flash.net.URLRequest,context:flash.media.SoundLoaderContext = null):void;
-  native public function close():void;
 
-  native public function get url():String;
-  native public function get bytesLoaded():uint;
-  native public function play(startTime:Number = 0,loops:int = 0,sndTransform:flash.media.SoundTransform = null):flash.media.SoundChannel;
-  native public function get length():Number;
+	@Metadata({@Element(name="Version", keys={""}, values={"10"})})
+	public double extract(final ByteArray target, final double length) {
+		return extract(target, length, -1.0);
+	}
 
-  native public function get id3():flash.media.ID3Info;
-  native public function get bytesTotal():int;
-  native public function get isBuffering():Boolean;
-		 */
+	@Metadata({@Element(name="Version", keys={""}, values={"10"})})
+	public double extract(final ByteArray target, final double length, final double startPosition) {
+		return 0.0;
+	}
+
+	public void load(final URLRequest stream) {
+		load(stream, null);
+	}
+
+	public void load(final URLRequest stream, final SoundLoaderContext context) {
+
+	}
+
+	public void close() {
+		
+	}
+
+	public String url() {
+		if(null == _stream) {
+			return null;
+		}
+		
+		return _stream.url();
+	}
+
+	public long bytesLoaded() {
+		return _bytesLoaded;
+	}
+
+	public long bytesTotal() {
+		return _bytesTotal;
+	}
+
+	public SoundChannel play() {
+		return play(0);
+	}
+
+	public SoundChannel play(final double startTime) {
+		return play(startTime, 0);
+	}
+
+	public SoundChannel play(final double startTime, final int loops) {
+		return play(startTime, loops, null);
+	}
+
+	public SoundChannel play(final double startTime, final int loops, final SoundTransform sndTransform) {
+		if(null == _stream) {
+			return new SoundChannel(new AS3SoundSource(this));
+		}
+		
+		return null;
+	}
+
+	public double length() { return 0.0; }
+
+	public ID3Info id3() { return _id3; }
+
+	public boolean isBuffering() {
+		return false;
+	}
 }

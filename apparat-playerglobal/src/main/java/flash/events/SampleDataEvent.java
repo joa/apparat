@@ -34,6 +34,7 @@ public class SampleDataEvent extends Event {
 		super(type, bubbles, cancelable);
 
 		_position = theposition;
+		_data = thedata;
 	}
 
 	public double position() { return _position; }

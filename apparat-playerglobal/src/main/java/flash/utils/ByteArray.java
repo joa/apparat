@@ -31,7 +31,7 @@ public class ByteArray extends jitb.lang.Object {
 	}
 	
 	public long bytesAvailable() {
-		return _buffer.remaining();
+		return _buffer.capacity() - _buffer.position();
 	}
 
 	public String endian() { return _endian; }
@@ -53,11 +53,13 @@ public class ByteArray extends jitb.lang.Object {
 	public long length() { return _buffer.capacity(); }
 	public void length(final long value) {
 		if(value != _buffer.capacity()) {
-			 _buffer = ByteBuffer.allocateDirect((int)value).order(byteOrder()).put(_buffer);
-		}
-
-		if(position() > value) {
-			position(value);
+			final int oldPosition = (int)position();
+			final int intValue = (int)value;
+			final ByteBuffer oldBuffer = _buffer;
+			oldBuffer.position();
+			oldBuffer.limit(oldBuffer.capacity());
+			_buffer = ByteBuffer.allocateDirect(intValue).order(byteOrder()).put(oldBuffer);
+			_buffer.position(oldPosition > intValue ? intValue : oldPosition);
 		}
 	}
 
@@ -93,10 +95,11 @@ public class ByteArray extends jitb.lang.Object {
 			return _buffer.array();
 		}
 
-		byte[] result = new byte[_buffer.capacity()];
-		int p0 = _buffer.position();
+		final byte[] result = new byte[_buffer.capacity()];
+		final int p0 = _buffer.position();
 
 		_buffer.position(0);
+		_buffer.limit(_buffer.capacity());
 		_buffer.get(result);
 		_buffer.position(p0);
 		
@@ -113,5 +116,22 @@ public class ByteArray extends jitb.lang.Object {
 		}
 		
 		_buffer.put(index, (byte)value);
+	}
+
+	public void writeFloat(final double value) {
+		assureAvailable(4);
+		_buffer.asFloatBuffer().put((float)value);
+		_buffer.position(_buffer.position()+4);
+	}
+
+	public double readFloat() {
+		return _buffer.asFloatBuffer().get();
+	}
+
+	private void assureAvailable(final int value) {
+		if(bytesAvailable() < value) {
+			final long newLength = length()+(value - bytesAvailable());
+			length(newLength);
+		}
 	}
 }

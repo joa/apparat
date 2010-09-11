@@ -4,6 +4,7 @@ import flash.utils.getTimer;
 import jitb.errors.ErrorUtil;
 import jitb.errors.Require;
 import jitb.events.EventSystem;
+import jitb.media.SoundSystem;
 
 /**
  * @author Joa Ebert
@@ -19,6 +20,7 @@ public final class AVM {
 	}
 
 	public static void stop() {
+		SoundSystem.shutdown();
 		EventSystem.shutdown();
 	}
 	
