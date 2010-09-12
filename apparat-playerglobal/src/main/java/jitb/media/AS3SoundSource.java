@@ -64,9 +64,6 @@ public final class AS3SoundSource implements ISoundSource, Runnable {
 			final int n = buffer.length;
 			final int bufferLength = _buffer.length;
 
-			_leftPeak = 0.0;
-			_rightPeak = 0.0;
-
 			float leftPeak = 0.0f;
 			float rightPeak = 0.0f;
 

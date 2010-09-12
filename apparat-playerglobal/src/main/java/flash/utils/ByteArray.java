@@ -160,7 +160,7 @@ public class ByteArray extends jitb.lang.Object {
 	 */
 	private void growBy(final int numBytes) {
 		//
-		//               /    FREE    \
+		//               / FREE SPACE \
 		// #############################
 		//     ^         ^             ^
 		//     POSITION  LENGTH        CAPACITY

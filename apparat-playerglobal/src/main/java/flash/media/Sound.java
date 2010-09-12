@@ -106,9 +106,9 @@ public class Sound extends EventDispatcher {
 
 			try {
 				if(path.startsWith("/") || path.indexOf(':') == 1) {
-					return new SoundChannel(new JLayerSoundSource(new FileInputStream(path)));
+					return new SoundChannel(new JLayerSoundSource(this, new FileInputStream(path)));
 				} else {
-					return new SoundChannel(new JLayerSoundSource(new URL(_stream.url()).openStream()));
+					return new SoundChannel(new JLayerSoundSource(this, new URL(_stream.url()).openStream()));
 				}
 			} catch(IOException e) {
 				e.printStackTrace();
