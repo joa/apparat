@@ -2,13 +2,14 @@ package flash.utils;
 
 import jitb.errors.MissingImplementationException;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.nio.*;
 
 /**
  * @author Joa Ebert
  */
 public class ByteArray extends jitb.lang.Object {
+	private static final int INITIAL_SIZE = 0x1000;
+
 	public static ByteArray JITB$fromBuffer(final ByteBuffer buffer) {
 		return new ByteArray(buffer);
 	}
@@ -18,21 +19,32 @@ public class ByteArray extends jitb.lang.Object {
 	private String _endian;
 	private long _objectEncoding;
 
+	private int _bytesAvailable;
+	private int _position;
+	private int _length;
+
 	private ByteBuffer _buffer;
 
 	public ByteArray() {
-		_buffer = ByteBuffer.allocateDirect(0);
+		_buffer = ByteBuffer.allocateDirect(INITIAL_SIZE);
+		_buffer.limit(_buffer.capacity());
+		_position = 0;
+		_length = 0;
+		_bytesAvailable = 0;
 		endian(Endian.LITTLE_ENDIAN);
 	}
 
 	private ByteArray(final ByteBuffer buffer) {
 		_buffer = buffer;
+		_position = 0;
+		_length = _buffer.capacity();
+		_bytesAvailable = _length;
+		_buffer.limit(_length);
+		_buffer.position(_position);
 		endian(Endian.LITTLE_ENDIAN);
 	}
 	
-	public long bytesAvailable() {
-		return _buffer.capacity() - _buffer.position();
-	}
+	public long bytesAvailable() { return _bytesAvailable; }
 
 	public String endian() { return _endian; }
 	public void endian(final String value) {
@@ -50,29 +62,46 @@ public class ByteArray extends jitb.lang.Object {
 		}
 	}
 
-	public long length() { return _buffer.capacity(); }
+	public long length() { return _length; }
 	public void length(final long value) {
-		if(value != _buffer.capacity()) {
-			final int oldPosition = (int)position();
-			final int intValue = (int)value;
+		final int intValue = (int)value;
+		_length = intValue;
+
+		if(0 == intValue) {
+			_buffer = ByteBuffer.allocateDirect(INITIAL_SIZE);
+			_buffer.limit(_buffer.capacity());
+			_position = 0;
+			_bytesAvailable = 0;
+		} else if(intValue > _buffer.capacity()) {
 			final ByteBuffer oldBuffer = _buffer;
-			oldBuffer.position();
+
+			oldBuffer.position(0);
 			oldBuffer.limit(oldBuffer.capacity());
-			_buffer = ByteBuffer.allocateDirect(intValue).order(byteOrder()).put(oldBuffer);
-			_buffer.position(oldPosition > intValue ? intValue : oldPosition);
+
+			_buffer = ByteBuffer.allocateDirect(Math.max(INITIAL_SIZE, intValue)).
+				order(byteOrder()).put(oldBuffer);
+			_buffer.limit(_buffer.capacity());
+			_position = _position > intValue ? intValue : _position;
+			_bytesAvailable = _length - _position;
 		}
 	}
 
 	public long objectEncoding() { return _objectEncoding; }
 	public void objectEncoding(final long value) { _objectEncoding = value; }
 	
-	public long position() { return _buffer.position(); }
+	public long position() { return _position; }
 	public void position(final long value) {
-		_buffer.position((int)value);
+		assert value <= _length : "Position must not exceed length.";
+		_position = (int)value;
+		_bytesAvailable = _length - _position;
 	}
 
 	public void clear() {
-		_buffer = ByteBuffer.allocateDirect(0).order(byteOrder());
+		_buffer = ByteBuffer.allocateDirect(INITIAL_SIZE).order(byteOrder());
+		_buffer.limit(_buffer.capacity());
+		_position = 0;
+		_length = 0;
+		_bytesAvailable = 0;
 	}
 
 	public void compress(final String algorithm) {
@@ -87,22 +116,106 @@ public class ByteArray extends jitb.lang.Object {
 		throw new MissingImplementationException("inflate");
 	}
 
-	public ByteBuffer JITB$buffer() { return _buffer; }
-	public void JITB$buffer(final ByteBuffer value) { _buffer = value; }
+	public void writeFloat(final double value) {
+		growBy(4);
 
-	public byte[] JITB$toByteArray() {
-		if(_buffer.hasArray()) {
-			return _buffer.array();
+		_buffer.position(_position);
+		_buffer.putFloat((float)value);
+
+		advanceBy(4);
+	}
+
+	public double readFloat() {
+		final float result;
+
+		_buffer.position(_position);
+		result = _buffer.getFloat();
+
+		advanceBy(4);
+
+		return result;
+	}
+
+	/**
+	 * Advances the internal pointer by a given amount of bytes.
+	 *
+	 * @param numBytes The number of bytes to advance the pointer.
+	 */
+	private void advanceBy(final int numBytes) {
+		_position += numBytes;
+		_bytesAvailable = _length - _position;
+
+		assert _bytesAvailable >= 0 : "Bytes available must not turn negative.";
+		assert _position <= _length : "Position must not exceed length.";
+	}
+
+	/**
+	 * Grows the internal buffer by an amount of required bytes.
+	 *
+	 * <p>The new buffer size is calculated using the formula
+	 * <code>(oldLength + (numBytes - bytesAvailable)) * 3 / 2</code> which
+	 * means that the ByteArray can grow larger than the required amount.</p>
+	 * 
+	 * @param numBytes The number of required bytes.
+	 */
+	private void growBy(final int numBytes) {
+		//
+		//               /    FREE    \
+		// #############################
+		//     ^         ^             ^
+		//     POSITION  LENGTH        CAPACITY
+		//     \ AVAILABLE /
+		//     \   AVAILABLE IN BUFFER   /
+		//
+
+		final int available = _length - _position;
+
+		if(available >= numBytes) {
+			return;
+		}
+		
+		final int availableInBuffer = _buffer.capacity() - _position;
+		final int length = _length;
+
+		if(availableInBuffer < numBytes) {
+			final int delta = numBytes - availableInBuffer;
+			final int newLength = ((_buffer.capacity() + delta) * 3) >>> 1;
+
+			length(newLength);
 		}
 
-		final byte[] result = new byte[_buffer.capacity()];
-		final int p0 = _buffer.position();
+		_length = length + numBytes - available;
+		_bytesAvailable = _length - _position;
+	}
+
+	public ByteBuffer JITB$buffer() {
+		_buffer.position(_position);
+		_buffer.limit(_buffer.capacity());
+
+		return _buffer;
+	}
+
+	public void JITB$buffer(final ByteBuffer value) {
+		_buffer = value;
+		_length = _buffer.capacity();
+		JITB$synchronizeBuffer();
+	}
+
+	/**
+	 * Synchronizes the position of the internal buffer.
+	 */
+	public void JITB$synchronizeBuffer() {
+		_position = _buffer.position();
+		_bytesAvailable = _length - _position;
+	}
+
+	public byte[] JITB$toByteArray() {
+		final byte[] result = new byte[_length];
 
 		_buffer.position(0);
 		_buffer.limit(_buffer.capacity());
 		_buffer.get(result);
-		_buffer.position(p0);
-		
+
 		return result;
 	}
 
@@ -112,26 +225,9 @@ public class ByteArray extends jitb.lang.Object {
 
 	public void JITB$set(final int index, final int value) {
 		if(index > length()) {
-			length(index);
+			length(index+1);
 		}
-		
+
 		_buffer.put(index, (byte)value);
-	}
-
-	public void writeFloat(final double value) {
-		assureAvailable(4);
-		_buffer.asFloatBuffer().put((float)value);
-		_buffer.position(_buffer.position()+4);
-	}
-
-	public double readFloat() {
-		return _buffer.asFloatBuffer().get();
-	}
-
-	private void assureAvailable(final int value) {
-		if(bytesAvailable() < value) {
-			final long newLength = length()+(value - bytesAvailable());
-			length(newLength);
-		}
 	}
 }

@@ -6,6 +6,7 @@ import flash.media.SoundTransform;
 import flash.utils.ByteArray;
 import jitb.events.EventSystem;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
@@ -25,6 +26,7 @@ public final class AS3SoundSource implements ISoundSource, Runnable {
 	private int _bufferWritePos = 0;
 	private int _bufferReadPos = 0;
 	private int _available = 0;
+	private boolean _isClosed = false;
 
 	public AS3SoundSource(final Sound sound) {
 		_sound = sound;
@@ -39,10 +41,20 @@ public final class AS3SoundSource implements ISoundSource, Runnable {
 	}
 
 	@Override
-	public synchronized void tearDown() {}
+	public synchronized void tearDown() {
+		_lock.lock();
+
+		try {
+			_isClosed = true;
+		} finally {
+			_lock.unlock();
+		}
+	}
 
 	@Override
-	public synchronized void close() {}
+	public synchronized void close() {
+
+	}
 
 	@Override
 	public synchronized void render(final float[] buffer) {
@@ -77,13 +89,13 @@ public final class AS3SoundSource implements ISoundSource, Runnable {
 				_available--;
 			}
 
-			if(_available < SoundSystem.NUM_SAMPLES) {
-				requestAudio();
-			}
-
 			_leftPeak = leftPeak;
 			_rightPeak = rightPeak;
 			_position += n / 44100.0;
+
+			if(!_isClosed && _available < SoundSystem.NUM_SAMPLES) {
+				requestAudio();
+			}
 		} finally {
 			_lock.unlock();
 		}
@@ -122,27 +134,16 @@ public final class AS3SoundSource implements ISoundSource, Runnable {
 			_byteArray.position(0);
 
 			final int bufferLength = _buffer.length;
-			final int n = (int)_byteArray.bytesAvailable();
-			_available += n >> 3;
+			final int n = (int)_byteArray.bytesAvailable() >> 3;
 
-			if(n < SoundSystem.NUM_SAMPLES) {
-				requestAudio();
-			}
-			
-			final int i = 0;
+			_available += n;
 
-			final FloatBuffer floatBuffer =_byteArray.JITB$buffer().asFloatBuffer();
-			
-			floatBuffer.position(0);
-			floatBuffer.limit(floatBuffer.capacity());
+			int i = 0;
+			final ByteBuffer buffer =_byteArray.JITB$buffer();
 
 			while(i < n) {
-				if(floatBuffer.remaining() < 2) {
-					break;
-				}
-
-				final float leftAmp = floatBuffer.get();
-				final float rightAmp = floatBuffer.get();
+				final float leftAmp = buffer.getFloat();
+				final float rightAmp = buffer.getFloat();
 
 				_buffer[_bufferWritePos++] = leftAmp;
 				_buffer[_bufferWritePos++] = rightAmp;
@@ -150,6 +151,15 @@ public final class AS3SoundSource implements ISoundSource, Runnable {
 				if(_bufferWritePos == bufferLength) {
 					_bufferWritePos = 0;
 				}
+
+				i++;
+			}
+
+			_byteArray.position(0);
+
+			if(!_isClosed && _available < SoundSystem.NUM_SAMPLES) {
+				requestAudio(true);
+				run();
 			}
 		} finally {
 			_lock.unlock();
@@ -157,7 +167,20 @@ public final class AS3SoundSource implements ISoundSource, Runnable {
 	}
 
 	private void requestAudio() {
-		EventSystem.callbackDispatch(_sound,
-			new SampleDataEvent(SampleDataEvent.SAMPLE_DATA, false, false, _position, _byteArray), this);
+		requestAudio(false);
+	}
+
+	private void requestAudio(final boolean direct) {
+		if(direct) {
+			_sound.dispatchEvent(newSampleDataEvent());
+		} else {
+			EventSystem.callbackDispatch(_sound,
+				newSampleDataEvent(), this);
+		}
+	}
+
+	private SampleDataEvent newSampleDataEvent() {
+		_byteArray.position(0);
+		return new SampleDataEvent(SampleDataEvent.SAMPLE_DATA, false, false, _position, _byteArray);
 	}
 }

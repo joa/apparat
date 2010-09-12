@@ -83,19 +83,10 @@
       <groupId>org.scala-tools.testing</groupId>
       <artifactId>specs</artifactId>
     </dependency>
+    <dependency>
+      <groupId>de.huxhorn.sulky</groupId>
+      <artifactId>de.huxhorn.sulky.3rdparty.jlayer</artifactId>
+      <version>1.0</version>
+    </dependency>
   </dependencies>
-  
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
-        <version>2.0.1</version>
-        <configuration>
-          <findbugsXmlOutput>true</findbugsXmlOutput>
-          <findbugsXmlOutputDirectory>target/site</findbugsXmlOutputDirectory>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
 </project>
