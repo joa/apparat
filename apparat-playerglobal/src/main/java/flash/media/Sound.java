@@ -6,6 +6,12 @@ import flash.utils.ByteArray;
 import jitb.lang.annotations.Element;
 import jitb.lang.annotations.Metadata;
 import jitb.media.AS3SoundSource;
+import jitb.media.JLayerSoundSource;
+import jitb.util.PathUtil;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
 
 /**
  * @author Joa Ebert
@@ -95,9 +101,21 @@ public class Sound extends EventDispatcher {
 	public SoundChannel play(final double startTime, final int loops, final SoundTransform sndTransform) {
 		if(null == _stream) {
 			return new SoundChannel(new AS3SoundSource(this));
+		} else {
+			final String path = PathUtil.createPath(_stream.url());
+
+			try {
+				if(path.startsWith("/") || path.indexOf(':') == 1) {
+					return new SoundChannel(new JLayerSoundSource(new FileInputStream(path)));
+				} else {
+					return new SoundChannel(new JLayerSoundSource(new URL(_stream.url()).openStream()));
+				}
+			} catch(IOException e) {
+				e.printStackTrace();
+				//todo throw ioerror
+				return null;
+			}
 		}
-		
-		return null;
 	}
 
 	public double length() { return 0.0; }
