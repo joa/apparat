@@ -438,11 +438,18 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										}
 									}
 									case i: TaasInterface => mv.visitMethodInsn(JOpcodes.INVOKEINTERFACE, Java nameOfOwnerOf method, method.name.name, Java methodDesc method)
-									case f: TaasFunction => mv.visitMethodInsn(
-										JOpcodes.INVOKESTATIC,
-										Java nameOfOwnerOf method,
-										"callStatic",
-										if(varargs) "([Ljava/lang/Object;)Ljava/lang/Object;" else Java.methodDesc(method))
+									case f: TaasFunction =>
+										mv.visitMethodInsn(
+											JOpcodes.INVOKESTATIC,
+											Java nameOfOwnerOf method,
+											"callStatic",
+											if(varargs) "([Ljava/lang/Object;)Ljava/lang/Object;" else Java.methodDesc(method))
+										result match {
+											case Some(_) =>
+											case None => if(method.`type` == TaasVoidType) {
+												mv.visitInsn(JOpcodes.POP)
+											}
+										}
 								}
 								case None => error("Method without parent.")
 							}

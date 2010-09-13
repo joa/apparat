@@ -95,27 +95,23 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 		//
 
 		final int bufferTextureId;
-
-		if(true) {
-			//TODO this can be done in VRAM however LWJGL does not seem to support it?
-			bufferTextureId = glGenTextures();
-			final ByteBuffer buffer = BufferUtils.createByteBuffer(width()*height()*4);
-			buffer.limit(buffer.capacity());
-			glBindTexture(GL_TEXTURE_2D, bufferTextureId);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexImage2D(
-					GL_TEXTURE_2D,
-					0,
-					GL_RGBA,
-					width(),
-					height(),
-					0,
-					GL_RGBA,
-					GL_UNSIGNED_BYTE, buffer);
-		} else {
-			bufferTextureId = -1;
-		}
+		
+		//TODO this can be done in VRAM only
+		bufferTextureId = glGenTextures();
+		final ByteBuffer buffer = BufferUtils.createByteBuffer(width()*height()*4);
+		buffer.limit(buffer.capacity());
+		glBindTexture(GL_TEXTURE_2D, bufferTextureId);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_RGBA,
+				width(),
+				height(),
+				0,
+				GL_RGBA,
+				GL_UNSIGNED_BYTE, buffer);
 
 		//
 		// Create and bind FBO
@@ -175,6 +171,12 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 			ShaderFilter shaderFilter = ((ShaderFilter)filter);
 
 			if(null != shaderFilter.shader()) {
+				final ShaderInput[] inputs = shaderFilter.shader().data().JITB$inputs();
+
+				if(inputs.length > 0) {
+					inputs[0].input(this);
+				}
+
 				shaderFilter.shader().JITB$bind();
 			}
 

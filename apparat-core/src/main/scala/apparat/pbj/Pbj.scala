@@ -212,7 +212,7 @@ class Pbj extends Dumpable {
 			case _ =>
 		}
 
-		@inline def write(value: String) = builder.append(value+"\n")
+		@inline def write(value: String) = builder.append(value)
 		@inline def swizzleToString(swizzle: List[PChannel]) = {
 			if(swizzle.length == 0) "" else {
 				val result = (swizzle map { _ match {

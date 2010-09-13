@@ -101,4 +101,12 @@ public final class ShaderData extends jitb.lang.Object {
 			}
 		}
 	}
+
+	public ShaderInput[] JITB$inputs() {
+		return _inputs;
+	}
+
+	public ShaderParameter[] JITB$parameters() {
+		return _parameters;
+	}
 }
