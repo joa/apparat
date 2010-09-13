@@ -7,7 +7,6 @@ import flash.utils.ByteArray;
 import jitb.events.EventSystem;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -73,8 +72,8 @@ public final class AS3SoundSource implements ISoundSource, Runnable {
 				final float leftAmp = _buffer[_bufferReadPos++];
 				final float rightAmp = _buffer[_bufferReadPos++];
 
-				if(Math.abs(leftAmp) > leftPeak) { leftPeak = Math.abs(leftAmp); }
-				if(Math.abs(rightAmp) > rightPeak) { rightPeak = Math.abs(rightAmp); }
+				leftPeak = Math.max(leftPeak, Math.abs(leftAmp));
+				rightPeak = Math.max(rightPeak, Math.abs(rightAmp));
 
 				buffer[i++] += leftAmp;
 				buffer[i++] += rightAmp;

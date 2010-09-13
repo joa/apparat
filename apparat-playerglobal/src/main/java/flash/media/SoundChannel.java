@@ -1,3 +1,4 @@
+
 package flash.media;
 
 import jitb.media.ISoundSource;

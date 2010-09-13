@@ -3,7 +3,6 @@ package jitb.media;
 import flash.media.Sound;
 import flash.media.SoundTransform;
 import javazoom.jl.decoder.*;
-import javazoom.jl.player.AudioDevice;
 
 import java.io.InputStream;
 
@@ -72,8 +71,8 @@ public final class JLayerSoundSource implements ISoundSource {
 			final float leftAmp = b[_readPos++] / 32768.0f;
 			final float rightAmp = b[_readPos++] / 32768.0f;
 
-			if(Math.abs(leftAmp) > leftPeak) { leftPeak = Math.abs(leftAmp); }
-			if(Math.abs(rightAmp) > rightPeak) { rightPeak = Math.abs(rightAmp); }
+			leftPeak = Math.max(leftPeak, Math.abs(leftAmp));
+			rightPeak = Math.max(rightPeak, Math.abs(rightAmp));
 
 			buffer[i++] = leftAmp;
 			buffer[i++] = rightAmp;
@@ -92,6 +91,7 @@ public final class JLayerSoundSource implements ISoundSource {
 
 		_leftPeak = leftPeak;
 		_rightPeak = rightPeak;
+		
 		_position += n / 44100.0;
 	}
 
