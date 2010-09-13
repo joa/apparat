@@ -200,11 +200,8 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case CallProperty(property, numArguments) => {
 					val args = arguments(numArguments)
 					val obj = pop()
-					println(obj.`type`)
-					println(AbcTypes.name2type(property))//fixme!!
-					println(obj.`type` == AbcTypes.name2type(property))//fixme!!
-					if(obj.`type` == AbcTypes.name2type(property) && args.length == 1) {
-						pp(T2(TCoerce(obj.`type`), args.head, nextOperand))
+					if(TaasType.isEqual(obj.`type`, AbcTypes.name2type(property)) && args.length == 1) {
+						pp(T2(TConvert(obj.`type`), args.head, nextOperand))
 					} else {
 						val method = AbcSolver.property(obj.`type`, property, numArguments) match {
 							case Some(method: TaasMethod) => method

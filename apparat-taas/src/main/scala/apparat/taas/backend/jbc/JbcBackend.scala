@@ -226,19 +226,19 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							unop(operator, rhs)
 							storeByType(t2.`type`, result)
 						}
-						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && result.`type` == TaasIntType => {
+						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && TaasType.isEqual(result.`type`, TaasIntType) => {
 							mv.visitIincInsn(mapIndex(result.index), -n)
 							result typeAs TaasIntType
 						}
-						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && result.`type` == TaasIntType => {
+						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && TaasType.isEqual(result.`type`, TaasIntType) => {
 							mv.visitIincInsn(mapIndex(result.index), -n)
 							result typeAs TaasIntType
 						}
-						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && result.`type` == TaasIntType => {
+						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && TaasType.isEqual(result.`type`, TaasIntType) => {
 							mv.visitIincInsn(mapIndex(result.index), n)
 							result typeAs TaasIntType
 						}
-						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && result.`type` == TaasIntType => {
+						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && TaasType.isEqual(result.`type`, TaasIntType) => {
 							mv.visitIincInsn(mapIndex(result.index), n)
 							result typeAs TaasIntType
 						}

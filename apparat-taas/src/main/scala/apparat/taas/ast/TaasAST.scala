@@ -78,7 +78,7 @@ trait ParentUnit {
 	}
 }
 
-case class TaasAST(units: ListBuffer[TaasUnit]) extends TaasTree with TaasParent {
+class TaasAST(val units: ListBuffer[TaasUnit]) extends TaasTree with TaasParent {
 	type T = TaasUnit
 	def children = units
 	def init(): this.type = {

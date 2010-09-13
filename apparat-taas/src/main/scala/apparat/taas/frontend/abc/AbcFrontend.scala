@@ -52,7 +52,7 @@ class AbcFrontend(main: Abc, libraries: List[Abc]) extends TaasFrontend {
 		)
 	)
 	
-	private val ast: TaasAST = TaasAST(ListBuffer.empty)
+	private val ast: TaasAST = new TaasAST(ListBuffer.empty)
 	
 	override lazy val getAST = {
 		main.loadBytecode()

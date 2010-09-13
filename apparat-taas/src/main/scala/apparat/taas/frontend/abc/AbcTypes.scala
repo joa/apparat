@@ -22,24 +22,57 @@ package apparat.taas.frontend.abc
 
 import apparat.abc._
 import apparat.taas.ast._
+import collection.mutable.HashMap
 
 /**
  * @author Joa Ebert
  */
 protected[abc] object AbcTypes {
+	private var cache = HashMap.empty[Symbol, TaasType]
+	private val EMPTY = Symbol("")
+
 	def fromQName(name: Symbol, namespace: AbcNamespace)(implicit ast: TaasAST): TaasType = {
 		namespace match {
 			case
 				AbcNamespace(5, Symbol("BitmapData.as$233")) |
 				AbcNamespace(5, Symbol("DynamicPropertyOutput.as$208")) =>
-					AbcType(ast, name, AbcNamespace(22, Symbol("")))
-			case _ => AbcType(ast, name, namespace)
+				cache get name match {
+					case Some(x) => x
+					case None =>
+						val result = AbcType(ast, name, AbcNamespace(22, Symbol("")))
+						cache += name -> result
+						result
+				}
+			case _ =>
+				val qname = if(namespace.name == EMPTY) { name } else {
+					Symbol(namespace.name.name+"."+name.name)
+				}
+				cache get qname match {
+					case Some(x) => x
+					case None =>
+						val result = AbcType(ast, name, namespace)
+						cache += qname -> result
+						result
+				}
 		}
 	}
+
 	def fromQName(qname: AbcQName)(implicit ast: TaasAST): TaasType = fromQName(qname.name, qname.namespace)
 
-	def fromTypename(name: AbcQName, parameters: Array[AbcName])(implicit ast: TaasAST): AbcParameterizedType = new AbcParameterizedType(ast, name, parameters)
-	def fromTypename(typename: AbcTypename)(implicit ast: TaasAST): AbcParameterizedType = fromTypename(typename.name, typename.parameters)
+	def fromTypename(name: AbcQName, parameters: Array[AbcName])(implicit ast: TaasAST): TaasType = {
+		val qname = if(name.namespace.name == EMPTY) { name.name } else {
+			Symbol(name.namespace.name.name+"."+name.name.name)
+		}
+		cache get qname match {
+			case Some(x) => x
+			case None =>
+				val result = AbcParameterizedType(ast, name, parameters)
+				cache += qname -> result
+				result
+		}
+	}
+
+	def fromTypename(typename: AbcTypename)(implicit ast: TaasAST): TaasType = fromTypename(typename.name, typename.parameters)
 
 	def name2type(name: AbcName)(implicit ast: TaasAST): TaasType = {
 		if(name == AbcConstantPool.EMPTY_NAME) TaasAnyType
@@ -105,7 +138,7 @@ protected[abc] case class AbcType(ast: TaasAST, name: Symbol, namespace: AbcName
 	}
 }
 
-protected[abc] class AbcParameterizedType(ast: TaasAST, name: AbcQName, params: Array[AbcName]) extends TaasParameterizedType {
+protected[abc] case class AbcParameterizedType(ast: TaasAST, name: AbcQName, params: Array[AbcName]) extends TaasParameterizedType {
 	lazy val nominal: TaasNominal = AbcTypes.fromQName(name)(ast) match {
 		case n: TaasNominalType => n.nominal
 		case other => error("TaasNominalType expected, got "+other+".")
