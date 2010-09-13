@@ -373,7 +373,7 @@ class Pbj extends Dumpable {
 			case PMultiply(dst, src) => binop(dst, src, "*")
 			case PReciprocal(dst, src) => write(regToString(dst)+"=1.0/"+regToString(src)+";")
 			case PDivide(dst, src) => binop(dst, src, "/")
-			case PAtan2(dst, src) => call2(dst, src, "atan2")
+			case PAtan2(dst, src) => call2(dst, src, "atan")
 			case PPow(dst, src) => call2(dst, src, "pow")
 			case PMod(dst, src) => call2(dst, src, "mod")
 			case PMin(dst, src) => call2(dst, src, "min")
