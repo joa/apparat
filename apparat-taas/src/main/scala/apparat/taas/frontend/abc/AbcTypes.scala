@@ -31,6 +31,52 @@ protected[abc] object AbcTypes {
 	private var cache = HashMap.empty[Symbol, TaasType]
 	private val EMPTY = Symbol("")
 
+	private def qnameToString(name: AbcQName): String = qnameToString(name.name, name.namespace)
+
+	private def qnameToString(name: Symbol, namespace: AbcNamespace): String = {
+		if(namespace.name == EMPTY) { name.name } else {
+			namespace.name.name+"."+name.name
+		}
+	}
+
+	def isEqual(`type`: TaasType, name: AbcName): Boolean = {
+		name match {
+			case AbcQName(name, namespace) => {
+				if(name == 'void && namespace.name.name.length == 0) `type` == TaasVoidType
+				else if(name == 'int && namespace.name.name.length == 0) `type` == TaasIntType
+				else if(name == 'uint && namespace.name.name.length == 0) `type` == TaasLongType
+				else if(name == 'Number && namespace.name.name.length == 0) `type` == TaasDoubleType
+				else if(name == 'String && namespace.name.name.length == 0) `type` == TaasStringType
+				else if(name == 'Boolean && namespace.name.name.length == 0) `type` == TaasBooleanType
+				else if(name == 'Function && namespace.name.name.length == 0) `type` == TaasFunctionType
+				else if(name == 'Object && namespace.name.name.length == 0) `type` == TaasObjectType
+				else {
+					`type` match {
+						case nominalType: TaasNominalType =>
+							nominalType.nominal.qualifiedName == qnameToString(name, namespace)
+						case _ => false
+					}
+				}
+			}
+			case AbcTypename(name, parameters) => `type` match {
+				case parameterizedType: TaasParameterizedType => parameterizedType.nominal.qualifiedName == qnameToString(name)
+			}
+			case AbcMultiname(name, nsset) => nsset.set.length match {
+				case 1 =>
+					`type` match {
+						case nominalType: TaasNominalType => nominalType.nominal.qualifiedName == qnameToString(name, nsset.set(0))
+						case _ => false
+					}
+				case n =>
+					`type` match {
+						case nominalType: TaasNominalType => nominalType.nominal.qualifiedName == qnameToString(name, nsset.set(1))
+						case _ => false
+					}
+			}
+			case _ => error("Unexpected name: " + name)
+		}
+	}
+
 	def fromQName(name: Symbol, namespace: AbcNamespace)(implicit ast: TaasAST): TaasType = {
 		namespace match {
 			case

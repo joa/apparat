@@ -200,7 +200,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case CallProperty(property, numArguments) => {
 					val args = arguments(numArguments)
 					val obj = pop()
-					if(TaasType.isEqual(obj.`type`, AbcTypes.name2type(property)) && args.length == 1) {
+					if(AbcTypes.isEqual(obj.`type`, property) && args.length == 1) {
 						pp(T2(TConvert(obj.`type`), args.head, nextOperand))
 					} else {
 						val method = AbcSolver.property(obj.`type`, property, numArguments) match {
