@@ -115,6 +115,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 				JCheckClassAdapter.verify(new JClassReader(value), loader, true,
 					new JPrintWriter(Console.out))
 			}
+			Thread sleep 100
 		}
 
 		//new JbcClassWriter(binaries).write(new JFile("/home/joa/classes"))

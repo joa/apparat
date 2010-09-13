@@ -49,7 +49,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 	private def decorateWriter(writer: JClassWriter) = {
 		if(JbcBackend.DEBUG) {
-			new JTraceClassVisitor(writer, new JPrintWriter(log asWriterFor Debug))
+			writer
+			//new JTraceClassVisitor(writer, new JPrintWriter(log asWriterFor Debug))
 		} else {
 			writer
 		}
@@ -172,7 +173,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			op match {
 				case TOp_Nothing =>
 				case TConvert(target) => Cast(value.`type`, target)
-				case TCoerce(_) =>
+				case TCoerce(target) => Cast(value.`type`, target)
 				case _ => error("TODO "+op)
 			}
 		}
@@ -219,6 +220,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 					op match {
 						case _: TValue =>
 						case _: TNop =>
+						case T2(TOp_Nothing, lex @ TClass(_), reg) => reg typeAs lex.`type`
 						case T2(TOp_Nothing, lex @ TLexical(t: TaasClass), reg) => reg typeAs lex.`type`
 						case T2(TOp_Nothing, lex @ TLexical(t: TaasFunction), reg) => reg typeAs lex.`type`
 						case t2 @ T2(operator, rhs, result) => {
@@ -376,8 +378,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							method.parent match {
 									case Some(parent) => parent match {
 										case _: TaasClass | _: TaasInterface => t match {
-											case TLexical(_: TaasClass) if !method.isStatic => mv.visitVarInsn(JOpcodes.ALOAD, 0)
-											case TLexical(_: TaasInterface) => mv.visitVarInsn(JOpcodes.ALOAD, 0)
+											case TLexical(_: TaasClass) | TClass(_) if !method.isStatic => mv.visitVarInsn(JOpcodes.ALOAD, 0)
+											case TLexical(_: TaasInterface) | TClass(_) => mv.visitVarInsn(JOpcodes.ALOAD, 0)
 											case _ => load(t)
 										}
 										case _: TaasFunction =>

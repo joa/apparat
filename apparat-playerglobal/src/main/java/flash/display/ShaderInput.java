@@ -149,7 +149,9 @@ public final class ShaderInput extends jitb.lang.Object {
 				glBindTexture(GL_TEXTURE_2D, ((BitmapData)input()).JITB$textureId());
 				break;
 			default:
-				System.out.println("Warning: Unhandled input type "+_inputType+".");
+				//
+				// System.out.println("Warning: Unhandled input type "+_inputType+".");
+				//
 		}
 	}
 
