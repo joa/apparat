@@ -510,15 +510,17 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							loadAs(value, field.`type`)
 							mv.visitFieldInsn(JOpcodes.PUTFIELD, Java nameOfOwnerOf field, field.name.name, Java typeOf field.`type`)
 						}
-						case TSuper(base, arguments) => {
-							load(base)
-							arguments foreach load
-							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, Java.nameOf(base.`type` match {
+						case TSuper(obj, arguments) => {
+							val base = obj.`type` match {
 								case n: TaasNominalType => n.nominal.base match {
 									case Some(base) => base
 									case None => TaasObjectType
 								}
-							}), "<init>", base.`type` match {
+							}
+
+							load(obj)
+							arguments foreach load
+							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, Java nameOf base, "<init>", base match {
 								case nominalType: TaasNominalType => nominalType.nominal match {
 									case TaasClass(_, _, _, _, _, ctor, _, _, _, _) => Java.methodDesc("V", ctor.parameters)
 									case _ => "()V"
