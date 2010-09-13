@@ -204,10 +204,10 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				val labels = generateLabels(lin.map)
 				val jumps = lin.map
 
-				if(JbcBackend.DEBUG) {
+				/*if(JbcBackend.DEBUG) {
 					log.debug("Emitting TAAS:")
 					lin.dump(log, Debug)
-				}
+				}*/
 
 				for(op <- ops) {
 					log.debug("Emit %s", op)

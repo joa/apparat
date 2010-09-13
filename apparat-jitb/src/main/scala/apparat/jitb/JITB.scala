@@ -111,7 +111,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 		if(JITB.DEBUG) {
 			for((key, value) <- binaries) {
-				JCheckClassAdapter.verify(new JClassReader(value), true,
+				JCheckClassAdapter.verify(new JClassReader(value), loader, true,
 					new JPrintWriter(Console.out))
 			}
 		}
