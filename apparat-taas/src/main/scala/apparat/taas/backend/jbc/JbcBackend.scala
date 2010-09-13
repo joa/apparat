@@ -210,7 +210,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				}*/
 
 				for(op <- ops) {
-					log.debug("Emit %s", op)
+					//log.debug("Emit %s", op)
 					(labels get op) match {
 						case Some(label) => mv.visitLabel(label)
 						case None =>
@@ -253,14 +253,12 @@ class JbcBackend extends TaasBackend with SimpleLog {
 								case TOp_true =>
 									rhs.`type` match {
 										case TaasIntType | TaasBooleanType =>
-											mv.visitInsn(JOpcodes.ICONST_0)
 											mv.visitJumpInsn(JOpcodes.IFNE, labels(jumps(if1)(0)))
 										case _ => mv.visitJumpInsn(JOpcodes.IFNONNULL, labels(jumps(if1)(0)))
 									}
 								case TOp_false | TOp_! =>
 									rhs.`type` match {
 										case TaasIntType | TaasBooleanType =>
-											mv.visitInsn(JOpcodes.ICONST_0)
 											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if1)(0)))
 										case _ => mv.visitJumpInsn(JOpcodes.IFNULL, labels(jumps(if1)(0)))
 									}
@@ -282,7 +280,6 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPNE, labels(jumps(if2)(0)))
 										case TaasDoubleType => {
 											mv.visitInsn(JOpcodes.DCMPG)
-											load(TInt(0))
 											mv.visitJumpInsn(JOpcodes.IFNE, labels(jumps(if2)(0)))
 										}
 									}
@@ -292,7 +289,6 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPEQ, labels(jumps(if2)(0)))
 										case TaasDoubleType => {
 											mv.visitInsn(JOpcodes.DCMPG)
-											load(TInt(0))
 											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if2)(0)))
 										}
 									}
@@ -302,8 +298,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
 										case TaasDoubleType => {
 											mv.visitInsn(JOpcodes.DCMPG)
-											load(TInt(-1))
-											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if2)(0)))
+											mv.visitJumpInsn(JOpcodes.IFLT, labels(jumps(if2)(0)))
 										}
 									}
 								}
@@ -312,18 +307,16 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPGE, labels(jumps(if2)(0)))
 										case TaasDoubleType => {
 											mv.visitInsn(JOpcodes.DCMPG)
-											load(TInt(-1))
-											mv.visitJumpInsn(JOpcodes.IF_ICMPGT, labels(jumps(if2)(0)))
+											mv.visitJumpInsn(JOpcodes.IFGE, labels(jumps(if2)(0)))
 										}
 									}
 								}
 								case TOp_!> => t match {
+									case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLE, labels(jumps(if2)(0)))
 									case TaasDoubleType => {
 										mv.visitInsn(JOpcodes.DCMPG)
-										load(TInt(1))
-										mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
+										mv.visitJumpInsn(JOpcodes.IFLE, labels(jumps(if2)(0)))
 									}
-									case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLE, labels(jumps(if2)(0)))
 								}
 							}
 						}

@@ -110,6 +110,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		JThread.currentThread setContextClassLoader loader
 
 		if(JITB.DEBUG) {
+			log.debug("Verifying generated Java code...")
 			for((key, value) <- binaries) {
 				JCheckClassAdapter.verify(new JClassReader(value), loader, true,
 					new JPrintWriter(Console.out))
