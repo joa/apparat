@@ -27,7 +27,7 @@ import java.io.{PrintWriter => JPrintWriter}
 import collection.mutable.ListBuffer
 import org.objectweb.asm.{Opcodes => JOpcodes, Label => JLabel, ClassWriter => JClassWriter, ClassVisitor => JClassVisitor, ClassReader => JClassReader}
 import apparat.log.{Debug, SimpleLog}
-import org.objectweb.asm.util.{ASMifierClassVisitor, CheckClassAdapter => JCheckClassAdapter, TraceClassVisitor => JTraceClassVisitor}
+import org.objectweb.asm.util.{ASMifierClassVisitor, TraceClassVisitor => JTraceClassVisitor}
 import apparat.taas.ast._
 
 /**
@@ -111,10 +111,6 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			val bytes = cw.toByteArray()
 			cv.visitEnd()
 			classMap += Java.liftToplevel(nominal.qualifiedName) -> bytes
-
-			if(JbcBackend.DEBUG) {
-				JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(Console.out))
-			}
 		}
 	}
 
@@ -254,9 +250,20 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						case if1 @ TIf1(op, rhs) => {
 							load(rhs)
 							op match {
-								case TOp_true => mv.visitJumpInsn(JOpcodes.IFNONNULL, labels(jumps(if1)(0)))
-								case TOp_false => mv.visitJumpInsn(JOpcodes.IFNULL, labels(jumps(if1)(0)))
-								case TOp_! => mv.visitJumpInsn(JOpcodes.IFNULL, labels(jumps(if1)(0)))
+								case TOp_true =>
+									rhs.`type` match {
+										case TaasIntType | TaasBooleanType =>
+											mv.visitInsn(JOpcodes.ICONST_0)
+											mv.visitJumpInsn(JOpcodes.IFNE, labels(jumps(if1)(0)))
+										case _ => mv.visitJumpInsn(JOpcodes.IFNONNULL, labels(jumps(if1)(0)))
+									}
+								case TOp_false | TOp_! =>
+									rhs.`type` match {
+										case TaasIntType | TaasBooleanType =>
+											mv.visitInsn(JOpcodes.ICONST_0)
+											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if1)(0)))
+										case _ => mv.visitJumpInsn(JOpcodes.IFNULL, labels(jumps(if1)(0)))
+									}
 								case TOp_~ => error("Invalid operator ~ in if statement.")
 								case TOp_Nothing => error("Invalid operator Nothing in if statement.")
 								case TCoerce(_) => error("Invalid operator Coerce in if statement.")
@@ -483,8 +490,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 								loadAs(defaultValue getOrElse error("Missing parameter."), ctor.parameters(i).`type`)
 								i += 1
 							}
-							
-							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, Java nameOf obj.`type`, "<init>", Java.methodDesc("V", ctor.parameters))
+
+							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, Java nameOfOwnerOf ctor, "<init>", Java.methodDesc("V", ctor.parameters))
 							
 							storeByType(obj.`type`, result)
 						}
@@ -511,7 +518,13 @@ class JbcBackend extends TaasBackend with SimpleLog {
 									case Some(base) => base
 									case None => TaasObjectType
 								}
-							}), "<init>", "()V")//TODO!
+							}), "<init>", base.`type` match {
+								case nominalType: TaasNominalType => nominalType.nominal match {
+									case TaasClass(_, _, _, _, _, ctor, _, _, _, _) => Java.methodDesc("V", ctor.parameters)
+									case _ => "()V"
+								}
+								case _ => "()V"
+							})
 						}
 						case TReturn(TVoid) => mv.visitInsn(JOpcodes.RETURN)
 						case TReturn(value) =>

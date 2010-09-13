@@ -7,6 +7,7 @@ import flash.geom.Rectangle;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.EXTFramebufferObject;
 
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -17,14 +18,44 @@ import static org.lwjgl.opengl.GL11.*;
 public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 	private static final Point ORIGIN = new Point();
 
+	public static BitmapData JITB$fromImage(final BufferedImage image) {
+		final int width = image.getWidth();
+		final int height = image.getHeight();
+		final int[] pixels = image.getRGB(0, 0, width, height, null, 0, width);
+
+		return new BitmapData(width, height, pixels);
+	}
+	
 	private int _width;
 	private int _height;
 	private boolean _transparent;
-	private final Rectangle _rect;
+	private Rectangle _rect;
 
 	private boolean _invalidated;
 	private ByteBuffer _buffer;
 	private int _textureId = -1;
+
+	/**
+	 *
+	 * @param width
+	 * @param height
+	 * @param pixels argb
+	 */
+	private BitmapData(final int width, final int height, final int[] pixels) {
+		init(width, height, true);
+		final int n = pixels.length;
+		int i = 0;
+		while(i < n) {
+			final int color = pixels[i];
+			final byte alpha = (byte)((color & 0xff000000L) >>> 0x18);
+			final byte red = (byte)((color & 0xff0000L) >>> 0x10);
+			final byte green = (byte)((color & 0xff00L) >>> 0x08);
+			final byte blue = (byte)(color & 0xffL);
+			_buffer.put(red).put(green).put(blue).put(alpha);
+			i++;
+		}
+		_buffer.flip();
+	}
 
 	public BitmapData(final int width, final int height) {
 		this(width, height, true);
@@ -35,12 +66,16 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 	}
 
 	public BitmapData(final int width, final int height, final boolean transparent, final long fillColor) {
+		init(width, height, transparent);
+		fillRect(_rect, fillColor);
+	}
+
+	private void init(int width, int height, boolean transparent) {
 		_width = width;
 		_height = height;
 		_rect = new Rectangle(0.0, 0.0, _width, _height);
 		_transparent = transparent;
 		_buffer = BufferUtils.createByteBuffer(width * height * 4);
-		fillRect(_rect, fillColor);
 	}
 
 	public int width() { return _width; }

@@ -39,14 +39,19 @@ import java.io.{File => JFile}
 import jitb.lang.AVM
 import apparat.swc.Swc
 import apparat.swf.{DoABC, SymbolClass, SwfTags, Swf}
-import jitb.events.EventSystem
+import org.lwjgl.input.Mouse
+
+import org.objectweb.asm.util.{CheckClassAdapter => JCheckClassAdapter}
+import org.objectweb.asm.{ClassReader => JClassReader}
+import java.io.{PrintWriter => JPrintWriter}
 
 /**
  * @author Joa Ebert
  */
 object JITB {
+	val DEBUG = System.getProperty("apparat.debug", "false").toLowerCase == "true"
 	def main(arguments: Array[String]): Unit = {
-		Log.level = if(System.getProperty("apparat.debug", "false").toLowerCase == "true") Debug else Info
+		Log.level = if(DEBUG) Debug else Info
 		Log.addOutput(new ConsoleOutput())
 
 		val log = Log.newLogger
@@ -103,33 +108,36 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val loader = new JbcClassLoader(binaries, JThread.currentThread.getContextClassLoader)
 		JThread.currentThread setContextClassLoader loader
 
+		if(JITB.DEBUG) {
+			for((key, value) <- binaries) {
+				JCheckClassAdapter.verify(new JClassReader(value), true,
+					new JPrintWriter(Console.out))
+			}
+		}
+
 		//new JbcClassWriter(binaries).write(new JFile("/home/joa/classes"))
 
 		val main = Class.forName(mainClass, true, loader)
 
 		AVM.basePath(configuration.file.getParent)
-		AVM.start()
+		AVM.init()
+		
+		if(classOf[DisplayObject] isAssignableFrom main) {
+			runWithDisplay(swf, main)
+		} else {
+			//
+			// For now we use a hardcoded empty array.
+			//
+			val arguments: Array[String] = Array.empty[String]
 
-		try {
-			if(classOf[DisplayObject] isAssignableFrom main) {
-				runWithDisplay(swf, main)
-			} else {
-				//
-				// For now we use a hardcoded empty array.
-				//
-				val arguments: Array[String] = Array.empty[String]
+			log.debug("Using a headless runner without a stage.")
 
-				log.debug("Using a headless runner without a stage.")
-
-				AVMContext {
-					main.getMethod("main", arguments.getClass).invoke(main, arguments)
-				} match {
-					case Right(_) => log.debug("Code executed WITHOUT errors.")
-					case Left(_) => log.debug("Code executed WITH errors.")
-				}
+			AVMContext {
+				main.getMethod("main", arguments.getClass).invoke(main, arguments)
+			} match {
+				case Right(_) => log.debug("Code executed WITHOUT errors.")
+				case Left(_) => log.debug("Code executed WITH errors.")
 			}
-		} finally {
-			AVM.stop()
 		}
 	}
 
@@ -179,6 +187,8 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		Display.setVSyncEnabled(true)
 		Display.setDisplayMode(new DisplayMode(swf.width, swf.height))
 		Display.create()
+
+		Mouse.create()
 
 		//
 		// Orthographic projection with 1:1 pixel ratio.
@@ -256,12 +266,6 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 			AVMContext {
 				//
-				// Dispatch all events in the queue.
-				//
-				
-				EventSystem.dispatchEvents()
-
-				//
 				// Dispatch an ENTER_FRAME event to every DisplayObject
 				//
 
@@ -289,6 +293,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 			}
 		}
 
+		Mouse.destroy()
 		Display.destroy()
 	}
 
@@ -298,7 +303,9 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 	}
 
 	private def AVMContext[A](body: => A): Either[Unit, A] = {
-		try { Right(body) } catch {
+		try {
+			Right(body)
+		} catch {
 			case actionScriptError: Throw => {
 				actionScriptError.value match {
 					case error: jitb.lang.Error =>

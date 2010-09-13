@@ -200,11 +200,18 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case CallProperty(property, numArguments) => {
 					val args = arguments(numArguments)
 					val obj = pop()
-					val method = AbcSolver.property(obj.`type`, property, numArguments) match {
-						case Some(method: TaasMethod) => method
-						case _ => error("Could not find property "+property+" on "+obj.`type`)
+					println(obj.`type`)
+					println(AbcTypes.name2type(property))//fixme!!
+					println(obj.`type` == AbcTypes.name2type(property))//fixme!!
+					if(obj.`type` == AbcTypes.name2type(property) && args.length == 1) {
+						pp(T2(TCoerce(obj.`type`), args.head, nextOperand))
+					} else {
+						val method = AbcSolver.property(obj.`type`, property, numArguments) match {
+							case Some(method: TaasMethod) => method
+							case _ => error("Could not find property "+property+" on "+obj.`type`)
+						}
+						pp(TCall(obj, method, args, Some(nextOperand)))
 					}
-					pp(TCall(obj, method, args, Some(nextOperand)))
 				}
 				case CallPropLex(property, numArguments) => TODO(op)
 				case CallPropVoid(property, numArguments) => {
@@ -301,7 +308,6 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 					}
 				}
 				case FindPropStrict(property) => {
-					println("FIND PROP STRICT "+property)
 					property match {
 						case qname: AbcQName => {
 							scopeType match {
