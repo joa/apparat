@@ -212,7 +212,7 @@ class Pbj extends Dumpable {
 			case _ =>
 		}
 
-		@inline def write(value: String) = builder.append(value)
+		@inline def write(value: String) = builder.append(value+"\n")
 		@inline def swizzleToString(swizzle: List[PChannel]) = {
 			if(swizzle.length == 0) "" else {
 				val result = (swizzle map { _ match {
@@ -229,7 +229,12 @@ class Pbj extends Dumpable {
 		@inline def regToString(reg: PReg) = reg match {
 			case PFloatReg(index, swizzle) => index match {
 				case x if x == outReg.index => "gl_FragColor"+swizzleToString(swizzle)
-				case y => "f"+y+swizzleToString(swizzle)
+				case y => swizzle match {
+					case PChannelM2x2 :: Nil => "m2"+y
+					case PChannelM3x3 :: Nil => "m3"+y
+					case PChannelM4x4 :: Nil => "m4"+y
+					case _ => "f"+y+swizzleToString(swizzle)
+				}
 			}
 			case PIntReg(index, swizzle) => "i"+index+swizzleToString(swizzle)
 		}
@@ -297,9 +302,9 @@ class Pbj extends Dumpable {
 		write("void main(){")
 		ints map { "ivec4 i"+_+";" } foreach write
 		floats map { "vec4 f"+_+";" } foreach write
-		mat2 map { "mat2 f"+_+";" } foreach write
-		mat3 map { "mat3 f"+_+";" } foreach write
-		mat4 map { "mat4 f"+_+";" } foreach write
+		mat2 map { "mat2 m2"+_+";" } foreach write
+		mat3 map { "mat3 m3"+_+";" } foreach write
+		mat4 map { "mat4 m4"+_+";" } foreach write
 		write("f0.xy=gl_FragCoord.xy;")
 		inputs map { p => regToString(p.register)+"="+p.name+";" } foreach write
 
@@ -392,7 +397,9 @@ class Pbj extends Dumpable {
 			case PCeil(dst, src) => call1(dst, src, "ceil")
 			case PFract(dst, src) => call1(dst, src, "fract")
 			case PCopy(dst, src) => src.swizzle match {
-				case PChannelM2x2 :: Nil => write(regToString(dst)+"=mat2("+regToString(src)+");")
+				case PChannelM2x2 :: Nil => write("m2"+dst.index+"=mat2(f"+src.index+");")
+				case PChannelM3x3 :: Nil => write("m3"+dst.index+"=mat3(vec3(f"+src.index+"), vec3(f"+(src.index+1)+"), vec3(f"+(src.index+2)+"));")
+				case PChannelM4x4 :: Nil => write("m4"+dst.index+"=mat4(f"+src.index+");")
 				case _ => write(regToString(dst)+"="+regToString(src)+";")
 			}
 			case PFloatToInt(dst, src) => call1(dst, src, "int")
