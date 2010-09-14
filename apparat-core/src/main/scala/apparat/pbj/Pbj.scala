@@ -331,7 +331,7 @@ class Pbj extends Dumpable {
 		while(n.nonEmpty) {
 			n match {
 				case Nil =>
-				/*case PLoadFloat(PFloatReg(i, PChannelR :: Nil), a) :: PLoadFloat(PFloatReg(j, PChannelG :: Nil), b) :: PLoadFloat(PFloatReg(k, PChannelB :: Nil), c) :: xs if i == j && j == k =>
+				case PLoadFloat(PFloatReg(i, PChannelR :: Nil), a) :: PLoadFloat(PFloatReg(j, PChannelG :: Nil), b) :: PLoadFloat(PFloatReg(k, PChannelB :: Nil), c) :: xs if i == j && j == k =>
 					r = "f"+i+".xyz"+"=vec3("+a+","+b+","+c+");" :: r
 					n = xs
 				case PLoadFloat(d0, a) :: PAdd(d1, s1) :: xs if d0 == d1 =>
@@ -360,7 +360,7 @@ class Pbj extends Dumpable {
 					n = xs
 				case PReciprocal(d0, s0) :: PMultiply(d1, s1) :: xs if d0 == d1 =>
 					r = (regToString(d1)+"="+regToString(s1)+"/"+regToString(s0)+";") :: r
-					n = xs*/
+					n = xs
 				case x :: xs =>
 					r = x :: r
 					n = xs
