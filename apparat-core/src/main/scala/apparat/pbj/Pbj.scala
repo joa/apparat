@@ -212,7 +212,7 @@ class Pbj extends Dumpable {
 			case _ =>
 		}
 
-		@inline def write(value: String) = builder.append(value)
+		@inline def write(value: String) = builder.append(value+"\n")
 		@inline def swizzleToString(swizzle: List[PChannel]) = {
 			if(swizzle.length == 0) "" else {
 				val result = (swizzle map { _ match {
@@ -239,7 +239,9 @@ class Pbj extends Dumpable {
 			case PIntReg(index, swizzle) => "i"+index+swizzleToString(swizzle)
 		}
 
-		@inline def binop(dst: PReg, src: PReg, operator: String = "?"): Unit = write(regToString(dst)+"="+regToString(dst)+operator+regToString(src)+";")
+		@inline def binop(dst: PReg, src: PReg, operator: String = "?"): Unit = {
+			write(regToString(dst)+"="+regToString(dst)+operator+regToString(src)+";")
+		}
 		@inline def unop(dst: PReg, src: PReg, operator: String = "?"): Unit = write(regToString(dst)+"="+operator+regToString(src)+";")
 		@inline def logical(dst: PReg, src: PReg, operator: String = "?"): Unit = write("i0.x=int("+regToString(dst)+operator+regToString(src)+");")
 		@inline def call2(dst: PReg, src: PReg, name: String = "?"): Unit = {
@@ -329,7 +331,7 @@ class Pbj extends Dumpable {
 		while(n.nonEmpty) {
 			n match {
 				case Nil =>
-				case PLoadFloat(PFloatReg(i, PChannelR :: Nil), a) :: PLoadFloat(PFloatReg(j, PChannelG :: Nil), b) :: PLoadFloat(PFloatReg(k, PChannelB :: Nil), c) :: xs if i == j && j == k =>
+				/*case PLoadFloat(PFloatReg(i, PChannelR :: Nil), a) :: PLoadFloat(PFloatReg(j, PChannelG :: Nil), b) :: PLoadFloat(PFloatReg(k, PChannelB :: Nil), c) :: xs if i == j && j == k =>
 					r = "f"+i+".xyz"+"=vec3("+a+","+b+","+c+");" :: r
 					n = xs
 				case PLoadFloat(d0, a) :: PAdd(d1, s1) :: xs if d0 == d1 =>
@@ -358,7 +360,7 @@ class Pbj extends Dumpable {
 					n = xs
 				case PReciprocal(d0, s0) :: PMultiply(d1, s1) :: xs if d0 == d1 =>
 					r = (regToString(d1)+"="+regToString(s1)+"/"+regToString(s0)+";") :: r
-					n = xs
+					n = xs*/
 				case x :: xs =>
 					r = x :: r
 					n = xs

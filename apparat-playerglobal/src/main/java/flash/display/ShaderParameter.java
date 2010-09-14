@@ -126,14 +126,14 @@ public final class ShaderParameter extends jitb.lang.Object {
 		} else if(_type.equals(ShaderParameterType.FLOAT2)) {
 			ARBShaderObjects.glUniform2fARB(location, getFloat(0), getFloat(1));
 		} else if(_type.equals(ShaderParameterType.FLOAT3)) {
-			ARBShaderObjects.glUniform3fARB(location, getFloat(0), getFloat(1), getFloat(3));
+			ARBShaderObjects.glUniform3fARB(location, getFloat(0), getFloat(1), getFloat(2));
 		} else if(_type.equals(ShaderParameterType.FLOAT4)) {
 			ARBShaderObjects.glUniform4fARB(location, getFloat(0), getFloat(1), getFloat(2), getFloat(3));
 		}
 	}
 
 	private float getFloat(final int index) {
-		if(null == _value || _value.length() < index) {
+		if(null == _value || _value.length() <= index) {
 			return 0.0f;
 		}
 

@@ -99,17 +99,17 @@ public class Shader extends jitb.lang.Object {
 		_vertexShaderId = ARBShaderObjects.glCreateShaderObjectARB(ARBVertexShader.GL_VERTEX_SHADER_ARB);
 		ARBShaderObjects.glShaderSourceARB(_vertexShaderId, vertexShader);
 		ARBShaderObjects.glCompileShaderARB(_vertexShaderId);
-		System.out.println("VertexShader Info: "+ARBShaderObjects.glGetInfoLogARB(_vertexShaderId, 1024));
+		System.out.println("VertexShader Info: "+ARBShaderObjects.glGetInfoLogARB(_vertexShaderId, 8192));
 
 		_fragmentShaderId = ARBShaderObjects.glCreateShaderObjectARB(ARBFragmentShader.GL_FRAGMENT_SHADER_ARB);
 		ARBShaderObjects.glShaderSourceARB(_fragmentShaderId, fragmentShader);
 		ARBShaderObjects.glCompileShaderARB(_fragmentShaderId);
-		System.out.println("FragmentShader Info: "+ARBShaderObjects.glGetInfoLogARB(_fragmentShaderId, 1024));
+		System.out.println("FragmentShader Info: "+ARBShaderObjects.glGetInfoLogARB(_fragmentShaderId, 8192));
 
 		_programId = ARBShaderObjects.glCreateProgramObjectARB();
 		ARBShaderObjects.glAttachObjectARB(_programId, _vertexShaderId);
 		ARBShaderObjects.glAttachObjectARB(_programId, _fragmentShaderId);
 		ARBShaderObjects.glLinkProgramARB(_programId);
-		System.out.println("Program Info: "+ARBShaderObjects.glGetInfoLogARB(_programId, 1024));
+		System.out.println("Program Info: "+ARBShaderObjects.glGetInfoLogARB(_programId, 8192));
 	}
 }
