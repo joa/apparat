@@ -20,7 +20,7 @@
  */
 package apparat.pbj
 
-import optimization.PbjOptimizer
+import optimization.{PbjLoopDetection, PbjOptimizer}
 import pbjdata._
 
 import java.io.{
@@ -41,13 +41,8 @@ import annotation.tailrec
 object Pbj {
 	def main(args: Array[String]): Unit = {
 		val pbj = fromFile(args(0))
-		/*val before = pbj.code.length
-		pbj.dump()
-		PbjOptimizer(pbj)
-		pbj.dump()
-		println("before: "+before)
-		println("after: "+pbj.code.length)*/
-		println(pbj.toFragmentShader)
+		val de = new PbjLoopDetection(16)
+		println(de(pbj) mkString "\n")
 	}
 
 	def fromByteArray(byteArray: Array[Byte]) = {
