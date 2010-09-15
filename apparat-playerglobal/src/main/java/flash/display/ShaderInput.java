@@ -30,9 +30,6 @@ public final class ShaderInput extends jitb.lang.Object {
 	private int _width;
 	private InputType _inputType = InputType.NONE;
 
-	private float _widthR = .0f;
-	private float _heightR = .0f;
-
 	public ShaderInput() {}
 
 	private ShaderInput(final String name, final int channels, final int index) {
@@ -48,15 +45,7 @@ public final class ShaderInput extends jitb.lang.Object {
 	public int channels() { return _channels; }
 
 	public int height() { return _height; }
-	public void height(final int value) {
-		_height = value;
-
-		if(_height != 0.0f) {
-			_heightR = 1.0f / _height;
-		} else {
-			_heightR = 0.0f;
-		}
-	}
+	public void height(final int value) { _height = value; }
 
 	public int index() { return _index; }
 
@@ -88,15 +77,7 @@ public final class ShaderInput extends jitb.lang.Object {
 	public jitb.lang.Object input() { return _input; }
 
 	public int width() { return _width; }
-	public void width(final int value) {
-		_width = value;
-
-		if(_width != 0.0f) {
-			_widthR = 1.0f / _width;
-		} else {
-			_widthR = 0.0f;
-		}
-	}
+	public void width(final int value) { _width = value; }
 
 	@Override
 	public Object JITB$getProperty(final String property) {
@@ -138,7 +119,7 @@ public final class ShaderInput extends jitb.lang.Object {
 		}
 		
 		final int sizeLocation = ARBShaderObjects.glGetUniformLocationARB(programId, "texs"+index());
-		ARBShaderObjects.glUniform2fARB(sizeLocation, _widthR, _heightR);
+		ARBShaderObjects.glUniform2fARB(sizeLocation, _width, _height);
 
 		final int textureLocation = ARBShaderObjects.glGetUniformLocationARB(programId, "tex"+index());
 		ARBShaderObjects.glUniform1iARB(textureLocation, index());

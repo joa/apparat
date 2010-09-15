@@ -39,12 +39,12 @@ import apparat.utils.{IndentingPrintWriter, Dumpable}
 import annotation.tailrec
 
 object Pbj {
+	val loopDetection = new PbjLoopDetection(16)
+
 	def main(args: Array[String]): Unit = {
 		val pbj = fromFile(args(0))
-		val de = new PbjLoopDetection(16)
-		println(de(pbj) mkString "\n")
+		println(pbj.toFragmentShader)
 	}
-
 	def fromByteArray(byteArray: Array[Byte]) = {
 		val pbj = new Pbj
 		pbj read byteArray
@@ -305,7 +305,24 @@ class Pbj extends Dumpable {
 		write("f0.xy=gl_FragCoord.xy;")
 		inputs map { p => regToString(p.register)+"="+p.name+";" } foreach write
 
-		var n = code
+		case class BeginLoop(n: Int)
+		case object EndLoop
+
+		def whoWantsToLoopForever_?(code: List[POp]): List[Any] = {
+			val detection = Pbj loopDetection code
+			var r: List[Any] = code
+
+			for((value, ranges) <- detection) {
+				for((rangeStart, rangeEnd) <- ranges) {
+					val n = (rangeEnd - rangeStart) / value.length
+					r = r.take(rangeStart - 1) ::: List(BeginLoop(n)) ::: value ::: List(EndLoop) ::: r.drop(rangeEnd)
+				}
+			}
+
+			r
+		}
+
+		var n = whoWantsToLoopForever_?(code)
 		var r = List.empty[Any]
 
 		//
@@ -326,7 +343,7 @@ class Pbj extends Dumpable {
 		while(n.nonEmpty) {
 			n match {
 				case Nil =>
-				case PLoadFloat(PFloatReg(i, PChannelR :: Nil), a) :: PLoadFloat(PFloatReg(j, PChannelG :: Nil), b) :: PLoadFloat(PFloatReg(k, PChannelB :: Nil), c) :: xs if i == j && j == k =>
+				/*case PLoadFloat(PFloatReg(i, PChannelR :: Nil), a) :: PLoadFloat(PFloatReg(j, PChannelG :: Nil), b) :: PLoadFloat(PFloatReg(k, PChannelB :: Nil), c) :: xs if i == j && j == k =>
 					r = "f"+i+".xyz"+"=vec3("+a+","+b+","+c+");" :: r
 					n = xs
 				case PLoadFloat(d0, a) :: PAdd(d1, s1) :: xs if d0 == d1 =>
@@ -355,7 +372,7 @@ class Pbj extends Dumpable {
 					n = xs
 				case PReciprocal(d0, s0) :: PMultiply(d1, s1) :: xs if d0 == d1 =>
 					r = (regToString(d1)+"="+regToString(s1)+"/"+regToString(s0)+";") :: r
-					n = xs
+					n = xs*/
 				case x :: xs =>
 					r = x :: r
 					n = xs
@@ -363,6 +380,8 @@ class Pbj extends Dumpable {
 		}
 
 		r.reverse foreach {
+			case BeginLoop(n) => write("for(int ii=0;ii<"+n+";++ii){")
+			case EndLoop => write("}")
 			case x: String => write(x)
 			case PNop() =>
 			case PAdd(dst, src) => binop(dst, src, "+")
@@ -417,8 +436,8 @@ class Pbj extends Dumpable {
 			case PLogicalAnd(dst, src) => binop(dst, src, "&")
 			case PLogicalOr(dst, src) => binop(dst, src, "|")
 			case PLogicalXor(dst, src) => binop(dst, src, "^")
-			case PSampleNearest(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+"*texs"+texture+");")
-			case PSampleBilinear(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+"*texs"+texture+");")
+			case PSampleNearest(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+"/texs"+texture+");")
+			case PSampleBilinear(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+"/texs"+texture+");")
 			case PLoadInt(dst: PReg, value: Int) => write(regToString(dst)+"="+value.toString+";")
 			case PLoadFloat(dst: PReg, value: Float) => {
 				dst match {

@@ -33,13 +33,13 @@ import collection.immutable.SortedSet
  * @author Joa Ebert
  */
 class PbjLoopDetection(tileSize: Int) {
-	def apply(pbj: Pbj) = {
+	def apply(code: List[POp]) = {
 		@tailrec def loop(map: Map[List[POp], SortedSet[Int]], i: Int = 0): Map[List[POp], SortedSet[Int]] = i match {
 			case x if x < tileSize => loop(expandTiles(map), i + 1)
 			case y => map
 		}
 		
-		calculateRanges(loop(listOccurrences(pbj.code) map { x => (x._1 :: Nil) -> x._2}))
+		calculateRanges(loop(listOccurrences(code) map { x => (x._1 :: Nil) -> x._2}) filterNot { _._1.length < 4 })
 	}
 
 	def listOccurrences(code: List[POp]) = {
@@ -61,12 +61,11 @@ class PbjLoopDetection(tileSize: Int) {
 		var result = Map.empty[List[POp], SortedSet[Int]]
 		var blocked = Set.empty[List[POp]]
 
-		for(key <- available.keysIterator) {
+		for((key,scala_bug) <- available) {
 			if(available(key).nonEmpty) {
 				for(index <- available(key)) {
-					available find {
-						x =>
-							x._2.contains(index + key.length) && (!(x._2 contains (index - 1))) } match {//favor the smaller approach
+					val oo = try { available find { x => x._2.contains(index + key.length) && (!(x._2 contains (index - x._1.length))) } } catch { case _: NoSuchElementException => None }
+					oo match {//favor the smaller approach
 						case Some(x) =>
 							if(!blocked.contains(x._1) && x._1 != key) {
 								val l = key ::: x._1
