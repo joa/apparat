@@ -146,6 +146,8 @@ public final class ShaderParameter extends jitb.lang.Object {
 			floatValue = ((Double)value).floatValue();
 		} else if(value instanceof Long) {
 			floatValue = ((Long)value).floatValue();
+		} else if(value instanceof Float) {
+			floatValue = (Float)value;
 		} else {
 			//use default value?
 		}

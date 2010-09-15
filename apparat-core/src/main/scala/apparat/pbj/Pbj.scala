@@ -315,7 +315,9 @@ class Pbj extends Dumpable {
 			for((value, ranges) <- detection) {
 				for((rangeStart, rangeEnd) <- ranges) {
 					val n = (rangeEnd - rangeStart) / value.length
-					r = r.take(rangeStart - 1) ::: List(BeginLoop(n)) ::: value ::: List(EndLoop) ::: r.drop(rangeEnd)
+					if(n > 8) {
+						r = r.take(rangeStart - 1) ::: List(BeginLoop(n)) ::: value ::: List(EndLoop) ::: r.drop(rangeEnd)
+					}
 				}
 			}
 
