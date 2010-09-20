@@ -51,11 +51,20 @@ public class Shader extends jitb.lang.Object {
 	public void data(final ShaderData value) { _data = value; }
 
 	public void JITB$bind(double x, double y, double width, double height) {
+		JITB$bind(x, y, width, height, true);
+	}
+
+	public void JITB$bind(double x, double y, double width, double height, boolean flipY) {
 		if(GLContext.getCapabilities().GL_ARB_shader_objects) {
 			ARBShaderObjects.glUseProgramObjectARB(programId());
 
 			final int location = ARBShaderObjects.glGetUniformLocationARB(programId(), "PB_OFFSET");
-			ARBShaderObjects.glUniform3fARB(location, (float)x, (float)y, (float)height);
+
+			if(flipY) {
+				ARBShaderObjects.glUniform4fARB(location, (float)x, (float)y, (float)height, -1.0f);
+			} else {
+				ARBShaderObjects.glUniform4fARB(location, (float)x, (float)y, 0.0f, 1.0f);
+			}
 
 			if(null != data()) {
 				data().JITB$applyParameters(programId());

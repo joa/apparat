@@ -150,14 +150,14 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 			EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboId);
 		glPushAttrib(GL_VIEWPORT_BIT);
 		glViewport(0, 0, width(), height());
-		
+
 		//
 		// Bind the source BitmapData as an input for the filter.
 		//
 
 		if(!rect().equals(sourceBitmapData.rect()) || !ORIGIN.equals(destPoint)) {
 			glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, JITB$textureId());
-			rect().JITB$render(true);
+			rect().JITB$render(false);
 		}
 
 		glPushMatrix();
@@ -178,7 +178,7 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 					inputs[0].input(this);
 				}
 
-				shaderFilter.shader().JITB$bind(0.0, 0.0, width(), height());
+				shaderFilter.shader().JITB$bind(0.0, 0.0, width(), height(), false);
 			}
 
 			sourceRect.JITB$render(false);
@@ -193,7 +193,7 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 		//
 		// Note: We can defer this step to the next _buffer access.
 		//
-		
+
 		_buffer.clear();
 		glReadPixels(0, 0, width(), height(), GL_RGBA, GL_UNSIGNED_BYTE, _buffer);
 		_invalidated = false;
