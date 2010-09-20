@@ -119,7 +119,7 @@ public final class ShaderInput extends jitb.lang.Object {
 		}
 		
 		final int sizeLocation = ARBShaderObjects.glGetUniformLocationARB(programId, "texs"+index());
-		ARBShaderObjects.glUniform2fARB(sizeLocation, _width, -_height);
+		ARBShaderObjects.glUniform2fARB(sizeLocation, _width, _height);
 
 		final int textureLocation = ARBShaderObjects.glGetUniformLocationARB(programId, "tex"+index());
 		ARBShaderObjects.glUniform1iARB(textureLocation, index());
