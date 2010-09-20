@@ -97,13 +97,16 @@ protected[jbc] object Cast {
 		}
 	}
 
-	def checkCast(target: TaasType)(implicit mv: JMethodVisitor) = {
-		if(REQUIRE_TYPEERROR) {
-			mv.visitInsn(JOpcodes.DUP)
-			mv.visitLdcInsn(Type.getType(Java typeOf target))
-			mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "jitb/lang/AVM", "coerce", "(Ljava/lang/Object;Ljava/lang/Class;)V")
-		}
+	def checkCast(target: TaasType)(implicit mv: JMethodVisitor) = target match {
+		case TaasStringType =>
+			mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "java/lang/Object", "toString", "()Ljava/lang/String;")
+		case _ =>
+			if(REQUIRE_TYPEERROR) {
+				mv.visitInsn(JOpcodes.DUP)
+				mv.visitLdcInsn(Type.getType(Java typeOf target))
+				mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "jitb/lang/AVM", "coerce", "(Ljava/lang/Object;Ljava/lang/Class;)V")
+			}
 
-		mv.visitTypeInsn(JOpcodes.CHECKCAST, Java nameOf target)
+			mv.visitTypeInsn(JOpcodes.CHECKCAST, Java nameOf target)
 	}
 }
