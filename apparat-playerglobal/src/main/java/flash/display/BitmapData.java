@@ -5,6 +5,7 @@ import flash.filters.ShaderFilter;
 import flash.geom.Point;
 import flash.geom.Rectangle;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.EXTFramebufferObject;
 
 import java.awt.image.BufferedImage;
@@ -100,11 +101,11 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 		bufferTextureId = glGenTextures();
 		final ByteBuffer buffer = BufferUtils.createByteBuffer(width()*height()*4);
 		buffer.limit(buffer.capacity());
-		glBindTexture(GL_TEXTURE_2D, bufferTextureId);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, bufferTextureId);
+		glTexParameteri(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D(
-				GL_TEXTURE_2D,
+				ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
 				0,
 				GL_RGBA,
 				width(),
@@ -127,7 +128,7 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 
 		EXTFramebufferObject.glFramebufferTexture2DEXT(
 			EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-			EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D,
+			EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT, ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
 			-1 == bufferTextureId ? textureId : bufferTextureId, 0);
 
 		//
@@ -155,13 +156,13 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 		//
 
 		if(!rect().equals(sourceBitmapData.rect()) || !ORIGIN.equals(destPoint)) {
-			glBindTexture(GL_TEXTURE_2D, JITB$textureId());
-			rect().JITB$render();
+			glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, JITB$textureId());
+			rect().JITB$render(true);
 		}
 
 		glPushMatrix();
 		glTranslated(destPoint.x, destPoint.y, 0.0);
-		glBindTexture(GL_TEXTURE_2D, sourceBitmapData.JITB$textureId());
+		glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, sourceBitmapData.JITB$textureId());
 
 		//
 		// Now run the filter with the given texture.
@@ -180,7 +181,7 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 				shaderFilter.shader().JITB$bind();
 			}
 
-			sourceRect.JITB$render();
+			sourceRect.JITB$render(false);
 
 			if(null != shaderFilter.shader()) {
 				shaderFilter.shader().JITB$unbind();
@@ -201,7 +202,7 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 		// Cleanup
 		//
 
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, 0);
 		glPopAttrib();
 
 		EXTFramebufferObject.glBindFramebufferEXT(
@@ -300,11 +301,11 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 
 			final int id = glGenTextures();
 
-			glBindTexture(GL_TEXTURE_2D, id);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, id);
+			glTexParameteri(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexImage2D(
-					GL_TEXTURE_2D,
+					ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
 					0,
 					GL_RGBA,
 					width(),
@@ -317,16 +318,16 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 			_textureId = id;
 			_invalidated = false;
 
-			glBindTexture(GL_TEXTURE_2D, 0);
+			glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, 0);
 		} else {
 			if(_invalidated) {
 				//
 				// Refresh the texture.
 				//
 
-				glBindTexture(GL_TEXTURE_2D, _textureId);
+				glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, _textureId);
 				glTexSubImage2D(
-						GL_TEXTURE_2D,
+						ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
 						0,
 						0,
 						0,

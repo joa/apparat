@@ -30,17 +30,18 @@ public final class Graphics extends jitb.lang.Object {
 
 		@Override
 		public void run() {
+			glPolygonMode(GL_FRONT, GL_FILL);
 			glBegin(GL_QUADS); {
-				glTexCoord2f(0.0f, 0.0f);
+				glTexCoord2d(0.0f, 0.0f);
 				glVertex2d(_x, _y);
 
-				glTexCoord2f(1.0f, 0.0f);
+				glTexCoord2d(_width, 0.0f);
 				glVertex2d(_x + _width, _y);
 
-				glTexCoord2f(1.0f, 1.0f);
+				glTexCoord2d(_width, _height);
 				glVertex2d(_x + _width, _y + _height);
 
-				glTexCoord2f(0.0f, 1.0f);
+				glTexCoord2d(0.0f, _height);
 				glVertex2d(_x, _y + _height);
 			} glEnd();
 		}

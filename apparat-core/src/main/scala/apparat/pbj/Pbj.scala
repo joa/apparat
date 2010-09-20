@@ -36,7 +36,6 @@ import java.io.{
 import apparat.utils.IO._
 import collection.mutable.ListBuffer
 import apparat.utils.{IndentingPrintWriter, Dumpable}
-import annotation.tailrec
 
 object Pbj {
 	val loopDetection = new PbjLoopDetection(16)
@@ -276,6 +275,30 @@ class Pbj extends Dumpable {
 			}))
 		}
 
+		@inline def explicitCast(reg: PReg, value: String) = reg match {
+			case PIntReg(index, swizzle) =>
+				if(swizzle.isEmpty) "ivec4("+value+")"
+				else if(swizzle.length == 1) "int("+value+")"
+				else if(swizzle.length == 2) "int2("+value+")"
+				else if(swizzle.length == 3) "int3("+value+")"
+				else if(swizzle.length == 4) "int4("+value+")"
+				else error("Unexpected swizzle "+swizzle+".")
+			case PFloatReg(index, swizzle) =>
+				if(swizzle.isEmpty) "vec4("+value+")"
+				else if(swizzle.length == 1) {
+					swizzle.head match {
+						case PChannelM2x2 => "mat2("+value+")"
+						case PChannelM3x3 => "mat3("+value+")"
+						case PChannelM4x4 => "mat4("+value+")" 
+						case _ => "float("+value+")"
+					}
+				}
+				else if(swizzle.length == 2) "vec2("+value+")"
+				else if(swizzle.length == 3) "vec3("+value+")"
+				else if(swizzle.length == 4) "vec4("+value+")"
+				else error("Unexpected swizzle "+swizzle+".")
+		}
+
 		@inline def glslType(`type`: PNumeric): String = `type` match {
 			case PFloatType => "float"
 			case PFloat2Type => "vec2"
@@ -293,8 +316,10 @@ class Pbj extends Dumpable {
 			case PBool3Type => "bvec3"
 			case PBool4Type => "bvec4"
 		}
+		write("#version 100")
+		write("#extension GL_ARB_texture_rectangle : enable")
 		val inputs = parameters map { _._1 } collect { case in: PInParameter if in.name != "_OutCoord" => in }
-		textures map { _.index } map { "uniform sampler2D tex%1$d; uniform vec2 texs%1$d;" format _ } foreach write
+		textures map { _.index } map { "uniform sampler2DRect tex%1$d; uniform vec2 texs%1$d;" format _ } foreach write
 		inputs map { p => "uniform "+glslType(p.`type`)+" "+p.name+";" } foreach write
 		write("void main(){")
 		ints map { "ivec4 i"+_+";" } foreach write
@@ -438,13 +463,13 @@ class Pbj extends Dumpable {
 			case PLogicalAnd(dst, src) => binop(dst, src, "&")
 			case PLogicalOr(dst, src) => binop(dst, src, "|")
 			case PLogicalXor(dst, src) => binop(dst, src, "^")
-			case PSampleNearest(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+"/texs"+texture+");")
-			case PSampleBilinear(dst, src, texture: Int) => write(regToString(dst)+"=texture2D(tex"+texture+","+regToString(src)+"/texs"+texture+");")
+			case PSampleNearest(dst, src, texture: Int) => write(regToString(dst)+"=texture2DRect(tex"+texture+","+regToString(src)+");")//+"/texs"+texture+");")
+			case PSampleBilinear(dst, src, texture: Int) => write(regToString(dst)+"=texture2DRect(tex"+texture+","+regToString(src)+");")//+"/texs"+texture+");")
 			case PLoadInt(dst: PReg, value: Int) => write(regToString(dst)+"="+value.toString+";")
 			case PLoadFloat(dst: PReg, value: Float) => {
 				dst match {
-					case floatReg: PFloatReg => write(regToString(floatReg)+"="+value.toString+";")
-					case intReg: PIntReg => write(regToString(intReg)+"="+value.toString+";")
+					case floatReg: PFloatReg => write(regToString(floatReg)+"="+explicitCast(floatReg, value.toString)+";")
+					case intReg: PIntReg => write(regToString(intReg)+"="+explicitCast(intReg, value.toString)+";")
 				}
 			}
 			case PSelect(dst, src, src0, src1) => write(regToString(dst)+"=bool("+regToString(src)+")?"+regToString(src0)+":"+regToString(src1)+";")

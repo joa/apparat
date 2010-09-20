@@ -160,21 +160,45 @@ public class Rectangle extends jitb.lang.Object {
 	}
 
 	public void JITB$render() {
+		JITB$render(true);
+	}
+
+	public void JITB$render(final boolean normalizedTexCoord) {
 		final int width = (int)width();
 		final int height = (int)height();
 
-		glBegin(GL_QUADS); {
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex2i(0, 0);
+		glPolygonMode(GL_FRONT, GL_FILL);
+		if(normalizedTexCoord) {
+			glBegin(GL_QUADS); {
+				glTexCoord2f(0.0f, 0.0f);
+				glVertex2i(0, 0);
 
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex2i(width, 0);
+				glTexCoord2f(1.0f, 0.0f);
+				glVertex2i(width, 0);
 
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex2i(width, height);
+				glTexCoord2f(1.0f, 1.0f);
+				glVertex2i(width, height);
 
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex2i(0, height);
-		} glEnd();
+				glTexCoord2f(0.0f, 1.0f);
+				glVertex2i(0, height);
+			} glEnd();
+		} else {
+			final float widthf = (float)width;
+			final float heightf = (float)height;
+
+			glBegin(GL_QUADS); {
+				glTexCoord2f(0.0f, 0.0f);
+				glVertex2i(0, 0);
+
+				glTexCoord2f(widthf, 0.0f);
+				glVertex2i(width, 0);
+
+				glTexCoord2f(widthf, heightf);
+				glVertex2i(width, height);
+
+				glTexCoord2f(0.0f, heightf);
+				glVertex2i(0, height);
+			} glEnd();
+		}
 	}
 }

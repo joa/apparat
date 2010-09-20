@@ -32,7 +32,6 @@ import java.lang.{Thread => JThread}
 import flash.display.{DisplayObject, Stage, Sprite}
 import java.util.{TimerTask, Timer}
 import jitb.display.DisplaySystem
-import org.lwjgl.opengl.{GL11, DisplayMode, PixelFormat, Display}
 import jitb.errors.{ErrorUtil, Throw}
 import apparat.taas.backend.jbc.{JbcClassWriter, JbcClassLoader, JbcBackend}
 import java.io.{File => JFile}
@@ -45,6 +44,7 @@ import org.lwjgl.input.Mouse
 import org.objectweb.asm.util.{CheckClassAdapter => JCheckClassAdapter}
 import org.objectweb.asm.{ClassReader => JClassReader}
 import java.io.{PrintWriter => JPrintWriter}
+import org.lwjgl.opengl._
 
 /**
  * @author Joa Ebert
@@ -213,7 +213,8 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		//
 
 		GL11.glEnable(GL11.GL_TEXTURE_2D)
-
+		GL11.glEnable(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB);
+		
 		GL11.glClearDepth(1.0)
 		GL11.glDisable(GL11.GL_DEPTH_TEST)
 

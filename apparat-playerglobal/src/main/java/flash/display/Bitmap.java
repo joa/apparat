@@ -1,5 +1,7 @@
 package flash.display;
 
+import org.lwjgl.opengl.ARBTextureRectangle;
+
 import static org.lwjgl.opengl.GL11.*;
 
 /**
@@ -49,21 +51,21 @@ public class Bitmap extends DisplayObject {
 
 		final int width = (int)(width() + 0.5);
 		final int height = (int)(height() + 0.5);
-
-		glBindTexture(GL_TEXTURE_2D, _bitmapData.JITB$textureId());
+		glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, _bitmapData.JITB$textureId());
+		glPolygonMode(GL_FRONT, GL_FILL);
 		glBegin(GL_QUADS); {
-			glTexCoord2f(0.0f, 0.0f);
+			glTexCoord2d(0.0, 0.0);
 			glVertex2i(0, 0);
 			
-			glTexCoord2f(1.0f, 0.0f);
+			glTexCoord2d(width(), 0.0f);
 			glVertex2i(width, 0);
 
-			glTexCoord2f(1.0f, 1.0f);
+			glTexCoord2d(width(), height());
 			glVertex2i(width, height);
 
-			glTexCoord2f(0.0f, 1.0f);
+			glTexCoord2d(0.0f, height());
 			glVertex2i(0, height);
 		} glEnd();
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, 0);
 	}
 }
