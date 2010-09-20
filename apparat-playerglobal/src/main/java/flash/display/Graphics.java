@@ -12,10 +12,12 @@ import static org.lwjgl.opengl.GL11.*;
  * @author Joa Ebert
  */
 public final class Graphics extends jitb.lang.Object {
-	private Shader _shader;
-
 	private interface ICommand {
 		void run();
+	}
+
+	private interface IFill extends ICommand {
+		void init(double x, double y, double width, double height);
 	}
 
 	private final class DrawRectCommand implements ICommand {
@@ -30,24 +32,26 @@ public final class Graphics extends jitb.lang.Object {
 
 		@Override
 		public void run() {
+			initFill(_x, _y, _width, _height);
+
 			glPolygonMode(GL_FRONT, GL_FILL);
 			glBegin(GL_QUADS); {
-				glTexCoord2d(0.0f, 0.0f);
+				glTexCoord2d(0.0, 0.0);
 				glVertex2d(_x, _y);
 
-				glTexCoord2d(_width, 0.0f);
+				glTexCoord2d(_width, 0.0);
 				glVertex2d(_x + _width, _y);
 
 				glTexCoord2d(_width, _height);
 				glVertex2d(_x + _width, _y + _height);
 
-				glTexCoord2d(0.0f, _height);
+				glTexCoord2d(0.0, _height);
 				glVertex2d(_x, _y + _height);
 			} glEnd();
 		}
 	}
 
-	private final class BeginShaderFillCommand implements ICommand {
+	private final class BeginShaderFillCommand implements IFill {
 		private final Shader _shader;
 		private final Matrix _matrix;
 
@@ -57,18 +61,30 @@ public final class Graphics extends jitb.lang.Object {
 		}
 
 		@Override
-		public void run() { _shader.JITB$bind(); }
+		public void run() {
+			lastFill(this);
+		}
+
+		@Override
+		public void init(final double x, final double y,
+									 final double width, final double height) {
+			_shader.JITB$bind(x, y, width, height);
+		}
 	}
 
 	private final class EndFillCommand implements ICommand {
 		public EndFillCommand() {}
 		
 		@Override
-		public void run() { ARBShaderObjects.glUseProgramObjectARB(0); }
+		public void run() {
+			lastFill(null);
+			ARBShaderObjects.glUseProgramObjectARB(0);
+		}
 	}
 
 	private LinkedList<ICommand> _commands = new LinkedList<ICommand>();
-
+	private IFill _lastFill = null;
+	
 	public void beginBitmapFill(final BitmapData bitmap, final Matrix matrix, final boolean repeat, final boolean smooth) {
 
 	}
@@ -125,6 +141,16 @@ public final class Graphics extends jitb.lang.Object {
 	public void JITB$render() {
 		for(final ICommand command : _commands) {
 			command.run();
+		}
+	}
+
+	private void lastFill(final IFill fill) {
+		_lastFill = fill;
+	}
+
+	private void initFill(double x, double y, double width, double height) {
+		if(null != _lastFill) {
+			_lastFill.init(x, y, width, height);
 		}
 	}
 }

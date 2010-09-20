@@ -318,8 +318,9 @@ class Pbj extends Dumpable {
 		}
 		write("#version 100")
 		write("#extension GL_ARB_texture_rectangle : enable")
+		write("uniform vec3 PB_OFFSET;")
 		val inputs = parameters map { _._1 } collect { case in: PInParameter if in.name != "_OutCoord" => in }
-		textures map { _.index } map { "uniform sampler2DRect tex%1$d; uniform vec2 texs%1$d;" format _ } foreach write
+		textures map { _.index } map { "uniform sampler2DRect tex%d;" format _ } foreach write
 		inputs map { p => "uniform "+glslType(p.`type`)+" "+p.name+";" } foreach write
 		write("void main(){")
 		ints map { "ivec4 i"+_+";" } foreach write
@@ -327,7 +328,8 @@ class Pbj extends Dumpable {
 		mat2 map { "mat2 m2"+_+";" } foreach write
 		mat3 map { "mat3 m3"+_+";" } foreach write
 		mat4 map { "mat4 m4"+_+";" } foreach write
-		write("f0.xy=gl_FragCoord.xy;")
+		write("f0.xy=gl_FragCoord.xy - PB_OFFSET.xy;")
+		write("f0.y=PB_OFFSET.z - f0.y;")
 		inputs map { p => regToString(p.register)+"="+p.name+";" } foreach write
 
 		case class BeginLoop(n: Int)

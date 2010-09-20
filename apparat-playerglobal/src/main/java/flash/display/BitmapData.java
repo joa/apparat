@@ -178,7 +178,7 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 					inputs[0].input(this);
 				}
 
-				shaderFilter.shader().JITB$bind();
+				shaderFilter.shader().JITB$bind(0.0, 0.0, width(), height());
 			}
 
 			sourceRect.JITB$render(false);
