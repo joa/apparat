@@ -283,8 +283,12 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case DefaultXMLNamespace(uri) => TODO(op)
 				case DefaultXMLNamespaceLate() => TODO(op)
 				case Equals() => TODO(op)
-				case EscapeXMLAttribute() => TODO(op)
-				case EscapeXMLElement() => TODO(op)
+				case EscapeXMLAttribute() => {
+					pp(TCall(TNull, TEscapeXMLAttribute, pop() :: Nil, Some(nextOperand)))
+				}
+				case EscapeXMLElement() => {
+					pp(TCall(TNull, TEscapeXMLElement, pop() :: Nil, Some(nextOperand)))
+				}
 				case FindProperty(property) => {//we are always strict...
 					property match {
 						case qname: AbcQName => {

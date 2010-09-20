@@ -47,26 +47,26 @@ protected[jbc] object Cast {
 				case TaasIntType => target match {
 					case TaasDoubleType => Right(mv.visitInsn(JOpcodes.I2D))
 					case TaasLongType => Right(mv.visitInsn(JOpcodes.I2L))
-					case TaasObjectType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;"))
+					case TaasObjectType | TaasAnyType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;"))
 					case TaasStringType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/String", "valueOf", "(I)Ljava/lang/String;"))
 					case other => Left(Cast.Error("Cannot convert from Int to "+other))
 				}
 				case TaasDoubleType => target match {
 					case TaasIntType => Right(mv.visitInsn(JOpcodes.D2I))
 					case TaasLongType => Right(mv.visitInsn(JOpcodes.D2L))
-					case TaasObjectType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;"))
+					case TaasObjectType | TaasAnyType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;"))
 					case TaasStringType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/String", "valueOf", "(D)Ljava/lang/String;"))
 					case other => Left(Cast.Error("Cannot convert from Double to "+other))
 				}
 				case TaasLongType => target match {
 					case TaasDoubleType => Right(mv.visitInsn(JOpcodes.L2D))
 					case TaasIntType =>  Right(mv.visitInsn(JOpcodes.L2I))
-					case TaasObjectType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;"))
+					case TaasObjectType | TaasAnyType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;"))
 					case TaasStringType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "java/lang/String", "valueOf", "(J)Ljava/lang/String;"))
 					case other => Left(Cast.Error("Cannot convert from Long to "+other))
 				}
 				case TaasStringType => target match {
-					case TaasObjectType => Right(())
+					case TaasObjectType | TaasAnyType => Right(mv.visitMethodInsn(JOpcodes.INVOKESTATIC, "jitb/lang/String", "valueOf", "(Ljava/lang/String;)Ljitb/lang/String;"))
 					case other => Left(Cast.Error("Cannot convert String to "+other))
 				}
 				case a: TaasNominalType => target match {

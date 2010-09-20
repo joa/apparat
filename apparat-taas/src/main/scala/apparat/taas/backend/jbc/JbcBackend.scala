@@ -327,6 +327,36 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							mv.visitJumpInsn(JOpcodes.GOTO, labels(jumps(jump)(0)))
 						}
 
+						case TCall(t, TEscapeXMLElement, value :: Nil, result) => {
+							loadAs(value, TaasStringType)
+							mv.visitMethodInsn(
+											JOpcodes.INVOKESTATIC,
+											"jitb/lang/AVM",
+											"escapeXMLElement",
+											"(Ljava/lang/String;)Ljava/lang/String;")
+							result match {
+								case Some(result) => storeByType(TEscapeXMLElement.`type`, result)
+								case None => if(TEscapeXMLElement.`type` != TaasVoidType) {
+									mv.visitInsn(JOpcodes.POP)
+								}
+							}
+						}
+
+						case TCall(t, TEscapeXMLAttribute, value :: Nil, result) => {
+							loadAs(value, TaasStringType)
+							mv.visitMethodInsn(
+											JOpcodes.INVOKESTATIC,
+											"jitb/lang/AVM",
+											"escapeXMLAttribute",
+											"(Ljava/lang/String;)Ljava/lang/String;")
+							result match {
+								case Some(result) => storeByType(TEscapeXMLAttribute.`type`, result)
+								case None => if(TEscapeXMLAttribute.`type` != TaasVoidType) {
+									mv.visitInsn(JOpcodes.POP)
+								}
+							}
+						}
+
 						case TCall(t, TSetProperty, property :: value :: Nil, result) => {
 							load(t)
 							Cast.checkCast(TaasObjectType)

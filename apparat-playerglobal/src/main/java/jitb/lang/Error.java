@@ -10,18 +10,18 @@ public class Error extends jitb.lang.Object {
 	private int _errorID;
 	private final Throwable _throwable = new Throwable();
 
-	public String message;
-	public String name = "Error";
+	public java.lang.String message;
+	public java.lang.String name = "Error";
 
 	public Error() {
 		this("");
 	}
 
-	public Error(final String message) {
+	public Error(final java.lang.String message) {
 		this(message, 0);
 	}
 
-	public Error(final String message, final int id) {
+	public Error(final java.lang.String message, final int id) {
 		this.message = message;
 		_errorID = id;
 	}
@@ -34,7 +34,7 @@ public class Error extends jitb.lang.Object {
 		_errorID = value;
 	}
 
-	public String getStackTrace() {
+	public java.lang.String getStackTrace() {
 		final StringWriter stringWriter = new StringWriter();
 
 		_throwable.printStackTrace(new PrintWriter(stringWriter));

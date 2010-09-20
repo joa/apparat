@@ -8,7 +8,7 @@ public class parseFloat extends jitb.lang.Object {
 		return callStatic("NaN");
 	}
 	
-	public static double callStatic(final String str) {
+	public static double callStatic(final java.lang.String str) {
 		return Double.parseDouble(str);
 	}
 }
