@@ -45,6 +45,7 @@ import org.objectweb.asm.util.{CheckClassAdapter => JCheckClassAdapter}
 import org.objectweb.asm.{ClassReader => JClassReader}
 import java.io.{PrintWriter => JPrintWriter}
 import org.lwjgl.opengl._
+import jitb.util.TextureUtil
 
 /**
  * @author Joa Ebert
@@ -208,15 +209,27 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		GL11.glLoadIdentity()
 		GL11.glViewport(0, 0, Display.getDisplayMode().getWidth(), Display.getDisplayMode().getHeight())
 
+
+		//
+		// Texture setup
+		//
+
+		if(!TextureUtil.useTextureRectangle) {
+			log.warning("Cannot use texture rectangle extension.")
+			GL11.glEnable(GL11.GL_TEXTURE_2D)
+		} else {
+			log.debug("Using rectangular texture mode.")
+			GL11.glEnable(GL11.GL_TEXTURE_2D)
+			GL11.glEnable(TextureUtil.mode)
+			//GL11.glEnable(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB);
+		}
+
 		//
 		// Generic setup
 		//
 
-		GL11.glEnable(GL11.GL_TEXTURE_2D)
-		GL11.glEnable(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB);
-		
 		GL11.glClearDepth(1.0)
-		GL11.glDisable(GL11.GL_DEPTH_TEST)
+		GL11.glDisable(GL11.GL_DEPTH_TEST | GL11.GL_DITHER | GL11.GL_BLEND)
 
 		//temporary for color transform until fragment shader
 		GL11.glShadeModel(GL11.GL_SMOOTH)

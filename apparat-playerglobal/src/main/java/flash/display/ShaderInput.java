@@ -3,13 +3,13 @@ package flash.display;
 import flash.utils.ByteArray;
 import jitb.lang.annotations.Element;
 import jitb.lang.annotations.Metadata;
+import jitb.util.TextureUtil;
 import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.GL13;
 
 import java.util.HashMap;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.glBindTexture;
 
 /**
  * @author Joa Ebert
@@ -125,7 +125,7 @@ public final class ShaderInput extends jitb.lang.Object {
 		switch(_inputType) {
 			case BITMAPDATA:
 				GL13.glActiveTexture(GL13.GL_TEXTURE0 + index());
-				glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, ((BitmapData)input()).JITB$textureId());
+				glBindTexture(TextureUtil.mode(), ((BitmapData)input()).JITB$textureId());
 				//glBindTexture(GL_TEXTURE_2D, ((BitmapData)input()).JITB$textureId());
 				break;
 			default:
@@ -137,7 +137,7 @@ public final class ShaderInput extends jitb.lang.Object {
 
 	public void JITB$unapplyInput() {
 		GL13.glActiveTexture(GL13.GL_TEXTURE0 + index());
-		glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB, 0);
+		glBindTexture(TextureUtil.mode(), 0);
 		//glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
