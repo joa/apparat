@@ -268,11 +268,12 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 
 	public long getPixel(final int x, final int y) {
 		final int index = y * _width * 4 + x * 4;
-		final byte red = _buffer.get(index);
-		final byte green = _buffer.get(index+1);
-		final byte blue = _buffer.get(index+2);
 
-		return (red << 0x10) | (green << 0x08) | blue;
+		final int red = _buffer.get(index) & 0xff;
+		final int green = _buffer.get(index+1) & 0xff;
+		final int blue = _buffer.get(index+2) & 0xff;
+
+		return ((red << 0x10) | (green << 0x08) | blue) & 0xffffffffL;
 	}
 
 	public void setPixel(final int x, final int y, final long color) {

@@ -154,9 +154,9 @@ class Pbj extends Dumpable {
 		byteArrayOutputStream.toByteArray
 	}
 
-	def toVertexShader = "void main(){"+
+	def toVertexShader = "void main(){gl_Position=ftransform();}"/*void main(){"+
 			((textures map { _.index } map { "gl_TexCoord[%1$d] = gl_MultiTexCoord%1$d;" format _ }).foldLeft("") { _ + _ } )+
-			"gl_Position = ftransform();}"
+			"gl_Position = ftransform();}"*/
 
 	def toFragmentShader = {
 		val builder = new StringBuilder()
@@ -316,7 +316,7 @@ class Pbj extends Dumpable {
 			case PBool3Type => "bvec3"
 			case PBool4Type => "bvec4"
 		}
-		write("#version 100")
+		//write("#version 100")
 		write("#extension GL_ARB_texture_rectangle : enable")
 		write("uniform vec4 PB_OFFSET;")
 		val inputs = parameters map { _._1 } collect { case in: PInParameter if in.name != "_OutCoord" => in }

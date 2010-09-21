@@ -126,7 +126,6 @@ public final class ShaderInput extends jitb.lang.Object {
 			case BITMAPDATA:
 				GL13.glActiveTexture(GL13.GL_TEXTURE0 + index());
 				glBindTexture(TextureUtil.mode(), ((BitmapData)input()).JITB$textureId());
-				//glBindTexture(GL_TEXTURE_2D, ((BitmapData)input()).JITB$textureId());
 				break;
 			default:
 				//
@@ -138,6 +137,5 @@ public final class ShaderInput extends jitb.lang.Object {
 	public void JITB$unapplyInput() {
 		GL13.glActiveTexture(GL13.GL_TEXTURE0 + index());
 		glBindTexture(TextureUtil.mode(), 0);
-		//glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }

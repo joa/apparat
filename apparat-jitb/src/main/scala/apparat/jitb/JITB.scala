@@ -221,7 +221,6 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 			log.debug("Using rectangular texture mode.")
 			GL11.glEnable(GL11.GL_TEXTURE_2D)
 			GL11.glEnable(TextureUtil.mode)
-			//GL11.glEnable(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB);
 		}
 
 		//

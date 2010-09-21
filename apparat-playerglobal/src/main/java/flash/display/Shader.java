@@ -83,7 +83,6 @@ public class Shader extends jitb.lang.Object {
 	
 	private Pbj pbj() {
 		if(null == _pbj && null != _byteCode) {
-			//ignore IDE error, code compiles and is correct
 			_pbj = ShaderUtil.getPbj(_byteCode);
 			_data = new ShaderData(_pbj);
 		}
