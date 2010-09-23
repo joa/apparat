@@ -36,11 +36,13 @@ public final class ContinuousFileLoader extends EventDispatcher {
 		EventSystem.execute(new Runnable() {
 			@Override
 			public void run() {
-				final File file = new File(continuousFileLoader._file);
+				File file = null;
 				long lastModified = 0L;
 
 				try {
 					while(continuousFileLoader._running && !Thread.interrupted()) {
+						file = new File(continuousFileLoader._file);
+
 						if(file.lastModified() > lastModified) {
 							lastModified = file.lastModified();
 
@@ -65,6 +67,8 @@ public final class ContinuousFileLoader extends EventDispatcher {
 							} catch(IOException e) {
 								/* ignored */
 							} finally {
+								file = null;
+								
 								if(null != fc) {
 									try { fc.close(); } catch(Throwable t) { /*nada*/ } 
 								}
