@@ -11,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 /**
@@ -36,13 +35,11 @@ public final class ContinuousFileLoader extends EventDispatcher {
 		EventSystem.execute(new Runnable() {
 			@Override
 			public void run() {
-				File file = null;
+				final File file = new File(continuousFileLoader._file);
 				long lastModified = 0L;
 
 				try {
 					while(continuousFileLoader._running && !Thread.interrupted()) {
-						file = new File(continuousFileLoader._file);
-
 						if(file.lastModified() > lastModified) {
 							lastModified = file.lastModified();
 
@@ -51,24 +48,17 @@ public final class ContinuousFileLoader extends EventDispatcher {
 
 							try {
 								fis = new FileInputStream(file);
-								fc = fis.getChannel();
-								final int fs = (int)fc.size();
-								final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(fs);
-								MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fs);
-								bb.load();
-								byteBuffer.put(bb);
-								bb = null;
-								byteBuffer.flip();
-								fc.close();
-								continuousFileLoader._data = ByteArray.JITB$fromBuffer(byteBuffer);
+								fc = fis.getChannel( );
+								ByteBuffer bb = ByteBuffer.allocateDirect((int)file.length());
+								int numBytesRead;
+								do { numBytesRead = fc.read(bb); } while(numBytesRead > 0);
+								continuousFileLoader._data = ByteArray.JITB$fromBuffer(bb);
 								EventSystem.delayedDispatch(continuousFileLoader, new Event(Event.COMPLETE));
 							} catch(FileNotFoundException e) {
 								/* ignored */
 							} catch(IOException e) {
 								/* ignored */
 							} finally {
-								file = null;
-								
 								if(null != fc) {
 									try { fc.close(); } catch(Throwable t) { /*nada*/ } 
 								}
