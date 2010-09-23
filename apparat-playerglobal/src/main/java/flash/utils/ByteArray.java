@@ -2,6 +2,7 @@ package flash.utils;
 
 import jitb.errors.MissingImplementationException;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.*;
 
 /**
@@ -135,6 +136,20 @@ public class ByteArray extends jitb.lang.Object {
 
 		return result;
 	}
+
+	public String readUTFBytes(final long length) {
+		final byte[] buffer = new byte[(int)length];
+
+		_buffer.position(_position);
+		_buffer.get(buffer);
+
+		try {
+			return new String(buffer, "UTF-8");
+		} catch(UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 
 	/**
 	 * Advances the internal pointer by a given amount of bytes.

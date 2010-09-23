@@ -8,7 +8,6 @@ import jitb.util.ShaderUtil;
 import org.lwjgl.opengl.ARBFragmentShader;
 import org.lwjgl.opengl.ARBShaderObjects;
 import org.lwjgl.opengl.ARBVertexShader;
-import org.lwjgl.opengl.GLContext;
 
 /**
  * @author Joa Ebert
@@ -50,12 +49,12 @@ public class Shader extends jitb.lang.Object {
 	
 	public void data(final ShaderData value) { _data = value; }
 
-	public void JITB$bind(double x, double y, double width, double height) {
+	public final void JITB$bind(double x, double y, double width, double height) {
 		JITB$bind(x, y, width, height, true);
 	}
 
 	public void JITB$bind(double x, double y, double width, double height, boolean flipY) {
-		if(GLContext.getCapabilities().GL_ARB_shader_objects) {
+		if(ShaderUtil.shaderSupport()) {
 			ARBShaderObjects.glUseProgramObjectARB(programId());
 
 			final int location = ARBShaderObjects.glGetUniformLocationARB(programId(), "PB_OFFSET");
@@ -90,7 +89,7 @@ public class Shader extends jitb.lang.Object {
 		return _pbj;
 	}
 
-	private int programId() {
+	protected int programId() {
 		if(-1 == _programId) {
 			compileShader();
 		}
@@ -98,10 +97,14 @@ public class Shader extends jitb.lang.Object {
 		return _programId;
 	}
 
-	private void compileShader() {
+	protected String vertexShader() { return pbj().toVertexShader(); }
+
+	protected String fragmentShader() { return pbj().toFragmentShader(); }
+
+	protected void compileShader() {
 		System.out.println("Compiling shader ...");
-		final String vertexShader = pbj().toVertexShader();
-		final String fragmentShader = pbj().toFragmentShader();
+		final String vertexShader = vertexShader();
+		final String fragmentShader = fragmentShader();
 
 		System.out.println("Vertex shader:");
 		System.out.println(vertexShader);

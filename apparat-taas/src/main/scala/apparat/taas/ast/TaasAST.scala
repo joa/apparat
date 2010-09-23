@@ -447,7 +447,7 @@ sealed trait TArgumentList {
 }
 
 case object TVoid extends TValue { override def `type` = TaasVoidType }
-case object TNull extends TValue { override def `type` = TaasVoidType }
+case object TNull extends TValue { override def `type` = TaasAnyType }
 case class TInt(value: Int) extends TConst {
 	override def `type` = TaasIntType
 	override def toString = value.toString

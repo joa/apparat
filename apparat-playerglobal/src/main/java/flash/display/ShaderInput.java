@@ -127,6 +127,7 @@ public final class ShaderInput extends jitb.lang.Object {
 				GL13.glActiveTexture(GL13.GL_TEXTURE0 + index());
 				glBindTexture(TextureUtil.mode(), ((BitmapData)input()).JITB$textureId());
 				break;
+
 			default:
 				//
 				// System.out.println("Warning: Unhandled input type "+_inputType+".");

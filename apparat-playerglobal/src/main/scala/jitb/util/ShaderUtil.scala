@@ -25,16 +25,64 @@ import flash.utils.ByteArray
 import apparat.pbj.pbjdata._
 import apparat.pbj.optimization.PbjOptimizer
 import flash.display.{ShaderInput, ShaderParameter}
+import org.lwjgl.opengl.GLContext
+import util.parsing.combinator.syntactical.StandardTokenParsers
 
 /**
  * @author Joa Ebert
  */
 object ShaderUtil {
+	object GLSLParameterParser extends StandardTokenParsers {
+		lexical.delimiters ++= List("+","-","*","/","(",")", ";", ".", "=", "{", "}")
+
+		def apply(value: String): Array[ShaderParameter] = {
+			import lexical.Identifier
+
+			var tokens = new lexical.Scanner(value)
+			var i = 0
+			var t = ""
+			var params = List.empty[ShaderParameter]
+
+			while(!tokens.atEnd) {
+				tokens.first match {
+					case Identifier("uniform") if i == 0 => i = 1
+					case Identifier("float") if i == 1 => t = "float"; i = 2
+					case Identifier("vec2") if i == 1 => t = "float2"; i = 2
+					case Identifier("vec3") if i == 1 => t = "float3"; i = 2
+					case Identifier("vec4") if i == 1 => t = "float4"; i = 2
+					case Identifier("mat2") if i == 1 => t = "float2x2"; i = 2
+					case Identifier("mat3") if i == 1 => t = "float3x3"; i = 2
+					case Identifier("mat4") if i == 1 => t = "float4x4"; i = 2
+					case Identifier("int") if i == 1 => t = "int"; i = 2
+					case Identifier("ivec2") if i == 1 => t = "int2"; i = 2
+					case Identifier("ivec3") if i == 1 => t = "int3"; i = 2
+					case Identifier("ivec4") if i == 1 => t = "int4"; i = 2
+					case Identifier("bool") if i == 1 => t = "bool"; i = 2
+					case Identifier("bvec2") if i == 1 => t = "bool2"; i = 2
+					case Identifier("bvec3") if i == 1 => t = "bool3"; i = 2
+					case Identifier("bvec4") if i == 1 => t = "bool4"; i = 2
+					case Identifier(name) if i == 2 =>
+						i = 0
+						params = ShaderParameter.JITB$create(name, null, null, null, null, t, -1) :: params
+					case _ => i = 0
+				}
+
+				tokens = tokens.rest
+			}
+
+			params.toArray
+		}
+	}
+	
+	lazy val shaderSupport = GLContext.getCapabilities.GL_ARB_shader_objects
+
 	def getPbj(byteCode: ByteArray): apparat.pbj.Pbj = {
 		val pbj = Pbj fromByteArray byteCode.JITB$toByteArray()
 		//PbjOptimizer(pbj)
 		pbj
 	}
+
+	def getGLSLParameters(shader: String): Array[ShaderParameter] = GLSLParameterParser(shader)
 	
 	def getShaderParameters(pbj: apparat.pbj.Pbj): Array[ShaderParameter] = {
 		val result = new Array[ShaderParameter](pbj.parameters.length)

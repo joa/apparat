@@ -211,7 +211,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				}*/
 
 				for(op <- ops) {
-					//log.debug("Emit %s", op)
+					log.debug("Emit %s", op)
 					(labels get op) match {
 						case Some(label) => mv.visitLabel(label)
 						case None =>
@@ -293,6 +293,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 											mv.visitInsn(JOpcodes.DCMPG)
 											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if2)(0)))
 										}
+										case _: TaasNominalType => mv.visitJumpInsn(JOpcodes.IF_ACMPEQ, labels(jumps(if2)(0)))
 									}
 								}
 								case TOp_< => {

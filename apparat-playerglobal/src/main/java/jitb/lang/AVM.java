@@ -26,7 +26,7 @@ public final class AVM {
 	
 	@SuppressWarnings("unchecked")
 	public static void coerce(final java.lang.Object value, final java.lang.Class type) {
-		if(!type.isAssignableFrom(value.getClass())) {
+		if(null != value && !type.isAssignableFrom(value.getClass())) {
 			ErrorUtil.flashThrow(ErrorUtil.error1034(value, type));
 		}
 	}

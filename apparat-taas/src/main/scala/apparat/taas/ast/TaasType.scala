@@ -32,6 +32,8 @@ object TaasType {
 
 	def widenOption(a: TaasType, b: TaasType): Option[TaasType] = {
 		if(a == b) { Some(a)
+		} else if(a == TaasAnyType) { Some(b)
+		} else if(b == TaasAnyType) { Some(a)
 		} else if(a == TaasStringType || b == TaasStringType) { Some(TaasStringType)
 		} else if(a == TaasDoubleType || b == TaasDoubleType) { Some(TaasDoubleType)
 		} else if((a == TaasLongType && b != TaasLongType) || (a != TaasLongType && b == TaasLongType)) { Some(TaasDoubleType)

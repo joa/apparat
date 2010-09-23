@@ -71,7 +71,7 @@ public class URLLoader extends EventDispatcher {
 					byteBuffer.put(bb);
 					byteBuffer.flip();
 					fc.close();
-					data = ByteArray.JITB$fromBuffer(byteBuffer);
+					urlLoader.data = ByteArray.JITB$fromBuffer(byteBuffer);
 					EventSystem.delayedDispatch(urlLoader, new Event(Event.COMPLETE));
 				} catch(FileNotFoundException e) {
 					//dispatch IOErrorEvent

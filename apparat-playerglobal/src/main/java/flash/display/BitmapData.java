@@ -196,7 +196,7 @@ public class BitmapData extends jitb.lang.Object implements IBitmapDrawable {
 
 		_buffer.clear();
 		glReadPixels(0, 0, width(), height(), GL_RGBA, GL_UNSIGNED_BYTE, _buffer);
-		_invalidated = false;
+		_invalidated = -1 != bufferTextureId;
 
 		//
 		// Cleanup

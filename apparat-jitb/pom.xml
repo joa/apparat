@@ -33,6 +33,31 @@
           <basedir>src/test/scala</basedir>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>apparat-ersatz</artifactId>
+                  <version>${project.version}</version>
+                  <type>swc</type>
+                  <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                  <destFileName>apparat-ersatz.swc</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

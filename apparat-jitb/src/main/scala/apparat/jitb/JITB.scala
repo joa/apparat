@@ -163,6 +163,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val builtin = getClass getResource "/builtin.abc"
 		val toplevel = getClass getResource "/toplevel.abc"
 		val playerglobal = getClass getResource "/playerglobal.swc"
+		val ersatz = getClass getResource "/apparat-ersatz.swc"
 
 		if(null == builtin) {
 			log.debug("Failed to load /builtin.abc")
@@ -173,6 +174,9 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		} else if(null == playerglobal) {
 			log.debug("Failed to load /playerglobal.swc")
 			true
+		} else if(null == ersatz) {
+			log.debug("Failed to load /apparat-ersatz.swc")
+			true
 		} else { false } match {
 			case true => throw JITBException("Could not load builtins.")
 			case false =>
@@ -181,8 +185,10 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val builtinABC = using(builtin.openStream) { Abc fromInputStream _ }
 		val toplevelABC = using(toplevel.openStream) { Abc fromInputStream _ }
 		val playerglobalSWC = using(playerglobal.openStream) { Swc fromInputStream _ }
+		val ersatzSWC = using(ersatz.openStream) { Swc fromInputStream _ }
+		def collect(value: Swc) = (Swf fromSwc value).tags collect { case doABC: DoABC => Abc fromDoABC doABC }
 
-		(builtinABC :: toplevelABC :: Nil) ::: (Swf fromSwc playerglobalSWC).tags collect { case doABC: DoABC => Abc fromDoABC doABC }
+		(builtinABC :: toplevelABC :: Nil) ::: collect(playerglobalSWC) ::: collect(ersatzSWC)
 	}
 
 	private def runWithDisplay(swf: Swf, main: Class[_]): Unit = {
