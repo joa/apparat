@@ -43,16 +43,19 @@ public final class ContinuousFileLoader extends EventDispatcher {
 					while(continuousFileLoader._running && !Thread.interrupted()) {
 						if(file.lastModified() > lastModified) {
 							lastModified = file.lastModified();
+
 							FileInputStream fis = null;
+							FileChannel fc = null;
 
 							try {
 								fis = new FileInputStream(file);
-								final FileChannel fc = fis.getChannel();
+								fc = fis.getChannel();
 								final int fs = (int)fc.size();
-								final MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fs);
 								final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(fs);
+								MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fs);
 								bb.load();
 								byteBuffer.put(bb);
+								bb = null;
 								byteBuffer.flip();
 								fc.close();
 								continuousFileLoader._data = ByteArray.JITB$fromBuffer(byteBuffer);
@@ -62,6 +65,9 @@ public final class ContinuousFileLoader extends EventDispatcher {
 							} catch(IOException e) {
 								/* ignored */
 							} finally {
+								if(null != fc) {
+									try { fc.close(); } catch(Throwable t) { /*nada*/ } 
+								}
 								if(null != fis) {
 									try { fis.close(); } catch(Throwable t) { /*nada*/ }
 								}
