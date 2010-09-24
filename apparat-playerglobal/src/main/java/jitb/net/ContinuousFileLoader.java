@@ -60,10 +60,12 @@ public final class ContinuousFileLoader extends EventDispatcher {
 								/* ignored */
 							} finally {
 								if(null != fc) {
-									try { fc.close(); } catch(Throwable t) { /*nada*/ } 
+									try { fc.close();
+										System.out.println("close fc"); } catch(Throwable t) { /*nada*/ }
 								}
 								if(null != fis) {
-									try { fis.close(); } catch(Throwable t) { /*nada*/ }
+									try { fis.close();
+										System.out.println("close fis");} catch(Throwable t) { /*nada*/ }
 								}
 							}
 						}
