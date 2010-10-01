@@ -51,8 +51,18 @@ import jitb.util.TextureUtil
  * @author Joa Ebert
  */
 object JITB {
+	System.setProperty("apparat.debug", "true")//for now
+	
 	val DEBUG = System.getProperty("apparat.debug", "false").toLowerCase == "true"
 	def main(arguments: Array[String]): Unit = {
+		val (os, separator) = (System getProperty "os.name" split ' ')(0).toLowerCase match {
+				case "linux" => "linux" -> ":"
+				case "mac" => "macosx" -> ":"
+				case "windows" => "windows" -> ";"
+				case "sunos" => "solaris" -> ":"
+				case x => x -> ":"
+		}
+
 		Log.level = if(DEBUG) Debug else Info
 		Log.addOutput(new ConsoleOutput())
 
@@ -123,7 +133,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 
 		val main = Class.forName(mainClass, true, loader)
 
-		AVM.basePath(configuration.file.getParent)
+		AVM.basePath(configuration.file.getAbsoluteFile.getParent)
 		AVM.start()
 
 		try {

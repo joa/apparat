@@ -71,13 +71,13 @@ protected[jbc] object Java {
 	}
 
 	@inline
-	def visibilityOf(withNamespace: {def namespace: TaasNamespace}) = withNamespace.namespace match {
+	def visibilityOf(withNamespace: {def namespace: TaasNamespace}) = JOpcodes.ACC_PUBLIC/*withNamespace.namespace match {
 		case TaasPublic => JOpcodes.ACC_PUBLIC
 		case TaasInternal => JOpcodes.ACC_PUBLIC
 		case TaasProtected => JOpcodes.ACC_PROTECTED
 		case TaasPrivate => JOpcodes.ACC_PRIVATE
 		case TaasExplicit(_) => JOpcodes.ACC_PUBLIC
-	}
+	}*/
 
 	@inline
 	def ownerOf(definition: TaasDefinition) = definition.parent match {

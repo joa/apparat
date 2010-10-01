@@ -140,9 +140,9 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 		var scopeStack = stack._2
 
 		@inline def pp(expr: TExpr) = {
-			if(log.debugEnabled) {
+			/*if(log.debugEnabled) {
 				log.debug("%s", expr)
-			}
+			}*/
 			r = expr :: r
 		}
 		@inline def register(i: Int): TReg = registers(i)

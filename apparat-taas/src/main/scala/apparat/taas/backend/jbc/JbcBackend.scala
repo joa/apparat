@@ -211,7 +211,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				}*/
 
 				for(op <- ops) {
-					log.debug("Emit %s", op)
+					//log.debug("Emit %s", op)
 					(labels get op) match {
 						case Some(label) => mv.visitLabel(label)
 						case None =>
