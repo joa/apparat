@@ -73,6 +73,36 @@ object ShaderUtil {
 			params.toArray
 		}
 	}
+
+	object GLSLTextureParser extends StandardTokenParsers {
+		lexical.delimiters ++= List("+","-","*","/","(",")", ";", ".", "=", "{", "}")
+
+		def apply(value: String): Array[ShaderInput] = {
+			import lexical.Identifier
+
+			var tokens = new lexical.Scanner(value)
+			var i = 0
+			var n = 0
+			var inputs = List.empty[ShaderInput]
+
+			while(!tokens.atEnd) {
+				tokens.first match {
+					case Identifier("uniform") if i == 0 => i = 1
+					case Identifier("sampler2D") if i == 1 => i = 2
+					case Identifier("sampler2DRect") if i == 1 => i = 2
+					case Identifier(name) if i == 2 =>
+						i = 0
+						inputs = ShaderInput.JITB$create(name, 4, n) :: inputs
+						n = n + 1
+					case _ => i = 0
+				}
+
+				tokens = tokens.rest
+			}
+
+			inputs.toArray
+		}
+	}
 	
 	lazy val shaderSupport = GLContext.getCapabilities.GL_ARB_shader_objects
 
@@ -83,6 +113,7 @@ object ShaderUtil {
 	}
 
 	def getGLSLParameters(shader: String): Array[ShaderParameter] = GLSLParameterParser(shader)
+	def getGLSLTextures(shader: String): Array[ShaderInput] = GLSLTextureParser(shader)
 	
 	def getShaderParameters(pbj: apparat.pbj.Pbj): Array[ShaderParameter] = {
 		val result = new Array[ShaderParameter](pbj.parameters.length)

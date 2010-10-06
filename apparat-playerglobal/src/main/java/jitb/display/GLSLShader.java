@@ -2,7 +2,6 @@ package jitb.display;
 
 import flash.display.Shader;
 import flash.display.ShaderData;
-import flash.display.ShaderInput;
 import flash.utils.ByteArray;
 import jitb.util.ShaderUtil;
 import org.lwjgl.opengl.ARBShaderObjects;
@@ -25,7 +24,7 @@ public final class GLSLShader extends Shader {
 		data(
 			ShaderData.JITB$fromParameters(
 				ShaderUtil.getGLSLParameters(_fragmentShader),
-				new ShaderInput[0]
+				ShaderUtil.getGLSLTextures(_fragmentShader)
 			)
 		);
 	}

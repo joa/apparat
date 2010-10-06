@@ -51,7 +51,11 @@ import jitb.util.TextureUtil
  * @author Joa Ebert
  */
 object JITB {
-	System.setProperty("apparat.debug", "true")//for now
+	//
+	// JITB currently has to run in debug mode.
+	//
+	
+	System.setProperty("apparat.debug", "true")
 	
 	val DEBUG = System.getProperty("apparat.debug", "false").toLowerCase == "true"
 	def main(arguments: Array[String]): Unit = {

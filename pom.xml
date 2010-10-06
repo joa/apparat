@@ -322,12 +322,12 @@
   <profiles>
     <profile>
       <id>optimise</id>
-      <!--activation>
+      <activation>
         <property>
           <name>performRelease</name>
           <value>true</value>
         </property>
-      </activation-->
+      </activation>
       <build>
         <plugins>
           <plugin>
