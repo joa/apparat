@@ -16,6 +16,7 @@
     <maven.version>3.0-beta-1</maven.version>
     <flexmojos.version>4.0-alpha-4</flexmojos.version>
     <flexmojos.testrunner>TestRunner.swf</flexmojos.testrunner>
+    <lwjgl.version>2.5</lwjgl.version>
   </properties>
 
   <groupId>com.googlecode.apparat</groupId>
@@ -88,6 +89,21 @@
         <artifactId>junit</artifactId>
         <version>4.4</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>lwjgl</groupId>
+        <artifactId>lwjgl</artifactId>
+        <version>${lwjgl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>lwjgl</groupId>
+        <artifactId>jinput</artifactId>
+	<version>${lwjgl.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>lwjgl</groupId>
+        <artifactId>lwjgl-util</artifactId>
+	<version>${lwjgl.version}</version>
       </dependency>
       <dependency>
         <groupId>com.adobe.flex.framework</groupId>
@@ -275,10 +291,10 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
-    <repository>
+    <!--repository>
       <id>nifty-maven-repo.sourceforge.net</id>
       <url>http://nifty-gui.sourceforge.net/nifty-maven-repo</url>
-    </repository>
+    </repository-->
   </repositories>
 
   <pluginRepositories>
@@ -306,12 +322,12 @@
   <profiles>
     <profile>
       <id>optimise</id>
-      <!--activation>
+      <activation>
         <property>
           <name>performRelease</name>
           <value>true</value>
         </property>
-      </activation-->
+      </activation>
       <build>
         <plugins>
           <plugin>

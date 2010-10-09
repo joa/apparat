@@ -6,6 +6,8 @@ import output.ConsoleOutput
 
 object ApparatApplication extends SimpleLog {
 	val scalaVersionString = "version 2.8.0.final"
+	var outputAdded = false
+
 	def apply(tool: ApparatTool, args: Array[String]): Int = {
 		val t0 = System.currentTimeMillis()
 		var result = 0
@@ -26,7 +28,11 @@ object ApparatApplication extends SimpleLog {
 		}
 
 		Log.level = if(System.getProperty("apparat.debug", "false").toLowerCase == "true") Debug else Info
-		Log.addOutput(new ConsoleOutput())
+
+		if((System.getProperty("apparat.quiet", "false").toLowerCase == "false") && !outputAdded) {
+			outputAdded = true
+			Log.addOutput(new ConsoleOutput())
+		}
 
 		try {
 			log.info("Apparat -- http://apparat.googlecode.com/")

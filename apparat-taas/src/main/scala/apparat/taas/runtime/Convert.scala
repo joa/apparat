@@ -27,7 +27,7 @@ import apparat.taas.ast._
  */
 object Convert {
 	def apply(value: TConst, toType: TaasType): Option[TConst] = {
-		if(value.`type` == toType) {
+		if(TaasType.isEqual(value.`type`, toType)) {
 			Some(value)
 		} else {
 			value match {

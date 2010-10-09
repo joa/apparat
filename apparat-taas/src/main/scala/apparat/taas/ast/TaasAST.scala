@@ -78,7 +78,7 @@ trait ParentUnit {
 	}
 }
 
-case class TaasAST(units: ListBuffer[TaasUnit]) extends TaasTree with TaasParent {
+class TaasAST(val units: ListBuffer[TaasUnit]) extends TaasTree with TaasParent {
 	type T = TaasUnit
 	def children = units
 	def init(): this.type = {
@@ -204,7 +204,7 @@ case class TaasMethod(
 		writer <= toString
 		code match {
 			case Some(code) => writer withIndent {
-				code dump writer
+				//code dump writer
 			}
 			case None =>
 		}
@@ -447,7 +447,7 @@ sealed trait TArgumentList {
 }
 
 case object TVoid extends TValue { override def `type` = TaasVoidType }
-case object TNull extends TValue { override def `type` = TaasVoidType }
+case object TNull extends TValue { override def `type` = TaasAnyType }
 case class TInt(value: Int) extends TConst {
 	override def `type` = TaasIntType
 	override def toString = value.toString
@@ -616,3 +616,7 @@ case class TStore(`object`: TValue, field: TaasField, value: TValue) extends TEx
 
 case object TSetIndex extends TaasMethod('TSet, TaasPublic, TaasVoidType, ListBuffer(TaasParameter(TaasIntType, None), TaasParameter(TaasObjectType, None)), false, true, true, None)
 case object TGetIndex extends TaasMethod('TGet, TaasPublic, TaasObjectType, ListBuffer(TaasParameter(TaasIntType, None)), false, true, true, None)
+case object TSetProperty extends TaasMethod('TSetProperty, TaasPublic, TaasVoidType, ListBuffer(TaasParameter(TaasStringType, None), TaasParameter(TaasObjectType, None)), false, true, true, None)
+case object TGetProperty extends TaasMethod('TGetProperty, TaasPublic, TaasObjectType, ListBuffer(TaasParameter(TaasStringType, None)), false, true, true, None)
+case object TEscapeXMLElement extends TaasMethod('TEscapeXMLElement, TaasPublic, TaasStringType, ListBuffer(TaasParameter(TaasStringType, None)), false, true, true, None)
+case object TEscapeXMLAttribute extends TaasMethod('TEscapeXMLAttribute, TaasPublic, TaasStringType, ListBuffer(TaasParameter(TaasStringType, None)), false, true, true, None)

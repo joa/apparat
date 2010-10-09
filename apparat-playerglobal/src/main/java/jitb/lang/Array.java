@@ -165,7 +165,7 @@ public class Array extends jitb.lang.Object {
 		return -1;
 	}
 
-	public String join(final java.lang.Object sep) {
+	public java.lang.String join(final java.lang.Object sep) {
 		final StringBuilder builder = new StringBuilder();
 		final int n = _arrayList.size();
 		final int m = n - 1;
@@ -323,12 +323,12 @@ public class Array extends jitb.lang.Object {
 		throw new MissingImplementationException("Array.splice");
 	}
 
-	public String toLocaleString() {
+	public java.lang.String toLocaleString() {
 		return toString();
 	}
 
 	@Override
-	public String toString() {
+	public java.lang.String toString() {
 		final StringBuilder builder = new StringBuilder();
 		final int n = _arrayList.size();
 		final int m = n - 1;
@@ -359,11 +359,13 @@ public class Array extends jitb.lang.Object {
 		return _arrayList.size();
 	}
 
-	public java.lang.Object JITB$get(final int index) {
+	@Override
+	public java.lang.Object JITB$getIndex(final int index) {
 		return _arrayList.get(index);
 	}
 
-	public void JITB$set(final int index, final java.lang.Object value) {
+	@Override
+	public void JITB$setIndex(final int index, final java.lang.Object value) {
 		final int n = _arrayList.size();
 
 		if(index > n) {

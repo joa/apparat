@@ -23,13 +23,17 @@ package apparat.taas.ast
 /**
  * @author Joa Ebert
  */
-sealed trait TaasType
+sealed trait TaasType {
+	def isEqual(that: TaasType) = TaasType.isEqual(this, that)
+}
 
 object TaasType {
 	def widenOption(a: TaasTyped, b: TaasTyped): Option[TaasType] = widenOption(a.`type`, b.`type`)
 
 	def widenOption(a: TaasType, b: TaasType): Option[TaasType] = {
 		if(a == b) { Some(a)
+		} else if(a == TaasAnyType) { Some(b)
+		} else if(b == TaasAnyType) { Some(a)
 		} else if(a == TaasStringType || b == TaasStringType) { Some(TaasStringType)
 		} else if(a == TaasDoubleType || b == TaasDoubleType) { Some(TaasDoubleType)
 		} else if((a == TaasLongType && b != TaasLongType) || (a != TaasLongType && b == TaasLongType)) { Some(TaasDoubleType)
@@ -41,6 +45,28 @@ object TaasType {
 	def widen(a: TaasTyped, b: TaasTyped): TaasType = widen(a.`type`, b.`type`)
 
 	def widen(a: TaasType, b: TaasType): TaasType = widenOption(a, b) getOrElse error("Cannot widen types "+a+" and "+b+".")
+
+	def isEqual(a: TaasType, b: TaasType): Boolean = a match {
+		case TaasAnyType => b == TaasAnyType
+		case TaasVoidType => b == TaasVoidType
+		case TaasBooleanType => b == TaasBooleanType
+		case TaasDoubleType => b == TaasDoubleType
+		case TaasIntType => b == TaasIntType
+		case TaasObjectType => b == TaasObjectType
+		case TaasStringType => b == TaasStringType
+		case TaasLongType => b == TaasLongType
+		case TaasFunctionType => b == TaasFunctionType
+		case x: TaasParameterizedType => b match {
+			case y: TaasParameterizedType => if(x.nominal == y.nominal) {
+				x.parameters zip y.parameters forall { x => x._1 == x._2 }
+			} else { false }
+			case _ => false
+		}
+		case x: TaasNominalType => b match {
+			case y: TaasNominalType => x.nominal == y.nominal
+			case _ => false
+		}
+	}
 }
 
 object TaasAnyType extends TaasType {
@@ -81,6 +107,7 @@ object TaasFunctionType extends TaasType {
 
 trait TaasNominalType extends TaasType  {
 	def nominal: TaasNominal
+	
 	override def toString = {
 		"TaasType(\"" + nominal.qualifiedName + "\")"
 	}

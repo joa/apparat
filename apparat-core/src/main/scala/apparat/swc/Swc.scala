@@ -111,18 +111,20 @@ class Swc {
 	private def extract(implicit input: JZipInputStream): Unit = input getNextEntry match {
 		case null => {}
 		case entry => {
-			val name = entry.getName()
-			val size = entry.getSize()
+			if(entry.isDirectory) {
+				extract(input)
+			} else {
+				val name = entry.getName()
+				val size = entry.getSize()
 
-			if (entry isDirectory) error("Unexpected directory in SWC.")
+				name match {
+					case "catalog.xml" => catalog = Some(extractBytes(size.asInstanceOf[Int]))
+					case "library.swf" => library = Some(extractBytes(size.asInstanceOf[Int]))
+					case other => unknown += other -> extractBytes(size.asInstanceOf[Int])
+				}
 
-			name match {
-				case "catalog.xml" => catalog = Some(extractBytes(size.asInstanceOf[Int]))
-				case "library.swf" => library = Some(extractBytes(size.asInstanceOf[Int]))
-				case other => unknown += other -> extractBytes(size.asInstanceOf[Int])
+				extract(input)
 			}
-
-			extract(input)
 		}
 	}
 

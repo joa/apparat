@@ -3,9 +3,10 @@ package flash.display;
 import flash.events.EventDispatcher;
 import flash.geom.Matrix;
 import flash.geom.Transform;
-import jitb.display.DisplayList;
+import jitb.display.DisplaySystem;
 import jitb.display.IDisplayObject;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.DoubleBuffer;
@@ -15,7 +16,7 @@ import java.nio.DoubleBuffer;
  */
 public abstract class DisplayObject extends EventDispatcher implements IBitmapDrawable, IDisplayObject {
 	private final DoubleBuffer modelViewMatrix = BufferUtils.createDoubleBuffer(16);
-
+	
 	private double _x = 0.0;
 	private double _y = 0.0;
 	private double _scaleX = 1.0;
@@ -27,7 +28,7 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 	private final Transform _transform = new Transform().JITB$init(this);
 
 	public DisplayObject() {
-		DisplayList.register(this);
+		DisplaySystem.register(this);
 	}
 
 	public Stage stage() { return null; }
@@ -127,4 +128,7 @@ public abstract class DisplayObject extends EventDispatcher implements IBitmapDr
 			GL11.glPopMatrix();
 		}
 	}
+
+	public double mouseX() { return Mouse.getX(); }
+	public double mouseY() { return Mouse.getX(); }
 }

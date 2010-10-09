@@ -21,6 +21,7 @@
       <outputDirectory>/lib</outputDirectory>
       <includes>
         <include>asm:*:jar</include>
+        <include>lwjgl:*:jar</include>
       </includes>
     </dependencySet>
   </dependencySets>

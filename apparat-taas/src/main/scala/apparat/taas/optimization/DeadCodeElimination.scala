@@ -98,8 +98,8 @@ object DeadCodeElimination extends TaasOptimization {
 		for(op <- block) {
 			op match {
 				case t2 @ T2(TOp_Nothing, a: TReg, b) if a.index == b.index => r = t2 :: r
-				case t2 @ T2(TCoerce(t), a, b) if a.`type` == t => r = t2 :: r
-				case t2 @ T2(TConvert(t), a, b) if a.`type` == t => r = t2 :: r
+				case t2 @ T2(TCoerce(t), a, b) if TaasType.isEqual(a.`type`, t) => r = t2 :: r
+				case t2 @ T2(TConvert(t), a, b) if TaasType.isEqual(a.`type`, t) => r = t2 :: r
 				case d: TDef => {
 					val p = h partition { h => h.register == d.register && !(d uses h.register) }
 					r = p._1 ::: r

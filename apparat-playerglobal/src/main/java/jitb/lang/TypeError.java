@@ -6,7 +6,7 @@ import jitb.errors.ErrorUtil;
  * @author Joa Ebert
  */
 public class TypeError extends Error {
-	public TypeError(final String message) {
+	public TypeError(final java.lang.String message) {
 		super(message);
 		name = "TypeError";
 	}

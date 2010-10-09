@@ -140,9 +140,9 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 		var scopeStack = stack._2
 
 		@inline def pp(expr: TExpr) = {
-			if(log.debugEnabled) {
+			/*if(log.debugEnabled) {
 				log.debug("%s", expr)
-			}
+			}*/
 			r = expr :: r
 		}
 		@inline def register(i: Int): TReg = registers(i)
@@ -200,11 +200,15 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case CallProperty(property, numArguments) => {
 					val args = arguments(numArguments)
 					val obj = pop()
-					val method = AbcSolver.property(obj.`type`, property, numArguments) match {
-						case Some(method: TaasMethod) => method
-						case _ => error("Could not find property "+property+" on "+obj.`type`)
+					if(AbcTypes.isEqual(obj.`type`, property) && args.length == 1) {
+						pp(T2(TConvert(obj.`type`), args.head, nextOperand))
+					} else {
+						val method = AbcSolver.property(obj.`type`, property, numArguments) match {
+							case Some(method: TaasMethod) => method
+							case _ => error("Could not find property "+property+" on "+obj.`type`)
+						}
+						pp(TCall(obj, method, args, Some(nextOperand)))
 					}
-					pp(TCall(obj, method, args, Some(nextOperand)))
 				}
 				case CallPropLex(property, numArguments) => TODO(op)
 				case CallPropVoid(property, numArguments) => {
@@ -279,9 +283,31 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case DefaultXMLNamespace(uri) => TODO(op)
 				case DefaultXMLNamespaceLate() => TODO(op)
 				case Equals() => TODO(op)
-				case EscapeXMLAttribute() => TODO(op)
-				case EscapeXMLElement() => TODO(op)
-				case FindProperty(property) => TODO(op)
+				case EscapeXMLAttribute() => {
+					pp(TCall(TNull, TEscapeXMLAttribute, pop() :: Nil, Some(nextOperand)))
+				}
+				case EscapeXMLElement() => {
+					pp(TCall(TNull, TEscapeXMLElement, pop() :: Nil, Some(nextOperand)))
+				}
+				case FindProperty(property) => {//we are always strict...
+					property match {
+						case qname: AbcQName => {
+							scopeType match {
+								case t: TaasNominalType =>
+									pp(push(TLexical(AbcSolver.property(t.nominal, property) getOrElse {
+										(AbcTypes name2type qname) match {
+											case n: TaasNominalType => n.nominal
+											case other => error("TaasNominalType expected, got "+other+".")
+										}})))
+								case _ => pp(push(TLexical((AbcTypes name2type qname) match {
+											case n: TaasNominalType => n.nominal
+											case other => error("TaasNominalType expected, got "+other+".")
+										})))
+							}
+						}
+						case _ => error("QName expected.")
+					}
+				}
 				case FindPropStrict(property) => {
 					property match {
 						case qname: AbcQName => {
@@ -314,6 +340,11 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 							val obj = pop()
 
 							pp(TCall(obj, TGetIndex, index :: Nil, Some(nextOperand)))
+						}
+						case multiname: AbcMultiname => {
+							log.warning("Dynamic variable lookup in GetProperty(%s).", property)
+							val obj = pop()
+							pp(TCall(obj, TGetProperty, TString(multiname.name) :: Nil, Some(nextOperand)))
 						}
 						case _ => {
 							val obj = pop()
@@ -383,12 +414,50 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				case Multiply() | MultiplyInt() => pp(binop(TOp_*))
 				case Negate() | NegateInt() => TODO(op)
 				case NewActivation() => TODO(op)
-				case NewArray(numArguments) => TODO(op)
+				case NewArray(numArguments) => {
+					//
+					// TODO need different strategy
+					//
+					// push 800
+					// newArray(1)
+					//
+					// Results in register based:
+					//
+					// r0 = 800
+					// r0 = newArray(1)
+					//
+					// We cannot expand to this:
+					//
+					// r0 = 800
+					// r0 = new Array()
+					// r0[0] = r0
+					//
+					// Hack as:
+					//
+					// r0 = 800
+					// r1 = new Array()
+					// r1[0] = r0
+					// r0 = r1
+					//
+					val elements = for(i <- 0 until numArguments) yield pop()
+					val result = operandStack
+					val arrayRegister = operand(result+numArguments)
+					operandStack += 1
+					pp(TConstruct(TClass(AbcTypes.fromQName('Array, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))), Nil, arrayRegister))
+					elements.zipWithIndex foreach { x => pp(TCall(arrayRegister, TSetIndex, TInt(x._2) :: x._1 :: Nil, None)) }
+					pp(T2(TOp_Nothing, arrayRegister, operand(result)))
+				}
+
 				case NewCatch(exceptionHandler) => TODO(op)
 				case NewClass(nominalType) => TODO(op)
 				case NewFunction(function) => TODO(op)
 				case NewObject(numArguments) => TODO(op)
-				case NextName() | NextValue() | Nop() | Not() | Pop() | PopScope() => TODO(op)
+				case NextName() => TODO(op)
+				case NextValue() => TODO(op)
+				case Nop() => TODO(op)
+				case Not() => TODO(op)
+				case Pop() => pop()
+				case PopScope() => TODO(op)
 				case PushByte(value) => pp(push(TInt(value)))
 				case PushDouble(value) => pp(push(TDouble(value)))
 				case PushFalse() => pp(push(TBool(false)))
@@ -416,6 +485,11 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 							val obj = pop()
 
 							pp(TCall(obj, TSetIndex, index :: arg :: Nil, None))
+						}
+						case multiname: AbcMultiname => {
+							log.warning("Dynamic variable lookup in SetProperty(%s).", property)
+							val obj = pop()
+							pp(TCall(obj, TSetProperty, TString(multiname.name) :: arg :: Nil, None))
 						}
 						case _ => val obj = pop()
 							AbcSolver.setProperty(obj.`type`, property) match {

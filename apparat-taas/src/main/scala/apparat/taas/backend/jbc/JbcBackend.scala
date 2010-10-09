@@ -27,7 +27,7 @@ import java.io.{PrintWriter => JPrintWriter}
 import collection.mutable.ListBuffer
 import org.objectweb.asm.{Opcodes => JOpcodes, Label => JLabel, ClassWriter => JClassWriter, ClassVisitor => JClassVisitor, ClassReader => JClassReader}
 import apparat.log.{Debug, SimpleLog}
-import org.objectweb.asm.util.{ASMifierClassVisitor, CheckClassAdapter => JCheckClassAdapter, TraceClassVisitor => JTraceClassVisitor}
+import org.objectweb.asm.util.{ASMifierClassVisitor, TraceClassVisitor => JTraceClassVisitor}
 import apparat.taas.ast._
 
 /**
@@ -49,7 +49,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 	private def decorateWriter(writer: JClassWriter) = {
 		if(JbcBackend.DEBUG) {
-			new JTraceClassVisitor(writer, new JPrintWriter(log asWriterFor Debug))
+			writer
+			//new JTraceClassVisitor(writer, new JPrintWriter(log asWriterFor Debug))
 		} else {
 			writer
 		}
@@ -60,6 +61,11 @@ class JbcBackend extends TaasBackend with SimpleLog {
 
 			val cw = new JClassWriter(JbcBackend.WRITER_PARAMETERS)
 			val cv = decorateWriter(cw)
+
+			val coreType = nominal match {
+				case i: TaasInterface => "java/lang/Object"
+				case _ => "jitb/lang/Object"
+			}
 
 			cv.visit(
 				JbcBackend.JAVA_VERSION,
@@ -72,10 +78,10 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				nominal.base match {
 					case Some(base) => base match {
 						case t: TaasNominalType => Java nameOf t.nominal.qualifiedName
-						case TaasObjectType => "jitb/lang/Object"
+						case TaasObjectType => coreType
 						case _ => error("Expected TaasNominalType, got "+base)
 					}
-					case None => "jitb/lang/Object"
+					case None => coreType
 				},
 				null//Array.empty[String]//TODO map to interface names...
 			)
@@ -106,10 +112,6 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			val bytes = cw.toByteArray()
 			cv.visitEnd()
 			classMap += Java.liftToplevel(nominal.qualifiedName) -> bytes
-
-			if(JbcBackend.DEBUG) {
-				JCheckClassAdapter.verify(new JClassReader(bytes), true, new JPrintWriter(Console.out))
-			}
 		}
 	}
 
@@ -171,7 +173,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 			op match {
 				case TOp_Nothing =>
 				case TConvert(target) => Cast(value.`type`, target)
-				case TCoerce(_) =>
+				case TCoerce(target) => Cast(value.`type`, target)
 				case _ => error("TODO "+op)
 			}
 		}
@@ -203,13 +205,13 @@ class JbcBackend extends TaasBackend with SimpleLog {
 				val labels = generateLabels(lin.map)
 				val jumps = lin.map
 
-				if(JbcBackend.DEBUG) {
+				/*if(JbcBackend.DEBUG) {
 					log.debug("Emitting TAAS:")
 					lin.dump(log, Debug)
-				}
+				}*/
 
 				for(op <- ops) {
-					log.debug("Emit %s", op)
+					//log.debug("Emit %s", op)
 					(labels get op) match {
 						case Some(label) => mv.visitLabel(label)
 						case None =>
@@ -218,6 +220,7 @@ class JbcBackend extends TaasBackend with SimpleLog {
 					op match {
 						case _: TValue =>
 						case _: TNop =>
+						case T2(TOp_Nothing, lex @ TClass(_), reg) => reg typeAs lex.`type`
 						case T2(TOp_Nothing, lex @ TLexical(t: TaasClass), reg) => reg typeAs lex.`type`
 						case T2(TOp_Nothing, lex @ TLexical(t: TaasFunction), reg) => reg typeAs lex.`type`
 						case t2 @ T2(operator, rhs, result) => {
@@ -225,19 +228,19 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							unop(operator, rhs)
 							storeByType(t2.`type`, result)
 						}
-						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && result.`type` == TaasIntType => {
+						case T3(TOp_-, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && TaasType.isEqual(result.`type`, TaasIntType) => {
 							mv.visitIincInsn(mapIndex(result.index), -n)
 							result typeAs TaasIntType
 						}
-						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && result.`type` == TaasIntType => {
+						case T3(TOp_-, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && TaasType.isEqual(result.`type`, TaasIntType) => {
 							mv.visitIincInsn(mapIndex(result.index), -n)
 							result typeAs TaasIntType
 						}
-						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && result.`type` == TaasIntType => {
+						case T3(TOp_+, TInt(n), rhs: TReg, result) if n >= -0x80 && n <= 0x7f && rhs.index == result.index && TaasType.isEqual(result.`type`, TaasIntType) => {
 							mv.visitIincInsn(mapIndex(result.index), n)
 							result typeAs TaasIntType
 						}
-						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && result.`type` == TaasIntType => {
+						case T3(TOp_+, lhs: TReg, TInt(n), result) if n >= -0x80 && n <= 0x7f && lhs.index == result.index && TaasType.isEqual(result.`type`, TaasIntType) => {
 							mv.visitIincInsn(mapIndex(result.index), n)
 							result typeAs TaasIntType
 						}
@@ -249,9 +252,18 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						case if1 @ TIf1(op, rhs) => {
 							load(rhs)
 							op match {
-								case TOp_true => mv.visitJumpInsn(JOpcodes.IFNONNULL, labels(jumps(if1)(0)))
-								case TOp_false => mv.visitJumpInsn(JOpcodes.IFNULL, labels(jumps(if1)(0)))
-								case TOp_! => mv.visitJumpInsn(JOpcodes.IFNULL, labels(jumps(if1)(0)))
+								case TOp_true =>
+									rhs.`type` match {
+										case TaasIntType | TaasBooleanType =>
+											mv.visitJumpInsn(JOpcodes.IFNE, labels(jumps(if1)(0)))
+										case _ => mv.visitJumpInsn(JOpcodes.IFNONNULL, labels(jumps(if1)(0)))
+									}
+								case TOp_false | TOp_! =>
+									rhs.`type` match {
+										case TaasIntType | TaasBooleanType =>
+											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if1)(0)))
+										case _ => mv.visitJumpInsn(JOpcodes.IFNULL, labels(jumps(if1)(0)))
+									}
 								case TOp_~ => error("Invalid operator ~ in if statement.")
 								case TOp_Nothing => error("Invalid operator Nothing in if statement.")
 								case TCoerce(_) => error("Invalid operator Coerce in if statement.")
@@ -265,13 +277,31 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							loadAs(rhs, t)
 
 							op match {
+								case TOp_!= => {
+									t match {
+										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPNE, labels(jumps(if2)(0)))
+										case TaasDoubleType => {
+											mv.visitInsn(JOpcodes.DCMPG)
+											mv.visitJumpInsn(JOpcodes.IFNE, labels(jumps(if2)(0)))
+										}
+									}
+								}
+								case TOp_== => {
+									t match {
+										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPEQ, labels(jumps(if2)(0)))
+										case TaasDoubleType => {
+											mv.visitInsn(JOpcodes.DCMPG)
+											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if2)(0)))
+										}
+										case _: TaasNominalType => mv.visitJumpInsn(JOpcodes.IF_ACMPEQ, labels(jumps(if2)(0)))
+									}
+								}
 								case TOp_< => {
 									t match {
 										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
 										case TaasDoubleType => {
 											mv.visitInsn(JOpcodes.DCMPG)
-											load(TInt(-1))
-											mv.visitJumpInsn(JOpcodes.IFEQ, labels(jumps(if2)(0)))
+											mv.visitJumpInsn(JOpcodes.IFLT, labels(jumps(if2)(0)))
 										}
 									}
 								}
@@ -280,18 +310,16 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPGE, labels(jumps(if2)(0)))
 										case TaasDoubleType => {
 											mv.visitInsn(JOpcodes.DCMPG)
-											load(TInt(-1))
-											mv.visitJumpInsn(JOpcodes.IF_ICMPGT, labels(jumps(if2)(0)))
+											mv.visitJumpInsn(JOpcodes.IFGE, labels(jumps(if2)(0)))
 										}
 									}
 								}
 								case TOp_!> => t match {
+									case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLE, labels(jumps(if2)(0)))
 									case TaasDoubleType => {
 										mv.visitInsn(JOpcodes.DCMPG)
-										load(TInt(1))
-										mv.visitJumpInsn(JOpcodes.IF_ICMPLT, labels(jumps(if2)(0)))
+										mv.visitJumpInsn(JOpcodes.IFLE, labels(jumps(if2)(0)))
 									}
-									case TaasIntType => mv.visitJumpInsn(JOpcodes.IF_ICMPLE, labels(jumps(if2)(0)))
 								}
 							}
 						}
@@ -300,17 +328,70 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							mv.visitJumpInsn(JOpcodes.GOTO, labels(jumps(jump)(0)))
 						}
 
+						case TCall(t, TEscapeXMLElement, value :: Nil, result) => {
+							loadAs(value, TaasStringType)
+							mv.visitMethodInsn(
+											JOpcodes.INVOKESTATIC,
+											"jitb/lang/AVM",
+											"escapeXMLElement",
+											"(Ljava/lang/String;)Ljava/lang/String;")
+							result match {
+								case Some(result) => storeByType(TEscapeXMLElement.`type`, result)
+								case None => if(TEscapeXMLElement.`type` != TaasVoidType) {
+									mv.visitInsn(JOpcodes.POP)
+								}
+							}
+						}
+
+						case TCall(t, TEscapeXMLAttribute, value :: Nil, result) => {
+							loadAs(value, TaasStringType)
+							mv.visitMethodInsn(
+											JOpcodes.INVOKESTATIC,
+											"jitb/lang/AVM",
+											"escapeXMLAttribute",
+											"(Ljava/lang/String;)Ljava/lang/String;")
+							result match {
+								case Some(result) => storeByType(TEscapeXMLAttribute.`type`, result)
+								case None => if(TEscapeXMLAttribute.`type` != TaasVoidType) {
+									mv.visitInsn(JOpcodes.POP)
+								}
+							}
+						}
+
+						case TCall(t, TSetProperty, property :: value :: Nil, result) => {
+							load(t)
+							Cast.checkCast(TaasObjectType)
+							loadAs(property, TaasStringType)
+							loadAs(value, TaasObjectType)
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Object", "JITB$setProperty",  "(Ljava/lang/String;Ljava/lang/Object;)V")
+						}
+
+						case TCall(t, TGetProperty, property :: Nil, result) => {
+							load(t)
+							Cast.checkCast(TaasObjectType)
+							loadAs(property, TaasStringType)
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Object", "JITB$getProperty", "(Ljava/lang/String;)Ljava/lang/Object;")
+							result match {
+								case Some(result) => storeByType(TGetIndex.`type`, result)
+								case None => if(TGetIndex.`type` != TaasVoidType) {
+									mv.visitInsn(JOpcodes.POP)
+								}
+							}
+						}
+
 						case TCall(t, TSetIndex, index :: value :: Nil, result) => {
 							load(t)
+							Cast.checkCast(TaasObjectType)
 							loadAs(index, TaasIntType)
 							loadAs(value, TaasObjectType)
-							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Array", "JITB$set",  "(ILjava/lang/Object;)V")
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Object", "JITB$setIndex",  "(ILjava/lang/Object;)V")
 						}
 
 						case TCall(t, TGetIndex, index :: Nil, result) => {
 							load(t)
+							Cast.checkCast(TaasObjectType)
 							loadAs(index, TaasIntType)
-							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Array", "JITB$get", "(I)Ljava/lang/Object;")
+							mv.visitMethodInsn(JOpcodes.INVOKEVIRTUAL, "jitb/lang/Object", "JITB$getIndex", "(I)Ljava/lang/Object;")
 							result match {
 								case Some(result) => storeByType(TGetIndex.`type`, result)
 								case None => if(TGetIndex.`type` != TaasVoidType) {
@@ -328,15 +409,26 @@ class JbcBackend extends TaasBackend with SimpleLog {
 							method.parent match {
 									case Some(parent) => parent match {
 										case _: TaasClass | _: TaasInterface => t match {
-											case TLexical(_: TaasClass) if !method.isStatic => mv.visitVarInsn(JOpcodes.ALOAD, 0)
-											case TLexical(_: TaasInterface) => mv.visitVarInsn(JOpcodes.ALOAD, 0)
+											case TLexical(_: TaasClass) | TClass(_) if !method.isStatic => mv.visitVarInsn(JOpcodes.ALOAD, 0)
+											case TLexical(_: TaasInterface) | TClass(_) => mv.visitVarInsn(JOpcodes.ALOAD, 0)
 											case _ => load(t)
 										}
 										case _: TaasFunction =>
 									}
 							}
 
-							if(n < m) { error("optional parameters in "+method)}
+							if(n < m) {
+								while(i < n) {
+									loadAs(arguments(i), method.parameters(i).`type`)
+									i += 1
+								}
+
+								while(i < m) {
+									val defaultValue = method.parameters(i).defaultValue
+									loadAs(defaultValue getOrElse error("Missing parameter."), method.parameters(i).`type`)
+									i += 1
+								}
+							}
 							else if(n == m) {
 								while(i < n) {
 									loadAs(arguments(i), method.parameters(i).`type`)
@@ -377,11 +469,18 @@ class JbcBackend extends TaasBackend with SimpleLog {
 										}
 									}
 									case i: TaasInterface => mv.visitMethodInsn(JOpcodes.INVOKEINTERFACE, Java nameOfOwnerOf method, method.name.name, Java methodDesc method)
-									case f: TaasFunction => mv.visitMethodInsn(
-										JOpcodes.INVOKESTATIC,
-										Java nameOfOwnerOf method,
-										"callStatic",
-										if(varargs) "([Ljava/lang/Object;)Ljava/lang/Object;" else Java.methodDesc(method))
+									case f: TaasFunction =>
+										mv.visitMethodInsn(
+											JOpcodes.INVOKESTATIC,
+											Java nameOfOwnerOf method,
+											"callStatic",
+											if(varargs) "([Ljava/lang/Object;)Ljava/lang/Object;" else Java.methodDesc(method))
+										result match {
+											case Some(_) =>
+											case None => if(method.`type` == TaasVoidType) {
+												mv.visitInsn(JOpcodes.POP)
+											}
+										}
 								}
 								case None => error("Method without parent.")
 							}
@@ -397,6 +496,10 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						case TConstruct(obj, arguments, result) => {
 							val ctor = obj.`type` match {
 								case TaasNominalTypeInstance(nominal) => nominal match {
+									case TaasClass(_, _, _, _, _, ctor, _, _, _, _) => ctor
+									case other => error("Unexpected definition: "+other)
+								}
+								case nominalType: TaasNominalType => nominalType.nominal match {
 									case TaasClass(_, _, _, _, _, ctor, _, _, _, _) => ctor
 									case other => error("Unexpected definition: "+other)
 								}
@@ -420,8 +523,8 @@ class JbcBackend extends TaasBackend with SimpleLog {
 								loadAs(defaultValue getOrElse error("Missing parameter."), ctor.parameters(i).`type`)
 								i += 1
 							}
-							
-							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, Java nameOf obj.`type`, "<init>", Java.methodDesc("V", ctor.parameters))
+
+							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, Java nameOfOwnerOf ctor, "<init>", Java.methodDesc("V", ctor.parameters))
 							
 							storeByType(obj.`type`, result)
 						}
@@ -437,20 +540,37 @@ class JbcBackend extends TaasBackend with SimpleLog {
 						}
 						case TStore(obj, field, value) => {
 							load(obj)
-							load(value)
+							loadAs(value, field.`type`)
 							mv.visitFieldInsn(JOpcodes.PUTFIELD, Java nameOfOwnerOf field, field.name.name, Java typeOf field.`type`)
 						}
-						case TSuper(base, arguments) => {
-							load(base)
-							arguments foreach load
-							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, Java.nameOf(base.`type` match {
+						case TSuper(obj, arguments) => {
+							val base = obj.`type` match {
 								case n: TaasNominalType => n.nominal.base match {
 									case Some(base) => base
 									case None => TaasObjectType
 								}
-							}), "<init>", "()V")//TODO!
+							}
+
+							load(obj)
+							arguments foreach load
+							mv.visitMethodInsn(JOpcodes.INVOKESPECIAL, Java nameOf base, "<init>", base match {
+								case nominalType: TaasNominalType => nominalType.nominal match {
+									case TaasClass(_, _, _, _, _, ctor, _, _, _, _) => Java.methodDesc("V", ctor.parameters)
+									case _ => "()V"
+								}
+								case _ => "()V"
+							})
 						}
 						case TReturn(TVoid) => mv.visitInsn(JOpcodes.RETURN)
+						case TReturn(value) =>
+							loadAs(value, method.`type`)
+							method.`type` match {
+								case TaasBooleanType =>mv.visitInsn(JOpcodes.IRETURN)
+								case TaasDoubleType => mv.visitInsn(JOpcodes.DRETURN)
+								case TaasIntType => mv.visitInsn(JOpcodes.IRETURN)
+								case TaasLongType => mv.visitInsn(JOpcodes.LRETURN)
+								case _ => mv.visitInsn(JOpcodes.ARETURN)
+							}
 					}
 				}
 			}

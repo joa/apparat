@@ -64,7 +64,7 @@ object ConstantFolding extends TaasOptimization {
 			}
 
 			//x = (y)z:y -> x = z
-			case T2(TConvert(t), rhs: TaasTyped, result) if rhs.`type` == t => {
+			case T2(TConvert(t), rhs: TaasTyped, result) if TaasType.isEqual(rhs.`type`, t) => {
 				modified = true
 				r = T2(TOp_Nothing, rhs, result) :: r
 			}
