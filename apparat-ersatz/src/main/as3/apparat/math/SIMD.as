@@ -29,8 +29,9 @@ package apparat.math {
    *
    * <p>All instructions are performed four times with respect
    * to the size of the datatype. Methods prefixed with <em>d</em>
-   * are double based (8b) and methods prefixed with <em>f</em>
-   * are float based (4b).</p>
+   * are double based (8b), methods prefixed with <em>f</em>
+   * are float based (4b) and methods prefixed with <em>i</em> are
+   * integer based (4b).</p>
    *
    * <p>To illustrate this, here is an example of <code>dmov</code>
    * using the <code>Memory</code> class:</p>
@@ -45,7 +46,8 @@ package apparat.math {
    * <p>This code is implemented in SIMD as well with some special
    * optimizations applied. Although SIMD is a macro it will never
    * modify any incoming parameters besides in the <code>*get</code>
-   * instructions.
+   * instructions and <code>initMath</code>.
+   *
    * You also do not have to fear register pressure since all
    * instructions are implemented without adding any extra registers.</p>
    *
@@ -1440,6 +1442,773 @@ package apparat.math {
       )
     }
     
+    //////////////////////////////////////////////////
+    // INTEGER
+    //////////////////////////////////////////////////
+    
+    /**
+     * Performs the operation <code>target = source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function imov(target:  int, source: int): void {
+      __asm(
+        GetLocal(source),
+        GetInt,
+        GetLocal(target),
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = value</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param value The value to set.
+     */
+    public static function iset(target: int, value: int): void {
+      __asm(
+        GetLocal(value),
+        GetLocal(target),
+        SetInt,
+
+        GetLocal(value),
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetInt,
+
+        GetLocal(value),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetInt,
+
+        GetLocal(value),
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target + source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function iadd(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        GetLocal(source),
+        GetInt,
+        AddInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        AddInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        AddInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        AddInt,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target - source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function isub(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        GetLocal(source),
+        GetInt,
+        SubtractInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        SubtractInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        SubtractInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        SubtractInt,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target * source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function imul(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        GetLocal(source),
+        GetInt,
+        MultiplyInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        MultiplyInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        MultiplyInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        MultiplyInt,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target / source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function idiv(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        ConvertDouble,
+        GetLocal(source),
+        GetInt,
+        ConvertDouble,
+        Divide,
+        ConvertInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        ConvertDouble,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        Divide,
+        ConvertInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        ConvertDouble,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        Divide,
+        ConvertInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        ConvertDouble,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        Divide,
+        ConvertInt,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target % source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function imod(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        ConvertDouble,
+        GetLocal(source),
+        GetInt,
+        ConvertDouble,
+        Modulo,
+        ConvertInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        ConvertDouble,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        Modulo,
+        ConvertInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        ConvertDouble,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        Modulo,
+        ConvertInt,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        ConvertDouble,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        Modulo,
+        ConvertInt,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target << source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function ishl(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        GetLocal(source),
+        GetInt,
+        ShiftLeft,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        ShiftLeft,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        ShiftLeft,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        ShiftLeft,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target >> source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function ishr(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        GetLocal(source),
+        GetInt,
+        ShiftRight,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        ShiftRight,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        ShiftRight,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        ShiftRight,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target & source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function iand(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        GetLocal(source),
+        GetInt,
+        BitAnd,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        BitAnd,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        BitAnd,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        BitAnd,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target | source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function ior(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        GetLocal(source),
+        GetInt,
+        BitOr,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        BitOr,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        BitOr,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        BitOr,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = target ^ source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function ixor(target: int, source: int): void {
+      __asm(
+        GetLocal(target),
+        Dup,
+        GetInt,
+        GetLocal(source),
+        GetInt,
+        BitXor,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        BitXor,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        BitXor,
+        Swap,
+        SetInt,
+
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        Dup,
+        GetInt,
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        BitXor,
+        Swap,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = ~source</code>.
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function inot(target: int, source: int): void {
+      __asm(
+        GetLocal(source),
+        GetInt,
+        BitNot,
+        GetLocal(target),
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        BitNot,
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        BitNot,
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        BitNot,
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetInt
+      )
+    }
+
+    /**
+     * Assigns the double values at target address to the given result registers.
+     * 
+     * @param source The source address in domain memory.
+     * @param r0 The register which will receive the first value.
+     * @param r1 The register which will receive the second value.
+     * @param r2 The register which will receive the third value.
+     * @param r3 The register which will receive the fourth value.
+     */
+    public static function iget(source: int, r0: int, r1: int, r2: int, r3: int): void {
+      __asm(
+        GetLocal(source),
+        GetInt,
+        SetLocal(r0),
+        
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        SetLocal(r1),
+        
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        SetLocal(r2),
+        
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        SetLocal(r3)
+      )
+    }
+    
+    //////////////////////////////////////////////////
+    // GENERIC
+    //////////////////////////////////////////////////
+    
     /**
      * Initializes the local Math object.
      *
@@ -1468,6 +2237,206 @@ package apparat.math {
       __asm(
         __as3(Math),
         SetLocal(math)
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = float(source)</code>.
+     *
+     * <p>Note that the source is treated like an integer and converted
+     * to float.</p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function i2f(target: int, source: int): void {
+      __asm(
+        GetLocal(source),
+        GetInt,
+        ConvertDouble,
+        GetLocal(target),
+        SetFloat,
+
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetFloat,
+
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetFloat,
+
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetFloat
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = int(source)</code>.
+     *
+     * <p>Note that the source is treated like a float and converted
+     * to int.</p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function f2i(target: int, source: int): void {
+      __asm(
+        GetLocal(source),
+        GetFloat,
+        ConvertInt,
+        GetLocal(target),
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetFloat,
+        ConvertInt,
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetFloat,
+        ConvertInt,
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetFloat,
+        ConvertInt,
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetInt
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = int(source)</code>.
+     *
+     * <p>Note that the source is treated like an integer and converted
+     * to double. Remember also that the target registers are double based
+     * and 8b long whereas the source registers are integer based and only
+     * 4b long.</p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function i2d(target: int, source: int): void {
+      __asm(
+        GetLocal(source),
+        GetInt,
+        ConvertDouble,
+        GetLocal(target),
+        SetDouble,
+
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetDouble,
+
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        GetLocal(target),
+        PushByte(0x10),
+        AddInt,
+        SetDouble,
+
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetInt,
+        ConvertDouble,
+        GetLocal(target),
+        PushByte(0x18),
+        AddInt,
+        SetDouble
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = int(source)</code>.
+     *
+     * <p>Note that the source is treated like a double and converted
+     * to int. Remember also that the target registers are integer based
+     * and 4b long whereas the source registers are double based and
+     * 8b long.</p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     */
+    public static function d2i(target: int, source: int): void {
+      __asm(
+        GetLocal(source),
+        GetDouble,
+        ConvertInt,
+        GetLocal(target),
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetDouble,
+        ConvertInt,
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x10),
+        AddInt,
+        GetDouble,
+        ConvertInt,
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetInt,
+
+        GetLocal(source),
+        PushByte(0x18),
+        AddInt,
+        GetDouble,
+        ConvertInt,
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetInt
       )
     }
   }
