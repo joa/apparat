@@ -1,3 +1,24 @@
+/*
+ * This file is part of Apparat.
+ *
+ * Apparat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Apparat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2010 Joa Ebert
+ * http://www.joa-ebert.com/
+ *
+ */
+
 package apparat.math {
   import apparat.asm.*
   import apparat.inline.Macro
@@ -434,6 +455,296 @@ package apparat.math {
         SetLocal(r3)
       )
     }
+
+    /**
+     * Performs the operation <code>target = Math.sin(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.dsin(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function dsin(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetDouble,
+        CallProperty(__as3(Math.sin), 1),
+        GetLocal(target),
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.sin), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x10),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.sin), 1),
+        GetLocal(target),
+        PushByte(0x10),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x18),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.sin), 1),
+        GetLocal(target),
+        PushByte(0x18),
+        AddInt,
+        SetDouble
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = Math.asin(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.dasin(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function dasin(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetDouble,
+        CallProperty(__as3(Math.asin), 1),
+        GetLocal(target),
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.asin), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x10),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.asin), 1),
+        GetLocal(target),
+        PushByte(0x10),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x18),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.asin), 1),
+        GetLocal(target),
+        PushByte(0x18),
+        AddInt,
+        SetDouble
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = Math.cos(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.dcos(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function dcos(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetDouble,
+        CallProperty(__as3(Math.cos), 1),
+        GetLocal(target),
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.cos), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x10),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.cos), 1),
+        GetLocal(target),
+        PushByte(0x10),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x18),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.cos), 1),
+        GetLocal(target),
+        PushByte(0x18),
+        AddInt,
+        SetDouble
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = Math.acos(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.dacos(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function dacos(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetDouble,
+        CallProperty(__as3(Math.acos), 1),
+        GetLocal(target),
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.acos), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x10),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.acos), 1),
+        GetLocal(target),
+        PushByte(0x10),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x18),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.acos), 1),
+        GetLocal(target),
+        PushByte(0x18),
+        AddInt,
+        SetDouble
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = Math.sqrt(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.dsqrt(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function dsqrt(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetDouble,
+        CallProperty(__as3(Math.sqrt), 1),
+        GetLocal(target),
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.sqrt), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x10),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.sqrt), 1),
+        GetLocal(target),
+        PushByte(0x10),
+        AddInt,
+        SetDouble,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x18),
+        AddInt,
+        GetDouble,
+        CallProperty(__as3(Math.sqrt), 1),
+        GetLocal(target),
+        PushByte(0x18),
+        AddInt,
+        SetDouble
+      )
+    }
     
     //////////////////////////////////////////////////
     // FLOAT
@@ -836,6 +1147,327 @@ package apparat.math {
         AddInt,
         GetFloat,
         SetLocal(r3)
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = Math.sin(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.fsin(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function fsin(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetFloat,
+        CallProperty(__as3(Math.sin), 1),
+        GetLocal(target),
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.sin), 1),
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.sin), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.sin), 1),
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetFloat
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = Math.asin(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.fasin(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function fasin(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetFloat,
+        CallProperty(__as3(Math.asin), 1),
+        GetLocal(target),
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.asin), 1),
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.asin), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.asin), 1),
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetFloat
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = Math.cos(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.fcos(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function fcos(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetFloat,
+        CallProperty(__as3(Math.cos), 1),
+        GetLocal(target),
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.cos), 1),
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.cos), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.cos), 1),
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetFloat
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = Math.acos(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.facos(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function facos(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetFloat,
+        CallProperty(__as3(Math.acos), 1),
+        GetLocal(target),
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.acos), 1),
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.acos), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.acos), 1),
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetFloat
+      )
+    }
+
+    /**
+     * Performs the operation <code>target = Math.sqrt(source)</code>.
+     *
+     * <p>You can initialize the local math object with the following code:</p>
+     * <p><pre>
+     * var math: Class
+     * SIMD.initMath(math)
+     * SIMD.fsqrt(0, 0, math)
+     * </pre></p>
+     *
+     * @param target Target address in domain memory.
+     * @param source Source address in domain memory.
+     * @param math The local Math object.
+     */
+    public static function fsqrt(target: int, source: int, math: *): void {
+      __asm(
+        GetLocal(math),
+        GetLocal(source),
+        GetFloat,
+        CallProperty(__as3(Math.sqrt), 1),
+        GetLocal(target),
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x04),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.sqrt), 1),
+        GetLocal(target),
+        PushByte(0x04),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x08),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.sqrt), 1),
+        GetLocal(target),
+        PushByte(0x08),
+        AddInt,
+        SetFloat,
+
+        GetLocal(math),
+        GetLocal(source),
+        PushByte(0x0c),
+        AddInt,
+        GetFloat,
+        CallProperty(__as3(Math.sqrt), 1),
+        GetLocal(target),
+        PushByte(0x0c),
+        AddInt,
+        SetFloat
+      )
+    }
+    
+    /**
+     * Initializes the local Math object.
+     *
+     * <p>Once you have initialized the Math object it can
+     * be used with any method as often as you want. The
+     * following code would be valid for instance.</p>
+     *
+     * <p><pre>
+     * var math: Class
+     * var r0: Number, r1: Number, r2: Number, r3: Number
+     *
+     * SIMD.initMath(math)
+     * 
+     * SIMD.fset(0, Math.PI)
+     * SIMD.fcos(0, 0, math)
+     * SIMD.facos(0, 0, math)
+     * SIMD.fsqrt(0, 0, math)
+     * SIMD.fget(0, r0, r1, r2, r3)
+     *
+     * trace(r0, r1, r2, r3)
+     * </pre></p>
+     *
+     * @param math A register to store the Math object.
+     */
+    public static function initMath(math: *): void {
+      __asm(
+        __as3(Math),
+        SetLocal(math)
       )
     }
   }
