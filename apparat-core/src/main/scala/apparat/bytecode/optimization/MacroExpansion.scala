@@ -187,7 +187,7 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 												newOp
 											}
 											case branch:IfGreaterThan =>  {
-												val newOp = Jump(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
+												val newOp = IfGreaterThan(markers mark replacement((macro.ops indexOf branch.marker.op.get) + delta))
 												markers.forwardMarker(branch, newOp)
 												newOp
 											}
