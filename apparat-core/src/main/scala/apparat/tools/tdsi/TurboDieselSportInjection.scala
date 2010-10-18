@@ -84,6 +84,7 @@ object TurboDieselSportInjection {
 			val allABC = (for(doABC <- cont.tags collect { case doABC: DoABC => doABC }) yield (doABC -> (Abc fromDoABC doABC))).toMap
 			val macroExpansion = if(macros) Some(new MacroExpansion(allABC.valuesIterator.toList)) else None
 			val inlineExpansion = if(inline) Some(new InlineExpansion(allABC.valuesIterator.toList)) else None
+			val memoryExpansion = if(alchemy) Some(new MemoryHelperExpansion(allABC.valuesIterator.toList)) else None
 
 			allABC foreach { _._2.loadBytecode() }
 
@@ -144,6 +145,7 @@ object TurboDieselSportInjection {
 
 						if(alchemy) {
 							modified |= InlineMemory(bytecode)
+              modified |= memoryExpansion.get expand  bytecode
 						}
 
 						if(fixAlchemy) {
