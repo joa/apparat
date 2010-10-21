@@ -90,7 +90,7 @@ package apparat.memory {
         public function internalPtr():int{return 0;}
 
 		 /**
-		  * Set the internal pointer to the value specified
+		  * Set the internal pointer to the value*sizeOf(Structure)
           *
           * @param ptr value of the internal pointer.
           */
@@ -102,5 +102,19 @@ package apparat.memory {
           * @param delta value to add or substract to the internal pointer.
           */
         public function seekBy(delta:int):void{}
+
+		 /**
+		  * Set the internal pointer to value in bytes
+          *
+          * @param ptr value of the internal pointer.
+          */
+        public function offsetTo(ptr:int):void{}
+
+		 /**
+		  * Adjust the internal value by delta in bytes
+          *
+          * @param delta value to add or substract to the internal pointer.
+          */
+        public function offsetBy(delta:int):void{}
     }
 }
