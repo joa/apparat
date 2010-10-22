@@ -57,8 +57,7 @@ import apparat.abc._
  *
  * pt.next(); // advance the internal memory pointer to the sizeOf the structure
  * pt.prev(); // backward the internal memory pointer to the sizeOf the structure
- * pt.seekTo(12); // set the internal memory pointer to 12 (the number will be multiply by the size of the Structure)
- * pt.seekBy(12); // adjust the internal memory by 12 (the number will be multiply by the size of the Structure)
+ * pt.seekTo(12); // adjust the internal memory by 12 (the number will be multiply by the size of the Structure)
  *
  * x=pt.x; // read x from the new memory address
  *
@@ -77,7 +76,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
   lazy val MapName = AbcQName('map, AbcNamespace(22, Symbol("apparat.memory")))
   lazy val NextName = AbcQName('next, AbcNamespace(22, Symbol("")))
   lazy val PrevName = AbcQName('prev, AbcNamespace(22, Symbol("")))
-  lazy val SeekByName = AbcQName('seekBy, AbcNamespace(22, Symbol("")))
+//  lazy val SeekByName = AbcQName('seekBy, AbcNamespace(22, Symbol("")))
   lazy val SeekToName = AbcQName('seekTo, AbcNamespace(22, Symbol("")))
   lazy val OffsetByName = AbcQName('offsetBy, AbcNamespace(22, Symbol("")))
   lazy val OffsetToName = AbcQName('offsetTo, AbcNamespace(22, Symbol("")))
@@ -432,7 +431,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
               optimisation = Optimisation.RemoveConvertInt
 //              unwindParameterStack(op.operandDelta + 1)
 //              parameters.head match {
-			  unwindParameterStack(op.operandDelta) match {
+			  unwindParameterStack(-op.popOperands) match {
                 case gl@GetLocal(register) if (registerMap.contains(register)) => {
                   removes = gl :: removes
                   val memAlias = registerMap.get(register).get
@@ -446,7 +445,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 //                  parameters = parameters.tail
 				  parameters = PushByte(0) :: parameters
                 }
-                case _ => throwError("seekBy called on unmapped Structure")
+                case _ => throwError("internalPtr called on unmapped Structure")
               }
             }
             case _ => {
@@ -462,36 +461,6 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 
           clearOptimisation()
           aName match {
-            case SeekToName if (argCount == 1 && (balance > 0) && parameters.nonEmpty) => {
-              preCheck()
-              optimisation = Optimisation.RemoveConvertInt
-              unwindParameterStack(op.operandDelta) match {
-                case gl@GetLocal(register) if (registerMap.contains(register)) => {
-                  removes = gl :: removes
-                  val memAlias = registerMap.get(register).get
-                  val structInfo = memAlias.structureInfo
-                  val field = structInfo.fields.head
-                  val size = field.position + sizeOf(field.`type`)
-                  var args = List.empty[AbstractOp]
-                  if (size == 0) {
-                    args = Nop() :: args
-                  } else {
-                    if (size > ((1 << 15) - 1)) {
-                      args = PushInt(size) :: args
-                    } else if (size > ((1 << 7) - 1)) {
-                      args = PushShort(size) :: args
-                    } else if (size > 0) {
-                      args = PushByte(size) :: args
-                    }
-                    args = MultiplyInt() :: args
-                    args = SetLocal(memAlias.ptrRegister) :: args
-                  }
-                  replacements = replacements.updated(op, args.reverse)
-                  balance -= 1
-                }
-                case _ => throwError("seekBy called on unmapped Structure")
-              }
-            }
             case OffsetToName if (argCount == 1 && (balance > 0) && parameters.nonEmpty) => {
               preCheck()
               optimisation = Optimisation.RemoveConvertInt
@@ -510,7 +479,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
                 case _ => throwError("offsetTo called on unmapped Structure")
               }
             }
-            case SeekByName if (argCount == 1 && (balance > 0) && parameters.nonEmpty) => {
+            case SeekToName if (argCount == 1 && (balance > 0) && parameters.nonEmpty) => {
               preCheck()
               optimisation = Optimisation.RemoveConvertInt
               unwindParameterStack(op.operandDelta) match {
@@ -538,9 +507,8 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
                   }
                   replacements = replacements.updated(op, args.reverse)
                   balance -= 1
-                  //                  parameters = parameters.tail
                 }
-                case _ => throwError("seekBy called on unmapped Structure")
+                case _ => throwError("seekTo called on unmapped Structure")
               }
             }
             case OffsetByName if (argCount == 1 && (balance > 0) && parameters.nonEmpty) => {
@@ -691,11 +659,11 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
           setStructure = false
           currentStructure match {
             case Some(structureInfo) => {
-//              registerMap = registerMap.updated(register, MemoryAlias(localCount, structureInfo))
-              registerMap = registerMap.updated(register, MemoryAlias(register, structureInfo))
-              replacements = replacements.updated(op, List(SetLocal(register)))
-//              replacements = replacements.updated(op, List(SetLocal(localCount)))
-//              localCount += 1
+              registerMap = registerMap.updated(register, MemoryAlias(localCount, structureInfo))
+//              registerMap = registerMap.updated(register, MemoryAlias(register, structureInfo))
+//              replacements = replacements.updated(op, List(SetLocal(register)))
+              replacements = replacements.updated(op, List(SetLocal(localCount)))
+              localCount += 1
               currentStructure = None
             }
             case _ => throwError("map is expecting a Class of type Structure as second arguments")
