@@ -290,10 +290,20 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 
 		var currentStructure: Option[StructureInfo] = None
 
+		val markers=bytecode.markers
+
 		@tailrec def unwindParameterStack(depth: Int, ret: AbstractOp = Nop()): AbstractOp = {
 			if ((depth < 0) && parameters.nonEmpty) {
 				val op = parameters.head
 				parameters = parameters.tail
+				if (markers.hasMarkerFor(op)) {
+					val i=parameters.indexWhere(p=>p match {
+						case m:OpWithMarker if (m.marker.op.get == op) => true
+						case _ => false
+					})
+					if (i >= 0)
+						parameters=parameters.drop(i+1)
+				}
 				unwindParameterStack(depth + op.operandDelta, op)
 			} else ret
 		}
@@ -795,10 +805,10 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 				}
 				case None => log.warning("Bytecode body missing. Cannot adjust stack/locals.")
 			}
-			//		bytecode.dump()
+//					bytecode.dump()
 			$expand(bytecode, true)
 		} else {
-			//		bytecode.dump()
+//					bytecode.dump()
 			haveBeenModified
 		}
 	}
