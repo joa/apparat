@@ -39,6 +39,7 @@ object AsmExpansion {
 	private val __maxStack = AbcQName('__maxStack, asmNamespace)
 	private val __dumpAfterASM = AbcQName('__dumpAfterASM, asmNamespace)
 	private val __as3 = AbcQName('__as3, asmNamespace)
+	private val __cint = AbcQName('__cint, asmNamespace)
 
 	private lazy val abcQName = AbcQName('AbcQName, asmNamespace)
 	private lazy val abcQNameA = AbcQName('AbcQNameA, asmNamespace)
@@ -270,6 +271,17 @@ object AsmExpansion {
 											case qn: AbcQNameA => nsList = qn.namespace :: nsList
 											case _ => throwError("abcNamespaceSet is expecting abcNamespace arguments")
 										}
+										case _ =>
+									}
+								}
+								case AbcQName('__cint, asmNamespace) => {
+									resolveABCName('AbcNamespaceSet) match {
+										case Some(abcName) => abcName match {
+											case qn: AbcQName => nsList = qn.namespace :: nsList
+											case qn: AbcQNameA => nsList = qn.namespace :: nsList
+											case _ => throwError("abcNamespaceSet is expecting abcNamespace arguments")
+										}
+										case _ =>
 									}
 								}
 								case AbcQName('AbcNamespace, asmNamespace) => {
@@ -738,6 +750,35 @@ object AsmExpansion {
 									removes = op :: removes
 								}
 								case _ => throwError("missing arguments from __as3 into " + asmOpName)
+							}
+							ops.map(op => removes = op :: removes)
+						}
+						case AbcQName('__cint, asmNamespace) => {
+							var ops = readUntil(__cint)
+							ops.headOption match {
+								case Some(op) => {
+									op match {
+										case CallProperty(aName, count) if (aName == __cint) => {
+											ops = ops.tail
+											ops.headOption match {
+												case Some(gl: GetLex) => {
+													ret = Some(gl.typeName)
+													ops = ops.tail
+													removes = gl :: removes
+												}
+												case Some(gp: GetProperty) => {
+													ret = Some(gp.property)
+													ops = ops.tail
+													removes = gp :: removes
+												}
+												case _ => throwError("expecting getProperty in __cint call into " + asmOpName)
+											}
+										}
+										case _ => throwError("invalid call to __cint into " + asmOpName)
+									}
+									removes = op :: removes
+								}
+								case _ => throwError("missing arguments from __cint into " + asmOpName)
 							}
 							ops.map(op => removes = op :: removes)
 						}
@@ -1471,6 +1512,33 @@ object AsmExpansion {
 											case _ => throwError("missing arguments to " + asmOpName)
 										}
 									}
+									case '__cint => {
+										val ops = readUntil(__cint)
+										ops.headOption match {
+											case Some(op) => {
+												op match {
+													case CallProperty(aName, count) if (aName == __cint) => {
+														removes = currentOp :: op :: removes
+
+														for ($op<-ops) $op match {
+															case Add() => replacements = replacements.updated($op, List(AddInt()))
+															case DecLocal(register) => replacements = replacements.updated($op, List(DecLocalInt(register)))
+															case Decrement() => replacements = replacements.updated($op, List(DecrementInt()))
+															case IncLocal(register) => replacements = replacements.updated($op, List(IncLocalInt(register)))
+															case Multiply() => replacements = replacements.updated($op, List(MultiplyInt()))
+															case Negate() => replacements = replacements.updated($op, List(NegateInt()))
+															case Subtract() => replacements = replacements.updated($op, List(SubtractInt()))
+															case _ =>
+														}
+
+														//														replacements = replacements.updated(op, ops.reverse.dropRight(1))
+													}
+													case _ => throwError("invalid call to " + asmOpName)
+												}
+											}
+											case _ => throwError("missing arguments to " + asmOpName)
+										}
+									}
 									case _ => throwError("unknown op : " + asmOpName)
 								}
 							}
@@ -1488,16 +1556,21 @@ object AsmExpansion {
 
 		var removePop = false
 		for (op <- bytecode.ops) op match {
-			case DebugLine(line) => lineNum = line
+			case DebugLine(line) => {
+				removePop = false
+				lineNum = line
+			}
 			case Pop() if (removePop) => {
 				removes = op :: removes
 				removePop = false
 			}
 			case FindPropStrict(typeName) if (typeName == __asm) => {
+				removePop = false
 				balance += 1
 				removes = op :: removes
 			}
 			case FindPropStrict(typeName) if (typeName == __dumpAfterASM) => {
+				removePop = false
 				if (balance > 0)
 					throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
 
@@ -1505,6 +1578,7 @@ object AsmExpansion {
 				removes = op :: removes
 			}
 			case FindPropStrict(typeName) if (typeName == __maxStack) => {
+				removePop = false
 				if (balance > 0)
 					throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
 
@@ -1512,6 +1586,7 @@ object AsmExpansion {
 				removes = op :: removes
 			}
 			case CallPropVoid(property, numArguments) if (property == __asm) && (balance > 0) => {
+				removePop = false
 				modified = asm(op, numArguments)
 				removes = op :: removes
 				balance -= 1
@@ -1523,6 +1598,7 @@ object AsmExpansion {
 				balance -= 1
 			}
 			case CallPropVoid(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
+				removePop = false
 				dumpAfterASM = Some(decode_String("__dumpAfterASM"))
 				removes = op :: removes
 				removes = stack ::: removes
@@ -1536,6 +1612,7 @@ object AsmExpansion {
 				balance -= 1
 			}
 			case CallPropVoid(property, numArguments) if (property == __maxStack) && (balance > 0) => {
+				removePop = false
 				maxStack = decode_Long("__asmStack")
 				removes = op :: removes
 				removes = stack ::: removes
@@ -1548,7 +1625,10 @@ object AsmExpansion {
 				removes = stack ::: removes
 				balance -= 1
 			}
-			case _ => if (balance > 0) stack = stack ::: List(op)
+			case _ => {
+				removePop = false
+				if (balance > 0) stack = stack ::: List(op)
+			}
 		}
 		if (maxStack > 0) modified = true
 		if (modified) {
