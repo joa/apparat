@@ -37,7 +37,14 @@ package apparat.memory {
 	import apparat.asm.__as3;
 	import apparat.asm.__asm;
 
-	public function memswap(pS1:int, pS2:int, size:int):void {
+    /**
+     * Swaps two memory regions.
+     *
+     * @param pS1 The address of the first region.
+     * @param pS2 The address of the second region.
+     * @param size The number of bytes to swap.
+     */
+	public function memswap(pS1: int, pS2: int, size: int): void {
 		var rest:int = size & 7;
 		size = size >> 3;
 		__asm(

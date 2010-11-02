@@ -22,12 +22,17 @@
 
 package apparat.asm {
 	/**
-	 * __cint will convert every operation (+,-,*,++,--,/) into their int equivalent
-	 * as the compiler generate op that are done on Number and not int.
+	 * The __cint function ensures the use of integer typed calculus.
+     *
+	 * It is the developers duty to make sure that all operands are
+     * actually of type <code>int</code>.
 	 *
-	 * it's you due to verify that the variable used are int
-	 *
-	 * @param as3 expression
+	 * @param value Any arithmetic expression.
+     * @example
+     * <pre>
+     *   var x: int = 2
+     *   trace(__cint(x*x))//uses now MultiplyInt instead of Multiply
+     * </pre>
 	 */
 	public function __cint(value: *): int {return 0;}
 }

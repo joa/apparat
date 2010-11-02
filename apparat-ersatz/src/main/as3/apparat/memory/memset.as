@@ -41,7 +41,14 @@ package apparat.memory {
 	import apparat.asm.__as3;
 	import apparat.asm.__asm;
 
-	public function memset(dst:int, value:int, size:int):void {
+    /**
+     * The memset function sets a given memory interval to a given value.
+     *
+     * @param dst The address in memory where to start.
+     * @param value The value to store.
+     * @param size The number of bytes to write.
+     */
+	public function memset(dst: int, value: int, size: int): void {
 		var rest:int = size & 7;
 		size = size >> 3;
 		__asm(

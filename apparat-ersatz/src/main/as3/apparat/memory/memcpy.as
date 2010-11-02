@@ -37,7 +37,14 @@ package apparat.memory {
 	import apparat.asm.__as3;
 	import apparat.asm.__asm;
 
-	public function memcpy(dst:int, src:int, size:int):void {
+    /**
+     * The memcpy function copies a source memory region to a given destination.
+     *
+     * @param dst The destination address.
+     * @param src The source address.
+     * @param size The number of bytes to copy.
+     */
+	public function memcpy(dst: int, src: int, size: int): void {
 		var rest:int = size & 7;
 		size = size >> 3;
 		__asm(

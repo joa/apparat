@@ -21,32 +21,39 @@
  */
 
 package apparat.memory {
-       /**
-         * The sizeOf function return the size of a class of type Structure
-         * <pre>
-         *  size of basic type:
-         *    byte   => 1
-		 *    float  => 4
-		 *    double => 8
-		 *    int    => 4
-		 *    uint   => 4
-         *    Number => 8
-         * </pre>
-         * @author Patrick Le Clec'h
-         * @see Structure
-         * @see sizeOf
-         *
-         * @example
-         * <pre>
-         * class CPoint extends Structure {
-         *    Map(type='float', pos=0)
-         *    public var x:Number;
-         *    Map(type='float', pos=1)
-         *    public var y:Number;
-         * }
-         *
-         * var len:int=sizeOf(CPoint); // will return 8
-         * </pre>
-         */
-    public function sizeOf(clazz:Class):int {return 0;}
+    /**
+     * The sizeOf function returns the size of a Structure type.
+     *
+     * A Structure consists of multiple arbitrary types. The sum of
+     * the size of those basic types is the total size of the Structure.
+     *
+     * <table>
+     * <tr><th>Type</th><th>Size</th></tr>
+     * <tr><td>byte</td><td>1</td></tr>
+     * <tr><td>float</td><td>4</td></tr>
+     * <tr><td>double</td><td>8</td></tr>
+     * <tr><td>int</td><td>4</td></tr>
+     * <tr><td>uint</td><td>4</td></tr>
+     * <tr><td>Number</td><td>8</td></tr>
+     * </table>
+     *
+     * @author Patrick Le Clec'h
+     * @see Structure
+     * @return The size of the given Structure.
+     *
+     * @example
+     * <pre>
+     * class CPoint extends Structure {
+     *    Map(type='float', pos=0)
+     *    public var x:Number;
+     *    Map(type='float', pos=1)
+     *    public var y:Number;
+     * }
+     *
+     * var len:int=sizeOf(CPoint); // will return 8
+     * </pre>
+     */
+    public function sizeOf(klass: Class): int {
+        return 0
+    }
 }
