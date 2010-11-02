@@ -50,7 +50,7 @@ object Coverage {
 			}
 
 			val cont = TagContainer fromFile input
-			cont foreachTag coverage
+			cont foreachTagSync coverage
 			cont write output
 		}
 

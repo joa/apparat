@@ -42,4 +42,9 @@ trait SwfTagMapping {
 		}
 		mappers foreach { _ map { _() } }
 	}
+
+  def foreachTagSync(f: PartialFunction[SwfTag, Unit]): Unit =
+		for(tag <- tags if f.isDefinedAt(tag)) {
+			f(tag)
+		}
 }
