@@ -213,7 +213,7 @@ object ASMifier {
 			writer withIndent {
 				for(op <- bytecode.ops) {
 					markers(op) match {
-						case Some(marker) => writer <= "\""+marker.toString+":\""
+						case Some(marker) => writer <= "\""+marker.toString+":\", "
 						case None =>
 					}
 

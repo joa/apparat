@@ -39,6 +39,7 @@ object AsmExpansion {
 	private val __maxStack = AbcQName('__maxStack, asmNamespace)
 	private val __dumpAfterASM = AbcQName('__dumpAfterASM, asmNamespace)
 	private val __as3 = AbcQName('__as3, asmNamespace)
+	private val __cint = AbcQName('__cint, asmNamespace)
 
 	private lazy val abcQName = AbcQName('AbcQName, asmNamespace)
 	private lazy val abcQNameA = AbcQName('AbcQNameA, asmNamespace)
@@ -246,8 +247,14 @@ object AsmExpansion {
 		}
 		def throwError(msg: String) {
 			optDebugFile match {
-				case Some(debugFile) => error(debugFile.file + ":" + lineNum + " => " + msg)
-				case _ => error(msg)
+				case Some(debugFile) => {
+					bytecode.dump()
+					error(debugFile.file + ":" + lineNum + " => " + msg)
+				}
+				case _ => {
+					bytecode.dump()
+					error(msg)
+				}
 			}
 		}
 
@@ -270,6 +277,17 @@ object AsmExpansion {
 											case qn: AbcQNameA => nsList = qn.namespace :: nsList
 											case _ => throwError("abcNamespaceSet is expecting abcNamespace arguments")
 										}
+										case _ =>
+									}
+								}
+								case AbcQName('__cint, asmNamespace) => {
+									resolveABCName('AbcNamespaceSet) match {
+										case Some(abcName) => abcName match {
+											case qn: AbcQName => nsList = qn.namespace :: nsList
+											case qn: AbcQNameA => nsList = qn.namespace :: nsList
+											case _ => throwError("abcNamespaceSet is expecting abcNamespace arguments")
+										}
+										case _ =>
 									}
 								}
 								case AbcQName('AbcNamespace, asmNamespace) => {
@@ -513,6 +531,44 @@ object AsmExpansion {
 				case _ => throwError(opName + " expect an integer as parameter")
 			}
 		}
+		@inline def readOp_Int_Int(opName: Symbol, abcName: AbcName, opFactory: (Int, Int) => AbstractOp) {
+			expectNextOp(opName + " expect an integer as first parameter") match {
+				case pb@PushByte(value) => {
+					expectNextOp(opName + " expect an integer as second parameter") match {
+						case pb2@PushByte(value2) => {
+							expectNextOp("invalid call to " + opName) match {
+								case cp@CallProperty(aName, 2) if (aName == abcName) => {
+									removes = pb :: pb2 :: removes
+									replacements = replacements.updated(cp, List(opFactory(value, value2)))
+								}
+								case _ => throwError("invalid call to " + opName)
+							}
+						}
+						case _ => throwError("invalid call to " + opName)
+					}
+				}
+				// TODO other int push
+				//				case ps@PushShort(value) => {
+				//					expectNextOp("invalid call to " + opName) match {
+				//						case cp@CallProperty(aName, 1) if (aName == abcName) => {
+				//							removes = ps :: removes
+				//							replacements = replacements.updated(cp, List(opFactory(value)))
+				//						}
+				//						case _ => throwError("invalid call to " + opName)
+				//					}
+				//				}
+				//				case pi@PushInt(value) => {
+				//					expectNextOp("invalid call to " + opName) match {
+				//						case cp@CallProperty(aName, 1) if (aName == abcName) => {
+				//							removes = pi :: removes
+				//							replacements = replacements.updated(cp, List(opFactory(value)))
+				//						}
+				//						case _ => throwError("invalid call to " + opName)
+				//					}
+				//				}
+				case _ => throwError(opName + " expect an integer as parameter")
+			}
+		}
 		@inline def readOp_AbcName(opName: Symbol, abcName: AbcName, opFactory: (AbcName) => AbstractOp) {
 			resolveABCName(opName) match {
 				case Some(name) => {
@@ -738,6 +794,35 @@ object AsmExpansion {
 									removes = op :: removes
 								}
 								case _ => throwError("missing arguments from __as3 into " + asmOpName)
+							}
+							ops.map(op => removes = op :: removes)
+						}
+						case AbcQName('__cint, asmNamespace) => {
+							var ops = readUntil(__cint)
+							ops.headOption match {
+								case Some(op) => {
+									op match {
+										case CallProperty(aName, count) if (aName == __cint) => {
+											ops = ops.tail
+											ops.headOption match {
+												case Some(gl: GetLex) => {
+													ret = Some(gl.typeName)
+													ops = ops.tail
+													removes = gl :: removes
+												}
+												case Some(gp: GetProperty) => {
+													ret = Some(gp.property)
+													ops = ops.tail
+													removes = gp :: removes
+												}
+												case _ => throwError("expecting getProperty in __cint call into " + asmOpName)
+											}
+										}
+										case _ => throwError("invalid call to __cint into " + asmOpName)
+									}
+									removes = op :: removes
+								}
+								case _ => throwError("missing arguments from __cint into " + asmOpName)
 							}
 							ops.map(op => removes = op :: removes)
 						}
@@ -1207,6 +1292,14 @@ object AsmExpansion {
 										readOp_AbcName_Int(asmOpName, callProperty, (abcName: AbcName, args: Int) => CallProperty(abcName, args))
 										removes = currentOp :: removes
 									}
+//									case 'CallMethod => {
+//										readOp_Int_Int(asmOpName, callMethod, (index: Int, args: Int) => CallMethod(index, args))
+//										removes = currentOp :: removes
+//									}
+//									case 'CallStatic => {
+//										readOp_Int_Int(asmOpName, callStatic, (index: Int, args: Int) => CallStatic(index, args))
+//										removes = currentOp :: removes
+//									}
 									case 'CallPropLex => {
 										readOp_AbcName_Int(asmOpName, callPropLex, (abcName: AbcName, args: Int) => CallPropLex(abcName, args))
 										removes = currentOp :: removes
@@ -1471,6 +1564,33 @@ object AsmExpansion {
 											case _ => throwError("missing arguments to " + asmOpName)
 										}
 									}
+									case '__cint => {
+										val ops = readUntil(__cint)
+										ops.headOption match {
+											case Some(op) => {
+												op match {
+													case CallProperty(aName, count) if (aName == __cint) => {
+														removes = currentOp :: op :: removes
+
+														for ($op <- ops) $op match {
+															case Add() => replacements = replacements.updated($op, List(AddInt()))
+															case DecLocal(register) => replacements = replacements.updated($op, List(DecLocalInt(register)))
+															case Decrement() => replacements = replacements.updated($op, List(DecrementInt()))
+															case IncLocal(register) => replacements = replacements.updated($op, List(IncLocalInt(register)))
+															case Multiply() => replacements = replacements.updated($op, List(MultiplyInt()))
+															case Negate() => replacements = replacements.updated($op, List(NegateInt()))
+															case Subtract() => replacements = replacements.updated($op, List(SubtractInt()))
+															case _ =>
+														}
+
+														//														replacements = replacements.updated(op, ops.reverse.dropRight(1))
+													}
+													case _ => throwError("invalid call to " + asmOpName)
+												}
+											}
+											case _ => throwError("missing arguments to " + asmOpName)
+										}
+									}
 									case _ => throwError("unknown op : " + asmOpName)
 								}
 							}
@@ -1486,18 +1606,61 @@ object AsmExpansion {
 			}
 		}
 
+		def independentCall(callOp: AbstractOp, numArguments: Int) = {
+			if (numArguments == 0 || stack.isEmpty)
+				false
+			else {
+				var modified = false
+				val currentOp = callOp
+				currentOp match {
+					case CallProperty(aName, count) if (aName == __cint) => {
+						@tailrec def loop() {
+							if (stack.nonEmpty) {
+								val $op = stack.head
+								stack = stack.tail
+								$op match {
+									case Add() => modified = true; replacements = replacements.updated($op, List(AddInt()))
+									case DecLocal(register) => modified = true; replacements = replacements.updated($op, List(DecLocalInt(register)))
+									case Decrement() => modified = true; replacements = replacements.updated($op, List(DecrementInt()))
+									case IncLocal(register) => modified = true; replacements = replacements.updated($op, List(IncLocalInt(register)))
+									case Multiply() => modified = true; replacements = replacements.updated($op, List(MultiplyInt()))
+									case Negate() => modified = true; replacements = replacements.updated($op, List(NegateInt()))
+									case Subtract() => modified = true; replacements = replacements.updated($op, List(SubtractInt()))
+									case _ =>
+								}
+								loop()
+							}
+						}
+						loop()
+					}
+					case _ => throwError("Unknown call " + callOp)
+				}
+				modified
+			}
+		}
+
 		var removePop = false
 		for (op <- bytecode.ops) op match {
-			case DebugLine(line) => lineNum = line
+			case DebugLine(line) => {
+				removePop = false
+				lineNum = line
+			}
 			case Pop() if (removePop) => {
 				removes = op :: removes
 				removePop = false
 			}
 			case FindPropStrict(typeName) if (typeName == __asm) => {
+				removePop = false
+				balance += 1
+				removes = op :: removes
+			}
+			case FindPropStrict(typeName) if (typeName == __cint) => {
+				removePop = false
 				balance += 1
 				removes = op :: removes
 			}
 			case FindPropStrict(typeName) if (typeName == __dumpAfterASM) => {
+				removePop = false
 				if (balance > 0)
 					throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
 
@@ -1505,6 +1668,7 @@ object AsmExpansion {
 				removes = op :: removes
 			}
 			case FindPropStrict(typeName) if (typeName == __maxStack) => {
+				removePop = false
 				if (balance > 0)
 					throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
 
@@ -1512,17 +1676,19 @@ object AsmExpansion {
 				removes = op :: removes
 			}
 			case CallPropVoid(property, numArguments) if (property == __asm) && (balance > 0) => {
-				modified = asm(op, numArguments)
+				removePop = false
+				modified |= asm(op, numArguments)
 				removes = op :: removes
 				balance -= 1
 			}
 			case CallProperty(property, numArguments) if (property == __asm) && (balance > 0) => {
-				modified = asm(op, numArguments)
+				modified |= asm(op, numArguments)
 				removePop = true
 				removes = op :: removes
 				balance -= 1
 			}
 			case CallPropVoid(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
+				removePop = false
 				dumpAfterASM = Some(decode_String("__dumpAfterASM"))
 				removes = op :: removes
 				removes = stack ::: removes
@@ -1536,6 +1702,7 @@ object AsmExpansion {
 				balance -= 1
 			}
 			case CallPropVoid(property, numArguments) if (property == __maxStack) && (balance > 0) => {
+				removePop = false
 				maxStack = decode_Long("__asmStack")
 				removes = op :: removes
 				removes = stack ::: removes
@@ -1548,7 +1715,22 @@ object AsmExpansion {
 				removes = stack ::: removes
 				balance -= 1
 			}
-			case _ => if (balance > 0) stack = stack ::: List(op)
+			case CallPropVoid(property, numArguments) if (property == __cint) && (balance > 0) => {
+				removePop = false
+				modified |= independentCall(op, numArguments)
+				removes = op :: removes
+				balance -= 1
+			}
+			case CallProperty(property, numArguments) if (property == __cint) && (balance > 0) => {
+				removePop = true
+				modified |= independentCall(op, numArguments)
+				removes = op :: removes
+				balance -= 1
+			}
+			case _ => {
+				removePop = false
+				if (balance > 0) stack = stack ::: List(op)
+			}
 		}
 		if (maxStack > 0) modified = true
 		if (modified) {
