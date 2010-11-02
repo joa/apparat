@@ -145,7 +145,7 @@ object TurboDieselSportInjection {
 
 						if(alchemy) {
 							modified |= InlineMemory(bytecode)
-              modified |= memoryExpansion.get expand  bytecode
+							modified |= memoryExpansion.get expand  bytecode
 						}
 
 						if(fixAlchemy) {
