@@ -22,6 +22,7 @@
       <includes>
         <include>asm:*:jar</include>
         <include>lwjgl:*:jar</include>
+        <include>de.huxhorn.sulky:*:jar</include>
       </includes>
     </dependencySet>
   </dependencySets>
