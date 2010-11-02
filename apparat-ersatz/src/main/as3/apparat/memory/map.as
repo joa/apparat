@@ -31,6 +31,8 @@ package apparat.memory {
      *
      * @see Structure
      * @see sizeOf
+     * @param pointer The pointer in memory.
+     * @param klass A Structure type.
      *
      * @example
      * <pre>
@@ -53,7 +55,7 @@ package apparat.memory {
      * pt.x += Math.random() * 5; //Read and set the memory at index 8
      * </pre>
      */
-    public function map(ptr: int, klass: Class): * {
+    public function map(pointer: int, klass: Class): * {
         return null
     }
 }
