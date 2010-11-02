@@ -247,8 +247,14 @@ object AsmExpansion {
 		}
 		def throwError(msg: String) {
 			optDebugFile match {
-				case Some(debugFile) => error(debugFile.file + ":" + lineNum + " => " + msg)
-				case _ => error(msg)
+				case Some(debugFile) => {
+					bytecode.dump()
+					error(debugFile.file + ":" + lineNum + " => " + msg)
+				}
+				case _ => {
+					bytecode.dump()
+					error(msg)
+				}
 			}
 		}
 
@@ -522,6 +528,44 @@ object AsmExpansion {
 						case _ => throwError("invalid call to " + opName)
 					}
 				}
+				case _ => throwError(opName + " expect an integer as parameter")
+			}
+		}
+		@inline def readOp_Int_Int(opName: Symbol, abcName: AbcName, opFactory: (Int, Int) => AbstractOp) {
+			expectNextOp(opName + " expect an integer as first parameter") match {
+				case pb@PushByte(value) => {
+					expectNextOp(opName + " expect an integer as second parameter") match {
+						case pb2@PushByte(value2) => {
+							expectNextOp("invalid call to " + opName) match {
+								case cp@CallProperty(aName, 2) if (aName == abcName) => {
+									removes = pb :: pb2 :: removes
+									replacements = replacements.updated(cp, List(opFactory(value, value2)))
+								}
+								case _ => throwError("invalid call to " + opName)
+							}
+						}
+						case _ => throwError("invalid call to " + opName)
+					}
+				}
+				// TODO other int push
+				//				case ps@PushShort(value) => {
+				//					expectNextOp("invalid call to " + opName) match {
+				//						case cp@CallProperty(aName, 1) if (aName == abcName) => {
+				//							removes = ps :: removes
+				//							replacements = replacements.updated(cp, List(opFactory(value)))
+				//						}
+				//						case _ => throwError("invalid call to " + opName)
+				//					}
+				//				}
+				//				case pi@PushInt(value) => {
+				//					expectNextOp("invalid call to " + opName) match {
+				//						case cp@CallProperty(aName, 1) if (aName == abcName) => {
+				//							removes = pi :: removes
+				//							replacements = replacements.updated(cp, List(opFactory(value)))
+				//						}
+				//						case _ => throwError("invalid call to " + opName)
+				//					}
+				//				}
 				case _ => throwError(opName + " expect an integer as parameter")
 			}
 		}
@@ -1248,6 +1292,14 @@ object AsmExpansion {
 										readOp_AbcName_Int(asmOpName, callProperty, (abcName: AbcName, args: Int) => CallProperty(abcName, args))
 										removes = currentOp :: removes
 									}
+//									case 'CallMethod => {
+//										readOp_Int_Int(asmOpName, callMethod, (index: Int, args: Int) => CallMethod(index, args))
+//										removes = currentOp :: removes
+//									}
+//									case 'CallStatic => {
+//										readOp_Int_Int(asmOpName, callStatic, (index: Int, args: Int) => CallStatic(index, args))
+//										removes = currentOp :: removes
+//									}
 									case 'CallPropLex => {
 										readOp_AbcName_Int(asmOpName, callPropLex, (abcName: AbcName, args: Int) => CallPropLex(abcName, args))
 										removes = currentOp :: removes
@@ -1520,7 +1572,7 @@ object AsmExpansion {
 													case CallProperty(aName, count) if (aName == __cint) => {
 														removes = currentOp :: op :: removes
 
-														for ($op<-ops) $op match {
+														for ($op <- ops) $op match {
 															case Add() => replacements = replacements.updated($op, List(AddInt()))
 															case DecLocal(register) => replacements = replacements.updated($op, List(DecLocalInt(register)))
 															case Decrement() => replacements = replacements.updated($op, List(DecrementInt()))
@@ -1554,6 +1606,39 @@ object AsmExpansion {
 			}
 		}
 
+		def independentCall(callOp: AbstractOp, numArguments: Int) = {
+			if (numArguments == 0 || stack.isEmpty)
+				false
+			else {
+				var modified = false
+				val currentOp = callOp
+				currentOp match {
+					case CallProperty(aName, count) if (aName == __cint) => {
+						@tailrec def loop() {
+							if (stack.nonEmpty) {
+								val $op = stack.head
+								stack = stack.tail
+								$op match {
+									case Add() => modified = true; replacements = replacements.updated($op, List(AddInt()))
+									case DecLocal(register) => modified = true; replacements = replacements.updated($op, List(DecLocalInt(register)))
+									case Decrement() => modified = true; replacements = replacements.updated($op, List(DecrementInt()))
+									case IncLocal(register) => modified = true; replacements = replacements.updated($op, List(IncLocalInt(register)))
+									case Multiply() => modified = true; replacements = replacements.updated($op, List(MultiplyInt()))
+									case Negate() => modified = true; replacements = replacements.updated($op, List(NegateInt()))
+									case Subtract() => modified = true; replacements = replacements.updated($op, List(SubtractInt()))
+									case _ =>
+								}
+								loop()
+							}
+						}
+						loop()
+					}
+					case _ => throwError("Unknown call " + callOp)
+				}
+				modified
+			}
+		}
+
 		var removePop = false
 		for (op <- bytecode.ops) op match {
 			case DebugLine(line) => {
@@ -1565,6 +1650,11 @@ object AsmExpansion {
 				removePop = false
 			}
 			case FindPropStrict(typeName) if (typeName == __asm) => {
+				removePop = false
+				balance += 1
+				removes = op :: removes
+			}
+			case FindPropStrict(typeName) if (typeName == __cint) => {
 				removePop = false
 				balance += 1
 				removes = op :: removes
@@ -1587,12 +1677,12 @@ object AsmExpansion {
 			}
 			case CallPropVoid(property, numArguments) if (property == __asm) && (balance > 0) => {
 				removePop = false
-				modified = asm(op, numArguments)
+				modified |= asm(op, numArguments)
 				removes = op :: removes
 				balance -= 1
 			}
 			case CallProperty(property, numArguments) if (property == __asm) && (balance > 0) => {
-				modified = asm(op, numArguments)
+				modified |= asm(op, numArguments)
 				removePop = true
 				removes = op :: removes
 				balance -= 1
@@ -1623,6 +1713,18 @@ object AsmExpansion {
 				removePop = true
 				removes = op :: removes
 				removes = stack ::: removes
+				balance -= 1
+			}
+			case CallPropVoid(property, numArguments) if (property == __cint) && (balance > 0) => {
+				removePop = false
+				modified |= independentCall(op, numArguments)
+				removes = op :: removes
+				balance -= 1
+			}
+			case CallProperty(property, numArguments) if (property == __cint) && (balance > 0) => {
+				removePop = true
+				modified |= independentCall(op, numArguments)
+				removes = op :: removes
 				balance -= 1
 			}
 			case _ => {

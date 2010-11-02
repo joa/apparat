@@ -29,5 +29,5 @@ package apparat.asm {
 	 *
 	 * @param as3 expression
 	 */
-	public function __cint(value: *): void {}
+	public function __cint(value: *): int {return 0;}
 }
