@@ -1733,6 +1733,7 @@ object AsmExpansion {
 			}
 		}
 		if (maxStack > 0) modified = true
+		modified |= (removes.nonEmpty || replacements.nonEmpty)
 		if (modified) {
 			if (unresolveMarkerMap.nonEmpty) {
 				error("can't resolve label :" + unresolveMarkerMap.map(p => p._1).mkString(", "))
