@@ -41,6 +41,8 @@ object AsmExpansion {
 	private val __as3 = AbcQName('__as3, asmNamespace)
 	private val __cint = AbcQName('__cint, asmNamespace)
 
+	private lazy val intName = AbcQName('int, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
+
 	private lazy val abcQName = AbcQName('AbcQName, asmNamespace)
 	private lazy val abcQNameA = AbcQName('AbcQNameA, asmNamespace)
 	private lazy val abcRTQName = AbcQName('AbcRTQName, asmNamespace)
@@ -1292,14 +1294,14 @@ object AsmExpansion {
 										readOp_AbcName_Int(asmOpName, callProperty, (abcName: AbcName, args: Int) => CallProperty(abcName, args))
 										removes = currentOp :: removes
 									}
-//									case 'CallMethod => {
-//										readOp_Int_Int(asmOpName, callMethod, (index: Int, args: Int) => CallMethod(index, args))
-//										removes = currentOp :: removes
-//									}
-//									case 'CallStatic => {
-//										readOp_Int_Int(asmOpName, callStatic, (index: Int, args: Int) => CallStatic(index, args))
-//										removes = currentOp :: removes
-//									}
+									//									case 'CallMethod => {
+									//										readOp_Int_Int(asmOpName, callMethod, (index: Int, args: Int) => CallMethod(index, args))
+									//										removes = currentOp :: removes
+									//									}
+									//									case 'CallStatic => {
+									//										readOp_Int_Int(asmOpName, callStatic, (index: Int, args: Int) => CallStatic(index, args))
+									//										removes = currentOp :: removes
+									//									}
 									case 'CallPropLex => {
 										readOp_AbcName_Int(asmOpName, callPropLex, (abcName: AbcName, args: Int) => CallPropLex(abcName, args))
 										removes = currentOp :: removes
@@ -1606,11 +1608,8 @@ object AsmExpansion {
 			}
 		}
 
-		def independentCall(callOp: AbstractOp, numArguments: Int) = {
-			if (numArguments == 0 || stack.isEmpty)
-				false
-			else {
-				var modified = false
+		def independentCall(callOp: AbstractOp, numArguments: Int) {
+			if (numArguments != 0 && stack.nonEmpty) {
 				val currentOp = callOp
 				currentOp match {
 					case CallProperty(aName, count) if (aName == __cint) => {
@@ -1619,13 +1618,13 @@ object AsmExpansion {
 								val $op = stack.head
 								stack = stack.tail
 								$op match {
-									case Add() => modified = true; replacements = replacements.updated($op, List(AddInt()))
-									case DecLocal(register) => modified = true; replacements = replacements.updated($op, List(DecLocalInt(register)))
-									case Decrement() => modified = true; replacements = replacements.updated($op, List(DecrementInt()))
-									case IncLocal(register) => modified = true; replacements = replacements.updated($op, List(IncLocalInt(register)))
-									case Multiply() => modified = true; replacements = replacements.updated($op, List(MultiplyInt()))
-									case Negate() => modified = true; replacements = replacements.updated($op, List(NegateInt()))
-									case Subtract() => modified = true; replacements = replacements.updated($op, List(SubtractInt()))
+									case Add() => replacements = replacements.updated($op, List(AddInt()))
+									case DecLocal(register) => replacements = replacements.updated($op, List(DecLocalInt(register)))
+									case Decrement() => replacements = replacements.updated($op, List(DecrementInt()))
+									case IncLocal(register) => replacements = replacements.updated($op, List(IncLocalInt(register)))
+									case Multiply() => replacements = replacements.updated($op, List(MultiplyInt()))
+									case Negate() => replacements = replacements.updated($op, List(NegateInt()))
+									case Subtract() => replacements = replacements.updated($op, List(SubtractInt()))
 									case _ =>
 								}
 								loop()
@@ -1635,105 +1634,159 @@ object AsmExpansion {
 					}
 					case _ => throwError("Unknown call " + callOp)
 				}
-				modified
 			}
 		}
 
 		var removePop = false
-		for (op <- bytecode.ops) op match {
-			case DebugLine(line) => {
-				removePop = false
-				lineNum = line
-			}
-			case Pop() if (removePop) => {
-				removes = op :: removes
-				removePop = false
-			}
-			case FindPropStrict(typeName) if (typeName == __asm) => {
-				removePop = false
-				balance += 1
-				removes = op :: removes
-			}
-			case FindPropStrict(typeName) if (typeName == __cint) => {
-				removePop = false
-				balance += 1
-				removes = op :: removes
-			}
-			case FindPropStrict(typeName) if (typeName == __dumpAfterASM) => {
-				removePop = false
-				if (balance > 0)
-					throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
+		var removeConvert = false
 
-				balance += 1
-				removes = op :: removes
-			}
-			case FindPropStrict(typeName) if (typeName == __maxStack) => {
-				removePop = false
-				if (balance > 0)
-					throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
+		var opIndex = -1
 
-				balance += 1
-				removes = op :: removes
-			}
-			case CallPropVoid(property, numArguments) if (property == __asm) && (balance > 0) => {
-				removePop = false
-				modified |= asm(op, numArguments)
-				removes = op :: removes
-				balance -= 1
-			}
-			case CallProperty(property, numArguments) if (property == __asm) && (balance > 0) => {
-				modified |= asm(op, numArguments)
-				removePop = true
-				removes = op :: removes
-				balance -= 1
-			}
-			case CallPropVoid(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
-				removePop = false
-				dumpAfterASM = Some(decode_String("__dumpAfterASM"))
-				removes = op :: removes
-				removes = stack ::: removes
-				balance -= 1
-			}
-			case CallProperty(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
-				dumpAfterASM = Some(decode_String("__dumpAfterASM"))
-				removePop = true
-				removes = op :: removes
-				removes = stack ::: removes
-				balance -= 1
-			}
-			case CallPropVoid(property, numArguments) if (property == __maxStack) && (balance > 0) => {
-				removePop = false
-				maxStack = decode_Long("__asmStack")
-				removes = op :: removes
-				removes = stack ::: removes
-				balance -= 1
-			}
-			case CallProperty(property, numArguments) if (property == __maxStack) && (balance > 0) => {
-				maxStack = decode_Long("__asmStack")
-				removePop = true
-				removes = op :: removes
-				removes = stack ::: removes
-				balance -= 1
-			}
-			case CallPropVoid(property, numArguments) if (property == __cint) && (balance > 0) => {
-				removePop = false
-				modified |= independentCall(op, numArguments)
-				removes = op :: removes
-				balance -= 1
-			}
-			case CallProperty(property, numArguments) if (property == __cint) && (balance > 0) => {
-				removePop = true
-				modified |= independentCall(op, numArguments)
-				removes = op :: removes
-				balance -= 1
-			}
-			case _ => {
-				removePop = false
-				if (balance > 0) stack = stack ::: List(op)
+		val ops = bytecode.ops
+
+		def removeCastAt(castName: AbcQName, castIndex: Int) {
+			if (castIndex < ops.size) {
+				ops(castIndex) match {
+					case cast@CallProperty(name, 1) if (name == castName) => {
+						removes = cast :: removes
+						@tailrec def loop(index: Int) {
+							if (index >= 0) {
+								ops(index) match {
+									case fp@FindPropStrict(name) if (name == castName) => removes = fp :: removes
+									case _ => loop(index - 1)
+								}
+							} else throwError("Malformed cast " + castName)
+						}
+						loop(castIndex - 1)
+					}
+					case _ =>
+				}
 			}
 		}
-		if (maxStack > 0) modified = true
-		modified |= (removes.nonEmpty || replacements.nonEmpty)
+
+		for (op <- ops) {
+			opIndex += 1
+
+			op match {
+				case ConvertInt() | CoerceInt() => if (removeConvert) {
+					removes = op :: removes
+					removePop = false
+					removeConvert = false
+				}
+				case DebugLine(line) => {
+					removePop = false
+					removeConvert = false
+					lineNum = line
+				}
+				case Pop() if (removePop) => {
+					removes = op :: removes
+					removePop = false
+					removeConvert = false
+				}
+				case FindPropStrict(typeName) if (typeName == __asm) => {
+					removePop = false
+					removeConvert = false
+					balance += 1
+					removes = op :: removes
+				}
+				case FindPropStrict(typeName) if (typeName == __cint) => {
+					removePop = false
+					removeConvert = false
+					balance += 1
+					removes = op :: removes
+				}
+				case FindPropStrict(typeName) if (typeName == __dumpAfterASM) => {
+					removePop = false
+					removeConvert = false
+					if (balance > 0)
+						throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
+
+					balance += 1
+					removes = op :: removes
+				}
+				case FindPropStrict(typeName) if (typeName == __maxStack) => {
+					removePop = false
+					removeConvert = false
+					if (balance > 0)
+						throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
+
+					balance += 1
+					removes = op :: removes
+				}
+				case CallPropVoid(property, numArguments) if (property == __asm) && (balance > 0) => {
+					removePop = false
+					removeConvert = true
+					asm(op, numArguments)
+					removes = op :: removes
+					balance -= 1
+					removeCastAt(intName, opIndex+1)
+				}
+				case CallProperty(property, numArguments) if (property == __asm) && (balance > 0) => {
+					asm(op, numArguments)
+					removePop = true
+					removeConvert = true
+					removes = op :: removes
+					balance -= 1
+					removeCastAt(intName, opIndex+1)
+				}
+				case CallPropVoid(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
+					removePop = false
+					removeConvert = false
+					dumpAfterASM = Some(decode_String("__dumpAfterASM"))
+					removes = op :: removes
+					removes = stack ::: removes
+					balance -= 1
+				}
+				case CallProperty(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
+					dumpAfterASM = Some(decode_String("__dumpAfterASM"))
+					removePop = true
+					removeConvert = false
+					removes = op :: removes
+					removes = stack ::: removes
+					balance -= 1
+				}
+				case CallPropVoid(property, numArguments) if (property == __maxStack) && (balance > 0) => {
+					removePop = false
+					removeConvert = false
+					maxStack = decode_Long("__asmStack")
+					removes = op :: removes
+					removes = stack ::: removes
+					balance -= 1
+				}
+				case CallProperty(property, numArguments) if (property == __maxStack) && (balance > 0) => {
+					maxStack = decode_Long("__asmStack")
+					removePop = true
+					removeConvert = false
+					removes = op :: removes
+					removes = stack ::: removes
+					balance -= 1
+				}
+				case CallPropVoid(property, numArguments) if (property == __cint) && (balance > 0) => {
+					removePop = false
+					removeConvert = true
+					independentCall(op, numArguments)
+					removes = op :: removes
+					balance -= 1
+					removeCastAt(intName, opIndex+1)
+				}
+				case CallProperty(property, numArguments) if (property == __cint) && (balance > 0) => {
+					removePop = true
+					removeConvert = true
+					independentCall(op, numArguments)
+					removes = op :: removes
+					balance -= 1
+					removeCastAt(intName, opIndex+1)
+				}
+				case _ => {
+					removePop = false
+					removeConvert = false
+					if (balance > 0) stack = stack ::: List(op)
+				}
+			}
+		}
+
+		modified = (removes.nonEmpty || replacements.nonEmpty || (maxStack > 0))
+
 		if (modified) {
 			if (unresolveMarkerMap.nonEmpty) {
 				error("can't resolve label :" + unresolveMarkerMap.map(p => p._1).mkString(", "))
