@@ -1,22 +1,22 @@
 /*
  * This file is part of Apparat.
- * 
+ *
  * Apparat is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Apparat is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) 2009 Joa Ebert
  * http://www.joa-ebert.com/
- * 
+ *
  */
 package apparat.abc
 
@@ -128,7 +128,7 @@ class Abc extends Dumpable {
 	}
 
 	def rebuildPool() = cpool = AbcConstantPoolBuilder using this
-	
+
 	def loadBytecode() = if(!bytecodeAvailable) {
 		implicit val abc = this
 
@@ -234,7 +234,14 @@ class Abc extends Dumpable {
 		val namespaces = readTable(new Array[AbcNamespace](max(1, input.readU30())), AbcConstantPool.EMPTY_NAMESPACE) { AbcNamespace(input.readU08(), strings(input.readU30())) }
 		val nssets = readTable(new Array[AbcNSSet](max(1, input.readU30())), AbcConstantPool.EMPTY_NSSET) { AbcNSSet(Array.fill(input.readU08()) { namespaces(input.readU30()) }) }
 		val tmp = new Array[AbcName](max(1, input.readU30()))
+
+		case class DefferedTypeName(index:Int, nameIndex:Int, parameters:Array[Int])
+		var deffered=List.empty[DefferedTypeName]
+		var cnt = 0
+
 		val names = readTable(tmp, AbcConstantPool.EMPTY_NAME) {
+			cnt += 1
+
 			input.readU08() match {
 				case AbcNameKind.QName => {
 					val namespace = input.readU30()
@@ -255,11 +262,19 @@ class Abc extends Dumpable {
 				case AbcNameKind.MultinameL => AbcMultinameL(nssets(input.readU30()))
 				case AbcNameKind.MultinameLA => AbcMultinameLA(nssets(input.readU30()))
 				case AbcNameKind.Typename => {
-					AbcTypename((tmp(input.readU30())).asInstanceOf[AbcQName], Array.fill(input.readU30()) { tmp(input.readU30()) })
+					val i=input.readU30()
+					val n=tmp(i)
+					if (n==null) {
+						deffered = DefferedTypeName(cnt, i, Array.fill(input.readU30()) { input.readU30() }) :: deffered
+						null
+					} else
+						AbcTypename(n.asInstanceOf[AbcQName], Array.fill(input.readU30()) { tmp(input.readU30()) })
 				}
 				case _ => error("Unknown multiname kind.")
 			}
 		}
+
+		for (dtn <- deffered) names(dtn.index) = AbcTypename(tmp(dtn.nameIndex).asInstanceOf[AbcQName], dtn.parameters.map(tmp(_)))
 
 		new AbcConstantPool(ints, uints, doubles, strings, namespaces, nssets, names)
 	}
@@ -366,7 +381,7 @@ class Abc extends Dumpable {
 			writePooledName(method.returnType)
 
 			method.parameters foreach (((_: AbcMethodParameter).typeName) andThen writePooledName)
-			
+
 			writePooledString(method.name)
 
 			output writeU08 (
@@ -476,7 +491,7 @@ class Abc extends Dumpable {
 			writeTraits(klass.traits)
 		}
 	}
-	
+
 	private def readScripts(implicit input: AbcInputStream) = Array.fill(input.readU30()) { new AbcScript(methods(input.readU30()), readTraits()) }
 
 	private def writeScripts(implicit output: AbcOutputStream) = writeAll(scripts) {
@@ -610,7 +625,7 @@ class Abc extends Dumpable {
 		output writeU30 (methods count (method => method.body.isDefined))
 		for(i <- 0 until methods.length) {
 			val method = methods(i)
-			
+
 			method.body match {
 				case Some(body) => {
 					output writeU30 i
