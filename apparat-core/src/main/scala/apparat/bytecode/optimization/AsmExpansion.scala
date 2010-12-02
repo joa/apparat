@@ -38,6 +38,7 @@ object AsmExpansion {
 	private val __asm = AbcQName('__asm, asmNamespace)
 	private val __maxStack = AbcQName('__maxStack, asmNamespace)
 	private val __dumpAfterASM = AbcQName('__dumpAfterASM, asmNamespace)
+	private val __nakedName = AbcQName('__naked, asmNamespace)
 	private val __as3 = AbcQName('__as3, asmNamespace)
 	private val __cint = AbcQName('__cint, asmNamespace)
 
@@ -230,11 +231,15 @@ object AsmExpansion {
 		var balance = 0
 		val optDebugFile: Option[DebugFile] = bytecode.ops.find(op => op.opCode == Op.debugfile).asInstanceOf[Option[DebugFile]]
 		var lineNum = 0
+
 		val markers = bytecode.markers
 		var markerMap = Map.empty[Symbol, Marker]
 		var unresolveMarkerMap = Map.empty[Symbol, Marker]
+		var isBackwardMarker=Map.empty[Marker, Boolean]
+
 		var maxStack = 0L
 		var dumpAfterASM: Option[String] = None
+		var naked = false
 
 		def nextOp() = {
 			val op = stack.head
@@ -386,15 +391,21 @@ object AsmExpansion {
 			loop()
 			ret
 		}
+
 		def resolveMarker(symbol: Symbol) = {
 			val newSymbol = Symbol(symbol.toString.tail + ":")
-			if (markerMap.contains(newSymbol))
-				markerMap(newSymbol)
-			else if (unresolveMarkerMap.contains(newSymbol)) {
-				unresolveMarkerMap(newSymbol)
+			if (markerMap.contains(newSymbol)) {
+				val marker = markerMap(newSymbol)
+				isBackwardMarker = isBackwardMarker.updated(marker, true)
+				marker
+			} else if (unresolveMarkerMap.contains(newSymbol)) {
+				val marker = unresolveMarkerMap(newSymbol)
+				isBackwardMarker = isBackwardMarker.updated(marker, isBackwardMarker.getOrElse(marker, false))
+				marker
 			} else {
 				val marker = markers.mark(Nop())
 				unresolveMarkerMap = unresolveMarkerMap.updated(newSymbol, marker)
+				isBackwardMarker = isBackwardMarker.updated(marker, isBackwardMarker.getOrElse(marker, false))
 				marker
 			}
 		}
@@ -1704,6 +1715,15 @@ object AsmExpansion {
 					balance += 1
 					removes = op :: removes
 				}
+				case FindPropStrict(typeName) if (typeName == __nakedName) => {
+					removePop = false
+					removeConvert = false
+					if (balance > 0)
+						throwError("can't call __naked inside __asm, __maxStack, or __dumpAfterASM")
+
+					balance += 1
+					removes = op :: removes
+				}
 				case FindPropStrict(typeName) if (typeName == __maxStack) => {
 					removePop = false
 					removeConvert = false
@@ -1739,6 +1759,22 @@ object AsmExpansion {
 				}
 				case CallProperty(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
 					dumpAfterASM = Some(decode_String("__dumpAfterASM"))
+					removePop = true
+					removeConvert = false
+					removes = op :: removes
+					removes = stack ::: removes
+					balance -= 1
+				}
+				case CallPropVoid(property, numArguments) if (property == __nakedName) && (balance > 0) => {
+					removePop = false
+					removeConvert = false
+					naked = true
+					removes = op :: removes
+					removes = stack ::: removes
+					balance -= 1
+				}
+				case CallProperty(property, numArguments) if (property == __nakedName) && (balance > 0) => {
+					naked = true
 					removePop = true
 					removeConvert = false
 					removes = op :: removes
@@ -1791,12 +1827,42 @@ object AsmExpansion {
 			if (unresolveMarkerMap.nonEmpty) {
 				error("can't resolve label :" + unresolveMarkerMap.map(p => p._1).mkString(", "))
 			}
-			removes foreach {
-				bytecode remove _
+			if (naked) {
+				if (ops.size>=2) {
+					ops(0) match {
+						case GetLocal(0) => removes = ops(0) :: removes
+						case _ =>
+					}
+					ops(1) match {
+						case PushScope() => removes = ops(1) :: removes
+						case _ =>
+					}
+				}
 			}
-			replacements.iterator foreach {
-				x => bytecode.replace(x._1, x._2)
+
+			removes foreach { bytecode remove _ }
+			replacements.iterator foreach {	x => bytecode.replace(x._1, x._2) }
+
+			val newOps = bytecode.ops
+			@tailrec def getNextOp(index:Int):AbstractOp = {
+				newOps(index) match {
+					case DebugFile(x) => getNextOp(index+1)
+					case DebugLine(x) => getNextOp(index+1)
+					case op@_ => op
+				}
 			}
+
+			removes = removes.init
+
+			for (mb <- isBackwardMarker.filter(mb => !mb._2)) {
+				val marker=mb._1
+				val markedOp=marker.op.get
+				val nextOp=getNextOp(newOps.indexOf(markedOp)+1)
+				markers.forwardMarker(markedOp, nextOp)
+				removes = markedOp :: removes
+			}
+
+			removes foreach { bytecode remove _ }
 
 			bytecode.body match {
 				case Some(body) => {
