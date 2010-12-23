@@ -32,7 +32,7 @@ import apparat.tools.ApparatLog
 import apparat.bytecode.analysis.StackAnalysis
 
 object AsmExpansion {
-	// TODO callMethod,callStatic,debug,hasNext2,newCatch,newClass,newFunction,pushNamespace
+	// TODO callMethod,debug,hasNext2,newCatch,newClass,newFunction,pushNamespace
 
 	private val asmNamespace = AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.asm"))
 	private val __asm = AbcQName('__asm, asmNamespace)
@@ -235,7 +235,7 @@ object AsmExpansion {
 		val markers = bytecode.markers
 		var markerMap = Map.empty[Symbol, Marker]
 		var unresolveMarkerMap = Map.empty[Symbol, Marker]
-		var isBackwardMarker=Map.empty[Marker, Boolean]
+		var isBackwardMarker = Map.empty[Marker, Boolean]
 
 		var maxStack = 0L
 		var dumpAfterASM: Option[String] = None
@@ -247,7 +247,7 @@ object AsmExpansion {
 			op
 		}
 		def expectNextOp(msg: String = "missing argument(s)") = {
-			if (stack.isEmpty) {
+			if(stack.isEmpty) {
 				throwError(msg)
 			}
 			nextOp()
@@ -268,7 +268,7 @@ object AsmExpansion {
 		@inline def readABCNamespaceSet(msg: String = ""): AbcNSSet = {
 			var nsList = List.empty[AbcNamespace]
 			@tailrec def loop() {
-				if (stack.nonEmpty) {
+				if(stack.nonEmpty) {
 					stack.head match {
 						case cp@CallProperty(abcName, x) if (abcName == abcNamespaceSet) => {
 							nextOp()
@@ -378,7 +378,7 @@ object AsmExpansion {
 		@inline def readUntil(abcName: AbcName) = {
 			var ret = List.empty[AbstractOp]
 			@tailrec def loop(): Unit = {
-				if (stack.nonEmpty) {
+				if(stack.nonEmpty) {
 					nextOp() match {
 						case op@CallProperty(aName, count) if (aName == abcName) => ret = op :: ret
 						case _@op => {
@@ -394,11 +394,11 @@ object AsmExpansion {
 
 		def resolveMarker(symbol: Symbol) = {
 			val newSymbol = Symbol(symbol.toString.tail + ":")
-			if (markerMap.contains(newSymbol)) {
+			if(markerMap.contains(newSymbol)) {
 				val marker = markerMap(newSymbol)
 				isBackwardMarker = isBackwardMarker.updated(marker, true)
 				marker
-			} else if (unresolveMarkerMap.contains(newSymbol)) {
+			} else if(unresolveMarkerMap.contains(newSymbol)) {
 				val marker = unresolveMarkerMap(newSymbol)
 				isBackwardMarker = isBackwardMarker.updated(marker, isBackwardMarker.getOrElse(marker, false))
 				marker
@@ -413,7 +413,7 @@ object AsmExpansion {
 		@inline def readOp_Marker_Markers(opName: Symbol, abcName: AbcName, opFactory: (Marker, Array[Marker]) => AbstractOp) {
 			expectNextOp(opName + " expect a string label as first parameter") match {
 				case ps@PushString(symbol) => {
-					if (symbol.toString.last == ':') {
+					if(symbol.toString.last == ':') {
 						throwError("the target label " + symbol + " mustn't ended with :")
 					}
 
@@ -422,14 +422,14 @@ object AsmExpansion {
 					var cases = List.empty[Marker]
 
 					@tailrec def loop() {
-						if (stack.nonEmpty) {
+						if(stack.nonEmpty) {
 							stack.head match {
 								case cp@CallProperty(aName, count) if (aName == abcName) => {
 									removes = cp :: removes
 									nextOp()
 								}
 								case ps@PushString(symbol) => {
-									if (symbol.toString.last == ':') {
+									if(symbol.toString.last == ':') {
 										throwError("the target label " + symbol + " mustn't ended with :")
 									}
 									cases = resolveMarker(symbol) :: cases
@@ -453,7 +453,7 @@ object AsmExpansion {
 		@inline def readOp_Marker(opName: Symbol, abcName: AbcName, opFactory: (Marker) => AbstractOp) {
 			expectNextOp(opName + " expect a string as parameter") match {
 				case ps@PushString(symbol) => {
-					if (symbol.toString.last == ':') {
+					if(symbol.toString.last == ':') {
 						throwError("the target label " + symbol + " mustn't ended with :")
 					}
 
@@ -486,13 +486,13 @@ object AsmExpansion {
 		}
 		@inline def readOp_Register(opName: Symbol, abcName: AbcName, opFactory: (Int) => AbstractOp) {
 			var ops = readUntil(abcName)
-			if (ops.isEmpty) {
+			if(ops.isEmpty) {
 				throwError(opName + " expect a variable name or a register number")
 			} else ops.head match {
 				case cp@CallProperty(aName, count) if (aName == abcName) => {
 					removes = cp :: removes
 					ops = ops.tail
-					if (ops.isEmpty) {
+					if(ops.isEmpty) {
 						throwError(opName + " expect a variable name or a register number")
 					} else ops.head match {
 						case gs@GetSlot(register) => {
@@ -553,6 +553,15 @@ object AsmExpansion {
 								case cp@CallProperty(aName, 2) if (aName == abcName) => {
 									removes = pb :: pb2 :: removes
 									replacements = replacements.updated(cp, List(opFactory(value, value2)))
+								}
+								case _ => throwError("invalid call to " + opName)
+							}
+						}
+						case dup@Dup() => {
+							expectNextOp("invalid call to " + opName) match {
+								case cp@CallProperty(aName, 2) if (aName == abcName) => {
+									removes = pb :: dup :: removes
+									replacements = replacements.updated(cp, List(opFactory(value, value)))
 								}
 								case _ => throwError("invalid call to " + opName)
 							}
@@ -799,6 +808,11 @@ object AsmExpansion {
 													ops = ops.tail
 													removes = gp :: removes
 												}
+												case Some(cp: CallProperty) => {
+													ret = Some(cp.property)
+													ops = ops.tail
+													removes = cp :: removes
+												}
 												case _ => throwError("expecting getProperty in __as3 call into " + asmOpName)
 											}
 										}
@@ -985,7 +999,7 @@ object AsmExpansion {
 		}
 
 		def asm(callOp: AbstractOp, numArguments: Int) = {
-			if (numArguments == 0 || stack.isEmpty)
+			if(numArguments == 0 || stack.isEmpty)
 				false
 			else {
 				var done = false
@@ -996,13 +1010,13 @@ object AsmExpansion {
 						case GetLocal(0) =>
 						case DebugLine(line) => lineNum = line
 						case PushString(value) => {
-							if (value.toString.last != ':') {
+							if(value.toString.last != ':') {
 								throwError("label " + value + " have to ended with :")
-							} else if (markerMap.contains(value))
+							} else if(markerMap.contains(value))
 								throwError("duplicate label " + value)
 							else {
 								val label = Label()
-								if (unresolveMarkerMap.contains(value)) {
+								if(unresolveMarkerMap.contains(value)) {
 									val marker = unresolveMarkerMap(value)
 									unresolveMarkerMap -= value
 									markers.forwardMarker(marker.op.get, label)
@@ -1585,7 +1599,7 @@ object AsmExpansion {
 													case CallProperty(aName, count) if (aName == __cint) => {
 														removes = currentOp :: op :: removes
 
-														for ($op <- ops) $op match {
+														for($op <- ops) $op match {
 															case Add() => replacements = replacements.updated($op, List(AddInt()))
 															case DecLocal(register) => replacements = replacements.updated($op, List(DecLocalInt(register)))
 															case Decrement() => replacements = replacements.updated($op, List(DecrementInt()))
@@ -1611,7 +1625,7 @@ object AsmExpansion {
 						}
 						case _ =>
 					}
-					if (stack.nonEmpty)
+					if(stack.nonEmpty)
 						loop()
 				}
 				loop()
@@ -1620,12 +1634,12 @@ object AsmExpansion {
 		}
 
 		def independentCall(callOp: AbstractOp, numArguments: Int) {
-			if (numArguments != 0 && stack.nonEmpty) {
+			if(numArguments != 0 && stack.nonEmpty) {
 				val currentOp = callOp
 				currentOp match {
 					case CallProperty(aName, count) if (aName == __cint) => {
 						@tailrec def loop() {
-							if (stack.nonEmpty) {
+							if(stack.nonEmpty) {
 								val $op = stack.head
 								stack = stack.tail
 								$op match {
@@ -1656,12 +1670,12 @@ object AsmExpansion {
 		val ops = bytecode.ops
 
 		def removeCastAt(castName: AbcQName, castIndex: Int) {
-			if (castIndex < ops.size) {
+			if(castIndex < ops.size) {
 				ops(castIndex) match {
 					case cast@CallProperty(name, 1) if (name == castName) => {
 						removes = cast :: removes
 						@tailrec def loop(index: Int) {
-							if (index >= 0) {
+							if(index >= 0) {
 								ops(index) match {
 									case fp@FindPropStrict(name) if (name == castName) => removes = fp :: removes
 									case _ => loop(index - 1)
@@ -1675,11 +1689,11 @@ object AsmExpansion {
 			}
 		}
 
-		for (op <- ops) {
+		for(op <- ops) {
 			opIndex += 1
 
 			op match {
-				case ConvertInt() | CoerceInt() => if (removeConvert) {
+				case ConvertInt() | CoerceInt() => if(removeConvert) {
 					removes = op :: removes
 					removePop = false
 					removeConvert = false
@@ -1709,7 +1723,7 @@ object AsmExpansion {
 				case FindPropStrict(typeName) if (typeName == __dumpAfterASM) => {
 					removePop = false
 					removeConvert = false
-					if (balance > 0)
+					if(balance > 0)
 						throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
 
 					balance += 1
@@ -1718,7 +1732,7 @@ object AsmExpansion {
 				case FindPropStrict(typeName) if (typeName == __nakedName) => {
 					removePop = false
 					removeConvert = false
-					if (balance > 0)
+					if(balance > 0)
 						throwError("can't call __naked inside __asm, __maxStack, or __dumpAfterASM")
 
 					balance += 1
@@ -1727,7 +1741,7 @@ object AsmExpansion {
 				case FindPropStrict(typeName) if (typeName == __maxStack) => {
 					removePop = false
 					removeConvert = false
-					if (balance > 0)
+					if(balance > 0)
 						throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
 
 					balance += 1
@@ -1739,7 +1753,7 @@ object AsmExpansion {
 					asm(op, numArguments)
 					removes = op :: removes
 					balance -= 1
-					removeCastAt(intName, opIndex+1)
+					removeCastAt(intName, opIndex + 1)
 				}
 				case CallProperty(property, numArguments) if (property == __asm) && (balance > 0) => {
 					asm(op, numArguments)
@@ -1747,7 +1761,7 @@ object AsmExpansion {
 					removeConvert = true
 					removes = op :: removes
 					balance -= 1
-					removeCastAt(intName, opIndex+1)
+					removeCastAt(intName, opIndex + 1)
 				}
 				case CallPropVoid(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
 					removePop = false
@@ -1803,7 +1817,7 @@ object AsmExpansion {
 					independentCall(op, numArguments)
 					removes = op :: removes
 					balance -= 1
-					removeCastAt(intName, opIndex+1)
+					removeCastAt(intName, opIndex + 1)
 				}
 				case CallProperty(property, numArguments) if (property == __cint) && (balance > 0) => {
 					removePop = true
@@ -1811,24 +1825,24 @@ object AsmExpansion {
 					independentCall(op, numArguments)
 					removes = op :: removes
 					balance -= 1
-					removeCastAt(intName, opIndex+1)
+					removeCastAt(intName, opIndex + 1)
 				}
 				case _ => {
 					removePop = false
 					removeConvert = false
-					if (balance > 0) stack = stack ::: List(op)
+					if(balance > 0) stack = stack ::: List(op)
 				}
 			}
 		}
 
 		modified = (removes.nonEmpty || replacements.nonEmpty || (maxStack > 0))
 
-		if (modified) {
-			if (unresolveMarkerMap.nonEmpty) {
+		if(modified) {
+			if(unresolveMarkerMap.nonEmpty) {
 				error("can't resolve label :" + unresolveMarkerMap.map(p => p._1).mkString(", "))
 			}
-			if (naked) {
-				if (ops.size>=2) {
+			if(naked) {
+				if(ops.size >= 2) {
 					ops(0) match {
 						case GetLocal(0) => removes = ops(0) :: removes
 						case _ =>
@@ -1840,36 +1854,36 @@ object AsmExpansion {
 				}
 			}
 
-			removes foreach { bytecode remove _ }
-			replacements.iterator foreach {	x => bytecode.replace(x._1, x._2) }
+			removes foreach {bytecode remove _}
+			replacements.iterator foreach {x => bytecode.replace(x._1, x._2)}
 
 			val newOps = bytecode.ops
-			@tailrec def getNextOp(index:Int):AbstractOp = {
+			@tailrec def getNextOp(index: Int): AbstractOp = {
 				newOps(index) match {
-					case DebugFile(x) => getNextOp(index+1)
-					case DebugLine(x) => getNextOp(index+1)
+					case DebugFile(x) => getNextOp(index + 1)
+					case DebugLine(x) => getNextOp(index + 1)
 					case op@_ => op
 				}
 			}
 
 			removes = removes.init
 
-			for (mb <- isBackwardMarker.filter(mb => !mb._2)) {
-				val marker=mb._1
-				val markedOp=marker.op.get
-				val nextOp=getNextOp(newOps.indexOf(markedOp)+1)
+			for(mb <- isBackwardMarker.filter(mb => !mb._2)) {
+				val marker = mb._1
+				val markedOp = marker.op.get
+				val nextOp = getNextOp(newOps.indexOf(markedOp) + 1)
 				markers.forwardMarker(markedOp, nextOp)
 				removes = markedOp :: removes
 			}
 
-			removes foreach { bytecode remove _ }
+			removes foreach {bytecode remove _}
 
 			bytecode.body match {
 				case Some(body) => {
 					val (operandStack, scopeStack) = StackAnalysis(bytecode)
 					//					body.localCount = localCount
-					if (maxStack > 0) {
-						if (maxStack < operandStack)
+					if(maxStack > 0) {
+						if(maxStack < operandStack)
 							throwError("__maxStack is too low for your method min expected : " + operandStack)
 					} else {
 						maxStack = operandStack

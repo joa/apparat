@@ -263,12 +263,12 @@ class Abc extends Dumpable {
 				case AbcNameKind.MultinameLA => AbcMultinameLA(nssets(input.readU30()))
 				case AbcNameKind.Typename => {
 					val i=input.readU30()
-					val n=tmp(i)
-					if (n==null) {
+//					val n=tmp(i)
+//					if (n==null) {
 						deffered = DefferedTypeName(cnt, i, Array.fill(input.readU30()) { input.readU30() }) :: deffered
 						null
-					} else
-						AbcTypename(n.asInstanceOf[AbcQName], Array.fill(input.readU30()) { tmp(input.readU30()) })
+//					} else
+//						AbcTypename(n.asInstanceOf[AbcQName], Array.fill(input.readU30()) { tmp(input.readU30()) })
 				}
 				case _ => error("Unknown multiname kind.")
 			}
