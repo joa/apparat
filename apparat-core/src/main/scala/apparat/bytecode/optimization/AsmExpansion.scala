@@ -1657,6 +1657,26 @@ object AsmExpansion {
 						}
 						loop()
 					}
+					case CallPropVoid(aName, count) if (aName == __cint) => {
+						@tailrec def loop() {
+							if(stack.nonEmpty) {
+								val $op = stack.head
+								stack = stack.tail
+								$op match {
+									case Add() => replacements = replacements.updated($op, List(AddInt()))
+									case DecLocal(register) => replacements = replacements.updated($op, List(DecLocalInt(register)))
+									case Decrement() => replacements = replacements.updated($op, List(DecrementInt()))
+									case IncLocal(register) => replacements = replacements.updated($op, List(IncLocalInt(register)))
+									case Multiply() => replacements = replacements.updated($op, List(MultiplyInt()))
+									case Negate() => replacements = replacements.updated($op, List(NegateInt()))
+									case Subtract() => replacements = replacements.updated($op, List(SubtractInt()))
+									case _ =>
+								}
+								loop()
+							}
+						}
+						loop()
+					}
 					case _ => throwError("Unknown call " + callOp)
 				}
 			}
