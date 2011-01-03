@@ -51,7 +51,7 @@ case class AbcQNameA(name: Symbol, namespace: AbcNamespace) extends AbcName(AbcN
 case class AbcRTQName(name: Symbol) extends AbcName(AbcNameKind.RTQName)
 case class AbcRTQNameA(name: Symbol) extends AbcName(AbcNameKind.RTQNameA)
 case object AbcRTQNameL extends AbcName(AbcNameKind.RTQNameL)
-case object AbcRTQNameLA extends AbcName(AbcNameKind.RTQNameL)
+case object AbcRTQNameLA extends AbcName(AbcNameKind.RTQNameLA)
 case class AbcMultiname(name: Symbol, nsset: AbcNSSet) extends AbcName(AbcNameKind.Multiname)
 case class AbcMultinameA(name: Symbol, nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameA)
 case class AbcMultinameL(nsset: AbcNSSet) extends AbcName(AbcNameKind.MultinameL)
