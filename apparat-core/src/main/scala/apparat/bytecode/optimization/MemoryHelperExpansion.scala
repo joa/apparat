@@ -107,7 +107,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 
 	def validateAndUpdateInfo() = {
 		for (nominal <- structures.valuesIterator) {
-			if (nominal.inst.traits.length == 1) error(nominal.name + " have no field member.")
+			if (nominal.inst.traits.length == 0) error(nominal.name + " have no field member.")
 			if (nominal.klass.traits.length != 0) error(nominal.name + " must not have methods.")
 			if (!nominal.inst.isSealed) error(nominal.name + " must not be a dynamic class.")
 
