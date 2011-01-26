@@ -292,6 +292,39 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 
 		val markers=bytecode.markers
 
+		def getPowerOf2(num:Int)={
+			if ((num&(num-1))==0) {
+				@tailrec def loop(i:Int, pos:Int = -1):Int={
+					if (i==0) pos
+					else loop(i>>>1, pos+1)
+				}
+				loop(num)
+			} else 0
+		}
+
+		def getIntConstantOnStack(stackDepthRequired:Int=2):Option[(Int, AbstractOp)]={
+			if (parameters.size==stackDepthRequired) {
+				parameters.head match {
+					case pb@PushByte(arg) => Some((arg, pb))
+					case ps@PushShort(arg) => Some((arg, ps))
+					case pi@PushInt(arg) => Some((arg, pi))
+					case _ => None
+				}
+			} else None
+		}
+
+		def getPushOpFromSize(size:Int):AbstractOp={
+			if (size > ((1 << 15) - 1)) {
+				PushInt(size)
+			} else if (size > ((1 << 7) - 1)) {
+				PushShort(size)
+			} else if (size >= 0) {
+				PushByte(size)
+			} else {
+				PushInt(size)
+			}
+		}
+
 		@tailrec def unwindParameterStack(depth: Int, ret: AbstractOp = Nop()): AbstractOp = {
 			if ((depth < 0) && parameters.nonEmpty) {
 				val op = parameters.head
@@ -418,13 +451,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 											val field = struct.fields.head
 											val size = field.position + sizeOf(field.`type`)
 											var args = List.empty[AbstractOp]
-											if (size > ((1 << 15) - 1)) {
-												args = PushInt(size) :: args
-											} else if (size > ((1 << 7) - 1)) {
-												args = PushShort(size) :: args
-											} else if (size >= 0) {
-												args = PushByte(size) :: args
-											}
+											args = getPushOpFromSize(size) :: args
 											replacements = replacements.updated(gl, args.reverse)
 											unwindParameterStack(op.operandDelta)
 											parameters = PushByte(0) :: parameters
@@ -492,6 +519,9 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 						case SeekToName if (argCount == 1 && (balance > 0) && parameters.nonEmpty) => {
 							preCheck()
 							optimisation = Optimisation.RemoveConvertInt
+
+							val optConst=getIntConstantOnStack()
+
 							unwindParameterStack(op.operandDelta) match {
 								case gl@GetLocal(register) if (registerMap.contains(register)) => {
 									removes = gl :: removes
@@ -503,16 +533,54 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									if (size == 0) {
 										args = Nop() :: args
 									} else {
-										if (size > ((1 << 15) - 1)) {
-											args = PushInt(size) :: args
-										} else if (size > ((1 << 7) - 1)) {
-											args = PushShort(size) :: args
-										} else if (size > 0) {
-											args = PushByte(size) :: args
+										def addMultiply(){
+											args = getPushOpFromSize(size) :: args
+											args = MultiplyInt() :: args
+											args = GetLocal(memAlias.orgPtrRegister) :: args
+											args = AddInt() :: args
 										}
-										args = MultiplyInt() :: args
-										args = GetLocal(memAlias.orgPtrRegister) :: args
-										args = AddInt() :: args
+										def addShift(bitShift:Int){
+											args = PushByte(bitShift) :: args
+											args = ShiftLeft() :: args
+											args = GetLocal(memAlias.orgPtrRegister) :: args
+											args = AddInt() :: args
+										}
+										optConst match {
+											case Some((0, op)) => {
+												removes = op :: removes
+												args = GetLocal(memAlias.orgPtrRegister) :: args
+											}
+											case Some((1, op)) => {
+												removes = op :: removes
+												args = getPushOpFromSize(size) :: args
+												args = GetLocal(memAlias.orgPtrRegister) :: args
+												args = AddInt() :: args
+											}
+											case Some((x, op)) => {
+												getPowerOf2(size) match {
+													case 0 => {
+														getPowerOf2(x) match {
+															case 0 => addMultiply()
+															case bc@_ => {
+																removes = op :: removes
+																args = getPushOpFromSize(size) :: args
+																args = PushByte(bc) :: args
+																args = ShiftLeft() :: args
+																args = GetLocal(memAlias.orgPtrRegister) :: args
+																args = AddInt() :: args
+															}
+														}
+													}
+													case bc@_ => addShift(bc)
+												}
+											}
+											case _ => {
+												getPowerOf2(size) match {
+													case 0 => addMultiply()
+													case bc@_ => addShift(bc)
+												}
+											}
+										}
 										args = SetLocal(memAlias.ptrRegister) :: args
 									}
 									replacements = replacements.updated(op, args.reverse)
@@ -524,6 +592,9 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 						case SeekByName if (argCount == 1 && (balance > 0) && parameters.nonEmpty) => {
 							preCheck()
 							optimisation = Optimisation.RemoveConvertInt
+
+							val optConst=getIntConstantOnStack()
+
 							unwindParameterStack(op.operandDelta) match {
 								case gl@GetLocal(register) if (registerMap.contains(register)) => {
 									removes = gl :: removes
@@ -535,16 +606,54 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									if (size == 0) {
 										args = Nop() :: args
 									} else {
-										if (size > ((1 << 15) - 1)) {
-											args = PushInt(size) :: args
-										} else if (size > ((1 << 7) - 1)) {
-											args = PushShort(size) :: args
-										} else if (size > 0) {
-											args = PushByte(size) :: args
+										def addMultiply(){
+											args = getPushOpFromSize(size) :: args
+											args = MultiplyInt() :: args
+											args = GetLocal(memAlias.ptrRegister) :: args
+											args = AddInt() :: args
 										}
-										args = MultiplyInt() :: args
-										args = GetLocal(memAlias.ptrRegister) :: args
-										args = AddInt() :: args
+										def addShift(bitShift:Int){
+											args = PushByte(bitShift) :: args
+											args = ShiftLeft() :: args
+											args = GetLocal(memAlias.ptrRegister) :: args
+											args = AddInt() :: args
+										}
+										optConst match {
+											case Some((0, op)) => {
+												removes = op :: removes
+												args = GetLocal(memAlias.ptrRegister) :: args
+											}
+											case Some((1, op)) => {
+												removes = op :: removes
+												args = getPushOpFromSize(size) :: args
+												args = GetLocal(memAlias.ptrRegister) :: args
+												args = AddInt() :: args
+											}
+											case Some((x, op)) => {
+												getPowerOf2(size) match {
+													case 0 => {
+														getPowerOf2(x) match {
+															case 0 => addMultiply()
+															case bc@_ => {
+																removes = op :: removes
+																args = getPushOpFromSize(size) :: args
+																args = PushByte(bc) :: args
+																args = ShiftLeft() :: args
+																args = GetLocal(memAlias.ptrRegister) :: args
+																args = AddInt() :: args
+															}
+														}
+													}
+													case bc@_ => addShift(bc)
+												}
+											}
+											case _ => {
+												getPowerOf2(size) match {
+													case 0 => addMultiply()
+													case bc@_ => addShift(bc)
+												}
+											}
+										}
 										args = SetLocal(memAlias.ptrRegister) :: args
 									}
 									replacements = replacements.updated(op, args.reverse)
@@ -610,13 +719,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									var args = List.empty[AbstractOp]
 									args = GetLocal(memAlias.ptrRegister) :: args
 									if (size != 0) {
-										if (size > ((1 << 15) - 1)) {
-											args = PushInt(size) :: args
-										} else if (size > ((1 << 7) - 1)) {
-											args = PushShort(size) :: args
-										} else if (size > 0) {
-											args = PushByte(size) :: args
-										}
+										args = getPushOpFromSize(size) :: args
 										args = AddInt() :: args
 										args = SetLocal(memAlias.ptrRegister) :: args
 									}
@@ -639,13 +742,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									var args = List.empty[AbstractOp]
 									args = GetLocal(memAlias.ptrRegister) :: args
 									if (size != 0) {
-										if (size > ((1 << 15) - 1)) {
-											args = PushInt(size) :: args
-										} else if (size > ((1 << 7) - 1)) {
-											args = PushShort(size) :: args
-										} else if (size > 0) {
-											args = PushByte(size) :: args
-										}
+										args = getPushOpFromSize(size) :: args
 										args = SubtractInt() :: args
 										args = SetLocal(memAlias.ptrRegister) :: args
 									}
