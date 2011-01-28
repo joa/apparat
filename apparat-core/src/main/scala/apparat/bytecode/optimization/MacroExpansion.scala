@@ -156,7 +156,7 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 										//
 										parameters = Nil
 										localCount += newLocals
-										
+
 										replacements += op -> (replacement map {
 											//
 											// Patch all markers.
@@ -261,7 +261,7 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 				case None => false
 			}
 		}
-		
+
 		for(op <- bytecode.ops) op match {
 			case Pop() if removePop => {
 				removes = op :: removes
@@ -291,10 +291,11 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 				parameters = g :: parameters
 				removes = g :: removes
 			}
+			case DebugLine(line) => // skip DebugLine op
 			case x if balance > 0 => error("Unexpected operation "+x)
 			case _ =>
 		}
-		
+
 		if(modified) {
 			removes foreach { bytecode remove _ }
 			replacements.iterator foreach { x => bytecode.replace(x._1, x._2) }
