@@ -135,7 +135,8 @@ final class Swf extends Dumpable with SwfTagMapping {
 			frameRate = uncompressed.readFIXED8()
 			frameCount = uncompressed.readUI16()
 
-			assert(frameSize.minX == 0 && frameSize.minY == 0)
+			// Issue 34, since 10.1
+			// assert(frameSize.minX == 0 && frameSize.minY == 0, "Frame size: "+frameSize.minX+", "+frameSize.minY)
 			assert(frameRate >= 0)
 			assert(frameCount > 0)
 

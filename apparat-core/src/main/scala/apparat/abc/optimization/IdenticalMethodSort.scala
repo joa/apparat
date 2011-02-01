@@ -29,20 +29,26 @@ import apparat.abc.{AbcMethod, Abc}
  */
 object IdenticalMethodSort extends (Abc => Boolean) with SimpleLog {
 	override def apply(abc: Abc) = {
-		val mapping = IdenticalMethodsFinder(abc)
-		val values = mapping.valuesIterator.toList.distinct
-		val n = values.length
+		//See Issue 41 or Issue 34 for instance.
+		//Since 10.1 this is causing trouble. It is not very efficient anyways.
+		if(true) {
+			false
+		} else {
+			val mapping = IdenticalMethodsFinder(abc)
+			val values = mapping.valuesIterator.toList.distinct
+			val n = values.length
 
-		log.debug("%d identical method(s) found.", n)
+			log.debug("%d identical method(s) found.", n)
 
-		abc.methods = abc.methods sortWith {
-			(a, b) => {
-				val posA = mapping get a map { values indexOf _ } getOrElse n
-				val posB = mapping get b map { values indexOf _ } getOrElse n
-				posA < posB
+			abc.methods = abc.methods sortWith {
+				(a, b) => {
+					val posA = mapping get a map { values indexOf _ } getOrElse n
+					val posB = mapping get b map { values indexOf _ } getOrElse n
+					posA < posB
+				}
 			}
+
+			mapping.nonEmpty
 		}
-		
-		mapping.nonEmpty
 	}
 }

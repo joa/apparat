@@ -15,7 +15,6 @@ import apparat.abc.Abc
 import apparat.abc.analysis.AbcConstantPoolBuilder
 import java.io.{File => JFile, FileOutputStream => JFileOutputStream, ByteArrayOutputStream => JByteArrayOutputStream, ByteArrayInputStream => JByteArrayInputStream}
 import apparat.bytecode.optimization.BlockMerge
-import apparat.abc.optimization.IdenticalMethodSort
 
 object Reducer {
 	def main(args: Array[String]): Unit = ApparatApplication(new ReducerTool, args)
@@ -138,7 +137,9 @@ object Reducer {
 									}
 									
 									b.saveBytecode()
-									IdenticalMethodSort(b)
+									
+									//Removed IdenticalMethodSort due to Issue 34.
+									//IdenticalMethodSort(b)
 									b write doABC
 
 									result = o :: doABC :: result
