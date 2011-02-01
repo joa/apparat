@@ -102,7 +102,10 @@ object Stripper {
 			}
 
 			val cont = TagContainer fromFile input
-			cont foreachTag strip
+			//Issue 43
+			//Need to investigate why we get into deadlock here.
+			//cont foreachTag strip
+			cont foreachTagSync strip
 			cont write output
 		}
 
