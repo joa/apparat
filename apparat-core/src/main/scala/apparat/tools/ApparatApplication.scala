@@ -5,7 +5,7 @@ import apparat.log._
 import output.ConsoleOutput
 
 object ApparatApplication extends SimpleLog {
-	val scalaVersionString = "version 2.8.0.final"
+	//val scalaVersionString = "version 2.8.0.final"
 	var outputAdded = false
 
 	def apply(tool: ApparatTool, args: Array[String]): Int = {
@@ -37,14 +37,14 @@ object ApparatApplication extends SimpleLog {
 		try {
 			log.info("Apparat -- http://apparat.googlecode.com/")
 
-			Properties.versionString match {
+			/*Properties.versionString match {
 				case x if x == scalaVersionString =>
 				case other => {
 					log.error("Apparat requires Scala %s.", scalaVersionString)
 					log.error("Download it here: http://www.scala-lang.org/downloads")
 					return -1
 				}
-			}
+			}*/
 
 			log.info("Launching tool: %s", tool.name)
 
