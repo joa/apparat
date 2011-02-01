@@ -262,19 +262,26 @@ class Abc extends Dumpable {
 				case AbcNameKind.MultinameL => AbcMultinameL(nssets(input.readU30()))
 				case AbcNameKind.MultinameLA => AbcMultinameLA(nssets(input.readU30()))
 				case AbcNameKind.Typename => {
-					val i=input.readU30()
-					val n=tmp(i)
-					if (n==null) {
-						deffered = DefferedTypeName(cnt, i, Array.fill(input.readU30()) { input.readU30() }) :: deffered
-						null
-					} else
-						AbcTypename(n.asInstanceOf[AbcQName], Array.fill(input.readU30()) { tmp(input.readU30()) })
+					deffered = DefferedTypeName(cnt, input.readU30(), Array.fill(input.readU30()) { input.readU30() }) :: deffered
+					null
 				}
 				case _ => error("Unknown multiname kind.")
 			}
 		}
 
-		for (dtn <- deffered) names(dtn.index) = AbcTypename(tmp(dtn.nameIndex).asInstanceOf[AbcQName], dtn.parameters.map(tmp(_)))
+		@tailrec def fillTypes(from:List[DefferedTypeName], limit:Int){
+			if ((limit>0) && from.nonEmpty) {
+				val dtn=from.head
+				val name=tmp(dtn.nameIndex).asInstanceOf[AbcQName]
+				var parms=dtn.parameters.map(tmp(_))
+				if (name!=null && !parms.exists(_ == null)) {
+					names(dtn.index) = AbcTypename(name, parms)
+					fillTypes(from.tail, limit)
+				} else
+					fillTypes(from.tail ::: List(dtn) , limit-1)
+			}
+		}
+		fillTypes(deffered, tmp.size)
 
 		new AbcConstantPool(ints, uints, doubles, strings, namespaces, nssets, names)
 	}
@@ -669,7 +676,11 @@ class Abc extends Dumpable {
 
 	private def readPooledName()(implicit input: AbcInputStream) = cpool.names(input.readU30())
 
-	private def writePooledName(value: AbcName)(implicit output: AbcOutputStream) = output writeU30 (cpool indexOf value)
+	private def writePooledName(value: AbcName)(implicit output: AbcOutputStream) = {
+		val io=cpool indexOf value
+		if (io<0) error("Can't find "+value+" in Constant pool")
+		output writeU30 (io)
+	}
 
 	private def readPooledNonZeroName()(implicit input: AbcInputStream) = {
 		val index = input.readU30()
