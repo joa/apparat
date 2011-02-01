@@ -1,5 +1,5 @@
 /*
-  * This file is part of Apparat.
+ * This file is part of Apparat.
  *
  * Apparat is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,7 @@
 package apparat.tools.tdsi
 
 import java.io.{File => JFile}
+import scala.collection.immutable.List;
 
 /**
  * @author Joa Ebert
@@ -60,4 +61,9 @@ trait TDSIConfiguration {
 	 * Whether or not call asm expansion
 	 */
 	def asmExpansion:Boolean
+
+	/**
+	 * List of external libraries.
+	 */
+	def externalLibraries: List[JFile]
 }

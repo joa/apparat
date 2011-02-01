@@ -35,11 +35,18 @@ object TDSIConfigurationFactory extends ApparatConfigurationFactory[TDSIConfigur
 		val inline = (config("-e") getOrElse "true").toBoolean
 		val fixAlchemy = (config("-f") getOrElse "false").toBoolean
 		val asm = (config("-s") getOrElse "true").toBoolean
+		val libraries = config("-l") map { _ split JFile.pathSeparatorChar toList } map { pathname => for(p <- pathname) yield new JFile(p) } getOrElse List.empty[JFile]
+
+		for(library <- libraries) {
+			if(!library.exists) {
+				error("Library "+library+" does not exist.")
+			}
+		}
 
 		if(!input.exists) {
 			error("Input "+input+" does not exist.")
 		}
 
-		new TDSIConfigurationImpl(input, output, alchemy, macros, inline, fixAlchemy, asm)
+		new TDSIConfigurationImpl(input, output, alchemy, macros, inline, fixAlchemy, asm, libraries)
 	}
 }

@@ -48,6 +48,7 @@ object TurboDieselSportInjection {
 		var inline = true
 		var fixAlchemy = false
 		var asm = true
+		var libraries = List.empty[JFile]
 
 		override def name = "Turbo Diesel Sport Injection"
 
@@ -57,7 +58,8 @@ object TurboDieselSportInjection {
   -a (true|false)	Inline Alchemy operations
   -e (true|false)	Inline expansion
   -m (true|false)	Macro expansion
-  -s (true|false)   Asm expansion"""
+  -s (true|false)   Asm expansion
+  -l [file0"""+JFile.pathSeparatorChar+"file1"+JFile.pathSeparatorChar+"..."+JFile.pathSeparatorChar+"fileN] External libraries"
 
 		override def configure(config: ApparatConfiguration): Unit = configure(TDSIConfigurationFactory fromConfiguration config)
 
@@ -69,6 +71,7 @@ object TurboDieselSportInjection {
 			inline = config.inlineExpansion
 			fixAlchemy = config.fixAlchemy
 			asm = config.asmExpansion
+			libraries = config.externalLibraries
 		}
 
 		override def run() = {
@@ -78,13 +81,22 @@ object TurboDieselSportInjection {
 				case _ => None
 			}
 
+			val abcLibraries = libraries flatMap {
+				library => {
+					(TagContainer fromFile library).tags collect { case x: DoABC => x } map { Abc fromDoABC _ }
+				}
+			}
+
+			abcLibraries foreach { _.loadBytecode() }
+
 			val source = input
 			val target = output
 			val cont = TagContainer fromFile source
 			val allABC = (for(doABC <- cont.tags collect { case doABC: DoABC => doABC }) yield (doABC -> (Abc fromDoABC doABC))).toMap
-			val macroExpansion = if(macros) Some(new MacroExpansion(allABC.valuesIterator.toList)) else None
-			val inlineExpansion = if(inline) Some(new InlineExpansion(allABC.valuesIterator.toList)) else None
-			val memoryExpansion = if(alchemy) Some(new MemoryHelperExpansion(allABC.valuesIterator.toList)) else None
+			val environment = allABC.valuesIterator.toList ::: abcLibraries
+			val macroExpansion = if(macros) Some(new MacroExpansion(environment)) else None
+			val inlineExpansion = if(inline) Some(new InlineExpansion(environment)) else None
+			val memoryExpansion = if(alchemy) Some(new MemoryHelperExpansion(environment)) else None
 
 			allABC foreach { _._2.loadBytecode() }
 
