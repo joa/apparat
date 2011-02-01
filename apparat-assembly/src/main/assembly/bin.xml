@@ -29,9 +29,9 @@
   <fileSets>
     <fileSet>
       <includes>
-        <include>${project.basedir}/COPYING*</include>
-        <include>${project.basedir}/LICENSE*</include>
-        <include>${project.basedir}/README*</include>
+        <include>${project.basedir}/../COPYING*</include>
+        <include>${project.basedir}/../LICENSE*</include>
+        <include>${project.basedir}/../README*</include>
       </includes>
       <outputDirectory>/</outputDirectory>
     </fileSet>
