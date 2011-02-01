@@ -57,15 +57,17 @@ object Concrete {
 			} {
 
 				val stack = buildStack(nominalType, Stack.empty[AbcNominalType])
-				var abstracts = List.empty[AbcQName]
-				var concretes = List.empty[AbcQName]
+				var abstracts = List.empty[Symbol]
+				var concretes = List.empty[Symbol]
 
 				for {
 					currentType <- stack
 					`trait` <- currentType.inst.traits
 				} {
 					`trait` match {
-						case anyMethod: AbcTraitAnyMethod => {
+						// Protected namespaces may contain the class name (Issue 38)
+						// We are now checking only for the Symbol.
+						case anyMethod: AbcTraitAnyMethod if anyMethod.name.namespace.kind == AbcNamespaceKind.Protected || anyMethod.name.namespace.kind == AbcNamespaceKind.Package => {
 							if(anyMethod.metadata.isDefined && (anyMethod.metadata.get exists { _.name == 'Abstract })) {
 								if(concretes contains anyMethod) {
 									log.error("Error in class %s: Method %s has already been marked abstract.",
@@ -73,10 +75,10 @@ object Concrete {
 								}
 
 								if(nominalType != currentType) {
-									abstracts = anyMethod.name :: abstracts
+									abstracts = anyMethod.name.name :: abstracts
 								}
-							} else if(abstracts contains anyMethod.name) {
-								concretes = anyMethod.name :: concretes
+							} else if(abstracts contains anyMethod.name.name) {
+								concretes = anyMethod.name.name :: concretes
 							}
 						}
 						case _ =>
@@ -85,7 +87,7 @@ object Concrete {
 
 				for(error <- abstracts diff concretes) {
 					log.error("Class %s must implement abstract method %s.",
-						toPackage(nominalType.inst.name), error.name.name)
+						toPackage(nominalType.inst.name), error.name)
 				}
 			}
 		}
