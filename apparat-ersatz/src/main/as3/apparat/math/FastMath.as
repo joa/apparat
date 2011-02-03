@@ -147,7 +147,8 @@ package apparat.math {
 		 * @return The smallest of the parameters <code>value0</code> and <code>value1</code>.
 		 */
 		public static function min(value0: Number, value1: Number): Number {
-			return (value0 < value1) ? value0 : value1
+			var tmp:Number=Number(value0 < value1);
+			return value0 * tmp +(1.0 - tmp) * value1; //(value0 < value1) ? value0 : value1
 		}
 
 		/**
@@ -158,7 +159,8 @@ package apparat.math {
 		 * @return The largest of the parameters <code>value0</code> and <code>value1</code>.
 		 */
 		public static function max(value0: Number, value1: Number): Number {
-			return (value0 > value1) ? value0 : value1
+			var tmp:Number=Number(value0 > value1);
+			return value0 * tmp + (1.0 - tmp) * value1; //(value0 > value1) ? value0 : value1
 		}
 
 		/**
