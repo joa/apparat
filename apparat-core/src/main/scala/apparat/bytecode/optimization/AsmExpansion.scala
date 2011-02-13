@@ -30,6 +30,7 @@ import annotation.tailrec
 import apparat.bytecode.{Marker, Bytecode}
 import apparat.tools.ApparatLog
 import apparat.bytecode.analysis.StackAnalysis
+import collection.SeqView
 
 object AsmExpansion {
 	// TODO callMethod,debug,hasNext2,newCatch,newClass,newFunction,pushNamespace
@@ -41,6 +42,8 @@ object AsmExpansion {
 	private val __nakedName = AbcQName('__naked, asmNamespace)
 	private val __as3 = AbcQName('__as3, asmNamespace)
 	private val __cint = AbcQName('__cint, asmNamespace)
+	private val __repeat_begin = AbcQName('__clone_begin, asmNamespace)
+	private val __repeat_end = AbcQName('__clone_end, asmNamespace)
 
 	private lazy val intName = AbcQName('int, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 
@@ -1873,6 +1876,7 @@ object AsmExpansion {
 					}
 				}
 			}
+			//			bytecode.dump()
 
 			removes foreach {bytecode remove _}
 			replacements.iterator foreach {x => bytecode.replace(x._1, x._2)}
@@ -1897,7 +1901,158 @@ object AsmExpansion {
 			}
 
 			removes foreach {bytecode remove _}
+		}
 
+		removes = List.empty[AbstractOp]
+		replacements = Map.empty[AbstractOp, List[AbstractOp]]
+		stack = List.empty[AbstractOp]
+
+		removePop = false
+		opIndex = -1
+
+		var repeatStack = List.empty[(Int, Int)]
+
+		@tailrec def do_repeat(count: Int, toBeRepeated: SeqView[AbstractOp, List[AbstractOp]], repeatedOps: List[AbstractOp]): List[AbstractOp] = {
+			if(count <= 0) repeatedOps
+			else {
+				//				var opCopies=Map.empty[AbstractOp, AbstractOp]
+				var markerCopies = Map.empty[Marker, Marker]
+
+				var newOps: List[AbstractOp] = toBeRepeated.map {
+					p => p match {
+						case op: LookupSwitch => {
+							val newDefaultMarker = markerCopies.getOrElse(op.defaultCase, markers.mark(Nop()))
+							markerCopies = markerCopies.updated(op.defaultCase, newDefaultMarker)
+							val newCases = op.cases.map(m => {
+								val newMarker = markerCopies.getOrElse(m, markers.mark(Nop()))
+								markerCopies = markerCopies.updated(m, newMarker)
+								newMarker
+							}
+							).toArray
+
+							val newOp = LookupSwitch(newDefaultMarker, newCases)
+
+							if(markers.hasMarkerFor(op)) {
+								val newMarker = markerCopies.getOrElse(markers.mark(op), markers.mark(newOp))
+								markers.forwardMarker(newMarker.op.get, newOp)
+								markerCopies = markerCopies.updated(markers.mark(op), newMarker)
+							}
+
+							newOp
+						}
+						case op: Jump => {
+							val newMarker = markerCopies.getOrElse(op.marker, markers.mark(Nop()))
+							markerCopies = markerCopies.updated(op.marker, newMarker)
+
+							val newOp = Jump(newMarker)
+
+							if(markers.hasMarkerFor(op)) {
+								val newMarker = markerCopies.getOrElse(markers.mark(op), markers.mark(newOp))
+								markers.forwardMarker(newMarker.op.get, newOp)
+								markerCopies = markerCopies.updated(markers.mark(op), newMarker)
+							}
+
+							newOp
+						}
+						case op: AbstractConditionalOp => {
+							val newMarker = markerCopies.getOrElse(op.marker, markers.mark(Nop()))
+							markerCopies = markerCopies.updated(op.marker, newMarker)
+
+							val newOp = Op.copyConditionalOp(op, newMarker)
+
+							if(markers.hasMarkerFor(op)) {
+								val newMarker = markerCopies.getOrElse(markers.mark(op), markers.mark(newOp))
+								markers.forwardMarker(newMarker.op.get, newOp)
+								markerCopies = markerCopies.updated(markers.mark(op), newMarker)
+							}
+
+							newOp
+						}
+						case op@_ => {
+							//							val newOp=opCopies.getOrElse(op, op.opCopy)
+							val newOp = op.opCopy
+							if(markers.hasMarkerFor(op)) {
+								val newMarker = markerCopies.getOrElse(markers.mark(op), markers.mark(newOp))
+								markers.forwardMarker(newMarker.op.get, newOp)
+								markerCopies = markerCopies.updated(markers.mark(op), newMarker)
+							}
+							newOp
+						}
+					}
+				}.toList
+				val nops=markerCopies.filter(_._2.op.get.opCode==Op.nop).map(x=>x._2)
+				if (nops.nonEmpty) {
+					val nop=Nop()
+					newOps = newOps ::: List(nop)
+					nops.foreach(m=>markers.forwardMarker(m.op.get, nop))
+				}
+				do_repeat(count - 1, toBeRepeated, repeatedOps ::: newOps)
+			}
+		}
+
+		for(op <- ops) {
+			opIndex += 1
+
+			op match {
+				case DebugLine(line) => {
+					removePop = false
+					lineNum = line
+				}
+				case Pop() if (removePop) => {
+					removes = op :: removes
+					removePop = false
+				}
+				case FindPropStrict(typeName) if (typeName == __repeat_begin) => {
+					removePop = false
+					balance += 1
+					removes = op :: removes
+				}
+				case FindPropStrict(typeName) if (typeName == __repeat_end) => {
+					removePop = false
+					balance += 1
+					removes = op :: removes
+				}
+				case CallPropVoid(property, 1) if (property == __repeat_begin) && (balance > 0) => {
+					removePop = false
+					repeatStack = (decode_Long("__repeat_begin").intValue, opIndex + 1) :: repeatStack
+					removes = op :: removes
+					//					removes = stack ::: removes
+					//					balance -= 1
+				}
+				case CallProperty(property, 1) if (property == __repeat_begin) && (balance > 0) => {
+					repeatStack = (decode_Long("__repeat_begin").intValue, opIndex + 2) :: repeatStack
+					removePop = true
+					removes = op :: removes
+					//					removes = stack ::: removes
+					//					balance -= 1
+				}
+				case CallPropVoid(property, 0) if (property == __repeat_end) && (balance > 0) => {
+					removePop = false
+					val (count, fromOp) = repeatStack.head
+					repeatStack = repeatStack.tail
+					replacements = replacements.updated(op, do_repeat(count - 1, ops.view(fromOp, opIndex - 1), Nil))
+					balance -= 1
+				}
+				case CallProperty(property, 0) if (property == __repeat_end) && (balance > 0) => {
+					removePop = true
+					val (count, fromOp) = repeatStack.head
+					repeatStack = repeatStack.tail
+					replacements = replacements.updated(op, do_repeat(count - 1, ops.view(fromOp, opIndex - 1), Nil))
+					balance -= 1
+				}
+				case _ => {
+					removePop = false
+					if(balance > 0) stack = stack ::: List(op)
+				}
+			}
+		}
+
+		modified ||= (removes.nonEmpty || replacements.nonEmpty)
+
+		removes foreach {bytecode remove _}
+		replacements.iterator foreach {x => bytecode.replace(x._1, x._2)}
+
+		if(modified) {
 			bytecode.body match {
 				case Some(body) => {
 					val (operandStack, scopeStack) = StackAnalysis(bytecode)
