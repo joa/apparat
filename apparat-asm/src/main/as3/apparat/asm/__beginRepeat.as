@@ -22,15 +22,15 @@
 
 package apparat.asm {
 	/**
-	 * __clone_begin will tell TDSI to clone (at compile time) count times all operations between __clone_begin(count) and __clone_end
+	 * __beginRepeat will tell TDSI to clone (at compile time) count times all operations between __beginRepeat(count) and __endRepeat
 	 *
-	 * __clone_begin(5) // repeat all the code below 5 times
+	 * __beginRepeat(5) // repeat all the code below 5 times
 	 * trace("hello world")
-	 * __clone_end()
+	 * __endRepeat()
 	 *
 	 * @param count integer constant that represents how many times the operations have to be cloned
 	 *
-	 * @see __clone_end
+	 * @see __endRepeat
 	 */
-	public function __clone_begin(count:int):void{};
+	public function __beginRepeat(count:int):void{};
 }

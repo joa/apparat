@@ -22,10 +22,10 @@
 
 package apparat.asm {
 	/**
-	 * __clone_end mark the end of the block to be cloned by TDSI
+	 * __endRepeat mark the end of the block to be cloned by TDSI
 	 *
-	 * @see __clone_begin
+	 * @see __beginRepeat
 	 *
 	 */
-	public function __clone_end():void{};
+	public function __endRepeat():void{};
 }

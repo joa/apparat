@@ -42,8 +42,8 @@ object AsmExpansion {
 	private val __nakedName = AbcQName('__naked, asmNamespace)
 	private val __as3 = AbcQName('__as3, asmNamespace)
 	private val __cint = AbcQName('__cint, asmNamespace)
-	private val __repeat_begin = AbcQName('__clone_begin, asmNamespace)
-	private val __repeat_end = AbcQName('__clone_end, asmNamespace)
+	private val __beginRepeat = AbcQName('__beginRepeat, asmNamespace)
+	private val __endRepeat = AbcQName('__endRepeat, asmNamespace)
 
 	private lazy val intName = AbcQName('int, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
 
@@ -1980,11 +1980,11 @@ object AsmExpansion {
 						}
 					}
 				}.toList
-				val nops=markerCopies.filter(_._2.op.get.opCode==Op.nop).map(x=>x._2)
-				if (nops.nonEmpty) {
-					val nop=Nop()
+				val nops = markerCopies.filter(_._2.op.get.opCode == Op.nop).map(x => x._2)
+				if(nops.nonEmpty) {
+					val nop = Nop()
 					newOps = newOps ::: List(nop)
-					nops.foreach(m=>markers.forwardMarker(m.op.get, nop))
+					nops.foreach(m => markers.forwardMarker(m.op.get, nop))
 				}
 				do_repeat(count - 1, toBeRepeated, repeatedOps ::: newOps)
 			}
@@ -2002,43 +2002,42 @@ object AsmExpansion {
 					removes = op :: removes
 					removePop = false
 				}
-				case FindPropStrict(typeName) if (typeName == __repeat_begin) => {
+				case FindPropStrict(typeName) if (typeName == __beginRepeat) => {
+					stack = List.empty[AbstractOp]
 					removePop = false
 					balance += 1
 					removes = op :: removes
 				}
-				case FindPropStrict(typeName) if (typeName == __repeat_end) => {
+				case FindPropStrict(typeName) if (typeName == __endRepeat) => {
 					removePop = false
 					balance += 1
 					removes = op :: removes
 				}
-				case CallPropVoid(property, 1) if (property == __repeat_begin) && (balance > 0) => {
+				case CallPropVoid(property, 1) if (property == __beginRepeat) && (balance > 0) => {
 					removePop = false
-					repeatStack = (decode_Long("__repeat_begin").intValue, opIndex + 1) :: repeatStack
+					repeatStack = (decode_Long("__beginRepeat").intValue, opIndex + 1) :: repeatStack
 					removes = op :: removes
-					//					removes = stack ::: removes
-					//					balance -= 1
 				}
-				case CallProperty(property, 1) if (property == __repeat_begin) && (balance > 0) => {
-					repeatStack = (decode_Long("__repeat_begin").intValue, opIndex + 2) :: repeatStack
+				case CallProperty(property, 1) if (property == __beginRepeat) && (balance > 0) => {
+					repeatStack = (decode_Long("__beginRepeat").intValue, opIndex + 2) :: repeatStack
 					removePop = true
 					removes = op :: removes
-					//					removes = stack ::: removes
-					//					balance -= 1
 				}
-				case CallPropVoid(property, 0) if (property == __repeat_end) && (balance > 0) => {
+				case CallPropVoid(property, 0) if (property == __endRepeat) && (balance > 0) => {
 					removePop = false
 					val (count, fromOp) = repeatStack.head
 					repeatStack = repeatStack.tail
 					replacements = replacements.updated(op, do_repeat(count - 1, ops.view(fromOp, opIndex - 1), Nil))
 					balance -= 1
+					stack = List.empty[AbstractOp]
 				}
-				case CallProperty(property, 0) if (property == __repeat_end) && (balance > 0) => {
+				case CallProperty(property, 0) if (property == __endRepeat) && (balance > 0) => {
 					removePop = true
 					val (count, fromOp) = repeatStack.head
 					repeatStack = repeatStack.tail
 					replacements = replacements.updated(op, do_repeat(count - 1, ops.view(fromOp, opIndex - 1), Nil))
 					balance -= 1
+					stack = List.empty[AbstractOp]
 				}
 				case _ => {
 					removePop = false
@@ -2069,6 +2068,7 @@ object AsmExpansion {
 				}
 				case None => ApparatLog warn "Bytecode body missing. Cannot adjust stack/locals."
 			}
+
 		}
 
 		dumpAfterASM match {
