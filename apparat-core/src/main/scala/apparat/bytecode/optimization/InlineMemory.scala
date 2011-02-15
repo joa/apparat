@@ -62,8 +62,8 @@ object InlineMemory extends (Bytecode => Boolean) {
 						case 'writeFloat => Some(SetFloat())
 						case 'writeDouble => Some(SetDouble())
 						case 'select => {
-							removes = removes.init
-              balance -= 1
+							removes = removes.tail
+              				balance -= 1
 							None
 						}
 						case _ => None
@@ -110,8 +110,8 @@ object InlineMemory extends (Bytecode => Boolean) {
 							Some(SetDouble())
 						}
 						case 'select => {
-							removes = removes.init
-              balance -= 1
+							removes = removes.tail
+							balance -= 1
 							None
 						}
 						case _ => None
