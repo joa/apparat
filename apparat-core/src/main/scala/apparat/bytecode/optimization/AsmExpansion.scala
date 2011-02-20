@@ -1712,12 +1712,21 @@ object AsmExpansion {
 			}
 		}
 
+		def queueOpToRemove(op: AbstractOp) {
+			if(markers.hasMarkerFor(op)) {
+				// forward op to a Nop op that will be removed by the peephole optimizer
+				val nop = Nop()
+				markers.forwardMarker(op, nop)
+				replacements = replacements.updated(op, List(nop))
+			} else
+				removes = op :: removes
+		}
+
 		for(op <- ops) {
 			opIndex += 1
-
 			op match {
 				case ConvertInt() | CoerceInt() => if(removeConvert) {
-					removes = op :: removes
+					queueOpToRemove(op)
 					removePop = false
 					removeConvert = false
 				}
@@ -1727,7 +1736,7 @@ object AsmExpansion {
 					lineNum = line
 				}
 				case Pop() if (removePop) => {
-					removes = op :: removes
+					queueOpToRemove(op)
 					removePop = false
 					removeConvert = false
 				}
@@ -1735,13 +1744,13 @@ object AsmExpansion {
 					removePop = false
 					removeConvert = false
 					balance += 1
-					removes = op :: removes
+					queueOpToRemove(op)
 				}
 				case FindPropStrict(typeName) if (typeName == __cint) => {
 					removePop = false
 					removeConvert = false
 					balance += 1
-					removes = op :: removes
+					queueOpToRemove(op)
 				}
 				case FindPropStrict(typeName) if (typeName == __dumpAfterASM) => {
 					removePop = false
@@ -1750,7 +1759,7 @@ object AsmExpansion {
 						throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
 
 					balance += 1
-					removes = op :: removes
+					queueOpToRemove(op)
 				}
 				case FindPropStrict(typeName) if (typeName == __nakedName) => {
 					removePop = false
@@ -1759,7 +1768,7 @@ object AsmExpansion {
 						throwError("can't call __naked inside __asm, __maxStack, or __dumpAfterASM")
 
 					balance += 1
-					removes = op :: removes
+					queueOpToRemove(op)
 				}
 				case FindPropStrict(typeName) if (typeName == __maxStack) => {
 					removePop = false
@@ -1768,13 +1777,13 @@ object AsmExpansion {
 						throwError("can't call __dumpAfterASM inside __asm, __maxStack, or __dumpAfterASM")
 
 					balance += 1
-					removes = op :: removes
+					queueOpToRemove(op)
 				}
 				case CallPropVoid(property, numArguments) if (property == __asm) && (balance > 0) => {
 					removePop = false
 					removeConvert = true
 					asm(op, numArguments)
-					removes = op :: removes
+					queueOpToRemove(op)
 					balance -= 1
 					removeCastAt(intName, opIndex + 1)
 				}
@@ -1782,7 +1791,7 @@ object AsmExpansion {
 					asm(op, numArguments)
 					removePop = true
 					removeConvert = true
-					removes = op :: removes
+					queueOpToRemove(op)
 					balance -= 1
 					removeCastAt(intName, opIndex + 1)
 				}
@@ -1790,55 +1799,55 @@ object AsmExpansion {
 					removePop = false
 					removeConvert = false
 					dumpAfterASM = Some(decode_String("__dumpAfterASM"))
-					removes = op :: removes
-					removes = stack ::: removes
+					queueOpToRemove(op)
+					stack.foreach(queueOpToRemove(_))
 					balance -= 1
 				}
 				case CallProperty(property, numArguments) if (property == __dumpAfterASM) && (balance > 0) => {
 					dumpAfterASM = Some(decode_String("__dumpAfterASM"))
 					removePop = true
 					removeConvert = false
-					removes = op :: removes
-					removes = stack ::: removes
+					queueOpToRemove(op)
+					stack.foreach(queueOpToRemove(_))
 					balance -= 1
 				}
 				case CallPropVoid(property, numArguments) if (property == __nakedName) && (balance > 0) => {
 					removePop = false
 					removeConvert = false
 					naked = true
-					removes = op :: removes
-					removes = stack ::: removes
+					queueOpToRemove(op)
+					stack.foreach(queueOpToRemove(_))
 					balance -= 1
 				}
 				case CallProperty(property, numArguments) if (property == __nakedName) && (balance > 0) => {
 					naked = true
 					removePop = true
 					removeConvert = false
-					removes = op :: removes
-					removes = stack ::: removes
+					queueOpToRemove(op)
+					stack.foreach(queueOpToRemove(_))
 					balance -= 1
 				}
 				case CallPropVoid(property, numArguments) if (property == __maxStack) && (balance > 0) => {
 					removePop = false
 					removeConvert = false
 					maxStack = decode_Long("__asmStack")
-					removes = op :: removes
-					removes = stack ::: removes
+					queueOpToRemove(op)
+					stack.foreach(queueOpToRemove(_))
 					balance -= 1
 				}
 				case CallProperty(property, numArguments) if (property == __maxStack) && (balance > 0) => {
 					maxStack = decode_Long("__asmStack")
 					removePop = true
 					removeConvert = false
-					removes = op :: removes
-					removes = stack ::: removes
+					queueOpToRemove(op)
+					stack.foreach(queueOpToRemove(_))
 					balance -= 1
 				}
 				case CallPropVoid(property, numArguments) if (property == __cint) && (balance > 0) => {
 					removePop = false
 					removeConvert = true
 					independentCall(op, numArguments)
-					removes = op :: removes
+					queueOpToRemove(op)
 					balance -= 1
 					removeCastAt(intName, opIndex + 1)
 				}
@@ -1846,7 +1855,7 @@ object AsmExpansion {
 					removePop = true
 					removeConvert = true
 					independentCall(op, numArguments)
-					removes = op :: removes
+					queueOpToRemove(op)
 					balance -= 1
 					removeCastAt(intName, opIndex + 1)
 				}
@@ -1876,7 +1885,6 @@ object AsmExpansion {
 					}
 				}
 			}
-			//			bytecode.dump()
 
 			removes foreach {bytecode remove _}
 			replacements.iterator foreach {x => bytecode.replace(x._1, x._2)}
@@ -1915,7 +1923,6 @@ object AsmExpansion {
 		@tailrec def do_repeat(count: Int, toBeRepeated: SeqView[AbstractOp, List[AbstractOp]], repeatedOps: List[AbstractOp]): List[AbstractOp] = {
 			if(count <= 0) repeatedOps
 			else {
-				//				var opCopies=Map.empty[AbstractOp, AbstractOp]
 				var markerCopies = Map.empty[Marker, Marker]
 
 				var newOps: List[AbstractOp] = toBeRepeated.map {
@@ -1969,7 +1976,6 @@ object AsmExpansion {
 							newOp
 						}
 						case op@_ => {
-							//							val newOp=opCopies.getOrElse(op, op.opCopy)
 							val newOp = op.opCopy
 							if(markers.hasMarkerFor(op)) {
 								val newMarker = markerCopies.getOrElse(markers.mark(op), markers.mark(newOp))
@@ -1999,29 +2005,29 @@ object AsmExpansion {
 					lineNum = line
 				}
 				case Pop() if (removePop) => {
-					removes = op :: removes
+					queueOpToRemove(op)
 					removePop = false
 				}
 				case FindPropStrict(typeName) if (typeName == __beginRepeat) => {
 					stack = List.empty[AbstractOp]
 					removePop = false
 					balance += 1
-					removes = op :: removes
+					queueOpToRemove(op)
 				}
 				case FindPropStrict(typeName) if (typeName == __endRepeat) => {
 					removePop = false
 					balance += 1
-					removes = op :: removes
+					queueOpToRemove(op)
 				}
 				case CallPropVoid(property, 1) if (property == __beginRepeat) && (balance > 0) => {
 					removePop = false
 					repeatStack = (decode_Long("__beginRepeat").intValue, opIndex + 1) :: repeatStack
-					removes = op :: removes
+					queueOpToRemove(op)
 				}
 				case CallProperty(property, 1) if (property == __beginRepeat) && (balance > 0) => {
 					repeatStack = (decode_Long("__beginRepeat").intValue, opIndex + 2) :: repeatStack
 					removePop = true
-					removes = op :: removes
+					queueOpToRemove(op)
 				}
 				case CallPropVoid(property, 0) if (property == __endRepeat) && (balance > 0) => {
 					removePop = false

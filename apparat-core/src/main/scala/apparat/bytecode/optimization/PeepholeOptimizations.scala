@@ -54,9 +54,18 @@ object PeepholeOptimizations extends (Bytecode => Boolean) {
 			if (Op.nop == opCode) {
 				val tail = source.tail
 				if (tail.nonEmpty) {
-					markers.forwardMarker(op, tail.head)
+					if (markers.hasMarkerFor(tail.head)) {
+						// TODO fold label
+						// so for now we did not remove the Nop
+						// if tail.head has already a marker
+						// L0:Nop
+						// L1:XXX
+						target = op :: target
+					} else {
+						markers.forwardMarker(op, tail.head)
+						modified = true
+					}
 				}
-				modified = true
 			} /*else if (Op.jump == opCode) {
 				val tail = source.tail
 				if (tail.nonEmpty){
