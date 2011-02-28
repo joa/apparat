@@ -50,7 +50,7 @@ object BytecodeEncoder {
 				case Some(marker) => marker.position = position
 				case None =>
 			}
-			u08(op.opCode)
+			if (op.opCode<256) u08(op.opCode)
 			op match {
 				case Add() | AddInt() =>
 				case ApplyType(numArguments) => u30(numArguments)
@@ -58,6 +58,7 @@ object BytecodeEncoder {
 				case AsTypeLate() =>
 				case BitAnd() | BitNot() | BitOr() | BitXor() =>
 				case Breakpoint() | BreakpointLine() =>
+				case BytecodeOp(bytes) => bytes.foreach(u08(_))
 				case Call(numArguments) => u30(numArguments)
 				case CallMethod(index, numArguments) => {
 					u30(index)

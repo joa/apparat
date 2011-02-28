@@ -240,6 +240,8 @@ object Op {
 	val bkptline = 0xf2
 	val timestamp = 0xf3
 
+	val bytecode = 0x8000 // pseudo instruction for apparat didn't exist in AVM
+	
 	def copyConditionalOp(op: AbstractOp, marker: Marker) = {
 		op match {
 			case op: IfEqual => IfEqual(marker)
@@ -600,3 +602,5 @@ case class GetDouble() extends AbstractAlchemyGetOp { final override def opCode 
 case class Sign1() extends AbstractUnaryOp with AlchemyOp { final override def opCode = Op.sxi1; final override def opCopy() = Sign1() }
 case class Sign8() extends AbstractUnaryOp with AlchemyOp { final override def opCode = Op.sxi8; final override def opCopy() = Sign8() }
 case class Sign16() extends AbstractUnaryOp with AlchemyOp { final override def opCode = Op.sxi16; final override def opCopy() = Sign16() }
+
+case class BytecodeOp(bytes:Array[Int]) extends AbstractOp { final override def opCode = Op.bytecode; final override def opCopy() = BytecodeOp(bytes.clone)}

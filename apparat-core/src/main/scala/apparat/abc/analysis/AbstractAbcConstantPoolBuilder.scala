@@ -169,6 +169,7 @@ trait AbstractAbcConstantPoolBuilder { self: AbcVisitor =>
 					case AsTypeLate() =>
 					case BitAnd() | BitNot() | BitOr() | BitXor() =>
 					case Breakpoint() | BreakpointLine() =>
+					case BytecodeOp(_) =>
 					case Call(_) =>
 					case CallMethod(_, _) =>
 					case CallProperty(property, _) => add(property)
