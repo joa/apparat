@@ -18,3 +18,4 @@ glob:pom.xml.releaseBackup
 glob:*.iml
 glob:*.ipr
 glob:*.iws
+glob:*.orig
