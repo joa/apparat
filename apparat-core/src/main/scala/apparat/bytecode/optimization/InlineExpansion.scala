@@ -31,7 +31,9 @@ import annotation.tailrec
  * @author Joa Ebert
  */
 class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
-	lazy val voidName = AbcQName('void, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
+	lazy val nsGlobal = AbcNamespace(AbcNamespaceKind.Package, Symbol(""))
+	lazy val voidName = AbcQName('void, nsGlobal)
+	lazy val uintName = AbcQName('uint, nsGlobal)
 	lazy val apparatMacro = AbcQName('Inlined, AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.inline")))
 	lazy val macros: Map[AbcName, AbcNominalType] = {
 		Map((for(abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == apparatMacro) && !nominal.inst.isInterface) yield (nominal.inst.name -> nominal)):_*)
@@ -73,6 +75,37 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 		var localCount = LocalCount(bytecode)
 		var markers = bytecode.markers
 		val debugFile = bytecode.ops find (_.opCode == Op.debugfile)
+
+		def constValue2Ops(const:AbcTraitConst, value:Any):List[AbstractOp] = const.valueType.get match {
+			case AbcConstantType.Double => const.typeName match {
+				case aName if aName == uintName => List((value.asInstanceOf[Double].toLong match {
+					case i if (i >= -128 && i <= 127 ) => PushByte(i.toInt)
+					case i if (i >= -32768 && i <= 32767 ) => PushShort(i.toInt)
+					case i if (i >= -2147483648 && i <= 2147483647 ) => PushInt(i.toInt)
+					case i => if (i < -2147483648) PushInt((i+(1<<32)).toInt) else PushInt((i-(1<<32)+1).toInt)
+				}), CoerceUInt())
+				case _ => List(PushDouble(value.asInstanceOf[Double]))
+			}
+			case AbcConstantType.False => List(PushFalse())
+			case AbcConstantType.Int => {
+				value.asInstanceOf[Int] match {
+					case i if (i >= -128 && i <= 127 ) => List(PushByte(i))
+					case i if (i >= -32768 && i <= 32767 ) => List(PushShort(i))
+					case i => List(PushInt(i))
+				}
+			}
+			case AbcConstantType.Null => List(PushNull())
+			case AbcConstantType.True => List(PushTrue())
+			case AbcConstantType.UInt => List( (value.asInstanceOf[Long] match {
+					case i if (i >= -128 && i <= 127 ) => PushByte(i.toInt)
+					case i if (i >= -32768 && i <= 32767 ) => PushShort(i.toInt)
+					case i if (i >= -2147483648 && i <= 2147483647 ) => PushInt(i.toInt)
+					case i => if (i < -2147483648) PushInt((i+(1<<32)).toInt) else PushInt((i-(1<<32)+1).toInt)
+				}), CoerceUInt())
+			case AbcConstantType.Undefined => List(PushUndefined())
+			case AbcConstantType.Utf8 => List(PushString(value.asInstanceOf[Symbol]))
+			case x@_ => error("Error : ("+const+") unknown constant type " + x)
+		}
 
 		@inline def insert(op: AbstractOp, property: AbcName, numArguments: Int) = {
 			macroStack.head.klass.traits find (_.name == property) match {
@@ -242,6 +275,14 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 							balance -= 1
 							true
 						}
+						case const: AbcTraitConst => {
+							const.value match {
+								case Some(value) => replacements += op -> constValue2Ops (const, value)
+								case _ => error("Error : ("+const+") only constant int, uint, String, Number, Boolean can be inlined")
+							}
+							balance -= 1
+							true
+						}
 						case _ => error("Unexpected trait "+anyTrait)
 					}
 				}
@@ -266,6 +307,11 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 			}
 			case CallProperty(property, numArguments) if balance > 0 => {
 				if(insert(op, property, numArguments)) {
+					modified = true
+				}
+			}
+			case GetProperty(property) if balance > 0 => {
+				if (insert(op, property, 0)) {
 					modified = true
 				}
 			}
