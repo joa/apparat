@@ -70,6 +70,8 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 
 	case class MemoryAlias(ptrRegister: Int, structureInfo: StructureInfo, orgPtrRegister: Int)
 
+	case class CastRegister(register: Int, castName: AbcName)
+
 	lazy val ApparatStructure = AbcQName('Structure, AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.memory")))
 
 	lazy val MapName = AbcQName('map, AbcNamespace(22, Symbol("apparat.memory")))
@@ -84,14 +86,20 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 	lazy val SwapName = AbcQName('swap, AbcNamespace(22, Symbol("")))
 
 	lazy val structures: Map[AbcName, AbcNominalType] = {
-		Map((for (abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == ApparatStructure) && !nominal.inst.isInterface) yield (nominal.inst.name -> nominal)): _*)
+		var map = Map.empty[AbcName, AbcNominalType]
+		for(abc <- abcs; nominal <- abc.types if (!nominal.inst.isInterface)) {
+			val baseName = nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME
+			if((baseName == ApparatStructure) || map.contains(baseName))
+				map = map.updated(nominal.inst.name, nominal)
+		}
+		map
 	}
 
 	lazy val ANumber = AbcQName('Number, AbcNamespace(22, Symbol("")))
 	lazy val AnInt = AbcQName('int, AbcNamespace(22, Symbol("")))
 	lazy val AnUint = AbcQName('uint, AbcNamespace(22, Symbol("")))
 
-	private var structureMap = Map.empty[AbcQName, StructureInfo]
+	private var structureMap = Map.empty[AbcName, StructureInfo]
 
 	def sizeOf(s: Symbol): Int = {
 		s match {
@@ -106,12 +114,12 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 	}
 
 	def validateAndUpdateInfo() = {
-		for (nominal <- structures.valuesIterator) {
-			if (nominal.inst.traits.length == 0) error(nominal.name + " have no field member.")
-			if (nominal.klass.traits.length != 0) error(nominal.name + " must not have methods.")
-			if (!nominal.inst.isSealed) error(nominal.name + " must not be a dynamic class.")
+		for(nominal <- structures.valuesIterator) {
+			if(nominal.inst.traits.length == 0) error(nominal.name + " have no field member.")
+			if(nominal.klass.traits.length != 0) error(nominal.name + " must not have methods.")
+			if(!nominal.inst.isSealed) error(nominal.name + " must not be a dynamic class.")
 
-			implicit def a2i(x: Any): Int = {
+			implicit def any2int(x: Any): Int = {
 				x match {
 					case s: Symbol => augmentString(s.toString.tail).toInt
 					case i: Int => i
@@ -159,14 +167,25 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 				}
 			}
 
+			var basePos = 0
 			var pos = 0
 			var oldPos = Int.MaxValue
 			var oldSize = 0
 			var fields = List.empty[FieldInfo]
-			for (t <- nominal.inst.traits.sortWith((t1, t2) => {
+
+			structureMap.get(nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) match {
+				case Some(struct) => {
+					val field: FieldInfo = struct.fields.head
+					basePos = field.position
+					oldSize = sizeOf(field.`type`)
+					fields = struct.fields
+				}
+				case _ =>
+			}
+			for(t <- nominal.inst.traits.sortWith((t1, t2) => {
 				val p1 = getMetadataPosition(t1)
 				val p2 = getMetadataPosition(t2)
-				if (p1 == p2) {
+				if(p1 == p2) {
 					sizeOf(getMetadataType(t1)) < sizeOf(getMetadataType(t2))
 				} else {
 					p1 < p2
@@ -174,13 +193,13 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 			})) {
 				val fPos = getMetadataPosition(t)
 				val `type` = getMetadataType(t)
-				if (fPos == Int.MaxValue || fPos != oldPos) {
+				if(fPos == Int.MaxValue || fPos != oldPos) {
 					pos += oldSize
-					fields = FieldInfo(t.name, pos, `type`) :: fields
+					fields = FieldInfo(t.name, pos + basePos, `type`) :: fields
 					oldSize = sizeOf(`type`)
 					oldPos = fPos
 				} else {
-					fields = FieldInfo(t.name, pos, `type`) :: fields
+					fields = FieldInfo(t.name, pos + basePos, `type`) :: fields
 					oldSize = sizeOf(`type`)
 				}
 			}
@@ -196,7 +215,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 	}
 
 	def expand(bytecode: Bytecode, haveBeenModified: Boolean = false): Boolean = {
-		if (structures.isEmpty)
+		if(structures.isEmpty)
 			false
 		else {
 			var callToBeReplaced: AbstractOp = Nop()
@@ -212,10 +231,10 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 			var removes = List.empty[AbstractOp]
 			var replacements = Map.empty[AbstractOp, List[AbstractOp]]
 
-			for (op <- bytecode.ops) {
+			for(op <- bytecode.ops) {
 				op match {
 					case Dup() => {
-						if (duplicateGetLocal) {
+						if(duplicateGetLocal) {
 							replaceDup = false
 							replacements = replacements.updated(op, List(GetLocal(getLocalToDuplicate.register)))
 						} else {
@@ -260,7 +279,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 				}
 			}
 
-			if (removes.nonEmpty || replacements.nonEmpty) {
+			if(removes.nonEmpty || replacements.nonEmpty) {
 				removes foreach {
 					bytecode remove _
 				}
@@ -290,20 +309,24 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 
 		var currentStructure: Option[StructureInfo] = None
 
-		val markers=bytecode.markers
+		val markers = bytecode.markers
 
-		def getPowerOf2(num:Int)={
-			if ((num&(num-1))==0) {
-				@tailrec def loop(i:Int, pos:Int = -1):Int={
-					if (i==0) pos
-					else loop(i>>>1, pos+1)
+		var castRegister: Option[CastRegister] = None
+		var castIsWaitingForRead = false
+		var castIsWaitingForWrite = false
+
+		def getPowerOf2(num: Int) = {
+			if((num & (num - 1)) == 0) {
+				@tailrec def loop(i: Int, pos: Int = -1): Int = {
+					if(i == 0) pos
+					else loop(i >>> 1, pos + 1)
 				}
 				loop(num)
 			} else 0
 		}
 
-		def getIntConstantOnStack(stackDepthRequired:Int=2):Option[(Int, AbstractOp)]={
-			if (parameters.size==stackDepthRequired) {
+		def getIntConstantOnStack(stackDepthRequired: Int = 2): Option[(Int, AbstractOp)] = {
+			if(parameters.size == stackDepthRequired) {
 				parameters.head match {
 					case pb@PushByte(arg) => Some((arg, pb))
 					case ps@PushShort(arg) => Some((arg, ps))
@@ -313,12 +336,12 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 			} else None
 		}
 
-		def getPushOpFromSize(size:Int):AbstractOp={
-			if (size > ((1 << 15) - 1)) {
+		def getPushOpFromSize(size: Int): AbstractOp = {
+			if(size > ((1 << 15) - 1)) {
 				PushInt(size)
-			} else if (size > ((1 << 7) - 1)) {
+			} else if(size > ((1 << 7) - 1)) {
 				PushShort(size)
-			} else if (size >= 0) {
+			} else if(size >= 0) {
 				PushByte(size)
 			} else {
 				PushInt(size)
@@ -326,16 +349,16 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 		}
 
 		@tailrec def unwindParameterStack(depth: Int, ret: AbstractOp = Nop()): AbstractOp = {
-			if ((depth < 0) && parameters.nonEmpty) {
+			if((depth < 0) && parameters.nonEmpty) {
 				val op = parameters.head
 				parameters = parameters.tail
-				if (markers.hasMarkerFor(op)) {
-					val i=parameters.indexWhere(p=>p match {
-						case m:OpWithMarker if (m.marker.op.get == op) => true
+				if(markers.hasMarkerFor(op)) {
+					val i = parameters.indexWhere(p => p match {
+						case m: OpWithMarker if (m.marker.op.get == op) => true
 						case _ => false
 					})
-					if (i >= 0)
-						parameters=parameters.drop(i+1)
+					if(i >= 0)
+						parameters = parameters.drop(i + 1)
 				}
 				unwindParameterStack(depth + op.operandDelta, op)
 			} else ret
@@ -367,17 +390,22 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 		}
 
 		@inline def preCheck() {
-			if (setStructure) throwError("The result of the map call must be assigned to a local var")
+			if(setStructure) throwError("The result of the map call must be assigned to a local var")
 		}
 
-		for (op <- bytecode.ops) {
+		@inline def clearCast() {
+			if(!castIsWaitingForRead && !castIsWaitingForWrite) castRegister = None
+			castIsWaitingForRead = false
+		}
+
+		for(op <- bytecode.ops) {
 			@inline def pushOp() {
-				if (balance > 0) parameters = op :: parameters
+				if(balance > 0) parameters = op :: parameters
 			}
 
 			op match {
 				case Coerce(aName) => {
-					if (optimisation == Optimisation.RemoveCoerce)
+					if(optimisation == Optimisation.RemoveCoerce)
 						removes = op :: removes
 					else {
 						preCheck()
@@ -388,7 +416,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 				case ConvertInt() => {
 					preCheck()
 
-					if (optimisation == Optimisation.RemoveConvertInt)
+					if(optimisation == Optimisation.RemoveConvertInt)
 						removes = op :: removes
 					else
 						pushOp()
@@ -402,29 +430,37 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 					preCheck()
 
 					clearOptimisation()
+					clearCast()
+
 					aName match {
 						case MapName => {
-							//              if (balance > 0) throwError("map or sizeOf call cannot be nested")
-							//              clearParameters = true
 							balance += 1
 							removes = op :: removes
 						}
 						case SizeOfName => {
-							//              if (balance > 0) throwError("map or sizeOf call cannot be nested")
-							//              clearParameters = true
 							balance += 1
 							removes = op :: removes
 						}
-						case _ => pushOp()
+						case _ => {
+							structureMap.get(aName) match {
+								case Some(struct) => {
+									balance += 1
+									removes = op :: removes
+								}
+								case _ => pushOp
+							}
+						}
 					}
 				}
 				case CallProperty(aName, argCount) => {
 					preCheck()
 
 					clearOptimisation()
+					clearCast()
+
 					aName match {
 						case MapName if (argCount == 2) => {
-							if (balance <= 0) throwError("Invalid CallProperty " + aName)
+							if(balance <= 0) throwError("Invalid CallProperty " + aName)
 							removes = op :: removes
 							balance -= 1
 							optimisation = Optimisation.RemoveCoerce
@@ -432,7 +468,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 							parameters.head match {
 								case gl@GetLex(sName) if (sName.kind == AbcNameKind.QName) => {
 									currentStructure = structureMap.get(sName.asInstanceOf[AbcQName])
-									if (currentStructure == None) throwError("map is expecting a Class of type Structure as second arguments")
+									if(currentStructure == None) throwError("map is expecting a Class of type Structure as second arguments")
 									removes = gl :: removes
 									unwindParameterStack(op.operandDelta)
 									parameters = PushByte(0) :: parameters
@@ -441,7 +477,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 							}
 						}
 						case SizeOfName if (argCount == 1) => {
-							if (balance <= 0) throwError("Invalid CallProperty " + aName)
+							if(balance <= 0) throwError("Invalid CallProperty " + aName)
 							removes = op :: removes
 							balance -= 1
 							parameters.head match {
@@ -487,9 +523,29 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 						}
 						case _ => {
 							preCheck()
-							//              pushOp()
-							unwindParameterStack(-op.popOperands)
-							parameters = PushByte(0) :: parameters
+							structureMap.get(aName) match {
+								case Some(struct) => {
+									if(balance <= 0) throwError("Invalid cast " + aName)
+									if(argCount != 1) throwError("Invalid argument(s) for cast " + aName)
+									removes = op :: removes
+									parameters.head match {
+										case gl@GetLocal(register) if (registerMap.contains(register)) => {
+											castIsWaitingForRead = true
+											castIsWaitingForWrite = true
+											unwindParameterStack(-op.popOperands)
+											removes = op :: gl :: removes
+											castRegister = Some(CastRegister(register, aName))
+											//											balance -= 1
+											parameters = PushByte(0) :: parameters
+										}
+										case _ => throwError("cast " + aName + " called on unmapped Structure")
+									}
+								}
+								case _ => {
+									unwindParameterStack(-op.popOperands)
+									parameters = PushByte(0) :: parameters
+								}
+							}
 						}
 					}
 				}
@@ -497,6 +553,8 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 					preCheck()
 
 					clearOptimisation()
+					clearCast()
+
 					aName match {
 						case OffsetToName if (argCount == 1 && (balance > 0) && parameters.nonEmpty) => {
 							preCheck()
@@ -520,7 +578,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 							preCheck()
 							optimisation = Optimisation.RemoveConvertInt
 
-							val optConst=getIntConstantOnStack()
+							val optConst = getIntConstantOnStack()
 
 							unwindParameterStack(op.operandDelta) match {
 								case gl@GetLocal(register) if (registerMap.contains(register)) => {
@@ -530,16 +588,16 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									val field = structInfo.fields.head
 									val size = field.position + sizeOf(field.`type`)
 									var args = List.empty[AbstractOp]
-									if (size == 0) {
+									if(size == 0) {
 										args = Nop() :: args
 									} else {
-										def addMultiply(){
+										def addMultiply() {
 											args = getPushOpFromSize(size) :: args
 											args = MultiplyInt() :: args
 											args = GetLocal(memAlias.orgPtrRegister) :: args
 											args = AddInt() :: args
 										}
-										def addShift(bitShift:Int){
+										def addShift(bitShift: Int) {
 											args = PushByte(bitShift) :: args
 											args = ShiftLeft() :: args
 											args = GetLocal(memAlias.orgPtrRegister) :: args
@@ -593,7 +651,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 							preCheck()
 							optimisation = Optimisation.RemoveConvertInt
 
-							val optConst=getIntConstantOnStack()
+							val optConst = getIntConstantOnStack()
 
 							unwindParameterStack(op.operandDelta) match {
 								case gl@GetLocal(register) if (registerMap.contains(register)) => {
@@ -603,16 +661,16 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									val field = structInfo.fields.head
 									val size = field.position + sizeOf(field.`type`)
 									var args = List.empty[AbstractOp]
-									if (size == 0) {
+									if(size == 0) {
 										args = Nop() :: args
 									} else {
-										def addMultiply(){
+										def addMultiply() {
 											args = getPushOpFromSize(size) :: args
 											args = MultiplyInt() :: args
 											args = GetLocal(memAlias.ptrRegister) :: args
 											args = AddInt() :: args
 										}
-										def addShift(bitShift:Int){
+										def addShift(bitShift: Int) {
 											args = PushByte(bitShift) :: args
 											args = ShiftLeft() :: args
 											args = GetLocal(memAlias.ptrRegister) :: args
@@ -718,7 +776,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									val size = field.position + sizeOf(field.`type`)
 									var args = List.empty[AbstractOp]
 									args = GetLocal(memAlias.ptrRegister) :: args
-									if (size != 0) {
+									if(size != 0) {
 										args = getPushOpFromSize(size) :: args
 										args = AddInt() :: args
 										args = SetLocal(memAlias.ptrRegister) :: args
@@ -731,7 +789,6 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 						}
 						case PrevName if (argCount == 0 && (balance > 0) && parameters.nonEmpty) => {
 							preCheck()
-							//              optimisation = Optimisation.RemoveConvertInt
 							unwindParameterStack(op.operandDelta) match {
 								case gl@GetLocal(register) if (registerMap.contains(register)) => {
 									removes = gl :: removes
@@ -741,7 +798,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									val size = field.position + sizeOf(field.`type`)
 									var args = List.empty[AbstractOp]
 									args = GetLocal(memAlias.ptrRegister) :: args
-									if (size != 0) {
+									if(size != 0) {
 										args = getPushOpFromSize(size) :: args
 										args = SubtractInt() :: args
 										args = SetLocal(memAlias.ptrRegister) :: args
@@ -761,12 +818,59 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 				case GetLocal(register) if (registerMap.contains(register)) => {
 					preCheck()
 					clearOptimisation()
-					balance += 1
+					clearCast()
+					if(castRegister == None) balance += 1
 					pushOp()
+				}
+				case GetProperty(aName) if (castRegister != None && castIsWaitingForRead) => {
+					preCheck()
+					castIsWaitingForWrite = false
+					balance -= 1
+					unwindParameterStack(-op.popOperands)
+					val memAlias = registerMap.get(castRegister.get.register).get
+					val structInfo = structureMap.get(castRegister.get.castName).get
+
+					structInfo.fields.find(_.name == aName) match {
+						case Some(field) => {
+							var args = List.empty[AbstractOp]
+							args = GetLocal(memAlias.ptrRegister) :: args
+
+							val size = field.position
+
+							if(size > ((1 << 15) - 1)) {
+								args = PushInt(size) :: args
+								args = AddInt() :: args
+							} else if(size > ((1 << 7) - 1)) {
+								args = PushShort(size) :: args
+								args = AddInt() :: args
+							} else if(size > 0) {
+								args = PushByte(size) :: args
+								args = AddInt() :: args
+							}
+
+							args = {
+								field.`type` match {
+									case 'float => GetFloat()
+									case 'double => GetDouble()
+									case 'int => GetInt()
+									case 'uint => GetInt()
+									case 'byte => GetByte()
+									case 'short => GetShort()
+									case _ => throwError("Unknown type : " + field.`type`); Nop()
+								}
+							} :: args
+							replacements = replacements.updated(op, args.reverse)
+							parameters = PushByte(0) :: parameters
+						}
+						case _ => throwError("Can't find field " + aName + " in " + structInfo.name)
+					}
+					clearOptimisation()
+					clearCast()
 				}
 				case GetProperty(aName) if (balance > 0 && parameters.nonEmpty) => {
 					preCheck()
 					clearOptimisation()
+					clearCast()
 					unwindParameterStack(-op.popOperands) match {
 						case gl@GetLocal(register) if (registerMap.contains(register)) => {
 							val memAlias = registerMap.get(register).get
@@ -778,13 +882,13 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 
 									val size = field.position
 
-									if (size > ((1 << 15) - 1)) {
+									if(size > ((1 << 15) - 1)) {
 										args = PushInt(size) :: args
 										args = AddInt() :: args
-									} else if (size > ((1 << 7) - 1)) {
+									} else if(size > ((1 << 7) - 1)) {
 										args = PushShort(size) :: args
 										args = AddInt() :: args
-									} else if (size > 0) {
+									} else if(size > 0) {
 										args = PushByte(size) :: args
 										args = AddInt() :: args
 									}
@@ -814,10 +918,13 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 				case Kill(register) if (registerMap.contains(register)) => {
 					preCheck()
 					clearOptimisation()
+					clearCast()
 					// TODO remove register alias
 				}
 				case SetLocal(register) if (setStructure) => {
 					clearOptimisation()
+					clearCast()
+
 					setStructure = false
 					currentStructure match {
 						case Some(structureInfo) => {
@@ -833,6 +940,8 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 				}
 				case SetProperty(aName) if (balance > 0 && parameters.nonEmpty) => {
 					clearOptimisation()
+					clearCast()
+
 					unwindParameterStack(op.operandDelta) match {
 						case gl@GetLocal(register) if (registerMap.contains(register)) => {
 							val memAlias = registerMap.get(register).get
@@ -842,13 +951,13 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									var args = List.empty[AbstractOp]
 									args = GetLocal(memAlias.ptrRegister) :: args
 									val size = field.position
-									if (size > ((1 << 15) - 1)) {
+									if(size > ((1 << 15) - 1)) {
 										args = PushInt(size) :: args
 										args = AddInt() :: args
-									} else if (size > ((1 << 7) - 1)) {
+									} else if(size > ((1 << 7) - 1)) {
 										args = PushShort(size) :: args
 										args = AddInt() :: args
-									} else if (size > 0) {
+									} else if(size > 0) {
 										args = PushByte(size) :: args
 										args = AddInt() :: args
 									}
@@ -870,22 +979,65 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 								case _ => throwError("Can't find field " + aName + " in " + structInfo.name)
 							}
 						}
+						case x if (castIsWaitingForWrite && parameters.isEmpty) => {
+							castIsWaitingForWrite = false
+							val memAlias = registerMap.get(castRegister.get.register).get
+							val structInfo = structureMap.get(castRegister.get.castName).get
+
+							structInfo.fields.find(_.name == aName) match {
+								case Some(field) => {
+									var args = List.empty[AbstractOp]
+									args = GetLocal(memAlias.ptrRegister) :: args
+									val size = field.position
+									if(size > ((1 << 15) - 1)) {
+										args = PushInt(size) :: args
+										args = AddInt() :: args
+									} else if(size > ((1 << 7) - 1)) {
+										args = PushShort(size) :: args
+										args = AddInt() :: args
+									} else if(size > 0) {
+										args = PushByte(size) :: args
+										args = AddInt() :: args
+									}
+
+									args = {
+										field.`type` match {
+											case 'float => SetFloat()
+											case 'double => SetDouble()
+											case 'int => SetInt()
+											case 'uint => SetInt()
+											case 'byte => SetByte()
+											case 'short => SetShort()
+											case _ => throwError("Unknown type : " + field.`type`); Nop()
+										}
+									} :: args
+									replacements = replacements.updated(op, args.reverse)
+									//									removes = gl :: removes
+									balance -= 1
+								}
+								case _ => unwindParameterStack(op.operandDelta)
+							}
+							clearCast()
+						}
 						case _ => unwindParameterStack(op.operandDelta)
 					}
 				}
 				case _ => {
 					preCheck()
 					clearOptimisation()
+					clearCast()
 					pushOp()
 				}
 			}
 
-			if (balance == 0) {
+			if(balance == 0) {
 				parameters = Nil
 			}
 		}
-
-		if (removes.nonEmpty || replacements.nonEmpty) {
+		if(castIsWaitingForWrite) {
+			throwError("Cast " + castRegister.get.castName + "is never read or write")
+		}
+		if(removes.nonEmpty || replacements.nonEmpty) {
 			removes foreach {
 				bytecode remove _
 			}
@@ -902,10 +1054,8 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 				}
 				case None => log.warning("Bytecode body missing. Cannot adjust stack/locals.")
 			}
-//					bytecode.dump()
 			$expand(bytecode, true)
 		} else {
-//					bytecode.dump()
 			haveBeenModified
 		}
 	}

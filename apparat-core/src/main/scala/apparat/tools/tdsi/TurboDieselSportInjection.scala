@@ -157,7 +157,18 @@ object TurboDieselSportInjection {
 
 						if(alchemy) {
 							modified |= InlineMemory(bytecode)
-							modified |= memoryExpansion.get expand  bytecode
+							// don't run memory expansion within Macro
+							if (!{ macroExpansion match {
+								    case Some(me) => {
+									    abc.types.exists(n => (n.inst.base.getOrElse(AbcConstantPool.EMPTY_NAME) == me.apparatMacro) && (n.klass.traits.exists(p=> p match {
+										  case AbcTraitMethod(_, _, meth , _, _, _) if (meth==method) => true
+										  case _ => false
+									    })))
+								    }
+								    case _ => false
+							       }}) {
+								modified |= memoryExpansion.get expand  bytecode
+							}
 						}
 
 						if(fixAlchemy) {
