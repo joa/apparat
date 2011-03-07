@@ -72,7 +72,6 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 		var byRefBalance = 0
 		var byRefParameters = List.empty[AbstractOp]
 		var byRefMap = Map.empty[AbstractOp, List[AbstractOp]]
-		var byRefReplacementsMap = Map.empty[AbstractOp, List[AbstractOp]]
 		var removes = List.empty[AbstractOp]
 		var removePop = false
 		var macroStack = List.empty[AbcNominalType]
@@ -100,6 +99,8 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 							if(numArguments != parameters.length) {
 								error("Expected "+numArguments+" arguments, got "+parameters.length+".")
 							}
+
+							var byRefReplacementsMap = Map.empty[AbstractOp, List[AbstractOp]]
 
 							val method = methodTrait.method
 
