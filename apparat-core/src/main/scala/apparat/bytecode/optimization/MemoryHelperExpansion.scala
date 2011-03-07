@@ -109,6 +109,8 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 			case 'uint => 4
 			case 'float => 4
 			case 'double => 8
+			case 'sbyte => 1
+			case 'sshort => 2
 			case _ => error("Unknow type : " + s)
 		}
 	}
@@ -530,6 +532,7 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 									removes = op :: removes
 									parameters.head match {
 										case gl@GetLocal(register) if (registerMap.contains(register)) => {
+											if (castRegister==None) balance -= 1
 											castIsWaitingForRead = true
 											castIsWaitingForWrite = true
 											unwindParameterStack(-op.popOperands)
@@ -850,15 +853,17 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 
 							args = {
 								field.`type` match {
-									case 'float => GetFloat()
-									case 'double => GetDouble()
-									case 'int => GetInt()
-									case 'uint => GetInt()
-									case 'byte => GetByte()
-									case 'short => GetShort()
-									case _ => throwError("Unknown type : " + field.`type`); Nop()
+									case 'float => List(GetFloat())
+									case 'double => List(GetDouble())
+									case 'int => List(GetInt())
+									case 'uint => List(GetInt())
+									case 'byte => List(GetByte())
+									case 'short => List(GetShort())
+									case 'sbyte => List(Sign8(), GetByte())
+									case 'sshort => List(Sign16(), GetShort())
+									case _ => throwError("Unknown type : " + field.`type`); List(Nop())
 								}
-							} :: args
+							} ::: args
 							replacements = replacements.updated(op, args.reverse)
 							parameters = PushByte(0) :: parameters
 						}
@@ -895,15 +900,17 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 
 									args = {
 										field.`type` match {
-											case 'float => GetFloat()
-											case 'double => GetDouble()
-											case 'int => GetInt()
-											case 'uint => GetInt()
-											case 'byte => GetByte()
-											case 'short => GetShort()
-											case _ => throwError("Unknown type : " + field.`type`); Nop()
+											case 'float => List(GetFloat())
+											case 'double => List(GetDouble())
+											case 'int => List(GetInt())
+											case 'uint => List(GetInt())
+											case 'byte => List(GetByte())
+											case 'short => List(GetShort())
+											case 'sbyte => List(Sign8(), GetByte())
+											case 'sshort => List(Sign16(), GetShort())
+											case _ => throwError("Unknown type : " + field.`type`); List(Nop())
 										}
-									} :: args
+									} ::: args
 									replacements = replacements.updated(op, args.reverse)
 									balance -= 1
 									removes = gl :: removes
@@ -929,8 +936,6 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 					currentStructure match {
 						case Some(structureInfo) => {
 							registerMap = registerMap.updated(register, MemoryAlias(localCount, structureInfo, localCount + 1))
-							//              registerMap = registerMap.updated(register, MemoryAlias(register, structureInfo))
-							//              replacements = replacements.updated(op, List(SetLocal(register)))
 							replacements = replacements.updated(op, List(Dup(), SetLocal(localCount), SetLocal(localCount + 1)))
 							localCount += 2
 							currentStructure = None
@@ -969,6 +974,8 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 											case 'uint => SetInt()
 											case 'byte => SetByte()
 											case 'short => SetShort()
+											case 'sbyte => SetByte()
+											case 'sshort => SetShort()
 											case _ => throwError("Unknown type : " + field.`type`); Nop()
 										}
 									} :: args
@@ -1008,6 +1015,8 @@ class MemoryHelperExpansion(abcs: List[Abc]) extends SimpleLog {
 											case 'uint => SetInt()
 											case 'byte => SetByte()
 											case 'short => SetShort()
+											case 'sbyte => SetByte()
+											case 'sshort => SetShort()
 											case _ => throwError("Unknown type : " + field.`type`); Nop()
 										}
 									} :: args
