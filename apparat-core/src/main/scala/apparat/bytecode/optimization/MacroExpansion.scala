@@ -81,26 +81,32 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 		var markers = bytecode.markers
 		val debugFile = bytecode.ops find (_.opCode == Op.debugfile)
 
-		def reverseSearchForStackDepthIndex(stack:List[AbstractOp], from:Int, toDepth:Int):Int = {
-			@tailrec def loop(from:Int, currentDepth:Int):Int = {
-				if (currentDepth != 0) {
+		var byRefCount = 0
+		@inline def byRefFingerOp(register: Int) = {
+			// just for easing the debugging i can use a Nop() as a replacement marker
+			// but i can't add any extra info to it
+			byRefCount += 1
+			Debug(15, Symbol("byRef:" + byRefCount), register, 0)
+		}
+
+		def reverseSearchForStackDepthIndex(stack: List[AbstractOp], from: Int, toDepth: Int): Int = {
+			@tailrec def loop(from: Int, currentDepth: Int): Int = {
+				if(currentDepth != 0) {
 					val op = stack.view(from)
-					loop(from-1, currentDepth + op.pushOperands - op.popOperands)
+					loop(from - 1, currentDepth + op.pushOperands - op.popOperands)
 				} else from + 1
 			}
 			loop(from, -toDepth)
 		}
-		
+
 		@inline def insert(op: AbstractOp, property: AbcName, numArguments: Int) = {
 			macroStack.head.klass.traits find (_.name == property) match {
 				case Some(anyTrait) => {
 					anyTrait match {
 						case methodTrait: AbcTraitMethod => {
 							if(numArguments != parameters.length) {
-								error("Expected "+numArguments+" arguments, got "+parameters.length+".")
+								error("Expected " + numArguments + " arguments, got " + parameters.length + ".")
 							}
-
-							var byRefReplacementsMap = Map.empty[AbstractOp, List[AbstractOp]]
 
 							val method = methodTrait.method
 
@@ -108,6 +114,8 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 								case Some(body) => body.bytecode match {
 									case Some(macro) => {
 										parameters = parameters.reverse
+
+										var byRefReplacementsMap = Map.empty[AbstractOp, List[AbstractOp]]
 
 										val parameterCount = method.parameters.length
 										val newLocals = body.localCount - parameterCount - 1
@@ -148,10 +156,65 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 														if (ops.size == 1) {
 															ops.head match {
 																case GetLocal(y) => GetLocal(y)
+																case GetLex(y) => {
+																	val ret = byRefFingerOp(x) //Nop()
+																	byRefReplacementsMap += (ret -> List(GetLex(y)))
+																	ret
+																}
+																case PushString(y) => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushString(y)))
+																	ret
+																}
+																case PushNull() => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushNull()))
+																	ret
+																}
+																case PushFalse() => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushFalse()))
+																	ret
+																}
+																case PushTrue() => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushTrue()))
+																	ret
+																}
+																case PushNaN() => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushTrue()))
+																	ret
+																}
+																case PushByte(y) => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushByte(y)))
+																	ret
+																}
+																case PushShort(y) => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushShort(y)))
+																	ret
+																}
+																case PushInt(y) => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushInt(y)))
+																	ret
+																}
+																case PushUInt(y) => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushUInt(y)))
+																	ret
+																}
+																case PushDouble(y) => {
+																	val ret = byRefFingerOp(x)
+																	byRefReplacementsMap += (ret -> List(PushDouble(y)))
+																	ret
+																}
 																case e@_ => error("Unexpected "+e+".")
 															}
 														} else {
-															val ret = Nop()
+															val ret = byRefFingerOp(x) //Nop()
 															val newOps=ops.dropRight(1).map(_.opCopy()) ::: List(ops.last match{case GetProperty(aName)=>GetProperty(aName);case x@_=> error("Unexpexted " + x)})
 															byRefReplacementsMap += (ret -> newOps)
 															ret
@@ -167,10 +230,15 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 														if (ops.size == 1) {
 															ops.head match {
 																case GetLocal(y) => SetLocal(y)
+																case GetLex(y) => {
+																	val ret = byRefFingerOp(x) //Nop()
+																	byRefReplacementsMap += (ret -> List(GetLex(y)))
+																	ret
+																}
 																case e@_ => error("Unexpected "+e+".")
 															}
 														} else {
-															val ret=Nop()
+															val ret = byRefFingerOp(x) //Nop()
 															val newOps=ops.dropRight(1).map(_.opCopy()) ::: List(ops.last match{case GetProperty(aName)=>SetProperty(aName);case x@_=> error("Unexpexted " + x)})
 															byRefReplacementsMap += (ret -> newOps)
 															ret
@@ -188,18 +256,6 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 
 											case other => other.opCopy()
 										}) ::: List(Nop()) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
-
-										//
-										// Switch debug file back into place.
-										//
-
-										/*debugFile match {
-											case Some(debugFile) => oldDebugFile match {
-												case Some(oldDebugFile) => (oldDebugFile.opCopy() :: replacement) ::: List(debugFile.opCopy())
-												case None => replacement
-											}
-											case None => replacement
-										}*/
 
 										//
 										// Clean up
@@ -299,7 +355,9 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 										// patch byRef
 										for ((op, ops) <- byRefReplacementsMap) {
 											ops.last match {
-												case GetProperty(_) => replacement = replacement.patch(replacement.indexWhere( _ == op), ops, 1)
+												case GetProperty(_) | GetLex(_) | PushString(_) | PushNull() |
+													 PushFalse() | PushTrue() | PushNaN() | PushByte(_) |
+													 PushShort (_) | PushInt(_) | PushUInt(_) | PushDouble(_) => replacement = replacement.patch(replacement.indexWhere(_ == op), ops, 1)
 												case SetProperty(_) => {
 													val endIndex = replacement.indexWhere( _ == op)
 													val startIndex = reverseSearchForStackDepthIndex(replacement, endIndex, 1)
@@ -310,6 +368,18 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 												}
 												case _=>
 											}
+										}
+
+										//
+										// Switch debug file back into place.
+										//
+
+										replacement = debugFile match {
+											case Some(debugFile) => oldDebugFile match {
+												case Some(oldDebugFile) => List(oldDebugFile.opCopy()) ::: replacement ::: List(debugFile.opCopy())
+												case None => replacement
+											}
+											case None => replacement
 										}
 
 										replacements += op -> replacement
