@@ -18,25 +18,13 @@
  * http://www.joa-ebert.com/
  * 
  * User: Patrick Le Clec'h
- * Date: 8 mai. 2010
- * Time: 17:40:35
+ * Date: 31/03/11
+ * Time: 09:25
  */
 
-package apparat.embedding.ant.tdsi
+package apparat.embedding.ant.asmifier
 
+import apparat.tools.asmifier.ASMifier
 import apparat.embedding.ant.{OutParameter, ApparatTask}
-import apparat.tools.tdsi.TurboDieselSportInjection
 
-sealed class TDSITask extends ApparatTask(TurboDieselSportInjection, "tdsi") with OutParameter {
-	def setAlchemy(value: String) = setArgument("a", value)
-	
-	def setAlchemyFix(value: String) = setArgument("f", value)
-
-	def setInline(value: String) = setArgument("e", value)
-
-	def setMacro(value: String) = setArgument("m", value)
-
-	def setAsm(value: String) = setArgument("s", value)
-
-	def setLibraries(value: String) = setArgument("l", value)
-}
+sealed class ASMifierTask extends ApparatTask(ASMifier, "asmifier") with OutParameter

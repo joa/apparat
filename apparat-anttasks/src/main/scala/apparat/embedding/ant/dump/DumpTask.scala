@@ -18,25 +18,21 @@
  * http://www.joa-ebert.com/
  * 
  * User: Patrick Le Clec'h
- * Date: 8 mai. 2010
- * Time: 17:40:35
+ * Date: 31/03/11
+ * Time: 09:29
  */
 
-package apparat.embedding.ant.tdsi
+package apparat.embedding.ant.dump
 
+import apparat.tools.dump.Dump
 import apparat.embedding.ant.{OutParameter, ApparatTask}
-import apparat.tools.tdsi.TurboDieselSportInjection
 
-sealed class TDSITask extends ApparatTask(TurboDieselSportInjection, "tdsi") with OutParameter {
-	def setAlchemy(value: String) = setArgument("a", value)
-	
-	def setAlchemyFix(value: String) = setArgument("f", value)
+sealed class DumpTask extends ApparatTask(Dump, "dump") with OutParameter {
+	def setSWF(value: Boolean) = setArgument("swf", value)
 
-	def setInline(value: String) = setArgument("e", value)
+	def setUML(value: Boolean) = setArgument("uml", value)
 
-	def setMacro(value: String) = setArgument("m", value)
+	def setABC(value: Boolean) = setArgument("abc", value)
 
-	def setAsm(value: String) = setArgument("s", value)
-
-	def setLibraries(value: String) = setArgument("l", value)
+	def setBCFormat(value: String) = setArgument("bc", value)
 }

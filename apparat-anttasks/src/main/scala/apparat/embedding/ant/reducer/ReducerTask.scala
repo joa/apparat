@@ -34,6 +34,8 @@ sealed class ReducerTask extends ApparatTask(Reducer, "reducer") with OutParamet
 
 	def setMergeABC(value: Boolean) = setArgument("m", value)
 
+	def setMergeCF(value: Boolean) = setArgument("b", value)
+
 	def setSortCPool(value: Boolean) = setArgument("s", value)
 
 	def setLZMA(value: Boolean) = setArgument("l", value)
@@ -45,4 +47,6 @@ sealed class ReducerTask extends ApparatTask(Reducer, "reducer") with OutParamet
 			case  _ => setArgument("t", value)
 		}
 	}
+
+	def setMatryoshkaFile(value: String) = setArgument("f", value)
 }

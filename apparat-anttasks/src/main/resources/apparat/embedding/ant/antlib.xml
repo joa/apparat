@@ -24,4 +24,6 @@
 	<typedef name="coverage" classname="apparat.embedding.ant.coverage.CoverageTask"/>
 	<typedef name="concrete" classname="apparat.embedding.ant.concrete.ConcreteTask"/>
 	<typedef name="tdsi" classname="apparat.embedding.ant.tdsi.TDSITask"/>
+	<typedef name="asmifier" classname="apparat.embedding.ant.asmifier.ASMifierTask"/>
+	<typedef name="dump" classname="apparat.embedding.ant.dump.DumpTask"/>
 </antlib>
