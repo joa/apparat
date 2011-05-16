@@ -39,7 +39,7 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 		Map((for(abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == apparatMacro) && !nominal.inst.isInterface) yield (nominal.inst.name -> nominal)):_*)
 	}
 
-	def validate() = {
+	def validate() {
 		for(nominal <- macros.valuesIterator) {
 			if(nominal.inst.traits.length != 1) error("No instance members are allowed.")
 			if(!nominal.inst.isSealed) error("Macro must not be a dynamic class.")
@@ -123,7 +123,7 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 										val gathering = Nop()
 										val delta = -macro.ops.indexWhere(_.opCode == Op.pushscope) - 1 + parameterCount
 										val nopReturn = macro.ops.last.isInstanceOf[OpThatReturns] && (macro.ops.count { case x: OpThatReturns => true; case _ => false } == 1)
-										val replacement =
+										var replacement =
 										(((parameterCount - 1) to 0 by -1) map { register => SetLocal(localCount + register) } toList) :::
 										(macro.ops.slice(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length) map {
 											//
@@ -176,7 +176,7 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 										//
 										localCount += newLocals
 
-										replacements += op -> (replacement map {
+										replacement = replacement map {
 											//
 											// Patch all markers.
 											//
@@ -263,7 +263,21 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 												newOp
 											}
 											case other => other
-										})
+										}
+
+										//
+										// Switch debug file back into place.
+										//
+
+										replacement = debugFile match {
+											case Some(debugFile) => oldDebugFile match {
+												case Some(oldDebugFile) => List(oldDebugFile.opCopy()) ::: replacement ::: List(debugFile.opCopy())
+												case None => replacement
+											}
+											case None => replacement
+										}
+
+										replacements += op -> replacement
 									}
 									case None => log.warning("Bytecode of %s is not available.", property)
 								}
