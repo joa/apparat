@@ -160,18 +160,6 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 										}) ::: List(gathering) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
 
 										//
-										// Switch debug file back into place.
-										//
-
-										/*debugFile match {
-											case Some(debugFile) => oldDebugFile match {
-												case Some(oldDebugFile) => (oldDebugFile.opCopy() :: replacement) ::: List(debugFile.opCopy())
-												case None => replacement
-											}
-											case None => replacement
-										}*/
-
-										//
 										// Clean up
 										//
 										localCount += newLocals
