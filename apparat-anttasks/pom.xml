@@ -52,7 +52,7 @@
     </dependency>
     <dependency>
       <groupId>org.scala-tools.testing</groupId>
-      <artifactId>specs</artifactId>
+      <artifactId>specs_${scala.version}</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
