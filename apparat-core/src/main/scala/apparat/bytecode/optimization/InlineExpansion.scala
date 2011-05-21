@@ -52,7 +52,7 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 						if(method.needsRest) error("Macro may not use rest parameters.")
 						if(method.setsDXNS) error("Macro may not change the default XML namespace.")
 						if(method.body.get.exceptions.length != 0) error("Macro may not throw any exception.")
-						if(method.body.get.traits != 0) error("Macro may not use constant variables or throw any exceptions.")
+						if(method.body.get.traits.length != 0) error("Macro may not use constant variables or throw any exceptions.")
 					}
 					case other => error("Only static methods are allowed.")
 				}
