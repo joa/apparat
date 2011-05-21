@@ -53,7 +53,7 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 						if(method.setsDXNS) error("Macro may not change the default XML namespace.")
 						if(method.returnType != voidName) error("Macro must return void.")
 						if(method.body.get.exceptions.length != 0) error("Macro may not throw any exception.")
-						if(method.body.get.traits != 0) error("Macro may not use constant variables or throw any exceptions.")
+						if(method.body.get.traits.length != 0) error("Macro may not use constant variables or throw any exceptions.")
 					}
 					case other => error("Only static methods are allowed.")
 				}
