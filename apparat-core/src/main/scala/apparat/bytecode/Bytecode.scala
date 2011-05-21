@@ -53,7 +53,7 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 	}
 
 	def filterNot(f: AbstractOp => Boolean) = {
-		@tailrec def loop(list: List[AbstractOp]): List[AbstractOp] = list match {
+		/*@tailrec*/ def loop(list: List[AbstractOp]): List[AbstractOp] = list match {//FIXME make tailrec
 			case x :: Nil => f(x) match {
 				case true => {
 					val nop = Nop()
