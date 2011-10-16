@@ -66,7 +66,7 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 		case _ => error("Unexpected "+op+".")
 	}
 
-	@tailrec final def expand(bytecode: Bytecode, haveBeenModified:Boolean=false): Boolean = {
+	@tailrec final def expand(bytecode: Bytecode, haveBeenModified:Boolean=false)(parentABC: Option[Abc] = None): Boolean = {
 		var modified = false
 		var balance = 0
 		var byRefBalance = 0
@@ -399,11 +399,48 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 				case None => false
 			}
 		}
+		val ops = bytecode.ops.view
+		var slotCache = Map.empty[Int, Option[AbcTraitClass]]
 
-		for(op <- bytecode.ops) op match {
+		for((op, index) <- ops.zipWithIndex) op match {
 			case Pop() if removePop && byRefBalance==0 => {
 				removes = op :: removes
 				removePop = false
+			}
+			case GetSlot(x) if (index>0) => if (ops(index-1).opCode == Op.getglobalscope) {
+				{
+					slotCache.getOrElse(x, null) match {
+						case stc@Some(tc) => stc
+						case None => None
+						case _ => {
+							parentABC match {
+								case Some(abc) => {
+									abc.scripts.flatMap(_.traits.collect{case atc:AbcTraitClass if (atc.index == x) => atc}) headOption match {
+										case stc@Some(tc) if (macros.contains(tc.name)) => {
+											slotCache = slotCache.updated(x, stc)
+											stc
+										}
+										case _ => {
+											slotCache = slotCache.updated(x, None)
+											None
+										}
+									}
+								}
+								case _ => {
+									slotCache = slotCache.updated(x, None)
+									None
+								}
+							}
+						}
+					}
+				} match {
+					case Some(tc) => {
+						removes = op :: ops(index-1) :: removes
+						macroStack = macros(tc.name) :: macroStack
+						balance += 1
+					}
+					case _ =>
+				}
 			}
 			case GetLex(name) if macros.contains(name)  && byRefBalance==0 => {
 				removes = op :: removes
@@ -473,7 +510,7 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 				case None => log.warning("Bytecode body missing. Cannot adjust stack/locals.")
 			}
 
-			expand(bytecode, true)
+			expand(bytecode, true)(parentABC)
 		} else {
 			haveBeenModified
 		}
