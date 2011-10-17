@@ -35,12 +35,12 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 	lazy val voidName = AbcQName('void, nsGlobal)
 	lazy val uintName = AbcQName('uint, nsGlobal)
 	lazy val apparatMacro = AbcQName('Inlined, AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.inline")))
-	lazy val macros: Map[AbcName, AbcNominalType] = {
-		Map((for(abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == apparatMacro) && !nominal.inst.isInterface) yield (nominal.inst.name -> nominal)):_*)
+	lazy val macros: Map[AbcName, (AbcNominalType, Abc)] = {
+		Map((for(abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == apparatMacro) && !nominal.inst.isInterface) yield (nominal.inst.name -> (nominal,abc))):_*)
 	}
 
 	def validate() {
-		for(nominal <- macros.valuesIterator) {
+		for((nominal, abc) <- macros.valuesIterator) {
 			if(nominal.inst.traits.length != 1) error("No instance members are allowed.")
 			if(!nominal.inst.isSealed) error("Macro must not be a dynamic class.")
 			for(t <- nominal.klass.traits) {
@@ -65,12 +65,12 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 		case _ => error("Unexpected "+op+".")
 	}
 
-	@tailrec final def expand(bytecode: Bytecode, haveBeenModified:Boolean=false)(parentABC: Option[Abc] = None): Boolean = {
+	@tailrec final def expand(bytecode: Bytecode, haveBeenModified:Boolean=false): Boolean = {
 		var modified = false
 		var balance = 0
 		var removes = List.empty[AbstractOp]
 		var removePop = false
-		var macroStack = List.empty[AbcNominalType]
+		var macroStack = List.empty[(AbcNominalType, Abc)]
 		var replacements = Map.empty[AbstractOp, List[AbstractOp]]
 		var localCount = LocalCount(bytecode)
 		var markers = bytecode.markers
@@ -108,7 +108,10 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 		}
 
 		@inline def insert(op: AbstractOp, property: AbcName, numArguments: Int) = {
-			macroStack.head.klass.traits find (_.name == property) match {
+			val parentABC = macroStack.head._2
+			var slotCache = Map.empty[Int, Option[AbcTraitClass]]
+
+			macroStack.head._1.klass.traits find (_.name == property) match {
 				case Some(anyTrait) => {
 					anyTrait match {
 						case methodTrait: AbcTraitMethod => {
@@ -123,9 +126,10 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 										val gathering = Nop()
 										val delta = -macro.ops.indexWhere(_.opCode == Op.pushscope) - 1 + parameterCount
 										val nopReturn = macro.ops.last.isInstanceOf[OpThatReturns] && (macro.ops.count { case x: OpThatReturns => true; case _ => false } == 1)
+										val ops = macro.ops.view(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length)
 										var replacement =
 										(((parameterCount - 1) to 0 by -1) map { register => SetLocal(localCount + register) } toList) :::
-										(macro.ops.slice(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length) map {
+										(ops.zipWithIndex.map{p => p._1 match {
 											//
 											// Prohibit use of "this".
 											//
@@ -155,9 +159,31 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 											//
 											case ReturnValue() => if(nopReturn) Nop() else Jump(markers mark gathering)
 											case ReturnVoid() => if(nopReturn) Nop() else Jump(markers mark gathering)
-
+											case ggs@GetGlobalScope() if (ops(p._2+1).opCode == Op.getslot) => {
+												val gs = ops(p._2+1).asInstanceOf[GetSlot]
+												(slotCache.getOrElse(gs.slot, null) match {
+													case stc@Some(tc) => stc
+													case None => None
+													case _ => parentABC.scripts.flatMap(_.traits.collect{case atc:AbcTraitClass if (atc.index == gs.slot) => atc}) headOption match {
+														case stc@Some(tc) if (macros.contains(tc.name)) => {
+															slotCache = slotCache.updated(gs.slot, stc)
+															stc
+														}
+														case _ => {
+															slotCache = slotCache.updated(gs.slot, None)
+															None
+														}
+													}
+												}) match {
+													case Some(tc) => Nop()
+													case _ => ggs.opCopy()
+												}
+											}
+											case GetSlot(x) if (slotCache.contains(x) && (ops(p._2-1).opCode == Op.getglobalscope)) => {
+												GetLex(slotCache(x).get.name)
+											}
 											case other => other.opCopy()
-										}) ::: List(gathering) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
+										}}.toList) ::: List(gathering) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
 
 										//
 										// Clean up
@@ -293,47 +319,11 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 		}
 
 		val ops = bytecode.ops.view
-		var slotCache = Map.empty[Int, Option[AbcTraitClass]]
 
 		for((op, index) <- ops.zipWithIndex) op match {
 			case Pop() if removePop => {
 				removes = op :: removes
 				removePop = false
-			}
-			case GetSlot(x) if (index>0) => if (ops(index-1).opCode == Op.getglobalscope) {
-				{
-					slotCache.getOrElse(x, null) match {
-						case stc@Some(tc) => stc
-						case None => None
-						case _ => {
-							parentABC match {
-								case Some(abc) => {
-									abc.scripts.flatMap(_.traits.collect{case atc:AbcTraitClass if (atc.index == x) => atc}) headOption match {
-										case stc@Some(tc) if (macros.contains(tc.name)) => {
-											slotCache = slotCache.updated(x, stc)
-											stc
-										}
-										case _ => {
-											slotCache = slotCache.updated(x, None)
-											None
-										}
-									}
-								}
-								case _ => {
-									slotCache = slotCache.updated(x, None)
-									None
-								}
-							}
-						}
-					}
-				} match {
-					case Some(tc) => {
-						removes = op :: ops(index-1) :: removes
-						macroStack = macros(tc.name) :: macroStack
-						balance += 1
-					}
-					case _ =>
-				}
 			}
 			case GetLex(name) if macros contains name => {
 				removes = op :: removes
@@ -372,7 +362,7 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 				case None => log.warning("Bytecode body missing. Cannot adjust stack/locals.")
 			}
 
-			expand(bytecode, true)(parentABC)
+			expand(bytecode, true)
 		} else {
 			haveBeenModified
 		}

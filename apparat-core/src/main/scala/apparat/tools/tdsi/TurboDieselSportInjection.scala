@@ -143,12 +143,12 @@ object TurboDieselSportInjection {
 					@tailrec def modifyBytecode(counter: Int): Unit = {
 						var modified = false
 
-						if(inline && (inlineExpansion.get.expand(bytecode)(Some(abc)))) {
+						if(inline && (inlineExpansion.get.expand(bytecode))) {
 							modified = true
 							rebuildCpool = true
 						}
 
-						if(macros && (macroExpansion.get.expand(bytecode)(Some(abc)))) {
+						if(macros && (macroExpansion.get.expand(bytecode))) {
 							modified = true
 							rebuildCpool = true
 						}
