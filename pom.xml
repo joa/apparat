@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
@@ -17,7 +17,7 @@
     <maven.version>3.0-beta-1</maven.version>
     <flexmojos.version>4.0-beta-5</flexmojos.version>
     <flexmojos.testrunner>TestRunner.swf</flexmojos.testrunner>
-    <lwjgl.version>2.5</lwjgl.version>
+    <lwjgl.version>2.7.1</lwjgl.version>
   </properties>
 
   <groupId>com.googlecode.apparat</groupId>
@@ -92,17 +92,12 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>lwjgl</groupId>
+        <groupId>org.lwjgl</groupId>
         <artifactId>lwjgl</artifactId>
         <version>${lwjgl.version}</version>
       </dependency>
       <dependency>
-        <groupId>lwjgl</groupId>
-        <artifactId>jinput</artifactId>
-        <version>${lwjgl.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>lwjgl</groupId>
+        <groupId>org.lwjgl</groupId>
         <artifactId>lwjgl-util</artifactId>
         <version>${lwjgl.version}</version>
       </dependency>
@@ -263,7 +258,7 @@
       </plugin>
     </plugins>
   </build>
-  
+
   <modules>
     <module>apparat-anttasks</module>
     <module>apparat-archetypes</module>
@@ -281,7 +276,7 @@
     <module>apparat-taas</module>
     <module>apparat-test-harness</module>
   </modules>
-  
+
   <repositories>
     <repository>
       <id>scala-releases</id>
@@ -303,8 +298,13 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>lwjgl</id>
+      <name>lwjgl</name>
+      <url>http://adterrasperaspera.com/lwjgl</url>
+    </repository>
   </repositories>
-  
+
   <pluginRepositories>
     <pluginRepository>
       <id>scala-snapshots</id>
@@ -327,7 +327,7 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
-  
+
   <profiles>
     <profile>
       <id>optimise</id>

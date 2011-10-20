@@ -53,6 +53,14 @@
                   <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                   <destFileName>apparat-ersatz.swc</destFileName>
                 </artifactItem>
+                <artifactItem>
+                  <groupId>org.lwjgl</groupId>
+                  <artifactId>lwjgl-native</artifactId>
+                  <version>${lwjgl.version}</version>
+                  <type>jar</type>
+                  <outputDirectory>${project.build.directory}/libs/natives</outputDirectory>
+                  <overWrite>true</overWrite>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
@@ -101,16 +109,14 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
-      <groupId>lwjgl</groupId>
+      <groupId>org.lwjgl</groupId>
       <artifactId>lwjgl</artifactId>
+      <version>${lwjgl.version}</version>
     </dependency>
     <dependency>
-      <groupId>lwjgl</groupId>
-      <artifactId>jinput</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>lwjgl</groupId>
+      <groupId>org.lwjgl</groupId>
       <artifactId>lwjgl-util</artifactId>
+      <version>${lwjgl.version}</version>
     </dependency>
   </dependencies>
 </project>
