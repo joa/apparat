@@ -18,7 +18,7 @@
     <sourceDirectory>src/main/as3</sourceDirectory>
     <testSourceDirectory>src/test/as3</testSourceDirectory>
 
-    <plugins>
+    <!--plugins>
       <plugin>
         <groupId>${project.groupId}</groupId>
         <artifactId>apparat-maven-plugin</artifactId>
@@ -37,8 +37,8 @@
           <inlineExpansion>false</inlineExpansion>
           <macroExpansion>false</macroExpansion>
         </configuration>
-	<dependencies>
-	  <dependency>
+    <dependencies>
+      <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>apparat-maven-plugin</artifactId>
             <version>${project.version}</version>
@@ -46,7 +46,7 @@
           </dependency>
         </dependencies>
       </plugin>
-    </plugins>
+    </plugins-->
   </build>
   
   <dependencies>

@@ -11,7 +11,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
-    <scala.version>2.8.1</scala.version>
+    <scala.version>2.9.0-1</scala.version>
     <flex.version>4.5.0.17855</flex.version>
     <flash.version>10.1</flash.version>
     <maven.version>3.0-beta-1</maven.version>
@@ -81,8 +81,8 @@
       </dependency>
       <dependency>
         <groupId>org.scala-tools.testing</groupId>
-        <artifactId>specs</artifactId>
-        <version>1.6.1-2.8.0.Beta1-RC6</version>
+        <artifactId>specs_${scala.version}</artifactId>
+        <version>1.6.8</version>
         <scope>test</scope>
       </dependency>
       <dependency>
