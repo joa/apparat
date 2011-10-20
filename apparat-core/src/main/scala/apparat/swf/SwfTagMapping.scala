@@ -20,31 +20,42 @@
  */
 package apparat.swf
 
-import apparat.actors.Futures._
+import apparat.actors.Actor
+import collection.GenSeq
 
 /**
  * @author Joa Ebert
  */
 trait SwfTagMapping {
 	def tags: List[SwfTag]
-	def tags_=(value: List[SwfTag]): Unit
+	def tags_=(value: List[SwfTag])
 
-	def mapTags(f: PartialFunction[SwfTag, SwfTag]): Unit = {
-		val mappers = for(tag <- tags) yield {
-			if(f.isDefinedAt(tag)) { future { f(tag) } } else { () => tag }
-		}
-		tags = mappers map { _() }
-	}
-	
-	def foreachTag(f: PartialFunction[SwfTag, Unit]): Unit = {
-		val mappers = for(tag <- tags) yield {
-			if(f.isDefinedAt(tag)) { Some(future { f(tag) }) } else { None }
-		}
-		mappers foreach { _ map { _() } }
+	def mapTags(f: PartialFunction[SwfTag, SwfTag]) {
+		val seq: GenSeq[SwfTag] =
+			if(!Actor.threadsEnabled) {
+				tags
+			} else {
+				tags.par
+			}
+		
+		tags =
+				(seq map {
+					case x if f isDefinedAt x => f(x)
+					case y => y
+				}).seq.toList
 	}
 
-  def foreachTagSync(f: PartialFunction[SwfTag, Unit]): Unit =
+	def foreachTag(f: PartialFunction[SwfTag, Unit]) {
+		if(!Actor.threadsEnabled) {
+			foreachTagSync(f)
+		} else {
+			tags.par.filter(f.isDefinedAt) foreach { f }
+		}
+	}
+
+	def foreachTagSync(f: PartialFunction[SwfTag, Unit]) {
 		for(tag <- tags if f.isDefinedAt(tag)) {
 			f(tag)
 		}
+	}
 }
