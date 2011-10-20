@@ -22,12 +22,8 @@ package apparat.tools.tdsi
 
 import java.io.{File => JFile}
 import apparat.utils.TagContainer
-import apparat.actors.Futures._
 import apparat.abc._
 import analysis.QuickAbcConstantPoolBuilder
-import apparat.bytecode.operations._
-import apparat.bytecode.combinator._
-import apparat.bytecode.combinator.BytecodeChains._
 import apparat.swf._
 import annotation.tailrec
 import apparat.bytecode.optimization._
@@ -119,13 +115,15 @@ object TurboDieselSportInjection {
 								rebuildCpool = true
 							}
 
-							if (modified && (counter < 31)) {
-								modifyBytecode(counter + 1)
+							if(modified && (counter > 0)) {
+								modifyBytecode(counter - 1)
+							} else if(counter <= 0) {
+								log.warning("Too many optimisation for " + method.name)
 							}
 						}
 
 						PeepholeOptimizations(bytecode)
-						modifyBytecode(0)
+						modifyBytecode(31)
 
 						if(rebuildCpool) {
 							rebuildCpoolSet += abc
@@ -145,12 +143,12 @@ object TurboDieselSportInjection {
 					@tailrec def modifyBytecode(counter: Int): Unit = {
 						var modified = false
 
-						if(inline && (inlineExpansion.get expand bytecode)) {
+						if(inline && (inlineExpansion.get.expand(bytecode))) {
 							modified = true
 							rebuildCpool = true
 						}
 
-						if(macros && (macroExpansion.get expand bytecode)) {
+						if(macros && (macroExpansion.get.expand(bytecode))) {
 							modified = true
 							rebuildCpool = true
 						}
@@ -177,12 +175,14 @@ object TurboDieselSportInjection {
 
 						modified |= PeepholeOptimizations(bytecode)
 
-						if (modified && (counter < 31)) {
-							modifyBytecode(counter + 1)
+						if(modified && (counter > 0)) {
+							modifyBytecode(counter - 1)
+						} else if(counter <= 0) {
+							log.warning("Too many optimisation for " + method.name)
 						}
 					}
 
-					modifyBytecode(0)
+					modifyBytecode(31)
 				}
 
 				if(rebuildCpool) {

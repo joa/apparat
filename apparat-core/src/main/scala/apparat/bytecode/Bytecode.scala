@@ -53,26 +53,25 @@ class Bytecode(var ops: List[AbstractOp], val markers: MarkerManager, var except
 	}
 
 	def filterNot(f: AbstractOp => Boolean) = {
-		@tailrec def loop(list: List[AbstractOp]): List[AbstractOp] = list match {
+		@tailrec def loop(list: List[AbstractOp], acc:List[AbstractOp]=Nil): List[AbstractOp] = list match {
 			case x :: Nil => f(x) match {
 				case true => {
 					val nop = Nop()
 					markers.forwardMarker(x, nop)
-					nop :: Nil
+					nop :: acc
 				}
-				case false => x :: Nil
+				case false => x :: acc
 			}
 			case x :: xs => f(x) match {
 				case true => {
 					markers.forwardMarker(x, xs.head)
-					loop(xs)
+					loop(xs, acc)
 				}
-				case false => x :: loop(xs)
+				case false => loop(xs, x :: acc)
 			}
-			case Nil => Nil
+			case _ => acc
 		}
-
-		ops = loop(ops)
+		ops = loop(ops) reverse
 	}
 
 	def removeAny(op: AbstractOp) = filterNot(_ ~== op)

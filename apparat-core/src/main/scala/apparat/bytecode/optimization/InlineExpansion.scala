@@ -35,12 +35,12 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 	lazy val voidName = AbcQName('void, nsGlobal)
 	lazy val uintName = AbcQName('uint, nsGlobal)
 	lazy val apparatMacro = AbcQName('Inlined, AbcNamespace(AbcNamespaceKind.Package, Symbol("apparat.inline")))
-	lazy val macros: Map[AbcName, AbcNominalType] = {
-		Map((for(abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == apparatMacro) && !nominal.inst.isInterface) yield (nominal.inst.name -> nominal)):_*)
+	lazy val macros: Map[AbcName, (AbcNominalType, Abc)] = {
+		Map((for(abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == apparatMacro) && !nominal.inst.isInterface) yield (nominal.inst.name -> (nominal,abc))):_*)
 	}
 
-	def validate() = {
-		for(nominal <- macros.valuesIterator) {
+	def validate() {
+		for((nominal, abc) <- macros.valuesIterator) {
 			if(nominal.inst.traits.length != 1) error("No instance members are allowed.")
 			if(!nominal.inst.isSealed) error("Macro must not be a dynamic class.")
 			for(t <- nominal.klass.traits) {
@@ -52,7 +52,7 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 						if(method.needsRest) error("Macro may not use rest parameters.")
 						if(method.setsDXNS) error("Macro may not change the default XML namespace.")
 						if(method.body.get.exceptions.length != 0) error("Macro may not throw any exception.")
-						if(method.body.get.traits != 0) error("Macro may not use constant variables or throw any exceptions.")
+						if(method.body.get.traits.length != 0) error("Macro may not use constant variables or throw any exceptions.")
 					}
 					case other => error("Only static methods are allowed.")
 				}
@@ -70,7 +70,7 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 		var balance = 0
 		var removes = List.empty[AbstractOp]
 		var removePop = false
-		var macroStack = List.empty[AbcNominalType]
+		var macroStack = List.empty[(AbcNominalType, Abc)]
 		var replacements = Map.empty[AbstractOp, List[AbstractOp]]
 		var localCount = LocalCount(bytecode)
 		var markers = bytecode.markers
@@ -108,7 +108,10 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 		}
 
 		@inline def insert(op: AbstractOp, property: AbcName, numArguments: Int) = {
-			macroStack.head.klass.traits find (_.name == property) match {
+			val parentABC = macroStack.head._2
+			var slotCache = Map.empty[Int, Option[AbcTraitClass]]
+
+			macroStack.head._1.klass.traits find (_.name == property) match {
 				case Some(anyTrait) => {
 					anyTrait match {
 						case methodTrait: AbcTraitMethod => {
@@ -123,9 +126,10 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 										val gathering = Nop()
 										val delta = -macro.ops.indexWhere(_.opCode == Op.pushscope) - 1 + parameterCount
 										val nopReturn = macro.ops.last.isInstanceOf[OpThatReturns] && (macro.ops.count { case x: OpThatReturns => true; case _ => false } == 1)
-										val replacement =
+										val ops = macro.ops.view(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length)
+										var replacement =
 										(((parameterCount - 1) to 0 by -1) map { register => SetLocal(localCount + register) } toList) :::
-										(macro.ops.slice(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length) map {
+										(ops.zipWithIndex.map{p => p._1 match {
 											//
 											// Prohibit use of "this".
 											//
@@ -155,28 +159,38 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 											//
 											case ReturnValue() => if(nopReturn) Nop() else Jump(markers mark gathering)
 											case ReturnVoid() => if(nopReturn) Nop() else Jump(markers mark gathering)
-
-											case other => other.opCopy()
-										}) ::: List(gathering) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
-
-										//
-										// Switch debug file back into place.
-										//
-
-										/*debugFile match {
-											case Some(debugFile) => oldDebugFile match {
-												case Some(oldDebugFile) => (oldDebugFile.opCopy() :: replacement) ::: List(debugFile.opCopy())
-												case None => replacement
+											case ggs@GetGlobalScope() if (ops(p._2+1).opCode == Op.getslot) => {
+												val gs = ops(p._2+1).asInstanceOf[GetSlot]
+												(slotCache.getOrElse(gs.slot, null) match {
+													case stc@Some(tc) => stc
+													case None => None
+													case _ => parentABC.scripts.flatMap(_.traits.collect{case atc:AbcTraitClass if (atc.index == gs.slot) => atc}) headOption match {
+														case stc@Some(tc) if (macros.contains(tc.name)) => {
+															slotCache = slotCache.updated(gs.slot, stc)
+															stc
+														}
+														case _ => {
+															slotCache = slotCache.updated(gs.slot, None)
+															None
+														}
+													}
+												}) match {
+													case Some(tc) => Nop()
+													case _ => ggs.opCopy()
+												}
 											}
-											case None => replacement
-										}*/
+											case GetSlot(x) if (slotCache.contains(x) && (ops(p._2-1).opCode == Op.getglobalscope)) => {
+												GetLex(slotCache(x).get.name)
+											}
+											case other => other.opCopy()
+										}}.toList) ::: List(gathering) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
 
 										//
 										// Clean up
 										//
 										localCount += newLocals
 
-										replacements += op -> (replacement map {
+										replacement = replacement map {
 											//
 											// Patch all markers.
 											//
@@ -263,7 +277,21 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 												newOp
 											}
 											case other => other
-										})
+										}
+
+										//
+										// Switch debug file back into place.
+										//
+
+										replacement = debugFile match {
+											case Some(debugFile) => oldDebugFile match {
+												case Some(oldDebugFile) => List(oldDebugFile.opCopy()) ::: replacement ::: List(debugFile.opCopy())
+												case None => replacement
+											}
+											case None => replacement
+										}
+
+										replacements += op -> replacement
 									}
 									case None => log.warning("Bytecode of %s is not available.", property)
 								}
@@ -290,7 +318,9 @@ class InlineExpansion(abcs: List[Abc]) extends SimpleLog {
 			}
 		}
 
-		for(op <- bytecode.ops) op match {
+		val ops = bytecode.ops.view
+
+		for((op, index) <- ops.zipWithIndex) op match {
 			case Pop() if removePop => {
 				removes = op :: removes
 				removePop = false

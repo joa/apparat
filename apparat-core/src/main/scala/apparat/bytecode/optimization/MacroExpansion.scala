@@ -35,12 +35,12 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 	lazy val byRef = AbcQName('__byRef, nsInline)
 	lazy val apparatMacro = AbcQName('Macro, nsInline)
 	lazy val voidName = AbcQName('void, AbcNamespace(AbcNamespaceKind.Package, Symbol("")))
-	lazy val macros: Map[AbcName, AbcNominalType] = {
-		Map((for(abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == apparatMacro) && !nominal.inst.isInterface) yield (nominal.inst.name -> nominal)):_*)
+	lazy val macros: Map[AbcName, (AbcNominalType, Abc)] = {
+		Map((for(abc <- abcs; nominal <- abc.types if ((nominal.inst.base getOrElse AbcConstantPool.EMPTY_NAME) == apparatMacro) && !nominal.inst.isInterface) yield (nominal.inst.name -> (nominal, abc))):_*)
 	}
 
 	def validate() = {
-		for(nominal <- macros.valuesIterator) {
+		for((nominal,abc) <- macros.valuesIterator) {
 			if(nominal.inst.traits.length != 1) error("No instance members are allowed.")
 			if(!nominal.inst.isSealed) error("Macro must not be a dynamic class.")
 			for(t <- nominal.klass.traits) {
@@ -53,7 +53,7 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 						if(method.setsDXNS) error("Macro may not change the default XML namespace.")
 						if(method.returnType != voidName) error("Macro must return void.")
 						if(method.body.get.exceptions.length != 0) error("Macro may not throw any exception.")
-						if(method.body.get.traits != 0) error("Macro may not use constant variables or throw any exceptions.")
+						if(method.body.get.traits.length != 0) error("Macro may not use constant variables or throw any exceptions.")
 					}
 					case other => error("Only static methods are allowed.")
 				}
@@ -74,7 +74,7 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 		var byRefMap = Map.empty[AbstractOp, List[AbstractOp]]
 		var removes = List.empty[AbstractOp]
 		var removePop = false
-		var macroStack = List.empty[AbcNominalType]
+		var macroStack = List.empty[(AbcNominalType, Abc)]
 		var parameters = List.empty[AbstractOp]
 		var replacements = Map.empty[AbstractOp, List[AbstractOp]]
 		var localCount = LocalCount(bytecode)
@@ -100,7 +100,10 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 		}
 
 		@inline def insert(op: AbstractOp, property: AbcName, numArguments: Int) = {
-			macroStack.head.klass.traits find (_.name == property) match {
+			val parentABC = macroStack.head._2
+			var slotCache = Map.empty[Int, Option[AbcTraitClass]]
+
+			macroStack.head._1.klass.traits find (_.name == property) match {
 				case Some(anyTrait) => {
 					anyTrait match {
 						case methodTrait: AbcTraitMethod => {
@@ -121,7 +124,8 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 										val newLocals = body.localCount - parameterCount - 1
 										val oldDebugFile = macro.ops.find (_.opCode == Op.debugfile)
 										val delta = -macro.ops.indexWhere(_.opCode == Op.pushscope) - 1
-										var replacement = (macro.ops.slice(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length - 1) map {
+										val ops = macro.ops.view(macro.ops.indexWhere(_.opCode == Op.pushscope) + 1, macro.ops.length - 1)
+										var replacement = (ops.zipWithIndex.map{p => p._1 match {
 											//
 											// Shift all local variables that are not parameters.
 											//
@@ -253,9 +257,31 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 											case IncLocalInt(x) => IncLocalInt(registerOf(parameters(x - 1)))
 											case Kill(x) => Kill(registerOf(parameters(x - 1)))
 											case Debug(kind, name, x, extra) if parameters(x - 1).opCode != Op.nop => Debug(kind, name, registerOf(parameters(x - 1)), extra)
-
+											case ggs@GetGlobalScope() if (ops(p._2+1).opCode == Op.getslot) => {
+												val gs = ops(p._2+1).asInstanceOf[GetSlot]
+												(slotCache.getOrElse(gs.slot, null) match {
+														case stc@Some(tc) => stc
+														case None => None
+														case _ => parentABC.scripts.flatMap(_.traits.collect{case atc:AbcTraitClass if (atc.index == gs.slot) => atc}) headOption match {
+															case stc@Some(tc) if (macros.contains(tc.name)) => {
+																slotCache = slotCache.updated(gs.slot, stc)
+																stc
+															}
+															case _ => {
+																slotCache = slotCache.updated(gs.slot, None)
+																None
+															}
+														}
+												}) match {
+													case Some(tc) => Nop()
+													case _ => ggs.opCopy()
+												}
+											}
+											case GetSlot(x) if (slotCache.contains(x) && (ops(p._2-1).opCode == Op.getglobalscope)) => {
+												GetLex(slotCache(x).get.name)
+											}
 											case other => other.opCopy()
-										}) ::: List(Nop()) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
+										}}.toList) ::: List(Nop()) ::: (List.tabulate(newLocals) { register => Kill(localCount + register) })
 
 										//
 										// Clean up
@@ -399,8 +425,9 @@ class MacroExpansion(abcs: List[Abc]) extends SimpleLog {
 				case None => false
 			}
 		}
+		val ops = bytecode.ops.view
 
-		for(op <- bytecode.ops) op match {
+		for((op, index) <- ops.zipWithIndex) op match {
 			case Pop() if removePop && byRefBalance==0 => {
 				removes = op :: removes
 				removePop = false

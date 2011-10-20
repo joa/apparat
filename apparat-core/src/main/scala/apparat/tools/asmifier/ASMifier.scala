@@ -413,6 +413,7 @@ object ASMifier {
 			case Sign1() => "Sign1"
 			case Sign8() => "Sign8"
 			case Sign16() => "Sign16"
+			case _ => op.toString
 		}
 
 		private def toAS3(name: AbcName): String = name match {

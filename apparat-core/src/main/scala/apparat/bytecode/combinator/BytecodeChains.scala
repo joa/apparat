@@ -25,30 +25,40 @@ import apparat.bytecode.operations.AbstractOp
 object BytecodeChains {
 	implicit def operation(op: AbstractOp) = new BytecodeChain[AbstractOp] {
 		override def apply(list: List[AbstractOp]) = {
-			val head = list.head
-			lazy val errorMessage = "Expected '%s' got '%s'.".format(op, head)
-			if(head ~== op) Success(head, list drop 1)
-			else Failure(errorMessage)
+			list headOption match {
+				case Some(firstOp) => {
+					lazy val errorMessage = "Expected '%s' got '%s'.".format(op, firstOp)
+					if(firstOp ~== op) Success(firstOp, list drop 1)
+					else Failure(errorMessage)
+				}
+				case _ => Failure("Expected '%s' got Nil.".format(op))
+			}
 		}
 	}
 
 	implicit def partial[A](f: PartialFunction[AbstractOp, A]) = new BytecodeChain[A] {
 		override def apply(list: List[AbstractOp]) = {
-			val head = list.head
-			lazy val errorMessage = "Expected '%s' got '%s'.".format(f, head)
-			if(f.isDefinedAt(head)) Success(f(head), list drop 1)
-			else Failure(errorMessage)
+			list headOption match {
+				case Some(op) => {
+					lazy val errorMessage = "Expected '%s' got '%s'.".format(f, op)
+					if(f.isDefinedAt(op)) Success(f(op), list drop 1)
+					else Failure(errorMessage)
+				}
+				case _ => Failure("Expected '%s' got Nil.".format(f))
+			}
 		}
 	}
 
 	implicit def filter(f: PartialFunction[AbstractOp, Boolean]) = new BytecodeChain[AbstractOp] {
 		override def apply(list: List[AbstractOp]) = {
-			val head = list.head
-			lazy val errorMessage = "Expected '%s' got '%s'.".format(f, head)
-			if(head != Nil && f.isDefinedAt(head) && f(head)) {
-				Success(head, list drop 1)
+			list headOption match {
+				case Some(op) => {
+					lazy val errorMessage = "Expected '%s' got '%s'.".format(f, op)
+					if(f.isDefinedAt(op) && f(op)) Success(op, list drop 1)
+					else Failure(errorMessage)
+				}
+				case _ => Failure("Expected '%s' got Nil.".format(f))
 			}
-			else Failure(errorMessage)
 		}
 	}
 

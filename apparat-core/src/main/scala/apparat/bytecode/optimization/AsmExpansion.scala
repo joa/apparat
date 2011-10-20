@@ -1898,17 +1898,23 @@ object AsmExpansion {
 				}
 			}
 
-			removes = removes.init
-
-			for(mb <- isBackwardMarker.filter(mb => !mb._2)) {
-				val marker = mb._1
+			removes = List.empty[AbstractOp]
+			replacements = Map.empty[AbstractOp, List[AbstractOp]]
+			for(marker <- isBackwardMarker.filter(mb => !mb._2).map(p=>p._1).toList.reverse) {
 				val markedOp = marker.op.get
 				val nextOp = getNextOp(newOps.indexOf(markedOp) + 1)
-				markers.forwardMarker(markedOp, nextOp)
-				removes = markedOp :: removes
+				if (markers.hasMarkerFor(nextOp)){
+					val nop=Nop()
+					markers.forwardMarker(markedOp, nop)
+					replacements = replacements.updated(markedOp, List(nop))
+				} else {
+					markers.forwardMarker(markedOp, nextOp)
+					removes = markedOp :: removes
+				}
 			}
 
 			removes foreach {bytecode remove _}
+			replacements.iterator foreach {x => bytecode.replace(x._1, x._2)}
 		}
 
 		removes = List.empty[AbstractOp]
