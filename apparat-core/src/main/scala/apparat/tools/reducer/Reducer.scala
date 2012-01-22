@@ -1,3 +1,23 @@
+/*
+ * This file is part of Apparat.
+ *
+ * Copyright (C) 2010 Joa Ebert
+ * http://www.joa-ebert.com/
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package apparat.tools.reducer
 
 import apparat.tools._
@@ -45,7 +65,7 @@ object Reducer {
   -b [true|false] Merge control flow if possible (experimental)"""
 
 		override def configure(config: ApparatConfiguration): Unit = configure(ReducerConfigurationFactory fromConfiguration config)
-		
+
 		def configure(config: ReducerConfiguration): Unit = {
 			input = config.input
 			output = config.output
@@ -81,7 +101,7 @@ object Reducer {
 			if(mergeCF) {
 				log.info("Merging identical control flow ...")
 
-				cont foreachTag { 
+				cont foreachTag {
 					case doABC: DoABC => {
 						Abc.using(doABC) {
 							abc => {
@@ -97,10 +117,10 @@ object Reducer {
 					}
 				}
 			}
-			
+
 			if(mergeABC) {
 				log.info("Merging ABC files ...")
-				
+
 				var buffer: Option[Abc] = None
 				var result = List.empty[SwfTag]
 				var i = 0
@@ -135,9 +155,9 @@ object Reducer {
 										log.info("Rebuilding constant pool ...")
 										b.cpool = AbcConstantPoolBuilder using b
 									}
-									
+
 									b.saveBytecode()
-									
+
 									//Removed IdenticalMethodSort due to Issue 34.
 									//IdenticalMethodSort(b)
 									b write doABC
@@ -146,7 +166,7 @@ object Reducer {
 								}
 								case None => result = o :: result
 							}
-							
+
 							buffer = None
 						}
 					}
@@ -157,7 +177,7 @@ object Reducer {
 
 			if(lzma) {
 				log.info("Creating LZMA compressed file.")
-				
+
 				cont.strategy match {
 					case Some(swfStrategy: SwfStrategy) => matryoshkaType match {
 						case MatryoshkaType.NONE => IO.using(new JFileOutputStream(target)) {

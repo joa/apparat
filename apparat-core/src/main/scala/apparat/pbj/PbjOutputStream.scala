@@ -1,22 +1,22 @@
 /*
  * This file is part of Apparat.
  *
- * Apparat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Apparat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2009 Joa Ebert
+ * Copyright (C) 2010 Joa Ebert
  * http://www.joa-ebert.com/
  *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package apparat.pbj
 
@@ -42,7 +42,7 @@ class PbjOutputStream(val output: JOutputStream) extends JOutputStream {
 	}
 
 	def writeUI08(value: Byte): Unit = write(value)
-	
+
 	def writeUI08(value: Int): Unit = write(value & 0xff)
 
 	def writeUI16(value: Int): Unit = {
@@ -64,21 +64,21 @@ class PbjOutputStream(val output: JOutputStream) extends JOutputStream {
 		write((value & 0xff0000) >> 0x10)
 		write((value & 0xff000000) >> 0x18)
 	}
-	
+
 	def writeConst(value: PConst): Unit = value match {
-		case PFloat(v0) => writeFloat(v0) 
+		case PFloat(v0) => writeFloat(v0)
 		case PFloat2(v0, v1)=> writeFloat(v0); writeFloat(v1)
 		case PFloat3(v0, v1, v2) => writeFloat(v0); writeFloat(v1); writeFloat(v2)
 		case PFloat4(v0, v1, v2, v3) => writeFloat(v0); writeFloat(v1); writeFloat(v2); writeFloat(v3)
 		case value: PFloat2x2 => for(i <- 0 until  4) writeFloat(value(i))
 		case value: PFloat3x3 => for(i <- 0 until  9) writeFloat(value(i))
 		case value: PFloat4x4 => for(i <- 0 until 16) writeFloat(value(i))
-		case PInt(v0) => writeUI16(v0) 
+		case PInt(v0) => writeUI16(v0)
 		case PInt2(v0, v1)=> writeUI16(v0); writeUI16(v1)
 		case PInt3(v0, v1, v2) => writeUI16(v0); writeUI16(v1); writeUI16(v2)
 		case PInt4(v0, v1, v2, v3) => writeUI16(v0); writeUI16(v1); writeUI16(v2); writeUI16(v3)
 		case PString(value) => writeString(value)
-		case PBool(v0) => writeUI16(if(v0) 1 else 0) 
+		case PBool(v0) => writeUI16(if(v0) 1 else 0)
 		case PBool2(v0, v1)=> writeUI16(if(v0) 1 else 0); writeUI16(if(v1) 1 else 0)
 		case PBool3(v0, v1, v2) => writeUI16(if(v0) 1 else 0); writeUI16(if(v1) 1 else 0); writeUI16(if(v2) 1 else 0)
 		case PBool4(v0, v1, v2, v3) => writeUI16(if(v0) 1 else 0); writeUI16(if(v1) 1 else 0); writeUI16(if(v2) 1 else 0); writeUI16(if(v3) 1 else 0)
@@ -166,7 +166,7 @@ class PbjOutputStream(val output: JOutputStream) extends JOutputStream {
 		}
 
 		writeUI08(value.opCode)
-		
+
 		value match {
 			case PNop() => skipBytes()
 			case PAdd(dst, src) => writeDstAndSrc(dst, src)
@@ -263,7 +263,7 @@ class PbjOutputStream(val output: JOutputStream) extends JOutputStream {
 				writeUI32(version)
 		}
 	}
-	
+
 	override def close() = output.close()
 
 	override def flush() = output.flush()

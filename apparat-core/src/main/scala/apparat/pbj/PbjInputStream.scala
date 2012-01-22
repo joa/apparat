@@ -1,22 +1,22 @@
 /*
  * This file is part of Apparat.
  *
- * Apparat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Apparat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2009 Joa Ebert
+ * Copyright (C) 2010 Joa Ebert
  * http://www.joa-ebert.com/
  *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package apparat.pbj
 
@@ -31,12 +31,12 @@ import apparat.utils.IO
  */
 class PbjInputStream(input: JInputStream) extends JInputStream {
 	def foreach(body: POp => Unit) = while(available() > 0) { body(readOp()) }
-	
+
 	@inline private def signed(mask: Long, r: Long): Int = {
 		if (0 != (r & mask)) ((r & (mask - 1L)) - mask).asInstanceOf[Int]
 		else r.asInstanceOf[Int]
 	}
-	
+
 	def readFloat() = java.lang.Float.intBitsToFloat((read() << 0x18) | (read() << 0x10) | (read() << 0x08) | read())
 
 	def readString() = {
@@ -74,7 +74,7 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 			readFloat(), readFloat(), readFloat(), readFloat(),
 			readFloat(), readFloat(), readFloat(), readFloat())
 		case PIntType => PInt(readUI16())
-		case PInt2Type => PInt2(readUI16(), readUI16()) 
+		case PInt2Type => PInt2(readUI16(), readUI16())
 		case PInt3Type => PInt3(readUI16(), readUI16(), readUI16())
 		case PInt4Type => PInt4(readUI16(), readUI16(), readUI16(), readUI16())
 		case PStringType => PString(readString())
@@ -120,11 +120,11 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 		val name = readString()
 		PTexture(name, index, channels)
 	}
-	
+
 	def readOp(): POp = {
 		import POp._
 		import PbjRegisterMagic._
-		
+
 		@inline def create(f: (PReg, PReg) => POp with PDstAndSrc): POp with PDstAndSrc = {
 			val dstIndex = readUI16()
 			val mask = readUI08()
@@ -164,7 +164,7 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 		}
 
 		readUI08() match {
-			case Nop => skipBytesAndReturn { PNop() } 
+			case Nop => skipBytesAndReturn { PNop() }
 			case Add => create(PAdd(_, _))
 			case Subtract => create(PSubtract(_, _))
 			case Multiply => create(PMultiply(_, _))
@@ -241,7 +241,7 @@ class PbjInputStream(input: JInputStream) extends JInputStream {
 				if(0 != matrix) {
 					error("Matrix not expected.")
 				}
-				
+
 				PSelect(createDstRegister(dstIndex, swizzle),
 					createSrcRegister(srcIndex, size),
 					createSrcRegister(src0Index, size),
