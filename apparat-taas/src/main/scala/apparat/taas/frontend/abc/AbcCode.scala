@@ -1,22 +1,22 @@
 /*
  * This file is part of Apparat.
  *
- * Apparat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Apparat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2009 Joa Ebert
+ * Copyright (C) 2010 Joa Ebert
  * http://www.joa-ebert.com/
  *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package apparat.taas.frontend.abc
 
@@ -62,7 +62,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 		implicit val registers = List.tabulate(body.localCount + body.maxStack) { TReg }
 
 		registers(0) typeAs scopeType
-		
+
 		for(i <- 0 until method.parameters.length) {
 			method.parameters(i).typeName match {
 				case qname: AbcQName => registers(i + 1) typeAs (AbcTypes name2type qname)
@@ -108,7 +108,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 				log.debug("Code after CP/CF/DCE:")
 				new TaasGraphLinearizer(taasGraph).dump(log, DebugLogLevel)
 			}
-			
+
 			taasGraph
 		} catch {
 			case e => {
@@ -133,7 +133,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 
 		result
 	}
-	
+
 	private def mapVertex[V <: BlockVertex[AbstractOp]](vertex: V, stack: (Int, Int))(implicit registers: List[TReg]) = {
 		var r = List.empty[TExpr]
 		var operandStack = stack._1
@@ -348,7 +348,7 @@ protected[abc] class AbcCode(ast: TaasAST, abc: Abc, method: AbcMethod,
 						}
 						case _ => {
 							val obj = pop()
-							
+
 							AbcSolver.getProperty(obj.`type`, property) match {
 								case Some(method: TaasMethod) => {
 									if(method.parameters.length == 0) {

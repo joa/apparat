@@ -1,3 +1,23 @@
+/*
+ * This file is part of Apparat.
+ *
+ * Copyright (C) 2010 Joa Ebert
+ * http://www.joa-ebert.com/
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package flash.display;
 
 import apparat.pbj.Pbj;
@@ -46,7 +66,7 @@ public class Shader extends jitb.lang.Object {
 	}
 
 	public ShaderData data() { return _data; }
-	
+
 	public void data(final ShaderData value) { _data = value; }
 
 	public final void JITB$bind(double x, double y, double width, double height) {
@@ -79,7 +99,7 @@ public class Shader extends jitb.lang.Object {
 			data().JITB$unapplyParameters();
 		}
 	}
-	
+
 	private Pbj pbj() {
 		if(null == _pbj && null != _byteCode) {
 			_pbj = ShaderUtil.getPbj(_byteCode);
@@ -110,7 +130,7 @@ public class Shader extends jitb.lang.Object {
 		System.out.println(vertexShader);
 		System.out.println("Fragment shader:");
 		System.out.println(fragmentShader);
-		
+
 		_vertexShaderId = ARBShaderObjects.glCreateShaderObjectARB(ARBVertexShader.GL_VERTEX_SHADER_ARB);
 		ARBShaderObjects.glShaderSourceARB(_vertexShaderId, vertexShader);
 		ARBShaderObjects.glCompileShaderARB(_vertexShaderId);

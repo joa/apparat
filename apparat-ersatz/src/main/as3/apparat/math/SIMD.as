@@ -1,24 +1,23 @@
 /*
  * This file is part of Apparat.
  *
- * Apparat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Apparat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
- *
  * Copyright (C) 2010 Joa Ebert
  * http://www.joa-ebert.com/
  *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-
 package apparat.math {
   import apparat.asm.*
   import apparat.inline.Macro
@@ -57,7 +56,7 @@ package apparat.math {
     //////////////////////////////////////////////////
     // DOUBLE
     //////////////////////////////////////////////////
-    
+
     /**
      * Performs the operation <code>target = source</code>.
      *
@@ -424,32 +423,32 @@ package apparat.math {
 
     /**
      * Assigns the double values at target address to the given result registers.
-     * 
+     *
      * @param source The source address in domain memory.
      * @param r0 The register which will receive the first value.
      * @param r1 The register which will receive the second value.
      * @param r2 The register which will receive the third value.
      * @param r3 The register which will receive the fourth value.
      */
-    public static function dget(source: int, 
+    public static function dget(source: int,
                                 r0: Number, r1: Number, r2: Number, r3: Number): void {
       __asm(
         GetLocal(source),
         GetDouble,
         SetLocal(r0),
-        
+
         GetLocal(source),
         PushByte(0x08),
         AddInt,
         GetDouble,
         SetLocal(r1),
-        
+
         GetLocal(source),
         PushByte(0x10),
         AddInt,
         GetDouble,
         SetLocal(r2),
-        
+
         GetLocal(source),
         PushByte(0x18),
         AddInt,
@@ -747,11 +746,11 @@ package apparat.math {
         SetDouble
       )
     }
-    
+
     //////////////////////////////////////////////////
     // FLOAT
     //////////////////////////////////////////////////
-    
+
     /**
      * Performs the operation <code>target = source</code>.
      *
@@ -1118,32 +1117,32 @@ package apparat.math {
 
     /**
      * Assigns the double values at target address to the given result registers.
-     * 
+     *
      * @param source The source address in domain memory.
      * @param r0 The register which will receive the first value.
      * @param r1 The register which will receive the second value.
      * @param r2 The register which will receive the third value.
      * @param r3 The register which will receive the fourth value.
      */
-    public static function fget(source: int, 
+    public static function fget(source: int,
                                 r0: Number, r1: Number, r2: Number, r3: Number): void {
       __asm(
         GetLocal(source),
         GetFloat,
         SetLocal(r0),
-        
+
         GetLocal(source),
         PushByte(0x04),
         AddInt,
         GetFloat,
         SetLocal(r1),
-        
+
         GetLocal(source),
         PushByte(0x08),
         AddInt,
         GetFloat,
         SetLocal(r2),
-        
+
         GetLocal(source),
         PushByte(0x0c),
         AddInt,
@@ -1441,11 +1440,11 @@ package apparat.math {
         SetFloat
       )
     }
-    
+
     //////////////////////////////////////////////////
     // INTEGER
     //////////////////////////////////////////////////
-    
+
     /**
      * Performs the operation <code>target = source</code>.
      *
@@ -2172,7 +2171,7 @@ package apparat.math {
 
     /**
      * Assigns the double values at target address to the given result registers.
-     * 
+     *
      * @param source The source address in domain memory.
      * @param r0 The register which will receive the first value.
      * @param r1 The register which will receive the second value.
@@ -2184,19 +2183,19 @@ package apparat.math {
         GetLocal(source),
         GetInt,
         SetLocal(r0),
-        
+
         GetLocal(source),
         PushByte(0x04),
         AddInt,
         GetInt,
         SetLocal(r1),
-        
+
         GetLocal(source),
         PushByte(0x08),
         AddInt,
         GetInt,
         SetLocal(r2),
-        
+
         GetLocal(source),
         PushByte(0x0c),
         AddInt,
@@ -2204,11 +2203,11 @@ package apparat.math {
         SetLocal(r3)
       )
     }
-    
+
     //////////////////////////////////////////////////
     // GENERIC
     //////////////////////////////////////////////////
-    
+
     /**
      * Initializes the local Math object.
      *
@@ -2221,7 +2220,7 @@ package apparat.math {
      * var r0: Number, r1: Number, r2: Number, r3: Number
      *
      * SIMD.initMath(math)
-     * 
+     *
      * SIMD.fset(0, Math.PI)
      * SIMD.fcos(0, 0, math)
      * SIMD.facos(0, 0, math)

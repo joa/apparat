@@ -1,3 +1,23 @@
+/*
+ * This file is part of Apparat.
+ *
+ * Copyright (C) 2010 Joa Ebert
+ * http://www.joa-ebert.com/
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package jitb.lang;
 
 import jitb.errors.MissingImplementationException;
@@ -22,14 +42,14 @@ public class Array extends jitb.lang.Object {
 	public Array() {
 		this(0);
 	}
-	
+
 	public Array(final int numElements) {
 		_arrayList = new ArrayList<java.lang.Object>(numElements);
 	}
 
 	public Array(final java.lang.Object ...arguments) {
 		final List<java.lang.Object> argumentList = Arrays.asList(arguments);
-		
+
 		_arrayList = argumentList instanceof ArrayList ?
 				(ArrayList<java.lang.Object>)argumentList : new ArrayList<java.lang.Object>();
 	}
@@ -46,7 +66,7 @@ public class Array extends jitb.lang.Object {
 		final int n = arguments.length;
 		final Array result = new Array(arguments.length);
 		final ArrayList<java.lang.Object> list = result._arrayList;
-		
+
 		list.addAll(_arrayList);
 
 		for(int i = 0; i  < n; ++i) {
@@ -161,7 +181,7 @@ public class Array extends jitb.lang.Object {
 				}
 			}
 		}
-		
+
 		return -1;
 	}
 
@@ -177,7 +197,7 @@ public class Array extends jitb.lang.Object {
 			} else {
 				builder.append(object.toString());
 			}
-			
+
 			if(i++ != m) {
 				builder.append(sep);
 			}
@@ -216,7 +236,7 @@ public class Array extends jitb.lang.Object {
 		}
 		return -1;
 	}
-	
+
 	public Array map(final Function3<java.lang.Object, Integer, Array, java.lang.Object> callback) {
 		return map(callback, null);
 	}
@@ -286,7 +306,7 @@ public class Array extends jitb.lang.Object {
 
 		return result;
 	}
-	
+
 	public boolean some(final Function3<java.lang.Object, Integer, Array, Boolean> callback) {
 		return some(callback, null);
 	}
@@ -374,7 +394,7 @@ public class Array extends jitb.lang.Object {
 			for(int i = n; i < index; ++i) {
 				list.addFirst(null);
 			}
-			
+
 			_arrayList.addAll(list);
 		}
 

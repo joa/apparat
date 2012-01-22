@@ -1,22 +1,22 @@
 /*
  * This file is part of Apparat.
  *
- * Apparat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Apparat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
- *
  * Copyright (C) 2010 Joa Ebert
  * http://www.joa-ebert.com/
  *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package apparat.jitb
 
@@ -54,9 +54,9 @@ object JITB {
 	//
 	// JITB currently has to run in debug mode.
 	//
-	
+
 	System.setProperty("apparat.debug", "true")
-	
+
 	val DEBUG = System.getProperty("apparat.debug", "false").toLowerCase == "true"
 	def main(arguments: Array[String]): Unit = {
 		val (os, separator) = (System getProperty "os.name" split ' ')(0).toLowerCase match {
@@ -74,9 +74,9 @@ object JITB {
 
 		log.info("Initializing JITB")
 		log.debug("Scala version: %s", Properties.versionString)
-		
+
 		val jitb = try {
-			val parser = new JITBCliParser(arguments) 
+			val parser = new JITBCliParser(arguments)
 			val configuration = parser.configuration
 			log.debug("File: %s", configuration.file)
 			Some(new JITB(configuration))
@@ -108,7 +108,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		if(log.debugEnabled) {
 			swf.tags foreach { t => log.debug("Tag: %s", t) }
 		}
-		
+
 		val mainClass = liftToplevel(swf.mainClass getOrElse { throw JITBException("Could not find main class.") })
 
 		log.debug("Main class: %s", mainClass)
@@ -167,7 +167,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		val frontend = new AbcFrontend(abc, builtins)
 		val backend = new JbcBackend()
 		val comp = new TaasCompiler(frontend, backend)
-		
+
 		comp.compile()
 
 		backend.classMap
@@ -290,7 +290,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 		log.debug("Created DocumentRoot %s.", documentRoot)
 
 		stage.addChild(documentRoot.asInstanceOf[DisplayObject])
-		
+
 		//
 		// Render loop
 		//
@@ -308,7 +308,7 @@ class JITB(configuration: JITBConfiguration) extends SimpleLog {
 				//
 				// Dispatch all events in the queue.
 				//
-				
+
 				EventSystem.dispatchEvents()
 
 				//

@@ -1,3 +1,23 @@
+/*
+ * This file is part of Apparat.
+ *
+ * Copyright (C) 2010 Joa Ebert
+ * http://www.joa-ebert.com/
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package flash.display;
 
 import flash.geom.Matrix;
@@ -74,7 +94,7 @@ public final class Graphics extends jitb.lang.Object {
 
 	private final class EndFillCommand implements ICommand {
 		public EndFillCommand() {}
-		
+
 		@Override
 		public void run() {
 			lastFill(null);
@@ -84,7 +104,7 @@ public final class Graphics extends jitb.lang.Object {
 
 	private LinkedList<ICommand> _commands = new LinkedList<ICommand>();
 	private IFill _lastFill = null;
-	
+
 	public void beginBitmapFill(final BitmapData bitmap, final Matrix matrix, final boolean repeat, final boolean smooth) {
 
 	}
@@ -109,7 +129,7 @@ public final class Graphics extends jitb.lang.Object {
 	}
 
 	public void copyFrom(final Graphics sourceGraphics) {
-		
+
 	}
 
 	public void drawCircle(final double x, final double y, final double radius) {

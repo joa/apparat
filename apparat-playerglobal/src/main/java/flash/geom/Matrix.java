@@ -1,3 +1,23 @@
+/*
+ * This file is part of Apparat.
+ *
+ * Copyright (C) 2010 Joa Ebert
+ * http://www.joa-ebert.com/
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package flash.geom;
 
 import jitb.errors.MissingImplementationException;
@@ -19,7 +39,7 @@ public class Matrix extends jitb.lang.Object {
 	public Matrix() {
 		this(1.0);
 	}
-	
+
 	public Matrix(final double a) {
 		this(a, 0.0);
 	}
@@ -59,7 +79,7 @@ public class Matrix extends jitb.lang.Object {
 		// a c tx     a c tx
 		// b d ty  x  b d ty
 		// 0 0 1      0 0 1
-		
+
 		final double ta = a;
 		final double tb = b;
 		final double tc = c;
@@ -118,7 +138,7 @@ public class Matrix extends jitb.lang.Object {
 		// a c tx     x
 		// b d ty  x  y
 		// 0 0 1      1
-		
+
 		final double x = point.x;
 		final double y = point.y;
 

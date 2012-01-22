@@ -1,3 +1,23 @@
+/*
+ * This file is part of Apparat.
+ *
+ * Copyright (C) 2010 Joa Ebert
+ * http://www.joa-ebert.com/
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package flash.display;
 
 import flash.utils.ByteArray;
@@ -19,7 +39,7 @@ public final class ShaderInput extends jitb.lang.Object {
 	public static ShaderInput JITB$create(final String name, final int channels, final int index) {
 		return new ShaderInput(name, channels, index);
 	}
-	
+
 	private enum InputType { NONE, BITMAPDATA, BYTEARRAY, VECTOR }
 	private final HashMap<String, Object> _dynamic = new HashMap<String, Object>();
 
@@ -118,7 +138,7 @@ public final class ShaderInput extends jitb.lang.Object {
 		if(null != input() && InputType.NONE.equals(_inputType)) {
 			return;
 		}
-		
+
 		final int textureLocation = ARBShaderObjects.glGetUniformLocationARB(programId, "tex"+index());
 		ARBShaderObjects.glUniform1iARB(textureLocation, index());
 

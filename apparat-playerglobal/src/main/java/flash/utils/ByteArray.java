@@ -1,3 +1,23 @@
+/*
+ * This file is part of Apparat.
+ *
+ * Copyright (C) 2010 Joa Ebert
+ * http://www.joa-ebert.com/
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 package flash.utils;
 
 import jitb.errors.MissingImplementationException;
@@ -14,7 +34,7 @@ public class ByteArray extends jitb.lang.Object {
 	public static ByteArray JITB$fromBuffer(final ByteBuffer buffer) {
 		return new ByteArray(buffer);
 	}
-	
+
 	public static long defaultObjectEncoding;
 
 	private String _endian;
@@ -44,7 +64,7 @@ public class ByteArray extends jitb.lang.Object {
 		_buffer.position(_position);
 		endian(Endian.LITTLE_ENDIAN);
 	}
-	
+
 	public long bytesAvailable() { return _bytesAvailable; }
 
 	public String endian() { return _endian; }
@@ -89,7 +109,7 @@ public class ByteArray extends jitb.lang.Object {
 
 	public long objectEncoding() { return _objectEncoding; }
 	public void objectEncoding(final long value) { _objectEncoding = value; }
-	
+
 	public long position() { return _position; }
 	public void position(final long value) {
 		assert value <= _length : "Position must not exceed length.";
@@ -170,7 +190,7 @@ public class ByteArray extends jitb.lang.Object {
 	 * <p>The new buffer size is calculated using the formula
 	 * <code>(oldLength + (numBytes - bytesAvailable)) * 3 / 2</code> which
 	 * means that the ByteArray can grow larger than the required amount.</p>
-	 * 
+	 *
 	 * @param numBytes The number of required bytes.
 	 */
 	private void growBy(final int numBytes) {
@@ -188,7 +208,7 @@ public class ByteArray extends jitb.lang.Object {
 		if(available >= numBytes) {
 			return;
 		}
-		
+
 		final int availableInBuffer = _buffer.capacity() - _position;
 		final int length = _length;
 

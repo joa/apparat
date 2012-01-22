@@ -1,24 +1,23 @@
 /*
  * This file is part of Apparat.
  *
- * Apparat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Apparat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Apparat. If not, see <http://www.gnu.org/licenses/>.
- *
  * Copyright (C) 2010 Joa Ebert
  * http://www.joa-ebert.com/
  *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-
 package apparat.math {
 	import apparat.inline.Inlined
 	import apparat.memory.Memory
@@ -45,7 +44,7 @@ package apparat.math {
 		public static function initMemory(): void {
 			var byteArray: ByteArray = new ByteArray()
 			byteArray.length = ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH
-			
+
 			Memory.select(byteArray)
 		}
 
@@ -68,7 +67,7 @@ package apparat.math {
 			var sign:Number = (1.0 - (int(angleRadians > 0.0) << 1));
 			angleRadians = (angleRadians * (1.27323954 + sign * 0.405284735 * angleRadians));
 			sign = (1.0 - (int(angleRadians < 0.0) << 1));
-			return angleRadians * (sign * 0.225 * (angleRadians - sign) + 1.0);			
+			return angleRadians * (sign * 0.225 * (angleRadians - sign) + 1.0);
 		}
 
 		/**
@@ -179,7 +178,7 @@ package apparat.math {
 			var originalValue: Number = value
 			var halfValue: Number = value * 0.5
 			var i: int = 0
-			
+
 			if(value == 0.0) {
 				return 0.0
 			} else if(value < 0.0) {
@@ -209,13 +208,13 @@ package apparat.math {
 		public static function rsqrt(value: Number): Number {
 			var halfValue: Number = value * 0.5
 			var i: int = 0
-			
+
 			if(value == 0.0) {
 				return 0.0
 			} else if(value < 0.0) {
 				return Number.NaN
 			}
-			
+
 			Memory.writeFloat(value, 0)
 			i = 0x5f3759df - (Memory.readInt(0) >> 1)
 			Memory.writeInt(i, 0)
@@ -227,9 +226,9 @@ package apparat.math {
 		/**
 		 * Computes and returns the square root of the specified number.
 		 *
-		 * The address parameter should be a pointer to a <code>char[4]</code> in 
+		 * The address parameter should be a pointer to a <code>char[4]</code> in
 		 * the Alchemy memory buffer.
-		 * 
+		 *
 		 * @param value A number or expression greater than or equal to 0.
 		 * @param address The address in the Alchemy memory buffer.
 		 * @return If the parameter val is greater than or equal to zero, a number; otherwise NaN (not a number).
@@ -239,7 +238,7 @@ package apparat.math {
 			var originalValue: Number = value
 			var halfValue: Number = value * 0.5
 			var i: int = 0
-			
+
 			if(value == 0.0) {
 				return 0.0
 			} else if(value < 0.0) {
@@ -257,9 +256,9 @@ package apparat.math {
 		/**
 		 * Computes and returns the reciprocal of the square root for the specified number.
 		 *
-		 * The address parameter should be a pointer to a <code>char[4]</code> in 
+		 * The address parameter should be a pointer to a <code>char[4]</code> in
 		 * the Alchemy memory buffer.
-		 * 
+		 *
 		 * @param value A number or expression greater than or equal to 0.
 		 * @param address The address in the Alchemy memory buffer.
 		 * @return If the parameter val is greater than or equal to zero, a number; otherwise NaN (not a number).
@@ -269,13 +268,13 @@ package apparat.math {
 		public static function rsqrt2(value: Number, address: int): Number {
 			var halfValue: Number = value * 0.5
 			var i: int = 0
-			
+
 			if(value == 0.0) {
 				return 0.0
 			} else if(value < 0.0) {
 				return Number.NaN
 			}
-			
+
 			Memory.writeFloat(value, address)
 			i = 0x5f3759df - (Memory.readInt(address) >> 1)
 			Memory.writeInt(i, address)
@@ -283,10 +282,10 @@ package apparat.math {
 
 			return value * (1.5 - halfValue * value * value)
   		}
-		
+
 		/**
 		 * Integer cast with respect to its sign.
-		 * 
+		 *
 		 * @param value A number.
 		 * @return The number casted to an integer with respect to its sign.
 		 */
@@ -302,6 +301,6 @@ package apparat.math {
 		 */
 		public static function isNaN(n:Number):Boolean {
 			return n != n;
-		}		
+		}
 	}
 }
