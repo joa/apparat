@@ -19,4 +19,4 @@
 ::
 
 @echo off
-scala -cp "%~dp0\*" apparat.tools.asmifier.ASMifier %*
+scala -cp ".;%~dp0\*" apparat.tools.asmifier.ASMifier %*
