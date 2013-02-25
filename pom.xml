@@ -11,8 +11,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
-    <!-- Version 2.9.2 would require that specs is also built using 2.9.2 -->
-    <scala.version>2.9.1</scala.version>
+    <scala.version>2.9.2</scala.version>
     <flex.version>4.5.0.17855</flex.version>
     <flash.version>10.1</flash.version>
     <maven.version>3.0-beta-1</maven.version>
@@ -281,7 +280,7 @@
   <repositories>
     <repository>
       <id>scala-releases</id>
-      <url>http://scala-tools.org/repo-releases/</url>
+      <url>http://repo.typesafe.com/typesafe/scala-tools-releases/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
